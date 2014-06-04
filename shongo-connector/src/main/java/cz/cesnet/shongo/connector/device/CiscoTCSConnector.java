@@ -191,15 +191,17 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         this.metadataStorage = new LocalStorageHandler(metadataStorage);
 
         String storage = configuration.getOptionStringRequired("storage");
+        String permission = configuration.getOptionString("storage-permission", "Require user ${userPrincipalName}");
         String downloadableUrlBase = configuration.getOptionStringRequired("downloadable-url-base");
-        this.storage = new ApacheStorage(storage, downloadableUrlBase, new AbstractStorage.UserInformationProvider()
-        {
-            @Override
-            public UserInformation getUserInformation(String userId) throws CommandException
-            {
-                return getUserInformationById(userId);
-            }
-        });
+        this.storage = new ApacheStorage(storage, permission, downloadableUrlBase,
+                new AbstractStorage.UserInformationProvider()
+                {
+                    @Override
+                    public UserInformation getUserInformation(String userId) throws CommandException
+                    {
+                        return getUserInformationById(userId);
+                    }
+                });
 
         this.debug = configuration.getOptionBool("debug");
 

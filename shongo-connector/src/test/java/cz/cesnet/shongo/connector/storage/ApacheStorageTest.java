@@ -41,24 +41,25 @@ public class ApacheStorageTest
         }
         LocalStorageHandler.deleteContentRecursive(new java.io.File(rootFolderUrl));
 
-        storage = new ApacheStorage(rootFolderUrl, DOWNLOADABLE_URL_BASE, new AbstractStorage.UserInformationProvider()
-        {
-            @Override
-            public UserInformation getUserInformation(String userId)
-            {
-                if (userId.equals("srom")) {
-                    UserInformation userInformation = new UserInformation();
-                    userInformation.setFirstName("Martin");
-                    userInformation.setLastName("Srom");
-                    userInformation.addPrincipalName("srom@cesnet.cz");
-                    userInformation.addPrincipalName("208213@muni.cz");
-                    return userInformation;
-                }
-                else {
-                    throw new RuntimeException("User " + userId + " doesn't  exist.");
-                }
-            }
-        });
+        storage = new ApacheStorage(rootFolderUrl, "Require user ${userPrincipalName}", DOWNLOADABLE_URL_BASE,
+                new AbstractStorage.UserInformationProvider()
+                {
+                    @Override
+                    public UserInformation getUserInformation(String userId)
+                    {
+                        if (userId.equals("srom")) {
+                            UserInformation userInformation = new UserInformation();
+                            userInformation.setFirstName("Martin");
+                            userInformation.setLastName("Srom");
+                            userInformation.addPrincipalName("srom@cesnet.cz");
+                            userInformation.addPrincipalName("208213@muni.cz");
+                            return userInformation;
+                        }
+                        else {
+                            throw new RuntimeException("User " + userId + " doesn't  exist.");
+                        }
+                    }
+                });
     }
 
     @After

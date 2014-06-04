@@ -1,16 +1,12 @@
 package cz.cesnet.shongo.connector.storage;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * {@link AbstractStorage} which is implemented by local folder which is published by Apache.
@@ -19,10 +15,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ApacheStorage extends AbstractStorage
 {
+    private static final String PERMISSION_FILE_NAME = ".htaccess";
+
     /**
      * @see cz.cesnet.shongo.connector.storage.LocalStorageHandler
      */
     private LocalStorageHandler localStorageHandler;
+
+    /**
+     * Format for single user permission which can be used in {@link #PERMISSION_FILE_NAME}.
+     */
+    private String permissionFormat;
 
     /**
      * Constructor.
@@ -30,11 +33,12 @@ public class ApacheStorage extends AbstractStorage
      * @param url                     sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    public ApacheStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider)
+    public ApacheStorage(String url, String permissionFormat, String downloadableUrlBase, UserInformationProvider userInformationProvider)
     {
         super(url, downloadableUrlBase, userInformationProvider);
 
-        localStorageHandler = new LocalStorageHandler(url);
+        this.localStorageHandler = new LocalStorageHandler(url);
+        this.permissionFormat = permissionFormat.trim();
     }
 
     @Override
@@ -66,16 +70,33 @@ public class ApacheStorage extends AbstractStorage
             throws CommandException
     {
         String folderUrl = localStorageHandler.getUrlFromId(folderId);
-        String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, ".htaccess");
+        String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, PERMISSION_FILE_NAME);
+
+        String permissionFormat;
+        Set<String> permissionValues = new TreeSet<String>();
+        if (this.permissionFormat.contains("${userPrincipalName}")) {
+            permissionFormat = this.permissionFormat.replace("${userPrincipalName}", "${permissionValue}");
+            for (String userId : new TreeSet<String>(userPermissions.keySet())) {
+                UserInformation userInformation = getUserInformation(userId);
+                for (String principalName : new TreeSet<String>(userInformation.getPrincipalNames())) {
+                    permissionValues.add(principalName);
+                }
+            }
+        }
+        else if (this.permissionFormat.contains("${userId}")) {
+            permissionFormat = this.permissionFormat.replace("${userId}", "${permissionValue}");
+            for (String userId : new TreeSet<String>(userPermissions.keySet())) {
+                permissionValues.add(userId);
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Illegal permission format '" + this.permissionFormat + "'.");
+        }
 
         StringBuilder permissionFileContent = new StringBuilder();
-        permissionFileContent.append("require user");
-        for (String userId : new TreeSet<String>(userPermissions.keySet())) {
-            UserInformation userInformation = getUserInformation(userId);
-            for (String principalName : new TreeSet<String>(userInformation.getPrincipalNames())) {
-                permissionFileContent.append(" ");
-                permissionFileContent.append(principalName);
-            }
+        for (String permissionValue : permissionValues) {
+            permissionFileContent.append(permissionFormat.replace("${permissionValue}", permissionValue));
+            permissionFileContent.append("\n");
         }
         PrintStream out = null;
         try {

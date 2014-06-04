@@ -2,7 +2,6 @@ package cz.cesnet.shongo.api;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 
 /**
  * Represents a recording in multipoint device or endpoint recording server.
@@ -57,7 +56,7 @@ public class Recording extends IdentifiedComplexType
     private Duration duration;
 
     /**
-     * @see State
+     * @see cz.cesnet.shongo.api.Recording.State
      */
     private State state;
 
@@ -283,9 +282,10 @@ public class Recording extends IdentifiedComplexType
     }
 
     /**
-     * Available states of {@link Recording}.
+     * Available states of {@link cz.cesnet.shongo.api.Recording}.
      */
-    public static enum State
+    @jade.content.onto.annotations.Element(name = "RecordingState")
+    public enum State
     {
         /**
          * Recording hasn't been started yet.

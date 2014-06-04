@@ -73,6 +73,7 @@ public class ConnectorStatus extends AbstractComplexType implements Concept
     /**
      * State of the connector.
      */
+    @jade.content.onto.annotations.Element(name = "ConnectorStatusState")
     public static enum State
     {
         /**

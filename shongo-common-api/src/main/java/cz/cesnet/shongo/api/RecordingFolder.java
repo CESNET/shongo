@@ -4,6 +4,7 @@ package cz.cesnet.shongo.api;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a folder for recordings in multipoint device or endpoint recording server.
@@ -37,6 +38,17 @@ public class RecordingFolder extends IdentifiedComplexType
     public RecordingFolder(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name sets the {@link #name}
+     */
+    public RecordingFolder(String name, Map<String, UserPermission> userPermissions)
+    {
+        this.name = name;
+        this.userPermissions = userPermissions;
     }
 
     /**

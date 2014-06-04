@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.connector.test;
 
+import cz.cesnet.shongo.api.jade.Command;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.ConnectorContainer;
 import cz.cesnet.shongo.connector.ConnectorContainerConfiguration;
@@ -12,6 +14,7 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.common.AbstractConnector;
 import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.jade.ConnectorAgent;
+import cz.cesnet.shongo.controller.ControllerScope;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
@@ -212,6 +215,16 @@ public abstract class AbstractConnectorTest
     }
 
     /**
+     * @param command
+     * @param sender
+     * @return result
+     */
+    protected Object handleControllerCommand(Command command, AID sender)
+    {
+        return null;
+    }
+
+    /**
      * @param object to be dumped
      */
     public void dump(Object object)
@@ -272,6 +285,24 @@ public abstract class AbstractConnectorTest
                 addOntology(ConnectorOntology.getInstance());
                 addOntology(ControllerOntology.getInstance());
                 super.setup();
+            }
+        }, null);
+        // Create controller agent
+        this.mainContainer.addAgent("Controller", new Agent(){
+            @Override
+            protected void setup()
+            {
+                addOntology(ConnectorOntology.getInstance());
+                addOntology(ControllerOntology.getInstance());
+                super.setup();
+                registerService(ControllerScope.CONTROLLER_AGENT_SERVICE,
+                        ControllerScope.CONTROLLER_AGENT_SERVICE_NAME);
+            }
+
+            @Override
+            public Object handleCommand(Command command, AID sender) throws CommandException
+            {
+                return handleControllerCommand(command, sender);
             }
         }, null);
 

@@ -88,6 +88,7 @@
                 <alias>999</alias>
                 # Folder configuration
                 <storage>/media/shongo-dev/storage</storage>
+                <storage-permission>Require user ${userPrincipalName}</storage-permission>
                 <metadata-storage>/media/shongo-dev/metadata</metadata-storage>
                 <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
                 # Recordings configuration

@@ -121,6 +121,7 @@ public class Domain extends AbstractComplexType
      * Status of a domain.
      *
      */
+    @jade.content.onto.annotations.Element(name = "DomainStatus")
     public enum Status
     {
         /**
