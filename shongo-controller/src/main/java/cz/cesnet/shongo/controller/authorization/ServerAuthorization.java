@@ -23,6 +23,7 @@ import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -884,13 +885,11 @@ public class ServerAuthorization extends Authorization
                 userData.setTimeZone(timeZone);
             }
         }
-        if (data.has("authentication_info")) {
-            JsonNode authenticationInfo = data.get("authentication_info");
-            if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
+        if (data.has("authn_provider") && data.has("authn_instant") && data.has("loa")) {
                 userData.setUserAuthorizationData(new UserAuthorizationData(
-                        authenticationInfo.get("provider").getTextValue(),
-                        authenticationInfo.get("loa").getIntValue()));
-            }
+                        data.get("authn_provider").getTextValue(),
+                        DateTime.parse(data.get("authn_instant").getTextValue()),
+                        data.get("loa").getIntValue()));
         }
 
         return userData;

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import org.joda.time.DateTime;
+
 /**
  * User authorization data.
  *
@@ -19,12 +21,17 @@ public class UserAuthorizationData
     /**
      * Identity provider.
      */
-    final private String provider;
+    private final String provider;
+
+    /**
+     * Instant
+     */
+    private final DateTime instant;
 
     /**
      * Level of authenticity.
      */
-    final private int loa;
+    private final int loa;
 
     /**
      * Constructor.
@@ -33,7 +40,7 @@ public class UserAuthorizationData
      */
     public UserAuthorizationData(int loa)
     {
-        this(null, loa);
+        this(null, null, loa);
     }
 
     /**
@@ -42,12 +49,13 @@ public class UserAuthorizationData
      * @param provider sets the {@link #provider}
      * @param loa sets the {@link #loa}
      */
-    public UserAuthorizationData(String provider, int loa)
+    public UserAuthorizationData(String provider, DateTime instant, int loa)
     {
         if (loa < LOA_MIN || loa > LOA_MAX) {
             throw new IllegalArgumentException("LOA must be in range " + LOA_MIN + "-" + LOA_MAX + ".");
         }
         this.provider = provider;
+        this.instant = instant;
         this.loa = loa;
     }
 
@@ -57,6 +65,14 @@ public class UserAuthorizationData
     public String getProvider()
     {
         return provider;
+    }
+
+    /**
+     * @return {@link #instant}
+     */
+    public DateTime getInstant()
+    {
+        return instant;
     }
 
     /**
