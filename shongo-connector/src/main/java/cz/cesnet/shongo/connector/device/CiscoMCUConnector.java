@@ -204,11 +204,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             authUsername = username;
             authPassword = password;
 
-            // Trust device certificate
-            if (deviceAddress.isSsl()) {
-                ConfiguredSSLContext.getInstance().addAdditionalCertificates(deviceAddress.getHost());
-            }
-
             // Create XmlRpcClient for XML-RPC API communication
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(getDeviceApiUrl());

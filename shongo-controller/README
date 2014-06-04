@@ -103,6 +103,34 @@ Add also the following to "/etc/nagios/nrpe.cfg":
     command[check_shongo_connector]=<shongo>/shongo-deployment/bin/shongo_check.sh -c shongo-dev.cesnet.cz connector <agent-names>
 
 
+== JAVA KEYSTORE ======================================================================================================
+
+Listing certificates in java keystore:
+
+    keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts -storepass "changeit" -list  -v
+
+Add TERENA certificate:
+
+    wget http://www.terena.org/activities/tcs/repository/TERENA_SSL_CA.der \
+        && keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts -storepass "changeit" -noprompt -import -alias "TERENA_SSL_CA" -file TERENA_SSL_CA.der \
+        ; rm TERENA_SSL_CA.der
+
+Delete TERENA certificate:
+
+    keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts -storepass "changeit" -noprompt -delete -alias "TERENA_SSL_CA"
+
+Convert PEM to DER:
+
+    openssl x509 -outform der -in <input>.pem -out <output>.der
+
+Debugging:
+
+    -Djavax.net.debug=all
+
+Use different keystore:
+
+    -Djavax.net.ssl.trustStore=<keystore>
+
 
 == HIBERNATE NOTES ====================================================================================================
 
