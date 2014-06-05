@@ -349,8 +349,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             controller.destroy();
             preprocessor.destroy();
             scheduler.destroy();
-
-            Container.killAllJadeThreads();
         }
 
         super.after();

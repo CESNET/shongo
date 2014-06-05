@@ -154,7 +154,7 @@ public class ApacheStorageTest
     public void testConnectionResetHttp() throws Exception
     {
         final String fileName = "http://195.113.151.184/large_file";
-        final HttpClient httpClient = new DefaultHttpClient();
+        final HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
 
         HttpGet request = new HttpGet(fileName);
         HttpContext context = new BasicHttpContext();

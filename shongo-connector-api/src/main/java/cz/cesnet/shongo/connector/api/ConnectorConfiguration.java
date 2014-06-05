@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import org.joda.time.Duration;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -35,6 +36,12 @@ public abstract class ConnectorConfiguration
      * @return value for given {@code option}
      */
     public abstract String getOptionString(String option);
+
+    /**
+     * @param option
+     * @return list of option configurations
+     */
+    public abstract List<Configuration> getOptionConfigurationList(String option);
 
     /**
      * @param option

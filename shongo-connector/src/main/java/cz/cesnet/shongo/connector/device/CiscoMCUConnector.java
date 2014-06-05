@@ -14,6 +14,7 @@ import cz.cesnet.shongo.connector.support.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.MathHelper;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -198,6 +199,18 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         // Load options
         roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
         roomNumberFromSIPURI = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
+
+        hiddenParticipantAddresses.clear();
+        for (Configuration participant : configuration.getOptionConfigurationList("participants.participant")) {
+            boolean hide = participant.getBool("hide");
+            if (hide) {
+                String address = participant.getString("address");
+                if (address == null || address.isEmpty()) {
+                    throw new IllegalArgumentException("Address for participant must be filled.");
+                }
+                hiddenParticipantAddresses.add(address);
+            }
+        }
 
         try {
             // not standard basic auth - credentials are to be passed together with command parameters

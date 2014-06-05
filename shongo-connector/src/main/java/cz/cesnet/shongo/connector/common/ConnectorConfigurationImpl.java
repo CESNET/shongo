@@ -7,6 +7,10 @@ import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * {@link ConnectorConfiguration} which is loaded from {@link HierarchicalConfiguration}.
@@ -126,6 +130,24 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
     public String getOptionString(String option)
     {
         return configuration.getString("options." + option);
+    }
+
+    @Override
+    public List<cz.cesnet.shongo.connector.api.Configuration> getOptionConfigurationList(String option)
+    {
+        List<cz.cesnet.shongo.connector.api.Configuration> configurations =
+                new LinkedList<cz.cesnet.shongo.connector.api.Configuration>();
+        for (final HierarchicalConfiguration configuration : this.configuration.configurationsAt("options." + option)) {
+            configurations.add(new cz.cesnet.shongo.connector.api.Configuration()
+            {
+                @Override
+                public String getString(String attribute)
+                {
+                    return configuration.getString(attribute);
+                }
+            });
+        }
+        return configurations;
     }
 
     private String getStringRequired(String attribute)

@@ -19,6 +19,7 @@ import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.Logging;
 import jade.core.AID;
 import org.apache.commons.configuration.AbstractConfiguration;
@@ -269,6 +270,9 @@ public abstract class AbstractConnectorTest
         logger.info("Starting Connector Test...");
 
         Logging.installBridge();
+
+        // Configure SSL
+        ConfiguredSSLContext.getInstance().loadConfiguration(containerConfiguration);
 
         // Start main JADE container
         logger.info("Starting main JADE container on {}:{} (platform {})...",

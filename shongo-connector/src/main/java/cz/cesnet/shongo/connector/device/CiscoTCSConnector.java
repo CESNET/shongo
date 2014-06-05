@@ -391,8 +391,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 if (Recording.State.NOT_PROCESSED.equals(recording.getState())) {
                     // Refresh state from TCS
                     String recordingTcsId = getRecordingTcsIdFromRecordingId(recording.getId());
-                    Recording recordingTcs = getTcsRecording(recordingTcsId);
-                    recording.setState(recordingTcs.getState());
+                    Element recordingTcsElement = getTcsRecordingElement(recordingTcsId);
+                    if (recordingTcsElement != null) {
+                        Recording recordingTcs = parseRecording(recordingTcsElement);
+                        recording.setState(recordingTcs.getState());
+                    }
                 }
             }
             catch (IOException e) {
@@ -1196,7 +1199,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             file.setFileName(recording.getFileName());
             file.setFolderId(recordingFolderId);
             final String recordingUrl = recording.getDownloadUrl();
-            final HttpClient httpClient = new DefaultHttpClient();
+            final HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
             HttpGet request = new HttpGet(recordingUrl);
             HttpResponse response = httpClient.execute(request);
             InputStream inputStream = response.getEntity().getContent();
