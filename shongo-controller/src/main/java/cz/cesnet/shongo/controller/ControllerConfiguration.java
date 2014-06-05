@@ -160,11 +160,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SECURITY_AUTHORIZATION_RESERVATION = "security.authorization.reservation";
 
     /**
-     * SSL host verification mappings.
-     */
-    public static final String SSL_HOST_VERIFICATION_MAPPINGS = "ssl.host-verification-mapping";
-
-    /**
      * Url where user can change his settings.
      */
     public static final String NOTIFICATION_USER_SETTINGS_URL = "notification.user-settings-url";
@@ -180,7 +175,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     public ControllerConfiguration()
     {
         NodeCombiner nodeCombiner = new UnionCombiner();
-        nodeCombiner.addListNode("host-verification-mapping");
         nodeCombiner.addListNode("email");
         setNodeCombiner(nodeCombiner);
     }

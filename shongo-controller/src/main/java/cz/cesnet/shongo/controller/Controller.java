@@ -869,17 +869,11 @@ public class Controller
         }
         // Create controller
         final Controller controller = Controller.create(configurationFileName);
+        ControllerConfiguration configuration = controller.getConfiguration();
         NotificationManager notificationManager = controller.getNotificationManager();
 
-        // Configure SSL host verification mappings
-        ControllerConfiguration configuration = controller.getConfiguration();
-        for (HierarchicalConfiguration mapping :
-                configuration.configurationsAt(ControllerConfiguration.SSL_HOST_VERIFICATION_MAPPINGS)) {
-            String mappedHost = mapping.getString("[@mapped-host]");
-            String targetHost = mapping.getString("[@target-host]");
-            logger.info("Configuring SSL host verification mapping from '{}' to '{}'.", mappedHost, targetHost);
-            ConfiguredSSLContext.getInstance().addTrustedHostMapping(mappedHost, targetHost);
-        }
+        // Configure SSL
+        ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
 
         logger.debug("Creating entity manager factory...");
         Timer timer = new Timer();

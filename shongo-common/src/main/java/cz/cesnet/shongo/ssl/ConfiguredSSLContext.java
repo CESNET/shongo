@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.ssl;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -9,7 +10,6 @@ import org.apache.http.conn.ssl.AbstractVerifier;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.slf4j.Logger;
@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -35,6 +34,12 @@ import java.util.*;
 public class ConfiguredSSLContext
 {
     private static Logger logger = LoggerFactory.getLogger(ConfiguredSSLContext.class);
+
+    /**
+     * Configuration of SSL hostname verification.
+     */
+    public static final String SSL_MAPPED_HOSTNAME = "ssl.mapped-hostname";
+    public static final String SSL_TRUSTED_HOSTNAME = "ssl.trusted-hostname";
 
     private TrustManager trustManager;
 
@@ -89,23 +94,6 @@ public class ConfiguredSSLContext
     }
 
     /**
-     * @param mappedHost which host should be mapped
-     * @param targetHost target host to which the {@code mappedHost} should be mapped
-     */
-    public void addTrustedHostMapping(String mappedHost, String targetHost)
-    {
-        hostnameVerifier.addHostMapping(mappedHost, targetHost);
-    }
-
-    /**
-     * @param host from which should be downloaded all it's certificates and which should be added as trusted
-     */
-    public void addAdditionalCertificates(String host)
-    {
-        trustManager.addCertificates(host);
-    }
-
-    /**
      * @return new {@link HttpClient} configured with the {@link ConfiguredSSLContext}
      */
     public DefaultHttpClient createHttpClient()
@@ -148,43 +136,88 @@ public class ConfiguredSSLContext
         return instance;
     }
 
+    /**
+     * @param configuration to be loaded
+     */
+    public void loadConfiguration(HierarchicalConfiguration configuration)
+    {
+        ConfiguredSSLContext configuredSSLContext = ConfiguredSSLContext.getInstance();
+        for (HierarchicalConfiguration mapping : configuration.configurationsAt(SSL_MAPPED_HOSTNAME)) {
+            String source = mapping.getString("[@source]");
+            String target = mapping.getString("[@target]");
+            logger.info("Configuring SSL hostname verification to verify '{}' instead of '{}'.", target, source);
+            configuredSSLContext.hostnameVerifier.addMappedHostName(source, target);
+        }
+        for (HierarchicalConfiguration mapping : configuration.configurationsAt(SSL_TRUSTED_HOSTNAME)) {
+            String hostName = (String) mapping.getRoot().getValue();
+            logger.info("Configuring SSL hostname verification to always successfully verify the '{}'.", hostName);
+            configuredSSLContext.hostnameVerifier.addTrustedHostName(hostName);
+        }
+    }
+
     private class HostnameVerifier extends AbstractVerifier
     {
         /**
-         * Set of host mappings which are trusted in the certificates.
+         * Set of mapped host names.
          */
-        private Map<String, String> hostMapping = new HashMap<String, String>();
+        private Map<String, String> mappedHostNames = new HashMap<String, String>();
 
         /**
-         * @param mappedHost which host should be mapped
-         * @param targetHost target host to which the {@code mappedHost} should be mapped
+         * Set of trusted host names.
          */
-        public void addHostMapping(String mappedHost, String targetHost)
+        private Set<String> trustedHostNames = new HashSet<String>();
+
+        /**
+         * @param sourceHostName which host should be mapped
+         * @param targetHostName target host to which the {@code mappedHostName} should be mapped
+         */
+        public void addMappedHostName(String sourceHostName, String targetHostName)
         {
-            hostMapping.put(mappedHost, targetHost);
+            mappedHostNames.put(sourceHostName, targetHostName);
+        }
+
+        /**
+         * @param trustedHostName to be added to the {@link #trustedHostNames}
+         */
+        public void addTrustedHostName(String trustedHostName)
+        {
+            trustedHostNames.add(trustedHostName);
         }
 
         @Override
-        public final void verify(String host, String[] cns, String[] subjectAlts) throws javax.net.ssl.SSLException
+        public final void verify(String hostName, String[] cns, String[] subjectAlts) throws javax.net.ssl.SSLException
         {
-            String targetHost = hostMapping.get(host);
-            if (targetHost != null) {
-                boolean addHostAsSubjectAlt = false;
-                for (String subjectAlt : subjectAlts) {
-                    if (subjectAlt.equals(targetHost)) {
-                        addHostAsSubjectAlt = true;
-                    }
-                    else if (subjectAlt.equals(host)) {
-                        addHostAsSubjectAlt = false;
-                        break;
+            boolean explicitlyTrustHostName = trustedHostNames.contains(hostName);
+            String mappedHostName = mappedHostNames.get(hostName);
+            if (explicitlyTrustHostName || mappedHostName != null) {
+                Set<String> subjectAltsSet = new LinkedHashSet<String>();
+                if (subjectAlts != null) {
+                    subjectAltsSet.addAll(Arrays.asList(subjectAlts));
+                    for (String subjectAlt : subjectAlts) {
+                        if (subjectAlt.compareToIgnoreCase(mappedHostName) == 0) {
+                            explicitlyTrustHostName = true;
+                        }
+                        else if (subjectAlt.compareToIgnoreCase(hostName) == 0) {
+                            explicitlyTrustHostName = false;
+                            break;
+                        }
                     }
                 }
-                if (addHostAsSubjectAlt) {
-                    subjectAlts = Arrays.copyOf(subjectAlts, subjectAlts.length + 1);
-                    subjectAlts[subjectAlts.length - 1] = host;
+                if (cns != null) {
+                    for (String cn : cns) {
+                        if (cn.compareToIgnoreCase(mappedHostName) == 0) {
+                            explicitlyTrustHostName = true;
+                        }
+                    }
+                }
+                if (explicitlyTrustHostName) {
+                    subjectAltsSet.add(hostName);
+                }
+                if (!subjectAltsSet.isEmpty()) {
+                    subjectAlts = subjectAltsSet.toArray(new String[subjectAltsSet.size()]);
                 }
             }
-            verify(host, cns, subjectAlts, false);
+            verify(hostName, cns, subjectAlts, false);
         }
     }
 
@@ -253,7 +286,7 @@ public class ConfiguredSSLContext
         /**
          * @param host from which all certificates should be added to the {@link #certificateStore}
          */
-        public synchronized void addCertificates(String host)
+        public synchronized void addTrustedCertificate(String host)
         {
             if (alreadyAddedHosts.add(host)) {
                 try {

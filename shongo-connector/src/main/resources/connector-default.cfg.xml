@@ -18,6 +18,14 @@
         <command-timeout>PT10S</command-timeout>
     </jade>
 
+    <!-- SSL configuration -->
+    <!--<ssl>-->
+        <!-- Mapping source hostname to different target hostname for certificate hostname verification -->
+        <!--<mapped-hostname source="illegal-host-name" target="corrected-host-name"/>-->
+        <!-- Trusted hostname for certificate hostname verification -->
+        <!--<trusted-hostname>host-name</trusted-hostname>-->
+    <!--</ssl>-->
+
     <!-- Connector instances (agents) to automatically start -->
     <connectors>
 

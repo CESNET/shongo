@@ -139,6 +139,10 @@ public class ClientWeb
         final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
         final Server server = new Server();
 
+        // Configure SSL
+        ConfiguredSSLContext.getInstance().loadConfiguration(clientWebConfiguration);
+
+        // Create web app
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
         webAppContext.setDescriptor("WEB-INF/web.xml");
@@ -158,12 +162,6 @@ public class ClientWeb
             String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
             webAppContext.setResourceBase(resourceBase);
         }
-
-        URL controllerUrl = clientWebConfiguration.getControllerUrl();
-        if (controllerUrl.getProtocol().equals("https")) {
-            ConfiguredSSLContext.getInstance().addAdditionalCertificates(controllerUrl.toString());
-        }
-        ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
 
         // SSL key store
         final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();

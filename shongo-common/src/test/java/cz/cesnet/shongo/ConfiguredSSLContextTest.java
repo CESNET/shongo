@@ -30,7 +30,7 @@ public class ConfiguredSSLContextTest
         System.out.println(requestByConnection("https://tconn.cesnet.cz/api/xml"));
         System.out.println(requestByHttpClient("https://tconn.cesnet.cz/api/xml"));
 
-        sslContext.addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
+        sslContext.addHostNameVerifierMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
         System.out.println(requestByConnection("https://shongo-auth-dev.cesnet.cz/authn/oic/authorize"));
         System.out.println(requestByHttpClient("https://shongo-auth-dev.cesnet.cz/authn/oic/authorize"));*/
     }

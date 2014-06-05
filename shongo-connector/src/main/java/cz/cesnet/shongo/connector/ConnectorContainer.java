@@ -8,6 +8,7 @@ import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.*;
@@ -110,6 +111,14 @@ public class ConnectorContainer
     {
         this(new ConnectorContainerConfiguration(
                 ConnectorContainerConfiguration.loadConfigurations(configurationFileNames)));
+    }
+
+    /**
+     * @return {@link #configuration}
+     */
+    public ConnectorContainerConfiguration getConfiguration()
+    {
+        return configuration;
     }
 
     /**
@@ -393,6 +402,9 @@ public class ConnectorContainer
             }
         }
         final ConnectorContainer connectorContainer = new ConnectorContainer(configurationFileNames);
+
+        // Configure SSL
+        ConfiguredSSLContext.getInstance().loadConfiguration(connectorContainer.getConfiguration());
 
         // Thread that checks the connection to the main controller
         // and if it is down it tries to connect.

@@ -67,12 +67,6 @@
         </authorization>
     </security>
 
-    <!-- SSL configuration -->
-    <ssl>
-        <!-- Mapping hosts to different hosts for certificate verification -->
-        <host-verification-mapping mapped-host="shongo-auth-dev.cesnet.cz" target-host="hroch.cesnet.cz"/>
-    </ssl>
-
     <!-- Worker periodically starts preprocessor and scheduler -->
     <worker>
         <!-- Period in which the worker is periodically working -->
@@ -131,5 +125,13 @@
 
     <!-- Configuration of domain administrators-->
     <!--<administrator></administrator>-->
+
+    <!-- SSL configuration -->
+    <!--<ssl>-->
+        <!-- Mapping source hostname to different target hostname for certificate hostname verification -->
+        <!--<mapped-hostname source="illegal-host-name" target="corrected-host-name"/>-->
+        <!-- Trusted hostname for certificate hostname verification -->
+        <!--<trusted-hostname>host-name</trusted-hostname>-->
+    <!--</ssl>-->
 
 </configuration>

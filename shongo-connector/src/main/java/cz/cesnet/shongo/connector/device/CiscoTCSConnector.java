@@ -641,9 +641,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 final ContextAwareAuthScheme md5Auth = new DigestScheme();
 
                 // Setup POST request
-                HttpPost lHttpPost = new HttpPost("http://" + deviceAddress + "/tcs/SoapServer.php");
-
-                ConfiguredSSLContext.getInstance().addAdditionalCertificates(lHttpPost.getURI().getHost());
+                HttpPost lHttpPost = new HttpPost(deviceAddress.getUrl() + "/tcs/SoapServer.php");
 
                 // Set SOAPAction header
                 lHttpPost.addHeader("SOAPAction", "http://www.tandberg.net/XML/Streaming/1.0/GetSystemInformation");

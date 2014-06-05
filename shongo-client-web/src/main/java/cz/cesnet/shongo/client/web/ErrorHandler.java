@@ -254,6 +254,7 @@ public class ErrorHandler
             return modelAndView;
         }
         else if (cause instanceof AuthenticationServiceException) {
+            logger.warn("Authentication failed", cause);
             Locale locale = RequestContextUtils.getLocale(request);
             ModelAndView modelAndView = new ModelAndView("errorAuthentication");
             String reason = null;
