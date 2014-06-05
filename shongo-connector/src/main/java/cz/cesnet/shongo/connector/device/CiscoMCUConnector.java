@@ -855,7 +855,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private void loginHttp() throws CommandException
     {
         try {
-            HttpPost request = new HttpPost("https://mcuc.cesnet.cz/login_change.html");
+            HttpPost request = new HttpPost(getDeviceHttpUrl("/login_change.html").toURI());
             List<NameValuePair> parameters = new ArrayList<NameValuePair>(2);
             parameters.add(new BasicNameValuePair("user_name", authUsername));
             parameters.add(new BasicNameValuePair("password", authPassword));
@@ -869,10 +869,12 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                 throw new RuntimeException("Wrong status " + responseStatusLine);
             }
             String responseRequestUrl = responseRequest.getRequestLine().getUri();
-            if (!responseRequestUrl.startsWith("/index.html")) {
-                throw new RuntimeException("Wrong url " + responseRequestUrl);
+            if (responseRequestUrl.startsWith("/index.html") || responseRequestUrl.equals("/")) {
+                logger.info("Http login successful.");
             }
-            logger.info("Http login successful.");
+            else {
+                throw new RuntimeException("Wrong response url " + responseRequestUrl);
+            }
         }
         catch (Exception exception) {
             throw new CommandException("Http login failed", exception);
