@@ -103,6 +103,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private int capacityCheckTimeout;
 
     /**
+     * Thread for capacity checking.
+     */
+    private Thread capacityCheckThread;
+
+    /**
      * If capacity check is running.
      */
     private volatile boolean capacityChecking = false;
@@ -145,6 +150,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void disconnect() throws CommandException
     {
+        this.capacityCheckThread = null;
+        this.recordingManager.destroy();
         this.connectionState = ConnectionState.DISCONNECTED;
         this.logout();
     }
@@ -1200,7 +1207,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
         this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
-        Thread capacityCheckThread = new Thread() {
+        this.capacityCheckThread = new Thread() {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
             @Override
@@ -1208,7 +1215,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             {
                 setCapacityChecking(true);
                 logger.info("Checking of rooms capacity - starting...");
-                while (isConnected()) {
+                while (capacityCheckThread != null && isConnected()) {
                     try {
                         Thread.sleep(capacityCheckTimeout);
                     } catch (InterruptedException e) {
@@ -1226,10 +1233,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 setCapacityChecking(false);
             }
         };
-        capacityCheckThread.setName(Thread.currentThread().getName() + "-capacities");
+        this.capacityCheckThread.setName(Thread.currentThread().getName() + "-capacities");
         synchronized (this) {
             if (!this.capacityChecking) {
-                capacityCheckThread.start();
+                this.capacityCheckThread.start();
             }
         }
     }

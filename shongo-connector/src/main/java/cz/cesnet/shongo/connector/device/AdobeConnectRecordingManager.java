@@ -82,6 +82,11 @@ public class AdobeConnectRecordingManager
     private List<String> cachedMovedRecordings = new ArrayList<String>();
 
     /**
+     * Thread for checking recordings.
+     */
+    private Thread checkRecordingsThread;
+
+    /**
      * Constructor.
      *
      * @param connector sets the {@link #connector}
@@ -99,7 +104,7 @@ public class AdobeConnectRecordingManager
                 AdobeConnectConnector.RECORDINGS_FOLDER_NAME);
         this.recordingsFolderId = getRecordingsFolderId();
 
-        Thread moveRecordingThread = new Thread()
+        this.checkRecordingsThread = new Thread()
         {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -107,7 +112,7 @@ public class AdobeConnectRecordingManager
             public void run()
             {
                 logger.info("Checking of recordings - starting...");
-                while (connector.isConnected()) {
+                while (checkRecordingsThread != null && connector.isConnected()) {
                     try {
                         Thread.sleep(recordingsCheckTimeout);
                     }
@@ -126,8 +131,16 @@ public class AdobeConnectRecordingManager
                 logger.info("Checking of recordings - exiting...");
             }
         };
-        moveRecordingThread.setName(Thread.currentThread().getName() + "-recordings");
-        moveRecordingThread.start();
+        this.checkRecordingsThread.setName(Thread.currentThread().getName() + "-recordings");
+        this.checkRecordingsThread.start();
+    }
+
+    /**
+     * Destroy.
+     */
+    public void destroy()
+    {
+        this.checkRecordingsThread = null;
     }
 
     /**

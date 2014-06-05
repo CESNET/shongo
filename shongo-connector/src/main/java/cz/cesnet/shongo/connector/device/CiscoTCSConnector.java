@@ -28,7 +28,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.DigestScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
@@ -143,6 +142,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     private boolean debug = false;
 
     /**
+     * Thread for checking recordings.
+     */
+    private Thread checkRecordingsThread;
+
+    /**
      * Storage unit for recordings (can have slow access)
      */
     private AbstractStorage storage;
@@ -207,7 +211,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
         checkServerVitality();
 
-        Thread moveRecordingThread = new Thread()
+        this.checkRecordingsThread = new Thread()
         {
             private Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
 
@@ -217,12 +221,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 setRecordingChecking(true);
                 logger.info("Checking of recordings - starting...");
                 try {
-                    while (isConnected()) {
+                    while (checkRecordingsThread != null && isConnected()) {
                         try {
                             Thread.sleep(recordingsCheckTimeout);
-
                         }
-                        catch (InterruptedException e) {
+                        catch (InterruptedException exception) {
                             Thread.currentThread().interrupt();
                             continue;
                         }
@@ -241,11 +244,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 }
             }
         };
-        moveRecordingThread.setName(Thread.currentThread().getName() + "-recordings");
+        this.checkRecordingsThread.setName(Thread.currentThread().getName() + "-recordings");
 
         synchronized (this) {
             if (!this.recordingChecking) {
-                moveRecordingThread.start();
+                checkRecordingsThread.start();
             }
         }
     }
@@ -266,7 +269,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     @Override
     public void disconnect() throws CommandException
     {
-        // Nothing to be done
+        checkRecordingsThread = null;
     }
 
     /**
