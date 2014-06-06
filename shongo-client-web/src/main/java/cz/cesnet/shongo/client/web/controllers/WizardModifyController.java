@@ -252,6 +252,16 @@ public class WizardModifyController extends AbstractWizardController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
+        // Validate recorded
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
+        validator.validate(reservationRequest, bindingResult);
+        if (bindingResult.hasErrors()) {
+            WizardView wizardView = getView(Page.RECORDED, "wizardModifyRecorded.jsp", reservationRequest);
+            wizardView.addObject("errors", bindingResult);
+            return wizardView;
+        }
+
         // Modify reservation request
         String reservationRequestId = reservationService.modifyReservationRequest(
                 securityToken, reservationRequest.toApi(request));

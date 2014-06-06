@@ -12,6 +12,7 @@
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@attribute name="detailUrl" required="false" %>
 
+<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -76,7 +77,7 @@
     </c:if>
 
     <%-- Resource --%>
-    <c:if test="${not empty reservationRequest.roomResourceId}">
+    <c:if test="${administratorMode && not empty reservationRequest.roomResourceId}">
         <dt><spring:message code="views.reservationRequest.specification.resourceId"/>:</dt>
         <dd>${reservationRequest.roomResourceName} (${reservationRequest.roomResourceId})</dd>
     </c:if>
@@ -147,7 +148,7 @@
     </c:if>
 
     <%-- Recording Resource --%>
-    <c:if test="${not empty reservationRequest.roomRecordingResourceId}">
+    <c:if test="${administratorMode && not empty reservationRequest.roomRecordingResourceId}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:</dt>
         <dd>${reservationRequest.roomRecordingResourceName} (${reservationRequest.roomRecordingResourceId})</dd>
     </c:if>
@@ -163,7 +164,7 @@
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
             <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${reservationRequest.detail.state}" var="stateLabel"/>
-            <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}">
+            <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}" selectable="true">
                 ${reservationRequest.detail.stateHelp}
             </tag:help>
             <c:if test="${reservationRequest.detail.state == 'NOT_ALLOCATED' && reservationRequest.slot.end.afterNow}">

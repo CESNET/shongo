@@ -192,16 +192,16 @@ public class RecordingServiceReservationTask extends ReservationTask
         for (AvailableRecorder availableRecorder : availableRecorders) {
             RecordingCapability recordingCapability = availableRecorder.getRecordingCapability();
             DeviceResource deviceResource = availableRecorder.getDeviceResource();
-            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
 
             // Check whether alias provider can be allocated
             try {
                 resourceCache.checkCapabilityAvailable(recordingCapability, this.slot, schedulerContext, this);
             }
             catch (SchedulerException exception) {
-                endReportError(exception.getReport());
+                addReport(exception.getReport());
                 continue;
             }
+            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
 
             // Allocate recording service
             RecordingService recordingService = new RecordingService();

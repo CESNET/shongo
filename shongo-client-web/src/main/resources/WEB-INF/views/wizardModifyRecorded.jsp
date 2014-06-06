@@ -1,15 +1,43 @@
 <%--
   -- Wizard page for modifying whether room is recorded.
   --%>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
 <c:set var="tabIndex" value="1"/>
+
+<tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:wizardModifyRecorded', ['ngApplication', 'ngTooltip']);
+
+    /**
+     * Get list of resources.
+     *
+     * @param capabilityClass
+     * @param callback
+     */
+    window.getResources = function(capabilityClass, callback) {
+        var technology = "${reservationRequest.technology}";
+        $.ajax("${resourceListUrl}?capabilityClass=" + capabilityClass + "&technology=" + technology, {
+            dataType: "json"
+        }).done(function (data) {
+            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];
+            for (var index = 0; index < data.length; index++) {
+                var resource = data[index];
+                resources.push({
+                    id: resource.id,
+                    text: "<strong>" + resource.name + "</strong> (" + resource.id + ")"
+                });
+            }
+            callback(resources);
+        })
+    };
 </script>
 
 <spring:message code="views.specificationType.for.${reservationRequest.specificationType}" var="specificationType"/>
@@ -57,6 +85,44 @@
                 </div>
             </c:if>
         </div>
+
+        <c:if test="${administratorMode}">
+            <script type="text/javascript">
+                $(function(){
+                    window.getResources("RecordingCapability", function(resources) {
+                        $("#roomRecordingResourceId").select2({
+                            data: resources,
+                            escapeMarkup: function (markup) {
+                                return markup;
+                            },
+                            initSelection: function(element, callback) {
+                                var id = $(element).val();
+                                for (var index = 0; index < resources.length; index++) {
+                                    if (resources[index].id == id) {
+                                        callback(resources[index]);
+                                        return;
+                                    }
+                                }
+                                // Id wasn't found and thus set default value
+                                callback(resources[0]);
+                                $("#roomRecordingResourceId").val(resources[0].id);
+                            }
+                        });
+                    });
+                });
+            </script>
+            <div class="form-group">
+                <form:label class="col-xs-2 control-label" path="roomRecordingResourceId">
+                    <spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:
+                </form:label>
+                <div class="col-xs-4">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomRecordingResourceId" tabindex="${tabIndex}"/>
+                </div>
+                <div class="col-xs-offset-2 col-xs-10">
+                    <form:errors path="roomRecordingResourceId" cssClass="error"/>
+                </div>
+            </div>
+        </c:if>
 
     </fieldset>
 

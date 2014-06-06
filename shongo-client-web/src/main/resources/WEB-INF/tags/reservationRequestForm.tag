@@ -354,7 +354,7 @@
             <form:label class="col-xs-3 control-label" path="roomResourceId">
                 <spring:message code="views.reservationRequest.specification.resourceId"/>:
             </form:label>
-            <div class="col-xs-5">
+            <div class="col-xs-4">
                 <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
@@ -692,7 +692,7 @@
                                     }
                                     // Id wasn't found and thus set default value
                                     callback(resources[0]);
-                                    $("#roomResourceId").val(resources[0].id);
+                                    $("#roomRecordingResourceId").val(resources[0].id);
                                 }
                             });
                         });
@@ -705,7 +705,7 @@
                 <form:label class="col-xs-3 control-label" path="roomRecordingResourceId">
                     <spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:
                 </form:label>
-                <div class="col-xs-5">
+                <div class="col-xs-4">
                     <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomRecordingResourceId" tabindex="${tabIndex}"/>
                 </div>
                 <div class="col-xs-offset-3 col-xs-9">
