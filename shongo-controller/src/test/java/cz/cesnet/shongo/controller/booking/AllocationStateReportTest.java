@@ -366,7 +366,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
-        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
@@ -397,7 +397,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         RoomSpecification roomSpecificationFirst = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailabilityFirst = roomSpecificationFirst.createAvailability();
         roomAvailabilityFirst.setParticipantCount(5);
-        roomAvailabilityFirst.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomAvailabilityFirst.addServiceSpecification(new RecordingServiceSpecification(true));
         reservationRequestFirst.setSpecification(roomSpecificationFirst);
         allocateAndCheck(reservationRequestFirst);
 
@@ -407,7 +407,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         RoomSpecification roomSpecificationSecond = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailabilitySecond = roomSpecificationSecond.createAvailability();
         roomAvailabilitySecond.setParticipantCount(5);
-        roomAvailabilitySecond.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomAvailabilitySecond.addServiceSpecification(new RecordingServiceSpecification(true));
         reservationRequestSecond.setSpecification(roomSpecificationSecond);
         String reservationRequestSecondId = allocate(reservationRequestSecond);
         checkAllocationFailed(reservationRequestSecondId);
@@ -442,7 +442,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
-        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestSecondId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestSecondId);

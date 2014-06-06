@@ -211,10 +211,10 @@ sub list_resources()
         ],
         'data' => []
     };
-    foreach my $resource (@{$response}) {
+    foreach my $resource (@{$response->{'items'}}) {
         my $technologies = '';
         if (defined($resource->{'technologies'})) {
-            foreach my $technology (split(/,/, $resource->{'technologies'})) {
+            foreach my $technology (@{$resource->{'technologies'}}) {
                 if ( length($technologies) ) {
                     $technologies .= ', ';
                 }

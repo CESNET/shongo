@@ -3203,7 +3203,8 @@ public class SchedulerReportSet extends AbstractReportSet
     /**
      * Allocating room for the following specification: 
      *     Technology: {@link #technologySets} 
-     *   Participants: {@link #participantCount}
+     *   Participants: {@link #participantCount} 
+     *       Resource: {@link #resource}
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
@@ -3212,6 +3213,8 @@ public class SchedulerReportSet extends AbstractReportSet
         protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets;
 
         protected Integer participantCount;
+
+        protected cz.cesnet.shongo.controller.booking.resource.Resource resource;
 
         public AllocatingRoomReport()
         {
@@ -3224,10 +3227,11 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-room";
         }
 
-        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets, Integer participantCount)
+        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets, Integer participantCount, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setTechnologySets(technologySets);
             setParticipantCount(participantCount);
+            setResource(resource);
         }
 
         @javax.persistence.JoinTable(name = "scheduler_report_technology_sets", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
@@ -3253,6 +3257,19 @@ public class SchedulerReportSet extends AbstractReportSet
             this.participantCount = participantCount;
         }
 
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "resource_id")
+        public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(resource);
+        }
+
+        public void setResource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            this.resource = resource;
+        }
+
         @javax.persistence.Transient
         @Override
         public Type getType()
@@ -3274,6 +3291,7 @@ public class SchedulerReportSet extends AbstractReportSet
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("technologySets", technologySets);
             parameters.put("participantCount", participantCount);
+            parameters.put("resource", resource);
             return parameters;
         }
 

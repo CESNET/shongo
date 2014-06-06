@@ -47,6 +47,11 @@ public class DataMap
         setNotNull(property, value);
     }
 
+    public void set(String property, Class value)
+    {
+        setNotNull(property, Converter.convertClassToString(value));
+    }
+
     public void set(String property, boolean value)
     {
         setNotNull(property, value);
@@ -183,6 +188,15 @@ public class DataMap
             throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
                     getString("class"), property, maximumLength);
         }
+    }
+
+    public <T> Class<? extends T> getClass(String property, Class<T> baseClass)
+    {
+        Object value = data.get(property);
+        if (value == null) {
+            return null;
+        }
+        return Converter.convertToClass(value, baseClass);
     }
 
     public boolean getBool(String property)

@@ -1,4 +1,5 @@
 ﻿/** Drop all views to be created */
+DROP VIEW IF EXISTS resource_summary;
 DROP VIEW IF EXISTS specification_summary;
 DROP VIEW IF EXISTS alias_specification_summary;
 DROP VIEW IF EXISTS reservation_request_summary;
@@ -84,6 +85,25 @@ BEGIN
     RETURN count;
 END;$$ LANGUAGE 'plpgsql';
 SELECT 'Number of columns changed to text type: ' || alter_text_columns();
+
+/**
+ * View of resources.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW resource_summary AS
+SELECT
+    resource.id AS id,
+    resource.id AS parent_resource_id,
+    resource.user_id AS user_id,
+    resource.name AS name,
+    resource.allocatable AS allocatable,
+    resource.allocation_order AS allocation_order,
+    string_agg(device_resource_technologies.technologies, ',') AS technologies
+FROM resource
+LEFT JOIN device_resource ON device_resource.id = resource.id
+LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id
+GROUP BY resource.id;
 
 /**
  * View of room name for specifications for aliases or sets of aliases.

@@ -34,6 +34,9 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
         if (handler instanceof ResourceHttpRequestHandler) {
             return true;
         }
+        if (response.getStatus() != HttpServletResponse.SC_OK) {
+            return true;
+        }
 
         UserSession userSession = UserSession.getInstance(request);
 

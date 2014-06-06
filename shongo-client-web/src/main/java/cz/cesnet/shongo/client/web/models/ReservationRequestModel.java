@@ -81,11 +81,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected ReservationRequestSummary permanentRoomReservationRequest;
 
+    protected String roomResourceId;
+
     protected Integer roomParticipantCount;
 
     protected String roomPin;
 
     protected boolean roomRecorded;
+
+    protected String roomRecordingResourceId;
 
     protected AdobeConnectAccessMode roomAccessMode;
 
@@ -392,6 +396,21 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return permanentRoomReservationRequest;
     }
 
+    public String getRoomResourceId()
+    {
+        return roomResourceId;
+    }
+
+    public String getRoomResourceName()
+    {
+        return cacheProvider.getResourceSummary(roomResourceId).getName();
+    }
+
+    public void setRoomResourceId(String roomResourceId)
+    {
+        this.roomResourceId = roomResourceId;
+    }
+
     public Integer getRoomParticipantCount()
     {
         return roomParticipantCount;
@@ -420,6 +439,21 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setRoomRecorded(boolean roomRecorded)
     {
         this.roomRecorded = roomRecorded;
+    }
+
+    public String getRoomRecordingResourceId()
+    {
+        return roomRecordingResourceId;
+    }
+
+    public String getRoomRecordingResourceName()
+    {
+        return cacheProvider.getResourceSummary(roomRecordingResourceId).getName();
+    }
+
+    public void setRoomRecordingResourceId(String roomRecordingResourceId)
+    {
+        this.roomRecordingResourceId = roomRecordingResourceId;
     }
 
     public AdobeConnectAccessMode getRoomAccessMode()
@@ -573,6 +607,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             RoomEstablishment roomEstablishment = roomSpecification.getEstablishment();
             if (roomEstablishment != null) {
                 technology = TechnologyModel.find(roomEstablishment.getTechnologies());
+                roomResourceId = roomEstablishment.getResourceId();
 
                 AliasSpecification aliasSpecification =
                         roomEstablishment.getAliasSpecificationByType(AliasType.ROOM_NAME);
@@ -589,12 +624,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomParticipantNotificationEnabled = roomAvailability.isParticipantNotificationEnabled();
                 roomMeetingName = roomAvailability.getMeetingName();
                 roomMeetingDescription = roomAvailability.getMeetingDescription();
-
                 for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
-                    switch (service.getType()) {
-                        case RECORDING:
-                            roomRecorded = service.isEnabled();
-                            break;
+                    if (service instanceof RecordingServiceSpecification) {
+                        roomRecorded = service.isEnabled();
+                        roomRecordingResourceId = service.getResourceId();
                     }
                 }
             }
@@ -743,7 +776,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomAvailability.setMeetingName(roomMeetingName);
                 roomAvailability.setMeetingDescription(roomMeetingDescription);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
+                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
                 }
                 break;
             }
@@ -769,7 +803,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomAvailability.setMeetingName(roomMeetingName);
                 roomAvailability.setMeetingDescription(roomMeetingDescription);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
+                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
                 }
                 break;
             }
@@ -794,6 +829,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
             adobeConnectRoomSetting.setAccessMode(roomAccessMode);
             roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+        }
+        RoomEstablishment roomEstablishment = roomSpecification.getEstablishment();
+        if (roomEstablishment != null) {
+            if (!Strings.isNullOrEmpty(roomResourceId)) {
+                roomEstablishment.setResourceId(roomResourceId);
+            }
         }
         RoomAvailability roomAvailability = roomSpecification.getAvailability();
         if (roomAvailability != null) {

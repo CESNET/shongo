@@ -248,7 +248,8 @@ public class RoomReservationTask extends ReservationTask
         for (Set<Technology> technologies : technologyVariants) {
             technologySets.add(new TechnologySet(technologies));
         }
-        return new SchedulerReportSet.AllocatingRoomReport(technologySets, participantCount);
+        return new SchedulerReportSet.AllocatingRoomReport(technologySets, participantCount,
+                (roomProviderCapability != null ? roomProviderCapability.getResource() : null));
     }
 
     @Override

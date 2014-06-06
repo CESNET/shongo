@@ -262,7 +262,10 @@ public abstract class ReportSetMessages
                         return value;
                     }
                     else {
-                        if (value instanceof Map) {
+                        if (value == null) {
+                            return null;
+                        }
+                        else if (value instanceof Map) {
                             parameters = (Map) value;
                         }
                         else {

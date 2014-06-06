@@ -170,20 +170,6 @@ public abstract class Specification extends SimplePersistentObject implements Re
             EntityManager entityManager)
     {
         Class<? extends Specification> specificationClass = getClassFromApi(specificationApi.getClass());
-        if (specificationClass.equals(ExecutableServiceSpecification.class)) {
-            cz.cesnet.shongo.controller.api.ExecutableServiceSpecification executableServiceSpecificationApi =
-                    (cz.cesnet.shongo.controller.api.ExecutableServiceSpecification) specificationApi;
-            switch (executableServiceSpecificationApi.getType()) {
-                case RECORDING:
-                    specificationClass = RecordingServiceSpecification.class;
-                    break;
-                case STREAMING:
-                    specificationClass = StreamingServiceSpecification.class;
-                    break;
-                default:
-                    throw new TodoImplementException(executableServiceSpecificationApi.getType());
-            }
-        }
         Specification specification = ClassHelper.createInstanceFromClass(specificationClass);
         specification.fromApi(specificationApi, entityManager);
         return specification;
@@ -239,8 +225,8 @@ public abstract class Specification extends SimplePersistentObject implements Re
                 ResourceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomSpecification.class,
                 RoomSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExecutableServiceSpecification.class,
-                ExecutableServiceSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RecordingServiceSpecification.class,
+                RecordingServiceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.CompartmentSpecification.class,
                 CompartmentSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.MultiCompartmentSpecification.class,

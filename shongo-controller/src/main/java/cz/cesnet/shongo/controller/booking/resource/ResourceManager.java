@@ -99,18 +99,12 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @param filter to filter results
      * @return list of all resources in the database
      */
-    public List<Resource> list(QueryFilter filter)
+    public List<Resource> list()
     {
-        TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
-                + " WHERE " + (filter != null ? filter.toQueryWhere() : "1=1")
-                + " ORDER BY resource.allocatable DESC, resource.allocationOrder, resource.id",
+        TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource",
                 Resource.class);
-        if (filter != null) {
-            filter.fillQueryParameters(query);
-        }
         return query.getResultList();
     }
 

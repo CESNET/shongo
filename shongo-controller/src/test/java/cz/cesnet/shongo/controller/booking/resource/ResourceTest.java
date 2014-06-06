@@ -8,9 +8,14 @@ import cz.cesnet.shongo.controller.api.DeviceResource;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
+import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import cz.cesnet.shongo.controller.api.RoomReservation;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
+import cz.cesnet.shongo.controller.booking.room.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -27,6 +32,12 @@ public class ResourceTest extends AbstractExecutorTest
     @Test
     public void testIsAvailableAt() throws Exception
     {
+        ResourceListRequest resourceListRequest = new ResourceListRequest();
+        resourceListRequest.setSecurityToken(SECURITY_TOKEN_ROOT);
+        resourceListRequest.setCapabilityClass(RoomProviderCapability.class);
+        resourceListRequest.addTechnology(Technology.H323);
+        getResourceService().listResources(resourceListRequest);
+
         cz.cesnet.shongo.controller.booking.resource.DeviceResource resource =
                 new cz.cesnet.shongo.controller.booking.resource.DeviceResource();
         resource.setMaximumFuture(DateTimeSpecification.fromString("P4M"));
@@ -163,7 +174,8 @@ public class ResourceTest extends AbstractExecutorTest
         ReservationRequest recordingReservationRequest = new ReservationRequest();
         recordingReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
+        recordingReservationRequest.setSpecification(
+                RecordingServiceSpecification.forExecutable(roomExecutableId, true));
         allocateAndCheck(recordingReservationRequest);
         RecordingService recordingService = getExecutableService(roomExecutableId, RecordingService.class);
         Assert.assertEquals(secondTcsId, recordingService.getResourceId());

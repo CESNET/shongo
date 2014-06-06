@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -17,6 +19,7 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
@@ -248,7 +251,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<ResourceSummary> listResources(ResourceListRequest request)
+    public ListResponse<ResourceSummary> listResources(ResourceListRequest request)
     {
         checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
@@ -262,46 +265,96 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
                     aclObjectClass, ObjectPermission.READ);
 
-            QueryFilter filter = new QueryFilter("resource");
-            filter.addFilterIn("id", resourceIds);
+            QueryFilter queryFilter = new QueryFilter("resource_summary", true);
+            queryFilter.addFilterIn("id", resourceIds);
+
+            // Filter requested resource-ids
+            if (request.getResourceIds().size() > 0) {
+                Set<Long> requestedResourceIds = new HashSet<Long>();
+                for (String reservationRequestId : request.getResourceIds()) {
+                    requestedResourceIds.add(ObjectIdentifier.parseId(reservationRequestId, ObjectType.RESOURCE));
+                }
+                queryFilter.addFilter("id IN(:resourceIds)");
+                queryFilter.addFilterParameter("resourceIds", requestedResourceIds);
+            }
 
             // Filter user-ids
             Set<String> userIds = request.getUserIds();
             if (userIds != null && !userIds.isEmpty()) {
-                filter.addFilterIn("userId", userIds);
+                queryFilter.addFilterIn("resource_summary.user_id", userIds);
             }
 
             // Filter name
             if (request.getName() != null) {
-                filter.addFilter("resource.name = :name", "name", request.getName());
+                queryFilter.addFilter("resource_summary.name = :name", "name", request.getName());
             }
 
-            List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(filter);
-            List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
-            for (cz.cesnet.shongo.controller.booking.resource.Resource resource : list) {
-                ResourceSummary summary = new ResourceSummary();
-                summary.setId(ObjectIdentifier.formatId(resource));
-                summary.setUserId(resource.getUserId());
-                summary.setName(resource.getName());
-                summary.setAllocatable(resource.isAllocatable());
-                summary.setAllocationOrder(resource.getAllocationOrder());
-                if (resource instanceof DeviceResource) {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (Technology technology : ((DeviceResource) resource).getTechnologies()) {
-                        if (stringBuilder.length() > 0) {
-                            stringBuilder.append(",");
-                        }
-                        stringBuilder.append(technology.getCode());
-                    }
-                    summary.setTechnologies(stringBuilder.toString());
+            // Capability type
+            Class<? extends Capability> capabilityClass = request.getCapabilityClass();
+            if (capabilityClass != null) {
+                if (capabilityClass.equals(cz.cesnet.shongo.controller.api.RoomProviderCapability.class)) {
+                    queryFilter.addFilter("resource_summary.id IN ("
+                            + " SELECT capability.resource_id FROM room_provider_capability"
+                            + " LEFT JOIN capability ON capability.id = room_provider_capability.id)");
                 }
-                cz.cesnet.shongo.controller.booking.resource.Resource parentResource = resource.getParentResource();
-                if (parentResource != null) {
-                    summary.setParentResourceId(ObjectIdentifier.formatId(parentResource));
+                else if (capabilityClass.equals(RecordingCapability.class)) {
+                    queryFilter.addFilter("resource_summary.id IN ("
+                            + " SELECT capability.resource_id FROM recording_capability"
+                            + " LEFT JOIN capability ON capability.id = recording_capability.id)");
                 }
-                summaryList.add(summary);
+                else {
+                    throw new TodoImplementException(capabilityClass);
+                }
             }
-            return summaryList;
+
+            // Technologies
+            Set<Technology> technologies = request.getTechnologies();
+            if (technologies.size() > 0) {
+                queryFilter.addFilter("resource_summary.id IN ("
+                        + " SELECT device_resource.id FROM device_resource "
+                        + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
+                        + " WHERE device_resource_technologies.technologies IN(:technologies))");
+                queryFilter.addFilterParameter("technologies", technologies);
+            }
+
+            // Allocatable
+            if (request.isAllocatable()) {
+                queryFilter.addFilter("resource_summary.allocatable = TRUE");
+            }
+
+            // Query order by
+            String queryOrderBy =
+                    "resource_summary.allocatable DESC, resource_summary.allocation_order, resource_summary.id";
+
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put("filter", queryFilter.toQueryWhere());
+            parameters.put("order", queryOrderBy);
+            String query = NativeQuery.getNativeQuery(NativeQuery.RESOURCE_LIST, parameters);
+
+            ListResponse<ResourceSummary> response = new ListResponse<ResourceSummary>();
+            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            for (Object[] record : records) {
+                ResourceSummary resourceSummary = new ResourceSummary();
+                resourceSummary.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
+                if (record[1] != null) {
+                    resourceSummary.setParentResourceId(
+                            ObjectIdentifier.formatId(ObjectType.RESOURCE, record[1].toString()));
+                }
+                resourceSummary.setUserId(record[2].toString());
+                resourceSummary.setName(record[3].toString());
+                resourceSummary.setAllocatable(record[4] != null && (Boolean) record[4]);
+                resourceSummary.setAllocationOrder(record[5] != null ? (Integer) record[5] : null);
+                if (record[6] != null) {
+                    String recordTechnologies = record[6].toString();
+                    if (!recordTechnologies.isEmpty()) {
+                        for (String technology : recordTechnologies.split(",")) {
+                            resourceSummary.addTechnology(Technology.valueOf(technology.trim()));
+                        }
+                    }
+                }
+                response.addItem(resourceSummary);
+            }
+            return response;
         }
         finally {
             entityManager.close();

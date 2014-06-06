@@ -85,7 +85,7 @@ public class ApacheStorageTest
                 put("srom", RecordingFolder.UserPermission.READ);
             }});
         Assert.assertTrue(fileExists("folder/.htaccess"));
-        Assert.assertEquals("require user 208213@muni.cz srom@cesnet.cz", getFileContent("folder/.htaccess"));
+        Assert.assertEquals("Require user 208213@muni.cz\nRequire user srom@cesnet.cz", getFileContent("folder/.htaccess"));
     }
 
     @Test

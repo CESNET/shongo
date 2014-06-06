@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
@@ -28,6 +29,8 @@ import java.util.*;
  */
 public class RecordingServiceReservationTask extends ReservationTask
 {
+    private Resource resource;
+
     private Executable executable;
 
     private boolean enabled;
@@ -41,6 +44,11 @@ public class RecordingServiceReservationTask extends ReservationTask
     public RecordingServiceReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
         super(schedulerContext, slot);
+    }
+
+    public void setResource(Resource resource)
+    {
+        this.resource = resource;
     }
 
     public void setExecutable(Executable executable)
@@ -113,11 +121,14 @@ public class RecordingServiceReservationTask extends ReservationTask
                     executable.getClass() + " doesn't implement " + RecordableEndpoint.class.getSimpleName() + ".");
         }
 
-        // Find matching recorders
+        // Find matching recording devices
         List<AvailableRecorder> availableRecorders = new LinkedList<AvailableRecorder>();
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
         for (RecordingCapability recordingCapability : resourceCache.getCapabilities(RecordingCapability.class)) {
             DeviceResource deviceResource = recordingCapability.getDeviceResource();
+            if (this.resource != null && !deviceResource.getId().equals(this.resource.getId())) {
+                continue;
+            }
             if (technologies.size() > 0 && !deviceResource.hasTechnologies(technologies)) {
                 continue;
             }

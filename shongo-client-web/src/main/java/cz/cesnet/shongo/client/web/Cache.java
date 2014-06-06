@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public class Cache
 
     @Resource
     private AuthorizationService authorizationService;
+
+    @Resource
+    private ResourceService resourceService;
 
     @Resource
     private ReservationService reservationService;
@@ -66,6 +70,12 @@ public class Cache
      * {@link UserState}s by {@link SecurityToken}.
      */
     private ExpirationMap<SecurityToken, UserState> userStateByToken = new ExpirationMap<SecurityToken, UserState>();
+
+    /**
+     * {@link ResourceSummary} by identifier.
+     */
+    private ExpirationMap<String, ResourceSummary> resourceById =
+            new ExpirationMap<String, ResourceSummary>();
 
     /**
      * {@link ReservationRequestSummary} by identifier.
@@ -115,6 +125,7 @@ public class Cache
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         groupByGroupId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
+        resourceById.setExpiration(Duration.standardHours(1));
         reservationRequestById.setExpiration(Duration.standardMinutes(5));
         reservationById.setExpiration(Duration.standardMinutes(5));
         executableById.setExpiration(Duration.standardSeconds(10));
@@ -134,6 +145,7 @@ public class Cache
         for (UserState userState : userStateByToken) {
             userState.objectPermissionsByObject.clearExpired(dateTimeNow);
         }
+        resourceById.clearExpired(dateTimeNow);
         reservationRequestById.clearExpired(dateTimeNow);
         reservationById.clearExpired(dateTimeNow);
         executableById.clearExpired(dateTimeNow);
@@ -368,6 +380,27 @@ public class Cache
             result.put(objectId, objectPermissions);
         }
         return result;
+    }
+
+    /**
+     * @param securityToken
+     * @param resourceId
+     * @return {@link ResourceSummary} for given {@code resourceId}
+     */
+    public ResourceSummary getResourceSummary(SecurityToken securityToken, String resourceId)
+    {
+        ResourceSummary resourceSummary = resourceById.get(resourceId);
+        if (resourceSummary == null) {
+            ResourceListRequest request = new ResourceListRequest();
+            request.setSecurityToken(securityToken);
+            request.addResourceId(resourceId);
+            ListResponse<ResourceSummary> response = resourceService.listResources(request);
+            if (response.getItemCount() == 1) {
+                resourceSummary = response.getItem(0);
+                resourceById.put(resourceSummary.getId(), resourceSummary);
+            }
+        }
+        return resourceSummary;
     }
 
     /**

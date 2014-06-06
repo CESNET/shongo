@@ -34,6 +34,7 @@ public class NativeQuery
      * Native queries.
      */
     public static final String INIT = "init.sql";
+    public static final String RESOURCE_LIST = "resource_list.sql";
     public static final String RESERVATION_REQUEST_LIST = "reservation_request_list.sql";
     public static final String RESERVATION_REQUEST_HISTORY = "reservation_request_history.sql";
     public static final String RESERVATION_LIST = "reservation_list.sql";

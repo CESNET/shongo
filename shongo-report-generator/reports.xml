@@ -1533,6 +1533,7 @@
             <params>
                 <param name="technologySets" type="List" type-element="TechnologySet"/>
                 <param name="participantCount" type="Integer"/>
+                <param name="resource" type="Resource"/>
             </params>
             <description>
                 TODO:
@@ -1541,6 +1542,7 @@
                 Allocating room for the following specification:
                 \n    Technology: ${technologySets}
                 \n  Participants: ${participantCount}
+                \n      Resource: ${resource.id}
             </message>
             <visible>user</visible>
         </report>

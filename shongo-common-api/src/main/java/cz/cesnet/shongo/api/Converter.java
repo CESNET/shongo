@@ -166,15 +166,48 @@ public class Converter
         }
         else if (value instanceof String) {
             String className = (String) value;
-            try {
-                return ClassHelper.getClassFromShortName(className);
-            }
-            catch (ClassNotFoundException e) {
-                throw new CommonReportSet.ClassUndefinedException(className);
-            }
+            return convertStringToClass(className, Object.class);
         }
         else {
             throw new TodoImplementException(value.getClass());
+        }
+    }
+
+    /**
+     * Convert given {@code value} to {@link Class}.
+     *
+     * @param value
+     * @param baseClass
+     * @return converted {@link Enum} value
+     */
+    public static <T> Class<? extends T> convertToClass(Object value, Class<T> baseClass)
+    {
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof String) {
+            String className = (String) value;
+            return convertStringToClass(className, baseClass);
+        }
+        else {
+            throw new TodoImplementException(value.getClass());
+        }
+    }
+
+    /**
+     * Convert given {@link String} {@code value} to {@link Class} value of given {@code baseClass}.
+     *
+     * @param value
+     * @param baseClass
+     * @return converted {@link Enum} value
+     */
+    public static <T> Class<? extends T> convertStringToClass(String value, Class<T> baseClass)
+    {
+        try {
+            return (Class<? extends T>) ClassHelper.getClassFromShortName(value);
+        }
+        catch (ClassNotFoundException e) {
+            throw new CommonReportSet.ClassUndefinedException(value);
         }
     }
 

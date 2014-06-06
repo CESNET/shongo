@@ -5,10 +5,12 @@ import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceAllocation;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import org.joda.time.Interval;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,7 +64,7 @@ public interface ResourceService extends Service
      * @return collection of resource summaries
      */
     @API
-    Collection<ResourceSummary> listResources(ResourceListRequest request);
+    public ListResponse<ResourceSummary> listResources(ResourceListRequest request);
 
     /**
      * Gets the complete resource object.

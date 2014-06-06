@@ -10,9 +10,9 @@ import cz.cesnet.shongo.api.DataMap;
 public class ExecutableServiceSpecification extends Specification
 {
     /**
-     * @see Type
+     * Identifier of required {@link Resource}.
      */
-    private Type type;
+    private String resourceId;
 
     /**
      * Identifier of {@link Executable}.
@@ -32,52 +32,19 @@ public class ExecutableServiceSpecification extends Specification
     }
 
     /**
-     * @return new {@link ExecutableServiceSpecification} with {@link Type#RECORDING}
+     * @return {@link #resourceId}
      */
-    public static ExecutableServiceSpecification createRecording()
+    public String getResourceId()
     {
-        ExecutableServiceSpecification executableServiceSpecification = new ExecutableServiceSpecification();
-        executableServiceSpecification.setType(Type.RECORDING);
-        executableServiceSpecification.setEnabled(true);
-        return executableServiceSpecification;
+        return resourceId;
     }
 
     /**
-     * @param executableId sets the {@link #executableId}
-     * @return new {@link ExecutableServiceSpecification} with {@link Type#RECORDING}
+     * @param resourceId sets the {@link #resourceId}
      */
-    public static ExecutableServiceSpecification createRecording(String executableId)
+    public void setResourceId(String resourceId)
     {
-        ExecutableServiceSpecification executableServiceSpecification = createRecording();
-        executableServiceSpecification.setExecutableId(executableId);
-        executableServiceSpecification.setEnabled(true);
-        return executableServiceSpecification;
-    }
-
-    /**
-     * @return new {@link ExecutableServiceSpecification} with {@link Type#RECORDING}
-     */
-    public static ExecutableServiceSpecification createStreaming()
-    {
-        ExecutableServiceSpecification executableServiceSpecification = new ExecutableServiceSpecification();
-        executableServiceSpecification.setType(Type.STREAMING);
-        return executableServiceSpecification;
-    }
-
-    /**
-     * @return {@link #type}
-     */
-    public Type getType()
-    {
-        return type;
-    }
-
-    /**
-     * @param type sets the {@link #type}
-     */
-    public void setType(Type type)
-    {
-        this.type = type;
+        this.resourceId = resourceId;
     }
 
     /**
@@ -112,7 +79,7 @@ public class ExecutableServiceSpecification extends Specification
         this.enabled = enabled;
     }
 
-    private static final String TYPE = "type";
+    private static final String RESOURCE_ID = "resourceId";
     private static final String EXECUTABLE_ID = "executableId";
     private static final String ENABLED = "enabled";
 
@@ -120,7 +87,7 @@ public class ExecutableServiceSpecification extends Specification
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(TYPE, type);
+        dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(EXECUTABLE_ID, executableId);
         dataMap.set(ENABLED, enabled);
         return dataMap;
@@ -130,24 +97,8 @@ public class ExecutableServiceSpecification extends Specification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        type = dataMap.getEnumRequired(TYPE, Type.class);
+        resourceId = dataMap.getString(RESOURCE_ID);
         executableId = dataMap.getString(EXECUTABLE_ID);
         enabled = dataMap.getBool(ENABLED);
-    }
-
-    /**
-     * Type of service.
-     */
-    public static enum Type
-    {
-        /**
-         * Recording service.
-         */
-        RECORDING,
-
-        /**
-         * Streaming service.
-         */
-        STREAMING
     }
 }

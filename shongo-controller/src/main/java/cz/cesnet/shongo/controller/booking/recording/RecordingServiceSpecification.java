@@ -19,7 +19,7 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
     @Override
     protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        return cz.cesnet.shongo.controller.api.ExecutableServiceSpecification.createRecording();
+        return new cz.cesnet.shongo.controller.api.RecordingServiceSpecification();
     }
 
     @Override
@@ -28,6 +28,7 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
     {
         RecordingServiceReservationTask recordingServiceReservationTask =
                 new RecordingServiceReservationTask(schedulerContext, slot);
+        recordingServiceReservationTask.setResource(getResource());
         recordingServiceReservationTask.setExecutable(getExecutable());
         recordingServiceReservationTask.setEnabled(isEnabled());
         return recordingServiceReservationTask;

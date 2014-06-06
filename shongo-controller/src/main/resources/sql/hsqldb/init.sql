@@ -1,9 +1,27 @@
 ﻿/** Drop all views to be created */
+DROP VIEW resource_summary IF EXISTS;
 DROP VIEW specification_summary IF EXISTS;
 DROP VIEW reservation_request_summary IF EXISTS;
 DROP VIEW reservation_request_state IF EXISTS;
 DROP VIEW reservation_summary IF EXISTS;
 DROP VIEW executable_summary IF EXISTS;
+
+/**
+ * @see resource_summary in postgresql/init.sql
+ */
+CREATE VIEW resource_summary AS
+SELECT
+    resource.id AS id,
+    resource.id AS parent_resource_id,
+    resource.user_id AS user_id,
+    resource.name AS name,
+    resource.allocatable AS allocatable,
+    resource.allocation_order AS allocation_order,
+    GROUP_CONCAT(device_resource_technologies.technologies SEPARATOR ',') AS technologies
+FROM resource
+LEFT JOIN device_resource ON device_resource.id = resource.id
+LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id
+GROUP BY resource.id;
 
 /**
  * @see specification_summary in postgresql/init.sql

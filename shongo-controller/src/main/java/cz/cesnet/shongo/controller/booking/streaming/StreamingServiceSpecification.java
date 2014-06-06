@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.streaming;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
 
@@ -16,6 +17,6 @@ public class StreamingServiceSpecification extends ExecutableServiceSpecificatio
     @Override
     protected Specification createApi()
     {
-        return cz.cesnet.shongo.controller.api.ExecutableServiceSpecification.createStreaming();
+        throw new TodoImplementException();
     }
 }

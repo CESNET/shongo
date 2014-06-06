@@ -75,6 +75,12 @@
         <dd>${reservationRequest.technology.title}</dd>
     </c:if>
 
+    <%-- Resource --%>
+    <c:if test="${not empty reservationRequest.roomResourceId}">
+        <dt><spring:message code="views.reservationRequest.specification.resourceId"/>:</dt>
+        <dd>${reservationRequest.roomResourceName} (${reservationRequest.roomResourceId})</dd>
+    </c:if>
+
     <%-- Room name --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || (reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName)}">
         <dt><spring:message code="views.reservationRequest.specification.roomName"/>:</dt>
@@ -138,6 +144,12 @@
     <c:if test="${reservationRequest.technology != 'ADOBE_CONNECT' && (reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY')}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecorded"/>:</dt>
         <dd><spring:message code="views.button.${reservationRequest.roomRecorded ? 'yes' : 'no'}"/></dd>
+    </c:if>
+
+    <%-- Recording Resource --%>
+    <c:if test="${not empty reservationRequest.roomRecordingResourceId}">
+        <dt><spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:</dt>
+        <dd>${reservationRequest.roomRecordingResourceName} (${reservationRequest.roomRecordingResourceId})</dd>
     </c:if>
 
     <%-- Description --%>

@@ -4,6 +4,8 @@ import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
@@ -17,6 +19,11 @@ import javax.persistence.*;
 public abstract class ExecutableServiceSpecification extends Specification
 {
     /**
+     * {@link Resource} where the service should be allocated.
+     */
+    private Resource resource;
+
+    /**
      * {@link Executable} for which the service should be allocated.
      */
     private Executable executable;
@@ -25,6 +32,24 @@ public abstract class ExecutableServiceSpecification extends Specification
      * Specifies whether the service should be automatically enabled for the booked time slot.
      */
     private boolean enabled;
+
+    /**
+     * @return {@link #resource}
+     */
+    @ManyToOne
+    @Access(AccessType.FIELD)
+    public Resource getResource()
+    {
+        return resource;
+    }
+
+    /**
+     * @param resource sets the {@link #resource}
+     */
+    public void setResource(Resource resource)
+    {
+        this.resource = resource;
+    }
 
     /**
      * @return {@link #executable}
@@ -73,9 +98,11 @@ public abstract class ExecutableServiceSpecification extends Specification
         ExecutableServiceSpecification executableServiceSpecification = (ExecutableServiceSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
+        modified |= !ObjectHelper.isSamePersistent(getResource(), executableServiceSpecification.getResource());
         modified |= !ObjectHelper.isSamePersistent(getExecutable(), executableServiceSpecification.getExecutable());
         modified |= !ObjectHelper.isSame(isEnabled(), executableServiceSpecification.isEnabled());
 
+        setResource(executableServiceSpecification.getResource());
         setExecutable(executableServiceSpecification.getExecutable());
         setEnabled(executableServiceSpecification.isEnabled());
 
@@ -96,6 +123,9 @@ public abstract class ExecutableServiceSpecification extends Specification
         cz.cesnet.shongo.controller.api.ExecutableServiceSpecification executableServiceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExecutableServiceSpecification) specificationApi;
 
+        if (resource != null) {
+            executableServiceSpecificationApi.setResourceId(ObjectIdentifier.formatId(resource));
+        }
         if (executable != null) {
             executableServiceSpecificationApi.setExecutableId(ObjectIdentifier.formatId(executable));
         }
@@ -110,14 +140,24 @@ public abstract class ExecutableServiceSpecification extends Specification
         cz.cesnet.shongo.controller.api.ExecutableServiceSpecification executableServiceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExecutableServiceSpecification) specificationApi;
 
-        String endpointId = executableServiceSpecificationApi.getExecutableId();
-        if (endpointId == null) {
+        String resourceId = executableServiceSpecificationApi.getResourceId();
+        if (resourceId == null) {
+            setResource(null);
+        }
+        else {
+            Long resourcePersistenceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            setResource(resourceManager.get(resourcePersistenceId));
+        }
+
+        String executableId = executableServiceSpecificationApi.getExecutableId();
+        if (executableId == null) {
             setExecutable(null);
         }
         else {
-            Long executableId = ObjectIdentifier.parseId(endpointId, ObjectType.EXECUTABLE);
+            Long executablePersistenceId = ObjectIdentifier.parseId(executableId, ObjectType.EXECUTABLE);
             ExecutableManager executableManager = new ExecutableManager(entityManager);
-            setExecutable(executableManager.get(executableId));
+            setExecutable(executableManager.get(executablePersistenceId));
         }
 
         setEnabled(executableServiceSpecificationApi.isEnabled());

@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.api.Group;
+import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
@@ -13,8 +14,13 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceListRequest extends ListRequest
+public class ResourceListRequest extends SortableListRequest<ResourceListRequest.Sort>
 {
+    /**
+     * Id of resources.
+     */
+    private Set<String> resourceIds = new HashSet<String>();
+
     /**
      * User-ids of resource owners.
      */
@@ -26,10 +32,26 @@ public class ResourceListRequest extends ListRequest
     private String name;
 
     /**
+     * {@link Capability} which the resources must have.
+     */
+    private Class<? extends Capability> capabilityClass;
+
+    /**
+     * Set of {@link Technology}s which the resources must support.
+     */
+    private Set<Technology> technologies = new HashSet<Technology>();
+
+    /**
+     * Resource must be allocatable.
+     */
+    private boolean allocatable;
+
+    /**
      * Constructor.
      */
     public ResourceListRequest()
     {
+        super(Sort.class);
     }
 
     /**
@@ -39,7 +61,32 @@ public class ResourceListRequest extends ListRequest
      */
     public ResourceListRequest(SecurityToken securityToken)
     {
-        super(securityToken);
+        super(Sort.class, securityToken);
+    }
+
+    /**
+     * @return {@link #resourceIds}
+     */
+    public Set<String> getResourceIds()
+    {
+        return resourceIds;
+    }
+
+    /**
+     * @param resourceIds sets the {@link #resourceIds}
+     */
+    public void setResourceIds(Set<String> resourceIds)
+    {
+        this.resourceIds.clear();
+        this.resourceIds.addAll(resourceIds);
+    }
+
+    /**
+     * @param resourceId to be added to the {@link #resourceIds}
+     */
+    public void addResourceId(String resourceId)
+    {
+        this.resourceIds.add(resourceId);
     }
 
     /**
@@ -74,15 +121,86 @@ public class ResourceListRequest extends ListRequest
         this.name = name;
     }
 
+    /**
+     * @return {@link #capabilityClass}
+     */
+    public Class<? extends Capability> getCapabilityClass()
+    {
+        return capabilityClass;
+    }
+
+    /**
+     * @param capabilityClass sets the {@link #capabilityClass}
+     */
+    public void setCapabilityClass(Class<? extends Capability> capabilityClass)
+    {
+        this.capabilityClass = capabilityClass;
+    }
+
+    /**
+     * @return {@link #technologies}
+     */
+    public Set<Technology> getTechnologies()
+    {
+        return technologies;
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
+    }
+
+    /**
+     * @param technology to be added to the {@link #technologies}
+     */
+    public void addTechnology(Technology technology)
+    {
+        technologies.add(technology);
+    }
+
+    /**
+     * @return {@link #allocatable}
+     */
+    public boolean isAllocatable()
+    {
+        return allocatable;
+    }
+
+    /**
+     * @param allocatable sets the {@link #allocatable}
+     */
+    public void setAllocatable(boolean allocatable)
+    {
+        this.allocatable = allocatable;
+    }
+
+    public static enum Sort
+    {
+        ID,
+        NAME
+    }
+
+    private static final String RESOURCE_IDS = "resourceIds";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
+    private static final String CAPABILITY_CLASS = "capabilityClass";
+    private static final String TECHNOLOGIES = "technologies";
+    private static final String ALLOCATABLE = "allocatable";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
+        dataMap.set(CAPABILITY_CLASS, capabilityClass);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(ALLOCATABLE, allocatable);
         return dataMap;
     }
 
@@ -90,7 +208,11 @@ public class ResourceListRequest extends ListRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
+        capabilityClass = dataMap.getClass(CAPABILITY_CLASS, Capability.class);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        allocatable = dataMap.getBool(ALLOCATABLE);
     }
 }

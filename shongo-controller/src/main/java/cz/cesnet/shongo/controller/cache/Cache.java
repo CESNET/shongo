@@ -94,7 +94,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
                 logger.debug("Loading resources...");
                 ResourceManager resourceManager = new ResourceManager(entityManager);
-                List<Resource> resourceList = resourceManager.list(null);
+                List<Resource> resourceList = resourceManager.list();
                 for (Resource resource : resourceList) {
                     try {
                         addResource(resource);

@@ -5,10 +5,13 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.value.ValueProviderCapability;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a capability that a resource can have.
@@ -110,9 +113,6 @@ public abstract class Capability extends SimplePersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.RecordingCapability) {
             capability = new RecordingCapability();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.StreamingCapability) {
-            capability = new RecordingCapability();
-        }
         else {
             throw new TodoImplementException(api.getClass());
         }
@@ -141,5 +141,46 @@ public abstract class Capability extends SimplePersistentObject
      */
     protected void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
     {
+    }
+
+    /**
+     * {@link Capability} class by {@link cz.cesnet.shongo.controller.api.Capability} class.
+     */
+    private static final Map<
+            Class<? extends cz.cesnet.shongo.controller.api.Capability>,
+            Class<? extends Capability>> CLASS_BY_API = new HashMap<
+            Class<? extends cz.cesnet.shongo.controller.api.Capability>,
+            Class<? extends Capability>>();
+
+    /**
+     * Initialization for {@link #CLASS_BY_API}.
+     */
+    static {
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomProviderCapability.class,
+                RoomProviderCapability.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.TerminalCapability.class,
+                TerminalCapability.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.StandaloneTerminalCapability.class,
+                StandaloneTerminalCapability.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ValueProviderCapability.class,
+                ValueProviderCapability.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.AliasProviderCapability.class,
+                AliasProviderCapability.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RecordingCapability.class,
+                RecordingCapability.class);
+    }
+
+    /**
+     * @param capabilityApiClass
+     * @return {@link Capability} for given {@code capabilityApiClass}
+     */
+    public static Class<? extends Capability> getClassFromApi(
+            Class<? extends cz.cesnet.shongo.controller.api.Capability> capabilityApiClass)
+    {
+        Class<? extends Capability> capabilityClass = CLASS_BY_API.get(capabilityApiClass);
+        if (capabilityClass == null) {
+            throw new TodoImplementException(capabilityApiClass);
+        }
+        return capabilityClass;
     }
 }

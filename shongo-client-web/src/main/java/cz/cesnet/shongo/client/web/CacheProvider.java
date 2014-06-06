@@ -59,6 +59,15 @@ public class CacheProvider
     }
 
     /**
+     * @param resourceId
+     * @return {@link ResourceSummary} for given {@code resourceId}
+     */
+    public ResourceSummary getResourceSummary(String resourceId)
+    {
+        return cache.getResourceSummary(securityToken, resourceId);
+    }
+
+    /**
      * @param reservationRequestId
      * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
      */

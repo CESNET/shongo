@@ -82,7 +82,7 @@ public class ErrorHandler
     {
         // Prepare response
         response.setHeader("Content-Type", "text/html; charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.setStatus((statusCode != null ? statusCode : HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
 
         if (throwable instanceof org.eclipse.jetty.io.EofException) {
             // Just log that exceptions and do not report it

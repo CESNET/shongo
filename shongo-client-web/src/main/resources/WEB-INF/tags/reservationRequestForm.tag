@@ -15,8 +15,11 @@
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
+<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
 <c:set var="reservationRequestModification" value="${reservationRequest.modification}"/>
 <c:set var="tabIndex" value="1"/>
+
+<tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
 
 <script type="text/javascript">
     var module = angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
@@ -30,6 +33,7 @@
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
         $scope.periodicityType = $scope.value('${reservationRequest.periodicityType}', 'NONE');
+        $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
 
         // Update end when start is changed
         $("#start").change(function () {
@@ -249,6 +253,28 @@
         };
     });
 
+    /**
+     * Get list of resources.
+     *
+     * @param capabilityClass
+     * @param callback
+     */
+    window.getResources = function(capabilityClass, callback) {
+        var technology = $("#technology").val();
+        $.ajax("${resourceListUrl}?capabilityClass=" + capabilityClass + "&technology=" + technology, {
+            dataType: "json"
+        }).done(function (data) {
+            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];
+            for (var index = 0; index < data.length; index++) {
+                var resource = data[index];
+                resources.push({
+                    id: resource.id,
+                    text: "<strong>" + resource.name + "</strong> (" + resource.id + ")"
+                });
+            }
+            callback(resources);
+        })
+    };
 
     $(function(){
         $("#timeZone").select2();
@@ -295,6 +321,48 @@
         </c:otherwise>
     </c:choose>
 
+    <c:if test="${administratorMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+        <script type="text/javascript">
+            $(function(){
+                var updateResources = function() {
+                    window.getResources("RoomProviderCapability", function(resources) {
+                        $("#roomResourceId").select2({
+                            data: resources,
+                            escapeMarkup: function (markup) {
+                                return markup;
+                            },
+                            initSelection: function(element, callback) {
+                                var id = $(element).val();
+                                for (var index = 0; index < resources.length; index++) {
+                                    if (resources[index].id == id) {
+                                        callback(resources[index]);
+                                        return;
+                                    }
+                                }
+                                // Id wasn't found and thus set default value
+                                callback(resources[0]);
+                                $("#roomResourceId").val(resources[0].id);
+                            }
+                        });
+                    });
+                };
+                $("#technology").change(updateResources);
+                updateResources();
+            });
+        </script>
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="roomResourceId">
+                <spring:message code="views.reservationRequest.specification.resourceId"/>:
+            </form:label>
+            <div class="col-xs-5">
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomResourceId" cssClass="error"/>
+            </div>
+        </div>
+    </c:if>
+
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="permanentRoomReservationRequestId">
@@ -324,6 +392,8 @@
         </form:label>
         <div class="col-xs-4">
             <form:input path="description" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+        </div>
+        <div class="col-xs-offset-3 col-xs-9">
             <form:errors path="description" cssClass="error"/>
         </div>
     </div>
@@ -469,6 +539,7 @@
             </form:label>
             <div class="col-xs-9 space-padding">
                 <div class="col-xs-2">
+                    <input type="hidden" name="end" value=""/>
                     <form:input cssClass="form-control" cssErrorClass="form-control error" path="durationCount" tabindex="${tabIndex}"/>
                 </div>
                 <div class="col-xs-2">
@@ -596,11 +667,52 @@
             </form:label>
             <div class="col-xs-4">
                 <div class="checkbox">
-                    <form:checkbox cssErrorClass="error" path="roomRecorded" tabindex="${tabIndex}"/>
+                    <form:checkbox cssErrorClass="error" path="roomRecorded" tabindex="${tabIndex}" ng-model="roomRecorded"/>
                 </div>
                 <form:errors path="roomRecorded" cssClass="error"/>
             </div>
         </div>
+        <c:if test="${administratorMode}">
+            <script type="text/javascript">
+                $(function(){
+                    var updateResources = function() {
+                        window.getResources("RecordingCapability", function(resources) {
+                            $("#roomRecordingResourceId").select2({
+                                data: resources,
+                                escapeMarkup: function (markup) {
+                                    return markup;
+                                },
+                                initSelection: function(element, callback) {
+                                    var id = $(element).val();
+                                    for (var index = 0; index < resources.length; index++) {
+                                        if (resources[index].id == id) {
+                                            callback(resources[index]);
+                                            return;
+                                        }
+                                    }
+                                    // Id wasn't found and thus set default value
+                                    callback(resources[0]);
+                                    $("#roomResourceId").val(resources[0].id);
+                                }
+                            });
+                        });
+                    };
+                    $("#technology").change(updateResources);
+                    updateResources();
+                });
+            </script>
+            <div class="form-group" ng-show="roomRecorded && technology != 'ADOBE_CONNECT'">
+                <form:label class="col-xs-3 control-label" path="roomRecordingResourceId">
+                    <spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:
+                </form:label>
+                <div class="col-xs-5">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomRecordingResourceId" tabindex="${tabIndex}"/>
+                </div>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="roomRecordingResourceId" cssClass="error"/>
+                </div>
+            </div>
+        </c:if>
     </c:if>
 
     <jsp:doBody var="content"/>

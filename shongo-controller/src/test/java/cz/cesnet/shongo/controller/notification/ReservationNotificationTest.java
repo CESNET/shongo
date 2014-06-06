@@ -161,7 +161,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         roomAvailability.setParticipantCount(4000);
         roomAvailability.setSlotMinutesBefore(10);
         roomAvailability.setSlotMinutesAfter(5);
-        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);

@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents an entity that can be scheduled.
@@ -23,7 +27,7 @@ public class ResourceSummary extends IdentifiedComplexType
     /**
      * Technologies of the resource.
      */
-    private String technologies;
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Parent resource shongo-id.
@@ -75,7 +79,7 @@ public class ResourceSummary extends IdentifiedComplexType
     /**
      * @return {@link #technologies}
      */
-    public String getTechnologies()
+    public Set<Technology> getTechnologies()
     {
         return technologies;
     }
@@ -83,9 +87,18 @@ public class ResourceSummary extends IdentifiedComplexType
     /**
      * @param technologies sets the {@link #technologies}
      */
-    public void setTechnologies(String technologies)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        this.technologies = technologies;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
+    }
+
+    /**
+     * @param technology to be added to the {@link #technologies}
+     */
+    public void addTechnology(Technology technology)
+    {
+        this.technologies.add(technology);
     }
 
     /**
@@ -164,7 +177,7 @@ public class ResourceSummary extends IdentifiedComplexType
         name = dataMap.getString(NAME);
         allocatable = dataMap.getBool(ALLOCATABLE);
         allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
-        technologies = dataMap.getString(TECHNOLOGIES);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
     }
 }
