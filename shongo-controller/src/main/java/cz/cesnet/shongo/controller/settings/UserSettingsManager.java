@@ -39,23 +39,27 @@ public class UserSettingsManager
 
     /**
      * @param securityToken
+     * @param useWebService {@code null} or force to use or to not use web service
      * @return {@link cz.cesnet.shongo.controller.api.UserSettings} for given {@code securityToken}
      */
-    public cz.cesnet.shongo.controller.api.UserSettings getUserSettings(SecurityToken securityToken)
+    public cz.cesnet.shongo.controller.api.UserSettings getUserSettings(SecurityToken securityToken,
+            Boolean useWebService)
     {
         cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
                 authorization.getUserSessionSettings(securityToken);
 
-        cz.cesnet.shongo.controller.api.UserSettings userSettingsApi = getUserSettings(securityToken.getUserId());
+        cz.cesnet.shongo.controller.api.UserSettings userSettingsApi =
+                getUserSettings(securityToken.getUserId(), useWebService);
         userSettingsApi.setAdministratorMode(userSessionSettings.getAdministratorMode());
         return userSettingsApi;
     }
 
     /**
      * @param userId
+     * @param useWebService {@code null} or force to use or to not use web service
      * @return {@link cz.cesnet.shongo.controller.api.UserSettings} for given {@code userId}
      */
-    public cz.cesnet.shongo.controller.api.UserSettings getUserSettings(String userId)
+    public cz.cesnet.shongo.controller.api.UserSettings getUserSettings(String userId, Boolean useWebService)
     {
         cz.cesnet.shongo.controller.api.UserSettings userSettingsApi =
                 new cz.cesnet.shongo.controller.api.UserSettings();
@@ -73,7 +77,8 @@ public class UserSettingsManager
         }
 
         // Set web service data
-        if (userSettingsApi.isUseWebService()) {
+        if (Boolean.TRUE.equals(useWebService) ||
+                (userSettingsApi.isUseWebService() && !Boolean.FALSE.equals(useWebService))) {
             UserData userData = authorization.getUserData(userId);
             userSettingsApi.setLocale(userData.getLocale());
             userSettingsApi.setHomeTimeZone(userData.getTimeZone());

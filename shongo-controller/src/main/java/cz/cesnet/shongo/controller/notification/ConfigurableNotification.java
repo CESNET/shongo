@@ -142,7 +142,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
                 UserInformation userInformation = (UserInformation) recipient;
                 UserSettingsManager userSettingsManager = new UserSettingsManager(
                         entityManager, notificationManager.getAuthorization());
-                UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId());
+                UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId(), null);
                 if (userSettings != null) {
                     locale = userSettings.getLocale();
                     timeZone = userSettings.getCurrentTimeZone();

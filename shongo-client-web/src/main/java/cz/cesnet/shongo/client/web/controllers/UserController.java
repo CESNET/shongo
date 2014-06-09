@@ -28,9 +28,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Controller for retrieving {@link UserInformation}.
@@ -124,6 +122,23 @@ public class UserController
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
         return "redirect:" + BackUrl.getInstance(request);
+    }
+
+    /**
+     * Handle data request for web service user settings.
+     *
+     * @return map with web service user settings
+     */
+    @RequestMapping(value = ClientWebUrl.USER_SETTINGS_WEB_SERVICE_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Object> handleUserList(
+            SecurityToken securityToken)
+    {
+        UserSettings userSettings = authorizationService.getUserSettings(securityToken, true);
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("locale", userSettings.getLocale());
+        result.put("homeTimeZone", userSettings.getHomeTimeZone().getID());
+        return result;
     }
 
     /**

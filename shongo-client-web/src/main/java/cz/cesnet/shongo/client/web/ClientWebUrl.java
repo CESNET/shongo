@@ -179,6 +179,8 @@ public class ClientWebUrl
             "/user/settings";
     public static final String USER_SETTINGS_ATTRIBUTE =
             USER_SETTINGS + "/{name}/{value}";
+    public static final String USER_SETTINGS_WEB_SERVICE_DATA =
+            "/user/settings/web-service/data";
     public static final String USER_LIST_DATA =
             "/user/list/data";
     public static final String USER_TOKEN =

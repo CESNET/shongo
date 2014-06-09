@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
@@ -78,7 +79,7 @@ public class ReservationListController
                     defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
             @RequestParam(value = "specification-type", required = false) Set<SpecificationType> specificationTypes,
-            @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
+            @RequestParam(value = "allocation-state", required = false) String allocationState,
             @RequestParam(value = "permanent-room-id", required = false) String permanentRoomId)
     {
         // List reservation requests
@@ -88,7 +89,9 @@ public class ReservationListController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        request.setAllocationState(allocationState);
+        if (!Strings.isNullOrEmpty(allocationState)) {
+            request.setAllocationState(AllocationState.valueOf(allocationState));
+        }
         if (permanentRoomId != null) {
             request.setReusedReservationRequestId(permanentRoomId);
             specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);

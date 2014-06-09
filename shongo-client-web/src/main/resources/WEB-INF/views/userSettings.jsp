@@ -1,6 +1,8 @@
 <%--
   -- Content for user settings dialog.
   --%>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
@@ -9,11 +11,32 @@
 
 <c:set var="tabIndex" value="1"/>
 <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
+<tag:url var="webServiceDataUrl" value="<%= ClientWebUrl.USER_SETTINGS_WEB_SERVICE_DATA %>"/>
 
 <c:url var="webServiceUrl" value="https://einfra.cesnet.cz/perun-gui/#usr/info?active=1"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:userSettings', ['ngApplication', 'ngTooltip']);
+    module.controller("UserSettingsController", function($scope, $application, $timeout){
+        $scope.useWebService = ${userSettings.useWebService};
+        $scope.locale = "${userSettings.locale}";
+        $scope.homeTimeZone = "${userSettings.homeTimeZone}";
+        $scope.currentTimeZone = "${currentTimeZone}";
+        $scope.currentTimeZoneEnabled = ${userSettings.currentTimeZoneEnabled};
+        $scope.$watch("useWebService", function(){
+            if ($scope.useWebService) {
+                $.ajax("${webServiceDataUrl}", {
+                    dataType: "json"
+                }).done(function (data) {
+                    $("#homeTimeZone").select2("val", data.homeTimeZone);
+                    $timeout(function(){
+                        $scope.locale = data.locale;
+                        $scope.homeTimeZone = data.homeTimeZone;
+                    }, 0);
+                }).fail($application.handleAjaxFailure);
+            }
+        });
+    });
 
     $(function(){
         $("#homeTimeZone,#currentTimeZone").select2();
@@ -26,12 +49,7 @@
 </c:if>
 
 <form:form class="form-horizontal" role="form" method="post" commandName="userSettings"
-           ng-app="jsp:userSettings"
-           ng-init="useWebService = ${userSettings.useWebService};
-                    locale = '${userSettings.locale}';
-                    homeTimeZone = '${userSettings.homeTimeZone}';
-                    currentTimeZone = '${currentTimeZone}';
-                    currentTimeZoneEnabled = ${userSettings.currentTimeZoneEnabled};">
+           ng-app="jsp:userSettings" ng-controller="UserSettingsController">
 
     <div class="form-group">
         <label class="col-xs-3 control-label" for="user">

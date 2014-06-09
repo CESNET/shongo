@@ -602,7 +602,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         List<PersonInformation> administrators = new LinkedList<PersonInformation>();
         for (UserInformation administrator : authorizationManager.getUsersWithRole(this, ObjectRole.OWNER)) {
-            UserSettings userSettings = userSettingsManager.getUserSettings(administrator.getUserId());
+            UserSettings userSettings = userSettingsManager.getUserSettings(administrator.getUserId(), null);
             if (userSettings.isResourceAdministratorNotifications()) {
                 administrators.add(administrator);
             }

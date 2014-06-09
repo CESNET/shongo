@@ -18,6 +18,9 @@ ${mainContent}
     <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW %>"/>
     <tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
         <tag:param name="specification-type" value="PERMANENT_ROOM,ADHOC_ROOM"/>
+        <c:if test="${advancedUserInterface}">
+            <tag:param name="allocation-state" value=":allocationState" escape="false"/>
+        </c:if>
     </tag:url>
     <tag:url var="permanentRoomCapacitiesUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
         <tag:param name="specification-type" value="PERMANENT_ROOM_CAPACITY"/>
@@ -73,6 +76,24 @@ ${mainContent}
                     $scope.$parent.$broadcast(refreshEvent);
                 }
             });
+        });
+        module.controller("RoomListController", function($scope, $cookieStore) {
+            var showNotAllocated = $cookieStore.get("index.showNotAllocated");
+            if (showNotAllocated == null) {
+                showNotAllocated = true;
+            }
+            $scope.roomList = {
+                showNotAllocated: showNotAllocated
+            };
+            $scope.$watch("roomList.showNotAllocated", function(newValue, oldValue){
+                if (newValue != oldValue) {
+                    $cookieStore.put("index.showNotAllocated", newValue);
+                    $scope.$$childHead.refresh();
+                }
+            });
+            $scope.getAllocationState = function() {
+                return ($scope.roomList.showNotAllocated ? null : "ALLOCATED");
+            };
         });
         module.controller("PermanentRoomCapacitiesController", function($scope, $resource) {
             $scope.items = null;
@@ -186,137 +207,148 @@ ${mainContent}
 
             <spring:message code="views.index.rooms" var="roomsTitle"/>
             <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
-                <div ng-controller="PaginationController"
-                     ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', null, 'refresh-rooms');">
-                    <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
-                    <spring:message code="views.button.refresh" var="paginationRefresh"/>
-                    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
-                        <spring:message code="views.pagination.records"/>
-                    </pagination-page-size>
-                    <div class="alert alert-warning"><spring:message code="views.index.rooms.description"/></div>
-                    <div class="spinner" ng-hide="ready || errorContent"></div>
-                    <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
-                    <table class="table table-striped table-hover" ng-show="ready">
-                        <thead>
-                        <tr>
-                            <th>
-                                <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort><%--
-                                --%><tag:help selectable="true" width="800px">
-                                    <h1><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></h1>
-                                    <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
-                                    <h1><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></h1>
-                                    <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
-                                    <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">
-                                        <spring:message code="views.help.rooms.display"/>
-                                    </a>
-                                </tag:help>
-                            </th>
-                            <th style="min-width: 150px;">
-                                <pagination-sort column="ALIAS_ROOM_NAME"><spring:message code="views.reservationRequestList.roomName"/></pagination-sort>
-                            </th>
-                            <th style="min-width: 110px;">
-                                <pagination-sort column="TECHNOLOGY">
-                                    <spring:message code="views.reservationRequest.technology"/>
-                                </pagination-sort>
-                            </th>
-                            <th style="min-width: 230px;">
-                                <pagination-sort column="SLOT"><spring:message code="views.reservationRequestList.slot"/></pagination-sort>
-                            </th>
-                            <th width="200px">
-                                <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
-                            </th>
-                            <th style="min-width: 135px; width: 135px;">
-                                <spring:message code="views.list.action"/>
-                                <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat-start="reservationRequest in items" ng-class-odd="'odd'" ng-class-even="'even'"
-                            ng-class="{'deprecated': reservationRequest.isDeprecated}">
-                            <td>{{reservationRequest.typeMessage}}</td>
-                            <td>
-                                <spring:message code="views.index.rooms.showDetail" var="manageRoom"/>
-                                <a ng-show="reservationRequest.reservationId" href="${detailUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
-                                <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
-                                <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
-                            </td>
-                            <td>{{reservationRequest.technologyTitle}}</td>
-                            <td>
-                                <span ng-bind-html="reservationRequest.earliestSlot"></span>
-                                <span ng-show="reservationRequest.futureSlotCount">
-                                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
-                                    <tag:help label="(${slotMore})" cssClass="push-top">
-                                        <spring:message code="views.reservationRequestList.slotMoreHelp"/>
-                                    </tag:help>
-                                </span>
-                            </td>
-                            <td class="reservation-request-state">
-                                <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
-                                    <span>{{reservationRequest.stateHelp}}</span>
-                                </tag:help>
-                            </td>
-                            <td>
-                                <tag:url var="detailRuntimeManagementEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
-                                    <tag:param name="objectId" value="{{reservationRequest.reservationId}}" escape="false"/>
-                                </tag:url>
-                                <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
-                                    <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/> |
-                                </span>
-                                <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${detailUrl}" tabindex="2"/>
-                                <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE')">
-                                    | <tag:listAction code="manageRoom" url="${detailRuntimeManagementUrl}" target="_blank" tabindex="4"/>
-                                </span>
-                                <span ng-show="reservationRequest.isWritable">
-                                    <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                        | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
-                                    </span>
-                                    <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                        | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
-                                    </span>
-                                    | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
-                                </span>
-                            </td>
-                        </tr>
-                        <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
-                            ng-class="{'deprecated': reservationRequest.isDeprecated}">
-                            <td ng-controller="PermanentRoomCapacitiesController" colspan="6" ng-show="items != null">
-                                <div style="position: relative;">
-                                    <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
-                                        <a class="btn btn-default" href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                                            <spring:message code="views.index.rooms.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
-                                        </a>
-                                    </div>
-                                    <span><spring:message code="views.index.rooms.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</span>
-                                    <ul>
-                                        <li ng-repeat="capacity in items">
-                                            <a href="${permanentRoomCapacityDetailUrl}">{{capacity.roomParticipantCountMessage}}</a>
-                                            <spring:message code="views.index.rooms.permanentRoomCapacity.slot" arguments="{{capacity.earliestSlot}}"/>
-                                    <span ng-show="capacity.futureSlotCount">
-                                        (<spring:message code="views.reservationRequestList.slotMore" arguments="{{capacity.futureSlotCount}}"/>)
-                                    </span>
-                                            <span class="reservation-request-state">(<tag:help label="{{capacity.stateMessage}}" cssClass="{{capacity.state}}"><span>{{capacity.stateHelp}}</span></tag:help>)</span>
-                                        </li>
-                                        <li ng-show="count > items.length">
-                                            <a href="${detailUrl}" tabindex="2">
-                                                <spring:message code="views.index.rooms.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
-                                            </a>
-                                        </li>
-                                        <li  ng-hide="items.length">
-                                            <span class="empty"><spring:message code="views.list.none"/></span>
-                                        </li>
-                                    </ul>
+                <div ng-controller="RoomListController">
+                    <div ng-controller="PaginationController"
+                         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', {allocationState: getAllocationState}, 'refresh-rooms');">
+                        <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+                        <spring:message code="views.button.refresh" var="paginationRefresh"/>
+                        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+                            <spring:message code="views.pagination.records"/>
+                        </pagination-page-size>
+                        <div class="alert alert-warning">
+                            <spring:message code="views.index.rooms.description"/>
+                            <c:if test="${advancedUserInterface}">
+                                &nbsp;&nbsp;
+                                <div class="checkbox-inline">
+                                    <input id="showNotAllocated" type="checkbox" ng-model="roomList.showNotAllocated"/>
+                                    <label for="showNotAllocated"><spring:message code="views.index.rooms.showFailed"/></label>
                                 </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                        <tbody>
-                        <tr ng-hide="items.length">
-                            <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+                            </c:if>
+                        </div>
+                        <div class="spinner" ng-hide="ready || errorContent"></div>
+                        <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
+                        <table class="table table-striped table-hover" ng-show="ready">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort><%--
+                                    --%><tag:help selectable="true" width="800px">
+                                        <h1><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></h1>
+                                        <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
+                                        <h1><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></h1>
+                                        <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
+                                        <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">
+                                            <spring:message code="views.help.rooms.display"/>
+                                        </a>
+                                    </tag:help>
+                                </th>
+                                <th style="min-width: 150px;">
+                                    <pagination-sort column="ALIAS_ROOM_NAME"><spring:message code="views.reservationRequestList.roomName"/></pagination-sort>
+                                </th>
+                                <th style="min-width: 110px;">
+                                    <pagination-sort column="TECHNOLOGY">
+                                        <spring:message code="views.reservationRequest.technology"/>
+                                    </pagination-sort>
+                                </th>
+                                <th style="min-width: 230px;">
+                                    <pagination-sort column="SLOT"><spring:message code="views.reservationRequestList.slot"/></pagination-sort>
+                                </th>
+                                <th width="200px">
+                                    <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
+                                </th>
+                                <th style="min-width: 135px; width: 135px;">
+                                    <spring:message code="views.list.action"/>
+                                    <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat-start="reservationRequest in items" ng-class-odd="'odd'" ng-class-even="'even'"
+                                ng-class="{'deprecated': reservationRequest.isDeprecated}">
+                                <td>{{reservationRequest.typeMessage}}</td>
+                                <td>
+                                    <spring:message code="views.index.rooms.showDetail" var="manageRoom"/>
+                                    <a ng-show="reservationRequest.reservationId" href="${detailUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
+                                    <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
+                                    <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
+                                </td>
+                                <td>{{reservationRequest.technologyTitle}}</td>
+                                <td>
+                                    <span ng-bind-html="reservationRequest.earliestSlot"></span>
+                                    <span ng-show="reservationRequest.futureSlotCount">
+                                        <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
+                                        <tag:help label="(${slotMore})" cssClass="push-top">
+                                            <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                                        </tag:help>
+                                    </span>
+                                </td>
+                                <td class="reservation-request-state">
+                                    <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
+                                        <span>{{reservationRequest.stateHelp}}</span>
+                                    </tag:help>
+                                </td>
+                                <td>
+                                    <tag:url var="detailRuntimeManagementEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
+                                        <tag:param name="objectId" value="{{reservationRequest.reservationId}}" escape="false"/>
+                                    </tag:url>
+                                    <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
+                                        <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/> |
+                                    </span>
+                                    <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${detailUrl}" tabindex="2"/>
+                                    <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE')">
+                                        | <tag:listAction code="manageRoom" url="${detailRuntimeManagementUrl}" target="_blank" tabindex="4"/>
+                                    </span>
+                                    <span ng-show="reservationRequest.isWritable">
+                                        <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                            | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
+                                        </span>
+                                        <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                            | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
+                                        </span>
+                                        | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
+                                ng-class="{'deprecated': reservationRequest.isDeprecated}">
+                                <td ng-controller="PermanentRoomCapacitiesController" colspan="6" ng-show="items != null">
+                                    <div style="position: relative;">
+                                        <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
+                                            <a class="btn btn-default" href="${createPermanentRoomCapacityUrl}" tabindex="1">
+                                                <spring:message code="views.index.rooms.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
+                                            </a>
+                                        </div>
+                                        <span><spring:message code="views.index.rooms.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</span>
+                                        <ul>
+                                            <li ng-repeat="capacity in items">
+                                                <a href="${permanentRoomCapacityDetailUrl}">{{capacity.roomParticipantCountMessage}}</a>
+                                                <spring:message code="views.index.rooms.permanentRoomCapacity.slot" arguments="{{capacity.earliestSlot}}"/>
+                                        <span ng-show="capacity.futureSlotCount">
+                                            (<spring:message code="views.reservationRequestList.slotMore" arguments="{{capacity.futureSlotCount}}"/>)
+                                        </span>
+                                                <span class="reservation-request-state">(<tag:help label="{{capacity.stateMessage}}" cssClass="{{capacity.state}}"><span>{{capacity.stateHelp}}</span></tag:help>)</span>
+                                            </li>
+                                            <li ng-show="count > items.length">
+                                                <a href="${detailUrl}" tabindex="2">
+                                                    <spring:message code="views.index.rooms.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
+                                                </a>
+                                            </li>
+                                            <li  ng-hide="items.length">
+                                                <span class="empty"><spring:message code="views.list.none"/></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tbody>
+                            <tr ng-hide="items.length">
+                                <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+                    </div>
                 </div>
             </tab>
 

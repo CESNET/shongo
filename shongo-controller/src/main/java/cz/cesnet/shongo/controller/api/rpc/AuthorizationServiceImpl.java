@@ -151,7 +151,22 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
-            return userSettingsManager.getUserSettings(securityToken);
+            return userSettingsManager.getUserSettings(securityToken, null);
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public UserSettings getUserSettings(SecurityToken securityToken, boolean useWebService)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+        try {
+            return userSettingsManager.getUserSettings(securityToken, useWebService);
         }
         finally {
             entityManager.close();
@@ -170,7 +185,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
-            return userSettingsManager.getUserSettings(userId);
+            return userSettingsManager.getUserSettings(userId, null);
         }
         finally {
             entityManager.close();

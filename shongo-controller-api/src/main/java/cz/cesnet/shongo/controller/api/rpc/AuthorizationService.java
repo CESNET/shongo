@@ -51,6 +51,14 @@ public interface AuthorizationService extends Service
 
     /**
      * @param securityToken token of the user requesting the operation
+     * @param useWebService specifies if the web service shall or shall not be used to return attributes in {@link UserSettings}
+     * @return {@link UserSettings} for the requesting user
+     */
+    @API
+    public UserSettings getUserSettings(SecurityToken securityToken, boolean useWebService);
+
+    /**
+     * @param securityToken token of the user requesting the operation
      * @param userId for user to get his settings
      * @return {@link UserSettings} for user with the given {@code userId}
      */
