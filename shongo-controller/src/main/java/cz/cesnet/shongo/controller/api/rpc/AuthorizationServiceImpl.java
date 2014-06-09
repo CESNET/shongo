@@ -789,6 +789,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             return referencedUsers;
         }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
