@@ -13,6 +13,7 @@
     function update()
     {
         var resourceId = $("#resourceId").val();
+        var type = $("#type").val();
         var intervalFrom = $("#intervalFrom").val();
         var intervalTo = $("#intervalTo").val();
         var url = "<tag:url value="<%= ClientWebUrl.RESOURCE_RESERVATIONS_DATA %>"/>";
@@ -20,7 +21,9 @@
         if (resourceId != null && resourceId != "") {
             url += "&resource-id=" + resourceId;
         }
-        console.debug("update", resourceId, intervalFrom, intervalTo);
+        if (type != null && type != "") {
+            url += "&type=" + type;
+        }
         $("#content").html("<div class='spinner'></div>");
         $.ajax({
             type: "GET",
@@ -33,45 +36,58 @@
                 $("#content").html(result);
             }
         });
-
     }
 
-    $(function(){
+    function initToolbar()
+    {
         $("#resourceId").select2({
             width: 300,
             escapeMarkup: function (markup) { return markup; },
             data: [
-                {id: "", text: "All resources"}
+                {id: "", text: "<spring:message code="views.resourceReservations.resource.all"/>"}
                 <c:forEach items="${resources}" var="resource">
                     ,{id: "${resource.key}", text: "${resource.value}"}
                 </c:forEach>
             ]
         });
-        $("#resourceId,#intervalFrom,#intervalTo").change(function () {
+        $("#resourceId,#intervalFrom,#intervalTo,#type").change(function () {
             update();
         });
         var dateTime = moment();
         $("#intervalFrom").val(dateTime.weekday(0).format("YYYY-MM-DD"));
         $("#intervalTo").val(dateTime.weekday(6).format("YYYY-MM-DD"));
         update();
+    }
+
+    $(document).ready(function(){
+        initToolbar();
     });
 </script>
 
 <div ng-app="jsp:resourceReservations">
     <form class="form-inline">
-        <label for="resourceId">Resource:</label>
+        <label for="resourceId"><spring:message code="views.resourceReservations.resource"/>:</label>
         <input id="resourceId"/>
 
+        <spring:eval var="types" expression="T(cz.cesnet.shongo.controller.api.ReservationSummary$Type).values()"/>
+        <label for="resourceId"><spring:message code="views.resourceReservations.type"/>:</label>
+        <select id="type" class="form-control" tabindex="${tabIndex}">
+            <option value=""><spring:message code="views.resourceReservations.type.all"/></option>
+            <c:forEach items="${types}" var="type">
+                <option value="${type}"><spring:message code="views.resourceReservations.type.${type}"/></option>
+            </c:forEach>
+        </select>
+
         &nbsp;
-        <label for="intervalFrom">Interval:</label>
-        <div class="input-prepend">
-            <span class="add-on">
+        <label for="intervalFrom"><spring:message code="views.resourceReservations.interval"/>:</label>
+        <div class="input-group" style="display: inline-table;">
+            <span class="input-group-addon">
                 From:
             </span>
             <input id="intervalFrom" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
         </div>
-        <div class="input-prepend">
-            <span class="add-on">
+        <div class="input-group" style="display: inline-table">
+            <span class="input-group-addon">
                 To:
             </span>
             <input id="intervalTo" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
@@ -79,9 +95,11 @@
 
     </form>
 
-    <div id="content" class="center-content">
+    <div class="calendar">
     </div>
 
+    <div id="content" class="center-content">
+    </div>
 
 </div>
 

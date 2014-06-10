@@ -59,7 +59,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     /**
      * @param reservationType to be added to the {@link #reservationTypes}
      */
-    public void addReservationClass(ReservationSummary.Type reservationType)
+    public void addReservationType(ReservationSummary.Type reservationType)
     {
         this.reservationTypes.add(reservationType);
     }
@@ -122,7 +122,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        reservationTypes = (Set) dataMap.getSet(RESERVATION_TYPES, Class.class);
+        reservationTypes = dataMap.getSet(RESERVATION_TYPES, ReservationSummary.Type.class);
         resourceId = dataMap.getString(RESOURCE_ID);
         interval = dataMap.getInterval(INTERVAL);
     }

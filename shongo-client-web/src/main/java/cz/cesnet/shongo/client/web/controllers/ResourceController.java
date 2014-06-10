@@ -122,12 +122,16 @@ public class ResourceController
     public Object handleReservationsData(
             SecurityToken securityToken,
             @RequestParam(value = "resource-id", required = false) String resourceId,
+            @RequestParam(value = "type", required = false) ReservationSummary.Type type,
             @RequestParam(value = "interval-from") DateTime intervalFrom,
             @RequestParam(value = "interval-to") DateTime intervalTo)
     {
         ReservationListRequest request = new ReservationListRequest(securityToken);
         request.setSort(ReservationListRequest.Sort.SLOT);
         request.setResourceId(resourceId);
+        if (type != null) {
+            request.addReservationType(type);
+        }
         request.setInterval(new Interval(intervalFrom, intervalTo));
         ListResponse<ReservationSummary> listResponse = reservationService.listReservations(request);
         List<Map> reservations = new LinkedList<Map>();
