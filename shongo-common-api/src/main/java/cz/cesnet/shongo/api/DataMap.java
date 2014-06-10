@@ -199,6 +199,19 @@ public class DataMap
         return Converter.convertToClass(value, baseClass);
     }
 
+    public <T> Set<Class<? extends T>> getClassSet(String property, Class<T> baseClass)
+    {
+        Object value = data.get(property);
+        if (value == null) {
+            return null;
+        }
+        Set<Class<? extends T>> classSet = new HashSet<Class<? extends T>>();
+        for (Object item : Converter.convertToSet(value, Object.class)) {
+            classSet.add(Converter.convertToClass(item, baseClass));
+        }
+        return classSet;
+    }
+
     public boolean getBool(String property)
     {
         Object value = data.get(property);

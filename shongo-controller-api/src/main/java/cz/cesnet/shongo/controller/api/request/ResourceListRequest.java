@@ -32,9 +32,9 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private String name;
 
     /**
-     * {@link Capability} which the resources must have.
+     * {@link Capability}s from which the resources must have at least one.
      */
-    private Class<? extends Capability> capabilityClass;
+    private Set<Class<? extends Capability>> capabilityClasses = new HashSet<Class<? extends Capability>>();
 
     /**
      * Set of {@link Technology}s which the resources must support.
@@ -122,19 +122,28 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     }
 
     /**
-     * @return {@link #capabilityClass}
+     * @return {@link #capabilityClasses}
      */
-    public Class<? extends Capability> getCapabilityClass()
+    public Set<Class<? extends Capability>> getCapabilityClasses()
     {
-        return capabilityClass;
+        return capabilityClasses;
     }
 
     /**
-     * @param capabilityClass sets the {@link #capabilityClass}
+     * @param capabilityClasses sets the {@link #capabilityClasses}
      */
-    public void setCapabilityClass(Class<? extends Capability> capabilityClass)
+    public void setCapabilityClasses(Set<Class<? extends Capability>> capabilityClasses)
     {
-        this.capabilityClass = capabilityClass;
+        this.capabilityClasses.clear();
+        this.capabilityClasses.addAll(capabilityClasses);
+    }
+
+    /**
+     * @param capabilityClass to be added to the {@link #capabilityClasses}
+     */
+    public void addCapabilityClass(Class<? extends Capability> capabilityClass)
+    {
+        this.capabilityClasses.add(capabilityClass);
     }
 
     /**
@@ -187,7 +196,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private static final String RESOURCE_IDS = "resourceIds";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
-    private static final String CAPABILITY_CLASS = "capabilityClass";
+    private static final String CAPABILITY_CLASSES = "capabilityClasses";
     private static final String TECHNOLOGIES = "technologies";
     private static final String ALLOCATABLE = "allocatable";
 
@@ -198,7 +207,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
-        dataMap.set(CAPABILITY_CLASS, capabilityClass);
+        dataMap.set(CAPABILITY_CLASSES, capabilityClasses);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(ALLOCATABLE, allocatable);
         return dataMap;
@@ -211,7 +220,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
-        capabilityClass = dataMap.getClass(CAPABILITY_CLASS, Capability.class);
+        capabilityClasses = dataMap.getClassSet(CAPABILITY_CLASSES, Capability.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
     }

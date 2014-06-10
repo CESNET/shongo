@@ -1,11 +1,12 @@
-package cz.cesnet.shongo.controller.util;
+package cz.cesnet.shongo.util;
 
+import cz.cesnet.shongo.util.RangeSet;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.util.RangeSet}.
+ * Tests for {@link cz.cesnet.shongo.util.RangeSet}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

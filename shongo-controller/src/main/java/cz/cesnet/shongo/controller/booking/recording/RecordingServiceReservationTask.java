@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.controller.util.RangeSet;
+import cz.cesnet.shongo.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

@@ -201,6 +201,8 @@ public class ClientWebUrl
             "/resource/reservations";
     public static final String RESOURCE_RESERVATIONS_DATA =
             "/resource/reservations/data";
+    public static final String RESOURCE_CAPACITY_UTILIZATION =
+            "/resource/capacity-utilization";
 
     public static String format(String url, Object... variables)
     {

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.util;
+package cz.cesnet.shongo.util;
 
 import org.joda.time.DateTime;
 

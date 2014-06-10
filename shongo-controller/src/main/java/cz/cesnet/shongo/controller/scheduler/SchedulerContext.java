@@ -14,12 +14,13 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
+import cz.cesnet.shongo.controller.booking.room.RoomBucket;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.util.RangeSet;
+import cz.cesnet.shongo.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -28,6 +29,8 @@ import java.util.*;
 
 /**
  * Context for the {@link ReservationTask}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class SchedulerContext
 {
@@ -426,57 +429,4 @@ public class SchedulerContext
         throw new SchedulerException(schedulerReport);
     }
 
-    /**
-     * {@link RangeSet.Bucket} for {@link RoomReservation}s.
-     */
-    private static class RoomBucket extends RangeSet.Bucket<DateTime, RoomReservation>
-    {
-        /**
-         * Sum of {@link RoomReservation#getLicenseCount()}
-         */
-        private int licenseCount = 0;
-
-        /**
-         * Constructor.
-         *
-         * @param rangeValue
-         */
-        public RoomBucket(DateTime rangeValue)
-        {
-            super(rangeValue);
-        }
-
-        /**
-         * @return {@link #licenseCount}
-         */
-        private int getLicenseCount()
-        {
-            return licenseCount;
-        }
-
-        @Override
-        public boolean add(RoomReservation roomReservation)
-        {
-            if (super.add(roomReservation)) {
-                this.licenseCount += roomReservation.getLicenseCount();
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public boolean remove(Object object)
-        {
-            if (super.remove(object)) {
-                RoomReservation roomReservation = (RoomReservation) object;
-                this.licenseCount -= roomReservation.getLicenseCount();
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-    }
 }

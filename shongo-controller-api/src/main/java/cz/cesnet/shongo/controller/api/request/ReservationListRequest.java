@@ -21,9 +21,9 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     private Set<ReservationSummary.Type> reservationTypes = new HashSet<ReservationSummary.Type>();
 
     /**
-     * Resource-id of resources which must be allocated by returned {@link Reservation}s.
+     * Resource-ids of resources which must be allocated by returned {@link Reservation}s.
      */
-    private String resourceId;
+    private Set<String> resourceIds = new HashSet<String>();
 
     /**
      * Interval in only which the {@link Reservation}s should be returned.
@@ -65,19 +65,20 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     }
 
     /**
-     * @return {@link #resourceId}
+     * @return {@link #resourceIds}
      */
-    public String getResourceId()
+    public Set<String> getResourceIds()
     {
-        return resourceId;
+        return resourceIds;
     }
 
     /**
-     * @param resourceId sets the {@link #resourceId}
+     * @param resourceIds sets the {@link #resourceIds}
      */
-    public void setResourceId(String resourceId)
+    public void setResourceIds(Set<String> resourceIds)
     {
-        this.resourceId = resourceId;
+        this.resourceIds.clear();
+        this.resourceIds.addAll(resourceIds);
     }
 
     /**
@@ -97,6 +98,14 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     }
 
     /**
+     * @param resourceId to be added to the {@link #resourceIds}
+     */
+    public void addResourceId(String resourceId)
+    {
+        resourceIds.add(resourceId);
+    }
+
+    /**
      * Field by which the result should be sorted.
      */
     public static enum Sort
@@ -105,7 +114,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     }
 
     private static final String RESERVATION_TYPES = "reservationTypes";
-    private static final String RESOURCE_ID = "resourceId";
+    private static final String RESOURCE_IDS = "resourceIds";
     private static final String INTERVAL = "interval";
 
     @Override
@@ -113,7 +122,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     {
         DataMap dataMap = super.toData();
         dataMap.set(RESERVATION_TYPES, reservationTypes);
-        dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(INTERVAL, interval);
         return dataMap;
     }
@@ -123,7 +132,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     {
         super.fromData(dataMap);
         reservationTypes = dataMap.getSet(RESERVATION_TYPES, ReservationSummary.Type.class);
-        resourceId = dataMap.getString(RESOURCE_ID);
+        resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         interval = dataMap.getInterval(INTERVAL);
     }
 }

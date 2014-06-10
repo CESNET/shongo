@@ -10,6 +10,15 @@
 <script type="text/javascript">
     var module = angular.module('jsp:resourceReservations', ['ngApplication', 'ngDateTime', 'ngTooltip', 'ngCookies', 'ngSanitize']);
 
+    function formatId(id)
+    {
+        if (id == null) {
+            return null;
+        }
+        var id = id.split(":");
+        return id[2] + ":" + id[3];
+    }
+
     function update()
     {
         var resourceId = $("#resourceId").val();
@@ -30,10 +39,53 @@
             url: url,
             cache:false,
             dataType: "json",
-            success: function(result) {
-                console.debug(result);
-                result = "<pre style='text-align: left;'>" + JSON.stringify(result, null, 4) + "</pre>";
-                $("#content").html(result);
+            success: function(data) {
+                var html = "<table class='table table-striped table-hover'>";
+                html += "<thead>";
+                html += "<tr>";
+                html += "<th>id</th>";
+                html += "<th>resource</th>";
+                html += "<th>type</th>";
+                html += "<th>slot</th>";
+                html += "<th>allocated</th>";
+                html += "</tr>";
+                html += "</thead>";
+                html += "<tbody>";
+                for (var index = 0; index < data.length; index++) {
+                    var reservation = data[index];
+                    var reservationType = reservation.type;
+                    var reservationAllocated = "";
+                    switch (reservationType) {
+                        case "VALUE": {
+                            reservationAllocated = reservation.value;
+                            break;
+                        }
+                        case "ALIAS": {
+                            reservationAllocated = reservation.value;
+                            if (reservation.aliasTypes != null) {
+                                reservationAllocated += " (" + reservation.aliasTypes.join(", ") + ")";
+                            }
+                            break;
+                        }
+                        case "ROOM": {
+                            reservationAllocated = reservation.roomLicenseCount + " " + (reservation.roomLicenseCount == 1 ? "license" : "licenses");
+                            if (reservation.roomName != null) {
+                                reservationAllocated = reservation.roomName + " (" + reservationAllocated + ")";
+                            }
+                            break;
+                        }
+                    }
+                    html += "<tr>";
+                    html += "<td>" + formatId(reservation.id) +"</td>";
+                    html += "<td>" + formatId(reservation.resourceId) +"</td>";
+                    html += "<td>" + reservationType +"</td>";
+                    html += "<td>" + moment(reservation.slotStart).format("YYYY-MM-DD HH:mm") + " - " + moment(reservation.slotEnd).format("YYYY-MM-DD HH:mm") + "</td>";
+                    html += "<td>" + reservationAllocated +"</td>";
+                    html += "</tr>";
+                }
+                html += "</tbody>";
+                html += "</table>";
+                $("#content").html(html);
             }
         });
     }
@@ -98,7 +150,9 @@
     <div class="calendar">
     </div>
 
-    <div id="content" class="center-content">
+    <hr/>
+
+    <div id="content">
     </div>
 
 </div>

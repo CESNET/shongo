@@ -23,7 +23,6 @@ import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
-import org.hibernate.type.AnyType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -920,10 +919,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // List only reservations which allocates requested resource
-            if (request.getResourceId() != null) {
-                queryFilter.addFilter("reservation_summary.resource_id = :resourceId");
-                queryFilter.addFilterParameter("resourceId", ObjectIdentifier.parseId(
-                        request.getResourceId(), ObjectType.RESOURCE));
+            if (!request.getResourceIds().isEmpty()) {
+                queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
+                Set<Long> resourceIds = new HashSet<Long>();
+                for (String resourceId : request.getResourceIds()) {
+                    resourceIds.add(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                }
+                queryFilter.addFilterParameter("resourceIds", resourceIds);
             }
 
             // List only reservations in requested interval

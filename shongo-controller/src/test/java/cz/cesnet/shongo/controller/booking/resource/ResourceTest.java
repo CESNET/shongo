@@ -11,11 +11,9 @@ import cz.cesnet.shongo.controller.api.ResourceReservation;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import cz.cesnet.shongo.controller.api.RoomReservation;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
-import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
-import cz.cesnet.shongo.controller.booking.room.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -34,7 +32,7 @@ public class ResourceTest extends AbstractExecutorTest
     {
         ResourceListRequest resourceListRequest = new ResourceListRequest();
         resourceListRequest.setSecurityToken(SECURITY_TOKEN_ROOT);
-        resourceListRequest.setCapabilityClass(RoomProviderCapability.class);
+        resourceListRequest.addCapabilityClass(RoomProviderCapability.class);
         resourceListRequest.addTechnology(Technology.H323);
         getResourceService().listResources(resourceListRequest);
 

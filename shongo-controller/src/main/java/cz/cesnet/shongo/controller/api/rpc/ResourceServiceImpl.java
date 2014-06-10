@@ -290,22 +290,29 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
 
             // Capability type
-            Class<? extends Capability> capabilityClass = request.getCapabilityClass();
-            if (capabilityClass != null) {
-                if (capabilityClass.equals(cz.cesnet.shongo.controller.api.RoomProviderCapability.class)) {
-                    queryFilter.addFilter("resource_summary.id IN ("
-                            + " SELECT capability.resource_id FROM room_provider_capability"
-                            + " LEFT JOIN capability ON capability.id = room_provider_capability.id)");
+            if (request.getCapabilityClasses().size() > 0) {
+                StringBuilder capabilityClassFilter = new StringBuilder();
+                for (Class<? extends Capability> capabilityClass : request.getCapabilityClasses()) {
+                    if (capabilityClassFilter.length() > 0) {
+                        capabilityClassFilter.append(" OR ");
+                    }
+                    if (capabilityClass.equals(cz.cesnet.shongo.controller.api.RoomProviderCapability.class)) {
+                        capabilityClassFilter.append("resource_summary.id IN ("
+                                + " SELECT capability.resource_id FROM room_provider_capability"
+                                + " LEFT JOIN capability ON capability.id = room_provider_capability.id)");
+                    }
+                    else if (capabilityClass.equals(RecordingCapability.class)) {
+                        capabilityClassFilter.append("resource_summary.id IN ("
+                                + " SELECT capability.resource_id FROM recording_capability"
+                                + " LEFT JOIN capability ON capability.id = recording_capability.id)");
+                    }
+                    else {
+                        throw new TodoImplementException(capabilityClass);
+                    }
                 }
-                else if (capabilityClass.equals(RecordingCapability.class)) {
-                    queryFilter.addFilter("resource_summary.id IN ("
-                            + " SELECT capability.resource_id FROM recording_capability"
-                            + " LEFT JOIN capability ON capability.id = recording_capability.id)");
-                }
-                else {
-                    throw new TodoImplementException(capabilityClass);
-                }
+                queryFilter.addFilter(capabilityClassFilter.toString());
             }
+
 
             // Technologies
             Set<Technology> technologies = request.getTechnologies();

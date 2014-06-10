@@ -3,13 +3,11 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.ResourceCapacityUtilization;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
-import cz.cesnet.shongo.controller.api.Capability;
-import cz.cesnet.shongo.controller.api.ReservationSummary;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
@@ -24,7 +22,6 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -35,10 +32,10 @@ import java.util.*;
 @Controller
 public class ResourceController
 {
-    @Resource
+    @javax.annotation.Resource
     protected ResourceService resourceService;
 
-    @Resource
+    @javax.annotation.Resource
     protected ReservationService reservationService;
 
     /**
@@ -69,7 +66,7 @@ public class ResourceController
         resourceListRequest.setAllocatable(true);
         if (capabilityClassName != null) {
             Class<? extends Capability> capabilityType = ClassHelper.getClassFromShortName(capabilityClassName);
-            resourceListRequest.setCapabilityClass(capabilityType);
+            resourceListRequest.addCapabilityClass(capabilityType);
         }
         if (technology != null) {
             resourceListRequest.setTechnologies(technology.getTechnologies());
@@ -115,7 +112,7 @@ public class ResourceController
     }
 
     /**
-     * Handle resource reservations table
+     * Handle resource reservations data
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESERVATIONS_DATA, method = RequestMethod.GET)
     @ResponseBody
@@ -128,7 +125,9 @@ public class ResourceController
     {
         ReservationListRequest request = new ReservationListRequest(securityToken);
         request.setSort(ReservationListRequest.Sort.SLOT);
-        request.setResourceId(resourceId);
+        if (resourceId != null) {
+            request.addResourceId(resourceId);
+        }
         if (type != null) {
             request.addReservationType(type);
         }
@@ -149,5 +148,27 @@ public class ResourceController
             reservations.add(reservation);
         }
         return reservations;
+    }
+
+    /**
+     * Handle resource reservations view
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION, method = RequestMethod.GET)
+    public ModelAndView handleCapacityUtilizationView(SecurityToken securityToken)
+    {
+        // Get resources
+        ResourceCapacityUtilization resourceCapacityUtilization =
+                new ResourceCapacityUtilization(securityToken, resourceService, reservationService);
+
+        Map<Interval, Map<ResourceCapacityUtilization.ResourceCapacity, ResourceCapacityUtilization.Utilization>> utilization =
+                resourceCapacityUtilization.getUtilization(Interval.parse("2014/2015"), Period.parse("P1M"));
+
+
+
+
+        ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilization");
+        modelAndView.addObject("resourceCapacitySet", resourceCapacityUtilization.getResourceCapacities());
+        modelAndView.addObject("resourceCapacityUtilization", utilization);
+        return modelAndView;
     }
 }
