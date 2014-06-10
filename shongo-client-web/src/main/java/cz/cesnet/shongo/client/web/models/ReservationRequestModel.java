@@ -6,10 +6,10 @@ import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
@@ -990,12 +990,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     /**
      * @param reservationRequest
-     * @return list of {@link BreadcrumbItem}s for given {@code reservationRequest}
+     * @return list of {@link Page}s for given {@code reservationRequest}
      */
-    public static List<BreadcrumbItem> getBreadcrumbItems(ReservationRequestSummary reservationRequest)
+    public static List<Page> getPagesForBreadcrumb(ReservationRequestSummary reservationRequest)
     {
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-        return getBreadcrumbItems(reservationRequest.getId(), specificationType,
+        return getPagesForBreadcrumb(reservationRequest.getId(), specificationType,
                 reservationRequest.getParentReservationRequestId(), reservationRequest.getReusedReservationRequestId());
     }
 
@@ -1003,30 +1003,30 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param specificationType
      * @param parentReservationRequestId
      * @param permanentRoomReservationRequestId
-     * @return list of {@link BreadcrumbItem}s for this reservation request
+     * @return list of {@link Page}s for this reservation request
      */
-    public static List<BreadcrumbItem> getBreadcrumbItems(String reservationRequestId,
+    public static List<Page> getPagesForBreadcrumb(String reservationRequestId,
             SpecificationType specificationType, String parentReservationRequestId,
             String permanentRoomReservationRequestId)
     {
-        List<BreadcrumbItem> breadcrumbItems = new LinkedList<BreadcrumbItem>();
+        List<Page> pages = new LinkedList<Page>();
 
         String titleCode;
         if (parentReservationRequestId != null) {
             if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-                // Add breadcrumb for permanent room reservation request
-                breadcrumbItems.add(new BreadcrumbItem(
+                // Add page for permanent room reservation request
+                pages.add(new Page(
                         ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
                         "navigation.detail"));
 
-                // Add breadcrumb for reservation request set
-                breadcrumbItems.add(new BreadcrumbItem(
+                // Add page for reservation request set
+                pages.add(new Page(
                         ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
                         "navigation.detail.capacity"));
             }
             else {
-                // Add breadcrumb for reservation request set
-                breadcrumbItems.add(new BreadcrumbItem(
+                // Add page for reservation request set
+                pages.add(new Page(
                         ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
                         "navigation.detail"));
             }
@@ -1035,8 +1035,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             titleCode = "navigation.detail.event";
         }
         else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-            // Add breadcrumb for permanent room reservation request
-            breadcrumbItems.add(new BreadcrumbItem(
+            // Add page for permanent room reservation request
+            pages.add(new Page(
                     ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
                     "navigation.detail"));
 
@@ -1047,10 +1047,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             titleCode = "navigation.detail";
         }
 
-        // Add breadcrumb for this reservation request
-        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId), titleCode));
+        // Add page for this reservation request
+        pages.add(new Page(ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId), titleCode));
 
-        return breadcrumbItems;
+        return pages;
     }
 
     @Override

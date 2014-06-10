@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
@@ -100,7 +98,7 @@ public class DetailController extends AbstractDetailController implements Breadc
 
         // Initialize breadcrumb
         if (breadcrumb != null) {
-            breadcrumb.addItems(ReservationRequestModel.getBreadcrumbItems(
+            breadcrumb.addPages(ReservationRequestModel.getPagesForBreadcrumb(
                     reservationRequestId, specificationType, parentReservationRequestId,
                     reservationRequest.getReusedReservationRequestId()));
         }

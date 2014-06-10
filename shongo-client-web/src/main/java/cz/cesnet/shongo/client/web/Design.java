@@ -6,7 +6,7 @@ import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
-import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
+import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.controller.SystemPermission;
@@ -601,7 +601,7 @@ public class Design
                 final BreadcrumbContext breadcrumbContext = new BreadcrumbContext();
                 return new Iterator<BreadcrumbContext>()
                 {
-                    private Iterator<BreadcrumbItem> iterator = breadcrumb.iterator();
+                    private Iterator<Page> iterator = breadcrumb.iterator();
 
                     @Override
                     public boolean hasNext()
@@ -612,7 +612,7 @@ public class Design
                     @Override
                     public BreadcrumbContext next()
                     {
-                        breadcrumbContext.breadcrumbItem = iterator.next();
+                        breadcrumbContext.page = iterator.next();
                         return breadcrumbContext;
                     }
 
@@ -721,17 +721,17 @@ public class Design
 
         public class BreadcrumbContext
         {
-            private BreadcrumbItem breadcrumbItem;
+            private Page page;
 
             public String getUrl()
             {
-                return baseUrl + breadcrumbItem.getUrl();
+                return baseUrl + page.getUrl();
             }
 
             public String getTitle()
             {
                 return applicationMessageSource.getMessage(
-                        breadcrumbItem.getTitleCode(), breadcrumbItem.getTitleArguments(), userSessionLocale);
+                        page.getTitleCode(), page.getTitleArguments(), userSessionLocale);
             }
         }
     }

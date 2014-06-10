@@ -9,7 +9,6 @@ import cz.cesnet.shongo.client.web.support.*;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Controller for reverting and deleting reservation requests.
@@ -94,8 +92,8 @@ public class DeleteController implements BreadcrumbProvider
 
         // Initialize breadcrumb
         if (breadcrumb != null) {
-            breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
-                    ReservationRequestModel.getBreadcrumbItems(reservationRequest));
+            breadcrumb.addPages(breadcrumb.getPagesCount() - 1,
+                    ReservationRequestModel.getPagesForBreadcrumb(reservationRequest));
         }
 
         return "reservationRequestDelete";

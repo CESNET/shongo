@@ -10,7 +10,7 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Breadcrumb implements Iterable<BreadcrumbItem>
+public class Breadcrumb implements Iterable<Page>
 {
     /**
      * Current {@link NavigationPage} for which the breadcrumb should be constructed.
@@ -23,9 +23,9 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     private String requestUrl;
 
     /**
-     * List of constructed {@link BreadcrumbItem}s.
+     * List of constructed {@link Page}s.
      */
-    private List<BreadcrumbItem> items;
+    private List<Page> pages;
 
     /**
      * Constructor.
@@ -40,7 +40,7 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     }
 
     /**
-     * @return true whether {@link Breadcrumb} contains more than one {@link BreadcrumbItem}, false otherwise
+     * @return true whether {@link Breadcrumb} contains more than one {@link Page}, false otherwise
      */
     public boolean isMultiple()
     {
@@ -60,86 +60,86 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
      */
     public String getBackUrl()
     {
-        if (items == null) {
-            buildItems();
+        if (pages == null) {
+            buildPages();
         }
-        if (items.size() < 2) {
+        if (pages.size() < 2) {
             return null;
         }
-        return items.get(items.size() - 2).getUrl();
+        return pages.get(pages.size() - 2).getUrl();
     }
 
     /**
-     * Build {@link #items}
+     * Build {@link #pages}
      */
-    private void buildItems()
+    private void buildPages()
     {
         Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl, true);
 
-        items = new LinkedList<BreadcrumbItem>();
+        pages = new LinkedList<Page>();
         NavigationPage navigationPage = this.navigationPage;
         while (navigationPage != null) {
             String titleCode = navigationPage.getTitleCode();
             if (titleCode != null) {
                 String url = navigationPage.getUrl(attributes);
                 Object[] titleArguments = navigationPage.getTitleArguments();
-                items.add(0, new BreadcrumbItem(url, titleCode, titleArguments));
+                pages.add(0, new Page(url, titleCode, titleArguments));
             }
             navigationPage = navigationPage.getParentNavigationPage();
         }
     }
 
     /**
-     * @param breadcrumbItem to be added to the {@link #items}
+     * @param page to be added to the {@link #pages}
      */
-    public void addItem(BreadcrumbItem breadcrumbItem)
+    public void addPage(Page page)
     {
-        if (items == null) {
-            buildItems();
+        if (pages == null) {
+            buildPages();
         }
-        items.add(breadcrumbItem);
+        pages.add(page);
     }
 
     /**
-     * @param breadcrumbItems to be added to the {@link #items}
+     * @param pages to be added to the {@link #pages}
      */
-    public void addItems(List<BreadcrumbItem> breadcrumbItems)
+    public void addPages(List<Page> pages)
     {
-        if (items == null) {
-            buildItems();
+        if (this.pages == null) {
+            buildPages();
         }
-        items.addAll(breadcrumbItems);
+        this.pages.addAll(pages);
     }
 
     /**
      * @param index
-     * @param breadcrumbItems to be added to the {@link #items}
+     * @param pages to be added to the {@link #pages}
      */
-    public void addItems(int index, List<BreadcrumbItem> breadcrumbItems)
+    public void addPages(int index, List<Page> pages)
     {
-        if (items == null) {
-            buildItems();
+        if (this.pages == null) {
+            buildPages();
         }
-        items.addAll(index, breadcrumbItems);
+        this.pages.addAll(index, pages);
     }
 
     /**
-     * @return size of the {@link #items}
+     * @return size of the {@link #pages}
      */
-    public int getItemsCount()
+    public int getPagesCount()
     {
-        if (items == null) {
-            buildItems();
+        if (pages == null) {
+            buildPages();
         }
-        return items.size();
+        return pages.size();
     }
 
     @Override
-    public Iterator<BreadcrumbItem> iterator()
+    public Iterator<Page> iterator()
     {
-        if (items == null) {
-            buildItems();
+        if (pages == null) {
+            buildPages();
         }
-        return items.iterator();
+        return pages.iterator();
     }
 }
