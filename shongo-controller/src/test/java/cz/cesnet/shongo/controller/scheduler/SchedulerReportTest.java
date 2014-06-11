@@ -126,6 +126,7 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     {
         try {
             Reservation reservation = reservationTask.perform();
+            reservation.setUserId("0");
             getEntityManager().persist(reservation);
             StringBuilder builder = new StringBuilder();
             builder.append("\n");

@@ -330,6 +330,12 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     .executeUpdate();
 
             entityManager.createQuery(
+                    "UPDATE Reservation SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery(
                     "UPDATE AbstractReservationRequest SET createdBy = :newUserId WHERE createdBy = :oldUserId")
                     .setParameter("oldUserId", oldUserId)
                     .setParameter("newUserId", newUserId)

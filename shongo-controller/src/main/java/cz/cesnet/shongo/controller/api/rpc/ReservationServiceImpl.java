@@ -1167,22 +1167,25 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     {
         ReservationSummary reservationSummary = new ReservationSummary();
         reservationSummary.setId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
-        reservationSummary.setType(ReservationSummary.Type.valueOf(record[1].toString().trim()));
-        reservationSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
-        if (record[4] != null) {
-            reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[4].toString()));
-        }
-        if (record[5] != null) {
-            reservationSummary.setRoomLicenseCount(record[5] != null ? ((Number) record[5]).intValue() : null);
-        }
+        reservationSummary.setUserId(record[1] != null ? record[1].toString() : null);
+        reservationSummary.setReservationRequestId(record[2] != null ?
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[2].toString()) : null);
+        reservationSummary.setType(ReservationSummary.Type.valueOf(record[3].toString().trim()));
+        reservationSummary.setSlot(new Interval(new DateTime(record[4]), new DateTime(record[5])));
         if (record[6] != null) {
-            reservationSummary.setRoomName(record[6] != null ? record[6].toString() : null);
+            reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
         }
         if (record[7] != null) {
-            reservationSummary.setAliasTypes(record[7] != null ? record[7].toString() : null);
+            reservationSummary.setRoomLicenseCount(record[7] != null ? ((Number) record[7]).intValue() : null);
         }
         if (record[8] != null) {
-            reservationSummary.setValue(record[8] != null ? record[8].toString() : null);
+            reservationSummary.setRoomName(record[8] != null ? record[8].toString() : null);
+        }
+        if (record[9] != null) {
+            reservationSummary.setAliasTypes(record[9] != null ? record[9].toString() : null);
+        }
+        if (record[10] != null) {
+            reservationSummary.setValue(record[10] != null ? record[10].toString() : null);
         }
         return reservationSummary;
     }

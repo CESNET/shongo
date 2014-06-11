@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.auth.AuthorizationCodeExpiredException;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
@@ -10,12 +11,10 @@ import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.ApiFault;
 import cz.cesnet.shongo.report.ApiFaultException;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -31,7 +30,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -51,7 +49,7 @@ public class ErrorHandler
 {
     private static Logger logger = LoggerFactory.getLogger(ErrorHandler.class);
 
-    private static final Pattern NOT_AUTHORIZED_PATTERN =
+    private static final Pattern OBJECT_INACCESSIBLE_PATTERN =
             Pattern.compile("read .+ (shongo(:[-\\.a-zA-Z0-9]+)+:[0-9]+)");
 
     @Resource
@@ -272,14 +270,17 @@ public class ErrorHandler
         else if (cause instanceof ControllerConnectException) {
             return new ModelAndView("errorControllerNotAvailable");
         }
+        else if (cause instanceof NotAdministratorException) {
+            return new ModelAndView("errorPageInaccessible");
+        }
         else if (cause instanceof ControllerReportSet.SecurityNotAuthorizedException) {
             ControllerReportSet.SecurityNotAuthorizedException securityNotAuthorizedException =
                     (ControllerReportSet.SecurityNotAuthorizedException) cause;
             String action = securityNotAuthorizedException.getReport().getAction();
-            Matcher matcher = NOT_AUTHORIZED_PATTERN.matcher(action);
-            if (matcher.find()) {
+            Matcher objectInaccessibleMatcher = OBJECT_INACCESSIBLE_PATTERN.matcher(action);
+            if (objectInaccessibleMatcher.find()) {
                 ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
-                modelAndView.addObject("objectId", matcher.group(1));
+                modelAndView.addObject("objectId", objectInaccessibleMatcher.group(1));
                 return modelAndView;
             }
         }

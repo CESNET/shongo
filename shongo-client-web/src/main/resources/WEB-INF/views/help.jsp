@@ -7,6 +7,8 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<tag:url var="reportUrl" value="<%= cz.cesnet.shongo.client.web.ClientWebUrl.REPORT %>"/>
+
 <script>
     $(function() {
         $('body').scrollspy({ target: '.jspHelp > .menu' });
@@ -38,7 +40,7 @@
         <p><spring:message code="views.help.loa.text1"/></p>
         <ul>
             <li><spring:message code="views.help.loa.text2"/></li>
-            <li><spring:message code="views.help.loa.text3" arguments="${configuration.suggestionEmail}"/></li>
+            <li><spring:message code="views.help.loa.text3" arguments="${reportUrl}"/></li>
         </ul>
 
         <h2 id="rooms"><spring:message code="views.help.rooms"/></h2>

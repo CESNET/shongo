@@ -124,7 +124,7 @@ public class NavigationPage extends Page
      */
     public NavigationPage findByUrl(String url)
     {
-        boolean startsWith = url.startsWith(this.url);
+        boolean startsWith = this.url != null && url.startsWith(this.url);
         // If specified url matches this url, return this
         if (startsWith && url.length() == this.url.length()) {
             return this;

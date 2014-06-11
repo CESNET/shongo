@@ -1,5 +1,5 @@
 <%--
-  -- Page which is shown when the reservation request doesn't exist or user doesn't have proper permissions.
+  -- Page which is shown when the user doesn't have proper permissions to display some page.
   --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -7,5 +7,5 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tag:url var="reportUrl" value="<%= cz.cesnet.shongo.client.web.ClientWebUrl.REPORT %>"/>
-<p><spring:message code="views.errorObjectInaccessible.text" arguments="${objectId};${reportUrl}" argumentSeparator=";"/></p>
+<p><spring:message code="views.errorPageInaccessible.text" arguments="${reportUrl}"/></p>
 

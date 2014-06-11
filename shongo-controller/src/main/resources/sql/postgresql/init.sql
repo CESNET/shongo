@@ -353,8 +353,23 @@ FROM (
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 CREATE VIEW reservation_summary AS
+WITH RECURSIVE reservation_allocation AS (
+    SELECT reservation0.id AS id,
+           reservation0.allocation_id AS allocation_id,
+           0 as level
+      FROM reservation AS reservation0
+     WHERE reservation0.reservation_id IS NULL
+    UNION ALL
+    SELECT reservationN.id AS id,
+           COALESCE(parent_reservation.allocation_id, reservationN.allocation_id) AS allocation_id,
+           parent_reservation.level + 1 AS level
+      FROM reservation AS reservationN
+      JOIN reservation_allocation AS parent_reservation ON reservationN.reservation_id = parent_reservation.id
+)
 SELECT
     reservation.id AS id,
+    reservation.user_id AS user_id,
+    allocation.abstract_reservation_request_id AS reservation_request_id,
     CASE
     WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
     WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
@@ -377,6 +392,8 @@ SELECT
     STRING_AGG(alias.type, ',') AS alias_types,
     value_reservation.value AS value
 FROM reservation
+LEFT JOIN reservation_allocation ON reservation_allocation.id = reservation.id
+LEFT JOIN allocation ON allocation.id = reservation_allocation.allocation_id
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
 LEFT JOIN room_reservation ON room_reservation.id = reservation.id
 LEFT JOIN capability AS room_capability ON room_capability.id = room_reservation.room_provider_capability_id
@@ -390,6 +407,7 @@ LEFT JOIN capability AS value_capability ON value_capability.id = value_provider
 LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id
 LEFT JOIN capability AS recording_capability ON recording_capability.id = recording_service_reservation.recording_capability_id
 GROUP BY reservation.id,
+         allocation.id,
          resource_reservation.id,
          room_reservation.id,
          room_capability.id,

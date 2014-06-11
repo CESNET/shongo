@@ -88,6 +88,11 @@
         <put-attribute name="content" value="/WEB-INF/views/errorObjectInaccessible.jsp" type="template"/>
     </definition>
 
+    <definition name="errorPageInaccessible" extends="layout">
+        <put-attribute name="title" value="views.errorPageInaccessible.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorPageInaccessible.jsp" type="template"/>
+    </definition>
+
     <definition name="report" extends="layoutAngular">
         <put-attribute name="title" value="views.report.title"/>
         <put-attribute name="content" value="/WEB-INF/views/report.jsp" type="template"/>
@@ -180,5 +185,12 @@
         <put-attribute name="title" value="views.resourceCapacityUtilization.title"/>
         <put-attribute name="content" value="/WEB-INF/views/resourceCapacityUtilization.jsp" type="template"/>
     </definition>
+
+    <definition name="resourceCapacityUtilizationDescription" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceCapacityUtilizationDescription.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceCapacityUtilizationDescription.jsp" type="template"/>
+    </definition>
+
+
 
 </tiles-definitions>

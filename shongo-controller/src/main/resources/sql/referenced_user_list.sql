@@ -30,6 +30,10 @@ FROM (
     ) AS reservation_requests GROUP BY reservation_requests.user_id
 
     UNION ALL
+    SELECT reservation.user_id, NULL, NULL, NULL, NULL, NULL
+    FROM reservation GROUP BY reservation.user_id
+
+    UNION ALL
     SELECT resource.user_id, NULL, COUNT(resource.user_id) AS resources, NULL, NULL, NULL
     FROM resource GROUP BY resource.user_id
 

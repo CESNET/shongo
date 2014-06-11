@@ -29,6 +29,12 @@ import java.util.*;
 public class Reservation extends PersistentObject implements ReportableSimple
 {
     /**
+     * User-id of an user who created the {@link AbstractReservationRequest}
+     * based on which this {@link Reservation} was allocated.
+     */
+    private String userId;
+
+    /**
      * {@link Allocation} for which the {@link Reservation} is allocated.
      */
     private Allocation allocation;
@@ -65,6 +71,26 @@ public class Reservation extends PersistentObject implements ReportableSimple
     public Long getId()
     {
         return id;
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+        for (Reservation childReservation : childReservations) {
+            childReservation.setUserId(userId);
+        }
     }
 
     /**

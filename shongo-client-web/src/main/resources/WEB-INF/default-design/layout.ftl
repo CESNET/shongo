@@ -139,7 +139,11 @@
             <#list breadcrumbs as breadcrumb>
                 <#if breadcrumb_has_next>
                     <li>
-                        <a href="${breadcrumb.url}">${breadcrumb.title}</a>
+                        <#if breadcrumb.url??>
+                            <a href="${breadcrumb.url}">${breadcrumb.title}</a>
+                        <#else>
+                            ${breadcrumb.title}
+                        </#if>
                     </li>
                 <#else>
                     <li class="active">${breadcrumb.title}</li>

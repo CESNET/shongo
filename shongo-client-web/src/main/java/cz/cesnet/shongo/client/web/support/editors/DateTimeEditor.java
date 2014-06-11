@@ -50,7 +50,12 @@ public class DateTimeEditor extends PropertyEditorSupport
             setValue(null);
         }
         else {
-            setValue(dateTimeParser.withZone(timeZone).parseDateTime(text));
+            try {
+                setValue(dateTimeParser.withZone(timeZone).parseDateTime(text));
+            }
+            catch (IllegalArgumentException exception) {
+                setValue(DateTime.parse(text));
+            }
         }
     }
 }

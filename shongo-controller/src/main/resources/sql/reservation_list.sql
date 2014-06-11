@@ -5,6 +5,8 @@
  */
 SELECT
     reservation_summary.id AS id,
+    reservation_summary.user_id AS user_id,
+    reservation_summary.reservation_request_id AS reservation_request_id,
     reservation_summary.type AS type,
     reservation_summary.slot_start AS slot_start,
     reservation_summary.slot_end AS slot_end,

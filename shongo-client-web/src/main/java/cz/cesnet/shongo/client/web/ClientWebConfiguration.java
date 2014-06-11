@@ -181,14 +181,6 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @return contact email to developers
-     */
-    public String getSuggestionEmail()
-    {
-        return getString("suggestion-email");
-    }
-
-    /**
      * @return administrator emails
      */
     public Collection<String> getAdministratorEmails()

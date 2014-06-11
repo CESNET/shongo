@@ -106,6 +106,8 @@ LEFT JOIN reservation_request_state ON reservation_request_state.id = reservatio
 CREATE VIEW reservation_summary AS
 SELECT
     reservation.id AS id,
+    reservation.user_id AS user_id,
+    NULL AS reservation_request_id,
     CASE
         WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
         WHEN room_reservation.id IS NOT NULL THEN 'ROOM'

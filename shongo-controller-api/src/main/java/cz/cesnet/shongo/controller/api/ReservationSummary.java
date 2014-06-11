@@ -16,6 +16,17 @@ import java.util.Set;
 public class ReservationSummary extends IdentifiedComplexType
 {
     /**
+     * User-id of an user who created the {@link AbstractReservationRequest}
+     * based on which this {@link ReservationSummary} was allocated.
+     */
+    private String userId;
+
+    /**
+     * Id of an {@link AbstractReservationRequest} based on which this {@link ReservationSummary} was allocated.
+     */
+    private String reservationRequestId;
+
+    /**
      * @see Type
      */
     private Type type;
@@ -49,6 +60,38 @@ public class ReservationSummary extends IdentifiedComplexType
      * Allocated value.
      */
     private String value;
+
+    /**
+     * @return {@link #userId}
+     */
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
+     * @return {@link #reservationRequestId}
+     */
+    public String getReservationRequestId()
+    {
+        return reservationRequestId;
+    }
+
+    /**
+     * @param reservationRequestId sets the {@link #reservationRequestId}
+     */
+    public void setReservationRequestId(String reservationRequestId)
+    {
+        this.reservationRequestId = reservationRequestId;
+    }
 
     /**
      * @return {@link #type}
@@ -176,6 +219,8 @@ public class ReservationSummary extends IdentifiedComplexType
         this.value = value;
     }
 
+    private static final String USER_ID = "userId";
+    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
     private static final String TYPE = "type";
     private static final String SLOT = "slot";
     private static final String RESOURCE_ID = "resourceId";
@@ -188,6 +233,8 @@ public class ReservationSummary extends IdentifiedComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
+        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
         dataMap.set(TYPE, type);
         dataMap.set(SLOT, slot);
         dataMap.set(RESOURCE_ID, resourceId);
@@ -202,6 +249,8 @@ public class ReservationSummary extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        userId = dataMap.getString(USER_ID);
+        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
         type = dataMap.getEnum(TYPE, Type.class);
         slot = dataMap.getInterval(SLOT);
         resourceId = dataMap.getString(RESOURCE_ID);

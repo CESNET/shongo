@@ -15,23 +15,22 @@ import cz.cesnet.shongo.util.DateTimeFormatter;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.NullCacheStorage;
 import freemarker.cache.SoftCacheStorage;
-import freemarker.ext.beans.BooleanModel;
-import freemarker.ext.beans.StringModel;
 import freemarker.template.*;
 import freemarker.template.Configuration;
 import org.apache.commons.configuration.*;
-import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -414,7 +413,12 @@ public class Design
 
             private String applyBackUrl(String url)
             {
-                return url + "?back-url=" + requestUrl;
+                try {
+                    return url + "?back-url=" + UriUtils.encodeQueryParam(requestUrl, "utf8");
+                }
+                catch (UnsupportedEncodingException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
         }
 
@@ -725,7 +729,11 @@ public class Design
 
             public String getUrl()
             {
-                return baseUrl + page.getUrl();
+                String pageUrl = page.getUrl();
+                if (pageUrl == null) {
+                    return null;
+                }
+                return baseUrl + pageUrl;
             }
 
             public String getTitle()

@@ -3,6 +3,8 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
+import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
@@ -49,7 +51,7 @@ public class Cache
     private ExecutableService executableService;
 
     /**
-     * {@link UserInformation}s by user-ids.
+     * {@link UserInformation}s by {@link SecurityToken}.
      */
     private ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>> systemPermissionsByToken =
             new ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>>();
@@ -94,6 +96,11 @@ public class Cache
      */
     private ExpirationMap<String, Executable> executableById =
             new ExpirationMap<String, Executable>();
+
+    /**
+     * @see ResourceCapacityUtilizationCache
+     */
+    private ResourceCapacityUtilizationCache resourceCapacityUtilizationCache;
 
     /**
      * Cached information for single user.
@@ -149,6 +156,9 @@ public class Cache
         reservationRequestById.clearExpired(dateTimeNow);
         reservationById.clearExpired(dateTimeNow);
         executableById.clearExpired(dateTimeNow);
+        if (resourceCapacityUtilizationCache != null) {
+            resourceCapacityUtilizationCache.clearExpired(dateTimeNow);
+        }
     }
 
     /**
@@ -221,7 +231,7 @@ public class Cache
      * @param securityToken to be used for fetching the {@link UserInformation}s
      * @param userIds       user-ids of the requested users
      */
-    public synchronized void fetchUserInformation(SecurityToken securityToken, Set<String> userIds)
+    public synchronized void fetchUserInformation(SecurityToken securityToken, Collection<String> userIds)
     {
         Set<String> missingUserIds = null;
         for (String userId : userIds) {
@@ -582,6 +592,30 @@ public class Cache
             executableById.put(executableId, executable);
         }
         return executable;
+    }
+
+    /**
+     * @param securityToken to be checked if is administrator
+     */
+    public void checkAdministrator(SecurityToken securityToken)
+    {
+        if (!authorizationService.getUserSettings(securityToken).getAdministratorMode()) {
+            throw new NotAdministratorException();
+        }
+    }
+
+    /**
+     * @param securityToken
+     * @return {@link ResourceCapacityUtilizationCache}
+     */
+    public synchronized ResourceCapacityUtilizationCache getResourceCapacityUtilizationCache(SecurityToken securityToken)
+    {
+        checkAdministrator(securityToken);
+        if (resourceCapacityUtilizationCache == null) {
+            resourceCapacityUtilizationCache =
+                    new ResourceCapacityUtilizationCache(securityToken, resourceService, reservationService);
+        }
+        return resourceCapacityUtilizationCache;
     }
 
     /**

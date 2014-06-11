@@ -53,8 +53,12 @@ public enum ClientWebNavigation
     ROOM_LIST(HOME, ClientWebUrl.ROOM_LIST_VIEW,
             "navigation.roomList"),
 
-    RESOURCE_RESERVATIONS(HOME, ClientWebUrl.RESOURCE_RESERVATIONS_VIEW,
-            "navigation.resourceReservations");
+    ADMINISTRATION(HOME, null,
+            "navigation.administration"),
+    RESOURCE_RESERVATIONS(ADMINISTRATION, ClientWebUrl.RESOURCE_RESERVATIONS_VIEW,
+            "navigation.resourceReservations"),
+    RESOURCE_CAPACITY_UTILIZATION(ADMINISTRATION, ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION,
+            "navigation.resourceCapacityUtilization");
 
     private final NavigationPage navigationPage;
 

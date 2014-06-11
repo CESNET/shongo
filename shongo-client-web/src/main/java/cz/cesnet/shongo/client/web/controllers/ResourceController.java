@@ -1,11 +1,18 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.ResourceCapacityUtilization;
+import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
+import cz.cesnet.shongo.client.web.admin.ResourceCapacity;
+import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilization;
+import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -38,6 +45,9 @@ public class ResourceController
     @javax.annotation.Resource
     protected ReservationService reservationService;
 
+    @javax.annotation.Resource
+    protected Cache cache;
+
     /**
      * Initialize model editors for additional types.
      *
@@ -46,6 +56,7 @@ public class ResourceController
     @InitBinder
     public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
     {
+        binder.registerCustomEditor(Interval.class, new IntervalEditor());
         binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
         binder.registerCustomEditor(Period.class, new PeriodEditor());
     }
@@ -89,6 +100,7 @@ public class ResourceController
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESERVATIONS_VIEW, method = RequestMethod.GET)
     public ModelAndView handleReservationsView(SecurityToken securityToken)
     {
+        cache.checkAdministrator(securityToken);
         Map<String, String> resources = new LinkedHashMap<String, String>();
         for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(securityToken))) {
             String resourceId = resourceSummary.getId();
@@ -120,8 +132,8 @@ public class ResourceController
             SecurityToken securityToken,
             @RequestParam(value = "resource-id", required = false) String resourceId,
             @RequestParam(value = "type", required = false) ReservationSummary.Type type,
-            @RequestParam(value = "interval-from") DateTime intervalFrom,
-            @RequestParam(value = "interval-to") DateTime intervalTo)
+            @RequestParam(value = "start") DateTime start,
+            @RequestParam(value = "end") DateTime end)
     {
         ReservationListRequest request = new ReservationListRequest(securityToken);
         request.setSort(ReservationListRequest.Sort.SLOT);
@@ -131,7 +143,7 @@ public class ResourceController
         if (type != null) {
             request.addReservationType(type);
         }
-        request.setInterval(new Interval(intervalFrom, intervalTo));
+        request.setInterval(new Interval(start, end));
         ListResponse<ReservationSummary> listResponse = reservationService.listReservations(request);
         List<Map> reservations = new LinkedList<Map>();
         for (ReservationSummary reservationSummary : listResponse.getItems()) {
@@ -151,24 +163,70 @@ public class ResourceController
     }
 
     /**
-     * Handle resource reservations view
+     * Handle resource capacity utilization view
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION, method = RequestMethod.GET)
-    public ModelAndView handleCapacityUtilizationView(SecurityToken securityToken)
+    public String handleCapacityUtilizationView(SecurityToken securityToken)
     {
-        // Get resources
-        ResourceCapacityUtilization resourceCapacityUtilization =
-                new ResourceCapacityUtilization(securityToken, resourceService, reservationService);
+        cache.checkAdministrator(securityToken);
+        return "resourceCapacityUtilization";
+    }
 
-        Map<Interval, Map<ResourceCapacityUtilization.ResourceCapacity, ResourceCapacityUtilization.Utilization>> utilization =
-                resourceCapacityUtilization.getUtilization(Interval.parse("2014/2015"), Period.parse("P1M"));
-
-
-
-
-        ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilization");
-        modelAndView.addObject("resourceCapacitySet", resourceCapacityUtilization.getResourceCapacities());
+    /**
+     * Handle resource capacity utilization table
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION_TABLE, method = RequestMethod.GET)
+    public ModelAndView handleCapacityUtilizationTable(
+            SecurityToken securityToken,
+            @RequestParam(value = "period") Period period,
+            @RequestParam(value = "start") DateTime start,
+            @RequestParam(value = "end") DateTime end,
+            @RequestParam(value = "type") ResourceCapacity.FormatType type,
+            @RequestParam(value = "refresh", required = false) boolean refresh)
+    {
+        ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
+                cache.getResourceCapacityUtilizationCache(securityToken);
+        Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
+                resourceCapacityUtilizationCache.getUtilization(new Interval(start, end), period);
+        ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationTable");
+        modelAndView.addObject("resourceCapacitySet", resourceCapacityUtilizationCache.getResourceCapacities());
         modelAndView.addObject("resourceCapacityUtilization", utilization);
+        modelAndView.addObject("type", type);
+        return modelAndView;
+    }
+
+    /**
+     * Handle resource capacity utilization table
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION_DESCRIPTION, method = RequestMethod.GET)
+    public ModelAndView handleCapacityUtilizationDescription(
+            SecurityToken securityToken,
+            @RequestParam(value = "interval") Interval interval,
+            @RequestParam(value = "resourceCapacityClass") String resourceCapacityClassName,
+            @RequestParam(value = "resourceId") String resourceId) throws ClassNotFoundException
+    {
+        @SuppressWarnings("unchecked")
+        Class<? extends ResourceCapacity> resourceCapacityClass = (Class<? extends ResourceCapacity>)
+                Class.forName(ResourceCapacity.class.getCanonicalName() + "$" + resourceCapacityClassName);
+        ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
+                cache.getResourceCapacityUtilizationCache(securityToken);
+        ResourceCapacity resourceCapacity =
+                resourceCapacityUtilizationCache.getResourceCapacity(resourceId, resourceCapacityClass);
+        ResourceCapacityUtilization resourceCapacityUtilization =
+                resourceCapacityUtilizationCache.getUtilization(resourceCapacity, interval);
+        ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationDescription");
+
+        Collection<String> userIds = resourceCapacityUtilization.getReservationUserIds();
+        cache.fetchUserInformation(securityToken, userIds);
+        Map<String, UserInformation> users = new HashMap<String, UserInformation>();
+        for (String userId : userIds) {
+            UserInformation userInformation = cache.getUserInformation(securityToken, userId);
+            users.put(userId, userInformation);
+        }
+        modelAndView.addObject("users", users);
+        modelAndView.addObject("interval", interval);
+        modelAndView.addObject("resourceCapacity", resourceCapacity);
+        modelAndView.addObject("resourceCapacityUtilization", resourceCapacityUtilization);
         return modelAndView;
     }
 }

@@ -90,6 +90,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
 
     protected void createReservation(Reservation reservation)
     {
+        reservation.setUserId("0");
         entityManager.getTransaction().begin();
         entityManager.persist(reservation);
         entityManager.getTransaction().commit();

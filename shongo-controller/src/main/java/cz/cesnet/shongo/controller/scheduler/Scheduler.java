@@ -452,6 +452,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create allocated reservation
+        allocatedReservation.setUserId(reservationRequest.getCreatedBy());
         reservationManager.create(allocatedReservation);
 
         // Create ACL entries for new reservation
