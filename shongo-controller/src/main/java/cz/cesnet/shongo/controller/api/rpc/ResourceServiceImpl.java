@@ -439,7 +439,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     resourceManager.listResourceReservationsInInterval(objectId.getPersistenceId(), slot);
             for (ResourceReservation resourceReservation : resourceReservations) {
                 resourceAllocation.addReservation(
-                        resourceReservation.toApi(entityManager, authorization.isAdministrator(securityToken)));
+                        resourceReservation.toApi(entityManager, authorization.isOperator(securityToken)));
             }
 
             // Fill alias allocations
@@ -450,7 +450,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                         resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), slot);
                 for (AliasReservation aliasReservation : aliasReservations) {
                     resourceAllocation.addReservation(
-                            aliasReservation.toApi(entityManager, authorization.isAdministrator(securityToken)));
+                            aliasReservation.toApi(entityManager, authorization.isOperator(securityToken)));
                 }
             }
             return resourceAllocation;

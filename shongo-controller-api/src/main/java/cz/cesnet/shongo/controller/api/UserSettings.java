@@ -57,7 +57,7 @@ public class UserSettings extends AbstractComplexType
      * Specifies whether user should act in administrator role (for active session).
      * Only valid when user have {@link SystemPermission#ADMINISTRATION}.
      */
-    private boolean administratorMode;
+    private boolean administrationMode;
 
     /**
      * Other custom user settings attributes which should be globally stored.
@@ -161,19 +161,19 @@ public class UserSettings extends AbstractComplexType
     }
 
     /**
-     * @return {@link #administratorMode}
+     * @return {@link #administrationMode}
      */
-    public boolean getAdministratorMode()
+    public boolean getAdministrationMode()
     {
-        return administratorMode;
+        return administrationMode;
     }
 
     /**
-     * @param administratorMode {@link #administratorMode}
+     * @param administrationMode {@link #administrationMode}
      */
-    public void setAdministratorMode(boolean administratorMode)
+    public void setAdministrationMode(boolean administrationMode)
     {
-        this.administratorMode = administratorMode;
+        this.administrationMode = administrationMode;
     }
 
     /**
@@ -259,7 +259,7 @@ public class UserSettings extends AbstractComplexType
     @Override
     public String toString()
     {
-        return String.format("UserSettings (%s, %s, %s)", locale, homeTimeZone, administratorMode);
+        return String.format("UserSettings (%s, %s, %s)", locale, homeTimeZone, administrationMode);
     }
 
     private static final String USE_WEB_SERVICE = "useWebService";
@@ -268,7 +268,7 @@ public class UserSettings extends AbstractComplexType
     private static final String CURRENT_TIME_ZONE = "currentTimeZone";
     private static final String SYSTEM_ADMINISTRATOR_NOTIFICATIONS = "systemAdministratorNotifications";
     private static final String RESOURCE_ADMINISTRATOR_NOTIFICATIONS = "resourceAdministratorNotifications";
-    private static final String ADMINISTRATOR_MODE = "administratorMode";
+    private static final String ADMINISTRATION_MODE = "administrationMode";
     private static final String ATTRIBUTES = "attributes";
 
     @Override
@@ -281,7 +281,7 @@ public class UserSettings extends AbstractComplexType
         dataMap.set(CURRENT_TIME_ZONE, currentTimeZone);
         dataMap.set(SYSTEM_ADMINISTRATOR_NOTIFICATIONS, systemAdministratorNotifications);
         dataMap.set(RESOURCE_ADMINISTRATOR_NOTIFICATIONS, resourceAdministratorNotifications);
-        dataMap.set(ADMINISTRATOR_MODE, administratorMode);
+        dataMap.set(ADMINISTRATION_MODE, administrationMode);
         dataMap.set(ATTRIBUTES, attributes);
         return dataMap;
     }
@@ -296,7 +296,7 @@ public class UserSettings extends AbstractComplexType
         currentTimeZone = dataMap.getDateTimeZone(CURRENT_TIME_ZONE);
         systemAdministratorNotifications = dataMap.getBool(SYSTEM_ADMINISTRATOR_NOTIFICATIONS);
         resourceAdministratorNotifications = dataMap.getBool(RESOURCE_ADMINISTRATOR_NOTIFICATIONS);
-        administratorMode = dataMap.getBool(ADMINISTRATOR_MODE);
+        administrationMode = dataMap.getBool(ADMINISTRATION_MODE);
         attributes = dataMap.getMap(ATTRIBUTES, String.class, String.class);
     }
 }

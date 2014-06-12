@@ -157,15 +157,15 @@
 
     <security:authorize access="hasPermission(ADMINISTRATION)">
         <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="administratorMode" for="administratorMode">
-                <spring:message code="views.userSettings.administratorMode" var="adminModeLabel"/>
+            <form:label class="col-xs-3 control-label" path="administrationMode" for="administrationMode">
+                <spring:message code="views.userSettings.administrationMode" var="adminModeLabel"/>
                 <tag:help label="${adminModeLabel}:">
-                    <spring:message code="views.userSettings.administratorMode.help"/>
+                    <spring:message code="views.userSettings.administrationMode.help"/>
                 </tag:help>
             </form:label>
             <div class="col-xs-4">
                 <div class="checkbox">
-                    <form:checkbox id="administratorMode" path="administratorMode" tabindex="${tabIndex}"/>&nbsp;
+                    <form:checkbox id="administrationMode" path="administrationMode" tabindex="${tabIndex}"/>&nbsp;
                 </div>
             </div>
         </div>

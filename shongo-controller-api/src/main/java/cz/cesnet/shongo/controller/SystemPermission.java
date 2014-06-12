@@ -11,9 +11,14 @@ import cz.cesnet.shongo.controller.api.UserSettings;
 public enum SystemPermission
 {
     /**
-     * User can switch on the {@link UserSettings#administratorMode}.
+     * User can switch on the {@link UserSettings#administrationMode}.
      */
     ADMINISTRATION,
+
+    /**
+     * User can see everything.
+     */
+    OPERATOR,
 
     /**
      * User can create new {@link AbstractReservationRequest}s.

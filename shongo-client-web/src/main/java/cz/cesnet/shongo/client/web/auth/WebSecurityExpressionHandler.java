@@ -28,7 +28,7 @@ public class WebSecurityExpressionHandler extends DefaultWebSecurityExpressionHa
     }
 
     /**
-     * {@link WebSecurityExpressionRoot} which allows to write folling JSP code:
+     * {@link WebSecurityExpressionRoot} which allows to write following JSP code:
      *
      * <code>
      *     <security:authorize access="hasPermission(ADMINISTRATION)">

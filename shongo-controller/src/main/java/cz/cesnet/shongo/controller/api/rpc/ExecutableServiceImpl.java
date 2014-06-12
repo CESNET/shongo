@@ -140,8 +140,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 authorization.checkUserExistence(participantUserId);
 
 
-                if (!participantUserId.equals(securityToken.getUserId()) && !authorization.isAdministrator(
-                        securityToken)) {
+                if (!participantUserId.equals(securityToken.getUserId()) && !authorization.isOperator(securityToken)) {
                     throw new ControllerReportSet.SecurityNotAuthorizedException(
                             "read participation executables for user " + participantUserId);
                 }
@@ -321,7 +320,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 }
             }
 
-            Executable executableApi = executable.toApi(entityManager, authorization.isAdministrator(securityToken));
+            Executable executableApi = executable.toApi(entityManager, authorization.isOperator(securityToken));
             cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {

@@ -33,13 +33,13 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER1);
         Assert.assertEquals(null, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertFalse(userSettings.getAdministratorMode());
+        Assert.assertFalse(userSettings.getAdministrationMode());
 
         // Check normal user
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(null, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertFalse(userSettings.getAdministratorMode());
+        Assert.assertFalse(userSettings.getAdministrationMode());
 
         // Check update locale
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
@@ -47,7 +47,7 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(UserSettings.LOCALE_CZECH, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertFalse(userSettings.getAdministratorMode());
+        Assert.assertFalse(userSettings.getAdministrationMode());
 
         // Check update language
         userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
@@ -55,13 +55,13 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(UserSettings.LOCALE_CZECH, userSettings.getLocale());
         Assert.assertEquals(DateTimeZone.forID("+05:00"), userSettings.getHomeTimeZone());
-        Assert.assertFalse(userSettings.getAdministratorMode());
+        Assert.assertFalse(userSettings.getAdministrationMode());
 
         // Check admin mode not working for normal user
-        userSettings.setAdministratorMode(true);
+        userSettings.setAdministrationMode(true);
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN_USER2, userSettings);
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
-        Assert.assertFalse(userSettings.getAdministratorMode());
+        Assert.assertFalse(userSettings.getAdministrationMode());
 
         // Test custom attribute
         userSettings.setAttribute("client.test", "value");

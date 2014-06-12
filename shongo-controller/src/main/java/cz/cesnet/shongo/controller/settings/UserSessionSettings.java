@@ -17,7 +17,7 @@ public class UserSessionSettings
     /**
      * Specifies whether user should act as administrator for active session (i.e., he can see all reservation requests).
      */
-    private boolean administratorMode = false;
+    private boolean administrationMode = false;
 
     /**
      * Constructor.
@@ -38,18 +38,18 @@ public class UserSessionSettings
     }
 
     /**
-     * @return {@link #administratorMode}
+     * @return {@link #administrationMode}
      */
-    public boolean getAdministratorMode()
+    public boolean getAdministrationMode()
     {
-        return administratorMode;
+        return administrationMode;
     }
 
     /**
-     * @param administratorMode sets the {@link #administratorMode}
+     * @param administrationMode sets the {@link #administrationMode}
      */
-    public void setAdministratorMode(boolean administratorMode)
+    public void setAdministrationMode(boolean administrationMode)
     {
-        this.administratorMode = administratorMode;
+        this.administrationMode = administrationMode;
     }
 }

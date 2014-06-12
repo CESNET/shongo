@@ -405,10 +405,10 @@ public class Design
                                  : UserSettingsModel.UserInterface.BEGINNER)));
             }
 
-            public String userSettingsAdministratorMode(boolean administratorMode)
+            public String userSettingsAdministrationMode(boolean administrationMode)
             {
                 return baseUrl + applyBackUrl(ClientWebUrl.format(
-                        ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administratorMode", administratorMode));
+                        ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administrationMode", administrationMode));
             }
 
             private String applyBackUrl(String url)
@@ -590,13 +590,13 @@ public class Design
                 if (user.isAdvancedMode()) {
                     links.add(new LinkContext("navigation.reservationRequest", ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW));
                 }
-                if (user.isAdministratorMode()) {
+                if (user.isAdministrationMode()) {
                     links.add(new LinkContext("navigation.administration", new LinkedList<LinkContext>(){{
+                        add(new LinkContext("navigation.resourceCapacityUtilization",
+                                ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION));
                         add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
                         add(new LinkContext("navigation.resourceReservations",
                                 ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
-                        add(new LinkContext("navigation.resourceCapacityUtilization",
-                                ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION));
                     }}));
                 }
                 links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
@@ -661,12 +661,12 @@ public class Design
                 return userSession.isAdvancedUserInterface();
             }
 
-            public boolean isAdministratorMode()
+            public boolean isAdministrationMode()
             {
-                return userSession.isAdministratorMode();
+                return userSession.isAdministrationMode();
             }
 
-            public boolean isAdministratorModeAvailable()
+            public boolean isAdministrationModeAvailable()
             {
                 return cache.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION);
             }

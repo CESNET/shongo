@@ -180,11 +180,11 @@ public class UserSession implements Serializable
     }
 
     /**
-     * @return {@link UserSettingsModel#isAdministratorMode()}
+     * @return {@link UserSettingsModel#isAdministrationMode()}
      */
-    public boolean isAdministratorMode()
+    public boolean isAdministrationMode()
     {
-        return userSettings != null && userSettings.isAdministratorMode();
+        return userSettings != null && userSettings.isAdministrationMode();
     }
 
     /**
@@ -293,7 +293,7 @@ public class UserSession implements Serializable
         }
 
         logger.debug("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
-                locale, timeZone, isAdministratorMode(), getUserInterface(),
+                locale, timeZone, isAdministrationMode(), getUserInterface(),
                 (userInformation != null ? userInformation : "anonymous")
         });
 

@@ -66,7 +66,8 @@ public abstract class Authorization
     /**
      * Set of access-tokens which has administrator access.
      */
-    protected Set<String> administratorAccessTokens = new HashSet<String>();
+    protected Map<String, AdministrationMode> administrationModeByAccessToken =
+            new HashMap<String, AdministrationMode>();
 
     /**
      * {@link cz.cesnet.shongo.controller.settings.UserSessionSettings}s.
@@ -74,9 +75,14 @@ public abstract class Authorization
     private Map<SecurityToken, UserSessionSettings> userSessionSettings = new HashMap<SecurityToken, UserSessionSettings>();
 
     /**
-     * {@link AuthorizationExpression} for decision whether an user can perform administration.
+     * {@link AuthorizationExpression} for decision whether an user can perform administration as system administrator.
      */
-    private AuthorizationExpression administrationExpression;
+    private AuthorizationExpression administratorExpression;
+
+    /**
+     * {@link AuthorizationExpression} for decision whether an user can perform administration as system operator.
+     */
+    private AuthorizationExpression operatorExpression;
 
     /**
      * {@link AuthorizationExpression} for decision whether an user can create reservation.
@@ -124,8 +130,10 @@ public abstract class Authorization
                 ControllerConfiguration.SECURITY_EXPIRATION_GROUP));
 
         // Authorization expressions
-        this.administrationExpression = new AuthorizationExpression(
-                configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_ADMINISTRATION), this);
+        this.administratorExpression = new AuthorizationExpression(
+                configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_ADMINISTRATOR), this);
+        this.operatorExpression = new AuthorizationExpression(
+                configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_OPERATOR), this);
         this.reservationExpression = new AuthorizationExpression(
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_RESERVATION), this);
     }
@@ -138,7 +146,8 @@ public abstract class Authorization
         // Try to evaluate authorization expressions for root user
         UserInformation rootUserInformation = ROOT_USER_DATA.getUserInformation();
         UserAuthorizationData rootUserAuthorizationData = ROOT_USER_DATA.getUserAuthorizationData();
-        this.administrationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
+        this.administratorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
+        this.operatorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.reservationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
     }
 
@@ -198,7 +207,11 @@ public abstract class Authorization
         UserAuthorizationData userAuthorizationData = getUserAuthorizationData(securityToken);
         switch (systemPermission) {
             case ADMINISTRATION: {
-                return administrationExpression.evaluate(userInformation, userAuthorizationData);
+                return administratorExpression.evaluate(userInformation, userAuthorizationData) ||
+                        operatorExpression.evaluate(userInformation, userAuthorizationData);
+            }
+            case OPERATOR: {
+                return isOperator(securityToken);
             }
             case RESERVATION: {
                 return reservationExpression.evaluate(userInformation, userAuthorizationData);
@@ -394,12 +407,25 @@ public abstract class Authorization
 
     /**
      * @param securityToken
-     * @return true if the user is Shongo admin (should have all permissions),
-     * false otherwise
+     * @return true if the user is Shongo administrator and thus shall have all possible permissions,
+     *         false otherwise
      */
     public final boolean isAdministrator(SecurityToken securityToken)
     {
-        return administratorAccessTokens.contains(securityToken.getAccessToken());
+        AdministrationMode administrationMode = administrationModeByAccessToken.get(securityToken.getAccessToken());
+        return AdministrationMode.ADMINISTRATOR.equals(administrationMode);
+    }
+
+    /**
+     * @param securityToken
+     * @return true if the user is Shongo operator and thus shall have {@link ObjectPermission#READ} for everything
+     *         false otherwise
+     */
+    public final boolean isOperator(SecurityToken securityToken)
+    {
+        AdministrationMode administrationMode = administrationModeByAccessToken.get(securityToken.getAccessToken());
+        return AdministrationMode.ADMINISTRATOR.equals(administrationMode) ||
+                AdministrationMode.OPERATOR.equals(administrationMode);
     }
 
     /**
@@ -430,6 +456,10 @@ public abstract class Authorization
             // Administrator has all possible permissions
             return true;
         }
+        else if (isOperator(securityToken) && ObjectPermission.READ.equals(objectPermission)) {
+            // Operator has READ permission for all objects
+            return true;
+        }
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
@@ -450,6 +480,12 @@ public abstract class Authorization
             // Administrator has all possible permissions
             ObjectType objectType = ObjectTypeResolver.getObjectType(object);
             return objectType.getPermissions();
+        }
+        else if (isOperator(securityToken)) {
+            // Operator has READ permission for all objects
+            Set<ObjectPermission> permissions = new HashSet<ObjectPermission>();
+            permissions.add(ObjectPermission.READ);
+            return permissions;
         }
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
@@ -475,7 +511,7 @@ public abstract class Authorization
     public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclObjectClass objectClass,
             ObjectPermission objectPermission)
     {
-        if (isAdministrator(securityToken)) {
+        if (isOperator(securityToken)) {
             return null;
         }
         String userId = securityToken.getUserId();
@@ -538,11 +574,18 @@ public abstract class Authorization
     public void updateUserSessionSettings(UserSessionSettings userSessionSettings)
     {
         SecurityToken securityToken = userSessionSettings.getSecurityToken();
-        if (userSessionSettings.getAdministratorMode()) {
-            administratorAccessTokens.add(securityToken.getAccessToken());
+        if (userSessionSettings.getAdministrationMode()) {
+            UserInformation userInformation = securityToken.getUserInformation();
+            UserAuthorizationData userAuthorizationData = getUserAuthorizationData(securityToken);
+            if (administratorExpression.evaluate(userInformation, userAuthorizationData)) {
+                administrationModeByAccessToken.put(securityToken.getAccessToken(), AdministrationMode.ADMINISTRATOR);
+            }
+            else if (operatorExpression.evaluate(userInformation, userAuthorizationData)) {
+                administrationModeByAccessToken.put(securityToken.getAccessToken(), AdministrationMode.OPERATOR);
+            }
         }
         else {
-            administratorAccessTokens.remove(securityToken.getAccessToken());
+            administrationModeByAccessToken.remove(securityToken.getAccessToken());
         }
     }
 

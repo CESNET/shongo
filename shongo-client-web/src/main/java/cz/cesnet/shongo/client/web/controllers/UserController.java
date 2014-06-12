@@ -88,8 +88,8 @@ public class UserController
         else if (name.equals("timeZoneDefaultWarning")) {
             userSettings.setTimeZoneDefaultWarning(Boolean.parseBoolean(value));
         }
-        else if (name.equals("administratorMode")) {
-            userSettings.setAdministratorMode(Boolean.parseBoolean(value));
+        else if (name.equals("administrationMode")) {
+            userSettings.setAdministrationMode(Boolean.parseBoolean(value));
         }
         else {
             throw new IllegalArgumentException(name);

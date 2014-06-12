@@ -47,9 +47,9 @@
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         <i class="fa fa-cog"></i>
                         <b>${user.name}</b>
-                        <#if user.administratorMode>
-                            <!-- Administrator -->
-                            (${message("user.administrator")})
+                        <#if user.administrationMode>
+                            <!-- Administration -->
+                            (${message("user.administration")})
                         </#if>
                         <b class="caret"></b>
                         <#if !user.reservationAvailable>
@@ -77,10 +77,10 @@
                                 <#if user.advancedMode><i class="fa fa-check"></i></#if>${message("user.settingsAdvancedMode")}
                             </a>
                         </li>
-                        <#if user.administratorModeAvailable>
+                        <#if user.administrationModeAvailable>
                             <li>
-                                <a class="menuitem" href="${url.userSettingsAdministratorMode(!user.administratorMode)}">
-                                    <#if user.administratorMode><i class="fa fa-check"></i></#if>${message("user.settingsAdministratorMode")}
+                                <a class="menuitem" href="${url.userSettingsAdministrationMode(!user.administrationMode)}">
+                                    <#if user.administrationMode><i class="fa fa-check"></i></#if>${message("user.settingsAdministrationMode")}
                                 </a>
                             </li>
                         </#if>

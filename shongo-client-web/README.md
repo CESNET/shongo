@@ -119,13 +119,13 @@ Support page variables:
 * <code>${url.report}</code> - URL to show report problem page
 * <code>${url.userSettings}</code> - URL to show
 * <code>${url.userSettingsAdvancedMode(true|false)}</code> - URL to switch on/off the advance user interface
-* <code>${url.userSettingsAdministratorMode(true|false)}</code> - URL to switch on/off the administrator mode
+* <code>${url.userSettingsAdministrationMode(true|false)}</code> - URL to switch on/off the administrator mode
 * <code>${user}</code> - Object containing user session information
 * <code>${user.id}</code> - User id
 * <code>${user.name}</code> - Full user name
 * <code>${user.advancedMode}</code> - Specifies whether user is in advance user interface
-* <code>${user.administratorMode}</code> - Specifies whether user is in administrator mode
-* <code>${user.administratorModeAvailable}</code> - Specifies whether user can switch to administrator mode
+* <code>${user.administrationMode}</code> - Specifies whether user is in administrator mode
+* <code>${user.administrationModeAvailable}</code> - Specifies whether user can switch to administrator mode
 * <code>${session.locale.title}</code> - Locale title
 * <code>${session.locale.language}</code> - Locale language (e.g., *en* or *cs*)
 * <code>${session.timezone.title}</code> - Timezone title (e.g., *+01:00*)

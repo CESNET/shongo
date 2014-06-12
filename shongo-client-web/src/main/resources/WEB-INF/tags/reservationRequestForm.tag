@@ -15,7 +15,7 @@
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
-<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <c:set var="reservationRequestModification" value="${reservationRequest.modification}"/>
 <c:set var="tabIndex" value="1"/>
 
@@ -321,7 +321,7 @@
         </c:otherwise>
     </c:choose>
 
-    <c:if test="${administratorMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
         <script type="text/javascript">
             $(function(){
                 var updateResources = function() {
@@ -672,7 +672,7 @@
                 <form:errors path="roomRecorded" cssClass="error"/>
             </div>
         </div>
-        <c:if test="${administratorMode}">
+        <c:if test="${administrationMode}">
             <script type="text/javascript">
                 $(function(){
                     var updateResources = function() {

@@ -8,7 +8,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <c:set var="tabIndex" value="1"/>
 
 <tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
@@ -86,7 +86,7 @@
             </c:if>
         </div>
 
-        <c:if test="${administratorMode}">
+        <c:if test="${administrationMode}">
             <script type="text/javascript">
                 $(function(){
                     window.getResources("RecordingCapability", function(resources) {

@@ -81,7 +81,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         Set<SystemPermission> systemPermissions = new HashSet<SystemPermission>();
         for (SystemPermission systemPermission : SystemPermission.values()) {
-            authorization.hasSystemPermission(securityToken, systemPermission);
+            if (authorization.hasSystemPermission(securityToken, systemPermission)){
+                systemPermissions.add(systemPermission);
+            }
         }
         return systemPermissions;
     }
@@ -178,7 +180,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
         checkNotNull("userId", userId);
-        if (!authorization.isAdministrator(securityToken) && !userId.equals(securityToken.getUserId())) {
+        if (!authorization.isOperator(securityToken) && !userId.equals(securityToken.getUserId())) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("get settings for user %s ", userId);
         }
 
@@ -370,15 +372,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
-        boolean isAdministrator = authorization.isAdministrator(securityToken);
+        boolean isOperator = authorization.isOperator(securityToken);
         Set<Group.Type> groupTypes = request.getGroupTypes();
         if (groupTypes.isEmpty()) {
             groupTypes.add(Group.Type.USER);
-            if (isAdministrator) {
+            if (isOperator) {
                 groupTypes.add(Group.Type.SYSTEM);
             }
         }
-        else if (groupTypes.contains(Group.Type.SYSTEM) && !isAdministrator) {
+        else if (groupTypes.contains(Group.Type.SYSTEM) && !isOperator) {
             groupTypes.remove(Group.Type.SYSTEM);
         }
 
@@ -414,7 +416,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         checkNotNull("groupId", groupId);
 
         Group group = authorization.getGroup(groupId);
-        if (Group.Type.SYSTEM.equals(group.getType()) && !authorization.isAdministrator(token)) {
+        if (Group.Type.SYSTEM.equals(group.getType()) && !authorization.isOperator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read system group");
         }
         return group;
@@ -574,7 +576,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             // List only records for entities which are requested
             if (request.getObjectIds().size() > 0) {
-                boolean isAdmin = authorization.isAdministrator(securityToken);
+                boolean isOperator = authorization.isOperator(securityToken);
                 AclProvider aclProvider = authorization.getAclProvider();
                 Set<Long> objectClassesIds = new HashSet<Long>();
                 Set<Long> objectIdentityIds = new HashSet<Long>();
@@ -589,7 +591,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     }
 
                     // Check permission for listing
-                    if (!isAdmin) {
+                    if (!isOperator) {
                         if (isGroup) {
                             throw new TodoImplementException("List only ACL to which the requester has permission.");
                         }
@@ -761,7 +763,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
-        if (!authorization.isAdministrator(securityToken)) {
+        if (!authorization.isOperator(securityToken)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list referenced users");
         }
 

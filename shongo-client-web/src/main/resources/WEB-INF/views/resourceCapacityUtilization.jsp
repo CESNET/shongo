@@ -77,7 +77,8 @@
             var start = moment($scope.start);
             start = $scope.dateTimeAdd(start, $scope.period, periodCount);
             $scope.start = start.format("YYYY-MM-DD");
-            $scope.end = $scope.dateTimeAdd(start, $scope.period, $scope.periodCount).format("YYYY-MM-DD");
+            var end = $scope.dateTimeAdd(start, $scope.period, $scope.periodCount);
+            $scope.end = $scope.dateTimeAdd(end, "P1D", - 1).format("YYYY-MM-DD");
         };
         $scope.updateContent = function(refresh) {
             // Store settings to cookie
@@ -120,23 +121,32 @@
         if (settings != null) {
             $scope.period = settings.period;
             $scope.periodCount = settings.periodCount;
-            $scope.start = moment($scope.start).add('days', settings.start).format("YYYY-MM-DD");
+            $scope.start = moment($scope.start).add('days', settings.start + 1).format("YYYY-MM-DD");
             $scope.style = settings.style;
         }
 
         // Update changes in configuration
         $scope.$watch("period", function(){
             // Update end
-            $scope.end = $scope.dateTimeAdd(moment($scope.start), $scope.period, $scope.periodCount).format("YYYY-MM-DD");
+            var end = $scope.dateTimeAdd(moment($scope.start), $scope.period, $scope.periodCount);
+            $scope.end = $scope.dateTimeAdd(end, "P1D", - 1).format("YYYY-MM-DD");
         });
         $scope.$watch("[start,end]", function(){
             // Update period count
             var start = moment($scope.start);
             var end = moment($scope.end);
-            $scope.periodCount = 0;
-            while (start < end || $scope.periodCount == 0) {
-                $scope.periodCount++;
-                $scope.dateTimeAdd(start, $scope.period);
+            if (start > end) {
+                $scope.end = $scope.dateTimeAdd(start, $scope.period, $scope.periodCount).format("YYYY-MM-DD")
+            }
+            else {
+                $scope.periodCount = 0;
+                if ($scope.period == "P1D") {
+                    $scope.periodCount++;
+                }
+                while (start < end || $scope.periodCount == 0) {
+                    $scope.periodCount++;
+                    $scope.dateTimeAdd(start, $scope.period);
+                }
             }
             $scope.updateContent();
         }, true);

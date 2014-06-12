@@ -98,7 +98,7 @@ public class ResourceController
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESERVATIONS_VIEW, method = RequestMethod.GET)
     public ModelAndView handleReservationsView(SecurityToken securityToken)
     {
-        cache.checkAdministrator(securityToken);
+        cache.checkOperator(securityToken);
         Map<String, String> resources = new LinkedHashMap<String, String>();
         for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(securityToken))) {
             String resourceId = resourceSummary.getId();
@@ -166,7 +166,7 @@ public class ResourceController
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION, method = RequestMethod.GET)
     public String handleCapacityUtilizationView(SecurityToken securityToken)
     {
-        cache.checkAdministrator(securityToken);
+        cache.checkOperator(securityToken);
         return "resourceCapacityUtilization";
     }
 
@@ -214,12 +214,14 @@ public class ResourceController
                 resourceCapacityUtilizationCache.getUtilization(resourceCapacity, interval);
         ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationDescription");
 
-        Collection<String> userIds = resourceCapacityUtilization.getReservationUserIds();
-        cache.fetchUserInformation(securityToken, userIds);
         Map<String, UserInformation> users = new HashMap<String, UserInformation>();
-        for (String userId : userIds) {
-            UserInformation userInformation = cache.getUserInformation(securityToken, userId);
-            users.put(userId, userInformation);
+        if (resourceCapacityUtilization != null) {
+            Collection<String> userIds = resourceCapacityUtilization.getReservationUserIds();
+            cache.fetchUserInformation(securityToken, userIds);
+            for (String userId : userIds) {
+                UserInformation userInformation = cache.getUserInformation(securityToken, userId);
+                users.put(userId, userInformation);
+            }
         }
         modelAndView.addObject("users", users);
         modelAndView.addObject("interval", interval);

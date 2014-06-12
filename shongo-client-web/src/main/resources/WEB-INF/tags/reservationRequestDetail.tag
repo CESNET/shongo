@@ -12,7 +12,7 @@
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@attribute name="detailUrl" required="false" %>
 
-<c:set var="administratorMode" value="${sessionScope.SHONGO_USER.administratorMode}"/>
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -77,7 +77,7 @@
     </c:if>
 
     <%-- Resource --%>
-    <c:if test="${administratorMode && not empty reservationRequest.roomResourceId}">
+    <c:if test="${administrationMode && not empty reservationRequest.roomResourceId}">
         <dt><spring:message code="views.reservationRequest.specification.resourceId"/>:</dt>
         <dd>${reservationRequest.roomResourceName} (${reservationRequest.roomResourceId})</dd>
     </c:if>
@@ -148,7 +148,7 @@
     </c:if>
 
     <%-- Recording Resource --%>
-    <c:if test="${administratorMode && not empty reservationRequest.roomRecordingResourceId}">
+    <c:if test="${administrationMode && not empty reservationRequest.roomRecordingResourceId}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecordingResourceId"/>:</dt>
         <dd>${reservationRequest.roomRecordingResourceName} (${reservationRequest.roomRecordingResourceId})</dd>
     </c:if>

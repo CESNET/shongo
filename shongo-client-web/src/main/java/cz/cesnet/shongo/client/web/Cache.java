@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
+import cz.cesnet.shongo.client.web.admin.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -595,12 +595,12 @@ public class Cache
     }
 
     /**
-     * @param securityToken to be checked if is administrator
+     * @param securityToken to be checked if the user has {@link SystemPermission#OPERATOR}
      */
-    public void checkAdministrator(SecurityToken securityToken)
+    public void checkOperator(SecurityToken securityToken)
     {
-        if (!authorizationService.getUserSettings(securityToken).getAdministratorMode()) {
-            throw new NotAdministratorException();
+        if (!authorizationService.hasSystemPermission(securityToken, SystemPermission.OPERATOR)) {
+            throw new PageNotAuthorizedException();
         }
     }
 
@@ -610,7 +610,7 @@ public class Cache
      */
     public synchronized ResourceCapacityUtilizationCache getResourceCapacityUtilizationCache(SecurityToken securityToken)
     {
-        checkAdministrator(securityToken);
+        checkOperator(securityToken);
         if (resourceCapacityUtilizationCache == null) {
             resourceCapacityUtilizationCache =
                     new ResourceCapacityUtilizationCache(securityToken, resourceService, reservationService);

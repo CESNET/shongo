@@ -61,7 +61,9 @@
         <!-- Authorization expressions -->
         <authorization>
             <!-- Expression for decision whether user can act as administrator -->
-            <administration>group("admins").contains(id)</administration>
+            <administrator>group("admins").contains(id)</administrator>
+            <!-- Expression for decision whether user can act as operator -->
+            <operator>group("operators").contains(id)</operator>
             <!-- Expression for decision whether user can create a new reservation request -->
             <reservation>loa >= 2 || group("reservation").contains(id)</reservation>
         </authorization>

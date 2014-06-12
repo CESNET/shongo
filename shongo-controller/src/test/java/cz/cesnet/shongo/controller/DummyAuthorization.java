@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.authorization.AdministrationMode;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.UserAuthorizationData;
 import cz.cesnet.shongo.controller.authorization.UserData;
@@ -21,7 +22,7 @@ public class DummyAuthorization extends Authorization
 {
     private static Logger logger = LoggerFactory.getLogger(DummyAuthorization.class);
 
-    private static final String ADMINISTRATION_GROUP_NAME = "admins";
+    private static final String ADMINISTRATOR_GROUP_NAME = "admins";
     private static final String RESERVATION_GROUP_NAME = "reservation";
 
     /**
@@ -107,8 +108,9 @@ public class DummyAuthorization extends Authorization
     {
         super(configuration, entityManagerFactory);
 
-        this.administratorAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
-        createGroup(new Group(ADMINISTRATION_GROUP_NAME, Group.Type.SYSTEM));
+        this.administrationModeByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken(), AdministrationMode.ADMINISTRATOR);
+        createGroup(new Group(ADMINISTRATOR_GROUP_NAME, Group.Type.SYSTEM));
         createGroup(new Group(RESERVATION_GROUP_NAME, Group.Type.SYSTEM));
 
         initialize();
@@ -144,7 +146,7 @@ public class DummyAuthorization extends Authorization
      */
     public void addAdministratorUserId(String userId)
     {
-        addGroupUser(getGroupIdByName(ADMINISTRATION_GROUP_NAME), userId);
+        addGroupUser(getGroupIdByName(ADMINISTRATOR_GROUP_NAME), userId);
     }
 
     @Override

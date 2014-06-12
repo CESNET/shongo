@@ -5,9 +5,9 @@ package cz.cesnet.shongo.client.web.admin;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotAdministratorException extends RuntimeException
+public class PageNotAuthorizedException extends RuntimeException
 {
-    public NotAdministratorException()
+    public PageNotAuthorizedException()
     {
         super("You are not authorized to view this page.");
     }

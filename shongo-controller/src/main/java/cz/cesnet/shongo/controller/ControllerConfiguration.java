@@ -150,9 +150,15 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     /**
      * Specifies expression which decides whether user is a system administrator
-     * (they can use the {@link UserSessionSettings#administratorMode}).
+     * (they can use the {@link UserSessionSettings#administrationMode}).
      */
-    public static final String SECURITY_AUTHORIZATION_ADMINISTRATION = "security.authorization.administration";
+    public static final String SECURITY_AUTHORIZATION_ADMINISTRATOR = "security.authorization.administrator";
+
+    /**
+     * Specifies expression which decides whether user is a system operator
+     * (they can use the {@link UserSessionSettings#administrationMode}).
+     */
+    public static final String SECURITY_AUTHORIZATION_OPERATOR = "security.authorization.operator";
 
     /**
      * Specifies expression which decides whether user can create a reservation request.

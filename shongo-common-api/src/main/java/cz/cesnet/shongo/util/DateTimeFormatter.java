@@ -231,10 +231,34 @@ public class DateTimeFormatter
         if (interval == null) {
             return "";
         }
+        DateTime start = interval.getStart().withZone(dateTimeZone);
+        DateTime end = interval.getEnd().withZone(dateTimeZone);
+        if (end.toLocalTime().equals(LocalTime.MIDNIGHT)) {
+            end = end.minusDays(1);
+        }
+        LocalDate startDate = start.toLocalDate();
+        LocalDate endDate = end.toLocalDate();
+        // Single day
+        if (startDate.equals(endDate)) {
+            org.joda.time.format.DateTimeFormatter dateFormatter = org.joda.time.format.DateTimeFormat.fullDate();
+            return dateFormatter.withLocale(this.dateFormatter.getLocale()).print(startDate);
+        }
+        // Single month
+        else if (startDate.getDayOfMonth() == 1) {
+            LocalDate endOfMonth = startDate.dayOfMonth().withMaximumValue();
+            if (endOfMonth.equals(endDate)) {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(endDate.getYear());
+                stringBuilder.append(" ");
+                stringBuilder.append(endDate.monthOfYear().getAsText(this.dateFormatter.getLocale()));
+                return stringBuilder.toString();
+            }
+        }
+        // Date range
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(dateFormatter.print(interval.getStart().withZone(dateTimeZone)));
+        stringBuilder.append(dateFormatter.print(startDate));
         stringBuilder.append(" - ");
-        stringBuilder.append(dateFormatter.print(interval.getEnd().withZone(dateTimeZone)));
+        stringBuilder.append(dateFormatter.print(endDate));
         return stringBuilder.toString();
     }
 

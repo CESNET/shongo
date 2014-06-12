@@ -145,7 +145,7 @@ public class ServerAuthorization extends Authorization
         if (rootAccessTokenFile != null) {
             writeRootAccessToken(rootAccessTokenFile, rootAccessToken);
         }
-        administratorAccessTokens.add(rootAccessToken);
+        administrationModeByAccessToken.put(rootAccessToken, AdministrationMode.ADMINISTRATOR);
     }
 
     /**

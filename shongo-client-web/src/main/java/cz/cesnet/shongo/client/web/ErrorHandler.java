@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
+import cz.cesnet.shongo.client.web.admin.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.auth.AuthorizationCodeExpiredException;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
@@ -270,7 +270,7 @@ public class ErrorHandler
         else if (cause instanceof ControllerConnectException) {
             return new ModelAndView("errorControllerNotAvailable");
         }
-        else if (cause instanceof NotAdministratorException) {
+        else if (cause instanceof PageNotAuthorizedException) {
             return new ModelAndView("errorPageInaccessible");
         }
         else if (cause instanceof ControllerReportSet.SecurityNotAuthorizedException) {

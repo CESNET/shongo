@@ -214,7 +214,7 @@ public class ReportModel
             if (userSession != null) {
                 attributes.put("Language", userSession.getLocale());
                 attributes.put("Timezone", userSession.getTimeZone());
-                attributes.put("Administrator", userSession.isAdministratorMode());
+                attributes.put("Administrator", userSession.isAdministrationMode());
                 attributes.put("Advanced UI", userSession.isAdvancedUserInterface());
             }
             contextBuilder.append(formatAttributes(attributes));
