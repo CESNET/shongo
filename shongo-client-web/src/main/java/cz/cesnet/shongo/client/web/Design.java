@@ -591,7 +591,13 @@ public class Design
                     links.add(new LinkContext("navigation.reservationRequest", ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW));
                 }
                 if (user.isAdministratorMode()) {
-                    links.add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
+                    links.add(new LinkContext("navigation.administration", new LinkedList<LinkContext>(){{
+                        add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
+                        add(new LinkContext("navigation.resourceReservations",
+                                ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
+                        add(new LinkContext("navigation.resourceCapacityUtilization",
+                                ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION));
+                    }}));
                 }
                 links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
             }
@@ -706,10 +712,18 @@ public class Design
 
             private String url;
 
+            private List<LinkContext> childLinks;
+
             public LinkContext(String titleCode, String url)
             {
                 this.titleCode = titleCode;
                 this.url = url;
+            }
+
+            public LinkContext(String titleCode, List<LinkContext> childLinks)
+            {
+                this.titleCode = titleCode;
+                this.childLinks = childLinks;
             }
 
             public String getTitle()
@@ -720,6 +734,21 @@ public class Design
             public String getUrl()
             {
                 return baseUrl + url;
+            }
+
+            public boolean hasChildLinks()
+            {
+                return childLinks != null && !childLinks.isEmpty();
+            }
+
+            public List<LinkContext> getChildLinks()
+            {
+                if (childLinks == null) {
+                    return Collections.emptyList();
+                }
+                else {
+                    return childLinks;
+                }
             }
         }
 

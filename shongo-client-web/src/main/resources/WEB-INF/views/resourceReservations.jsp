@@ -41,11 +41,11 @@
                 var tableHtml = "<table class='table table-striped table-hover'>";
                 tableHtml += "<thead>";
                 tableHtml += "<tr>";
-                tableHtml += "<th>id</th>";
-                tableHtml += "<th>resource</th>";
-                tableHtml += "<th>type</th>";
-                tableHtml += "<th>slot</th>";
-                tableHtml += "<th>allocated</th>";
+                tableHtml += "<th><spring:message code="views.reservation.id"/></th>";
+                tableHtml += "<th><spring:message code="views.reservation.resource"/></th>";
+                tableHtml += "<th><spring:message code="views.reservation.type"/></th>";
+                tableHtml += "<th><spring:message code="views.reservation.slot"/></th>";
+                tableHtml += "<th><spring:message code="views.reservation.allocated"/></th>";
                 tableHtml += "</tr>";
                 tableHtml += "</thead>";
                 tableHtml += "<tbody>";
@@ -93,7 +93,7 @@
             width: 300,
             escapeMarkup: function (markup) { return markup; },
             data: [
-                {id: "", text: "<spring:message code="views.resourceReservations.resource.all"/>"}
+                {id: "", text: "<spring:message code="views.resource.all"/>"}
                 <c:forEach items="${resources}" var="resource">
                 ,{id: "${resource.key}", text: "${resource.value}"}
                 </c:forEach>
@@ -111,29 +111,29 @@
 
 <div ng-app="jsp:resourceReservations">
     <form class="form-inline">
-        <label for="resourceId"><spring:message code="views.resourceReservations.resource"/>:</label>
+        <label for="resourceId"><spring:message code="views.resource"/>:</label>
         <input id="resourceId"/>
 
         <spring:eval var="types" expression="T(cz.cesnet.shongo.controller.api.ReservationSummary$Type).values()"/>
-        <label for="type"><spring:message code="views.resourceReservations.type"/>:</label>
+        <label for="type"><spring:message code="views.reservation.type"/>:</label>
         <select id="type" class="form-control" tabindex="${tabIndex}">
-            <option value=""><spring:message code="views.resourceReservations.type.all"/></option>
+            <option value=""><spring:message code="views.reservation.type.all"/></option>
             <c:forEach items="${types}" var="type">
-                <option value="${type}"><spring:message code="views.resourceReservations.type.${type}"/></option>
+                <option value="${type}"><spring:message code="views.reservation.type.${type}"/></option>
             </c:forEach>
         </select>
 
         &nbsp;
-        <label for="start"><spring:message code="views.resourceReservations.interval"/>:</label>
+        <label for="start"><spring:message code="views.interval"/>:</label>
         <div class="input-group" style="display: inline-table;">
             <span class="input-group-addon">
-                From:
+                <spring:message code="views.interval.from"/>:
             </span>
             <input id="start" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
         </div>
         <div class="input-group" style="display: inline-table">
             <span class="input-group-addon">
-                To:
+                <spring:message code="views.interval.to"/>:
             </span>
             <input id="end" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
         </div>

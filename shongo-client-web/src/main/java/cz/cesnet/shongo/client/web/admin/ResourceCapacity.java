@@ -5,6 +5,11 @@ import cz.cesnet.shongo.controller.api.RecordingCapability;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
 * TODO:
@@ -37,9 +42,17 @@ public abstract class ResourceCapacity
 
     public abstract ReservationSummary.Type getReservationType();
 
-    public abstract String formatUtilization(ResourceCapacityUtilization utilization, FormatType type);
+    public abstract String getCssClass(ResourceCapacityUtilization utilization);
+
+    public abstract String formatUtilization(ResourceCapacityUtilization utilization, FormatType t, FormatStyle s);
 
     public static enum FormatType
+    {
+        MAXIMUM,
+        AVERAGE
+    }
+
+    public static enum FormatStyle
     {
         ABSOLUTE,
         RELATIVE
@@ -56,33 +69,76 @@ public abstract class ResourceCapacity
             this.licenseCount = licenseCount;
         }
 
-        @Override
-        public String formatUtilization(ResourceCapacityUtilization utilization, FormatType type)
+        public Integer getLicenseCount()
         {
-            int utilizedLicenseCount = 0;
-            if (utilization != null) {
-                ResourceCapacityBucket peakBucket = utilization.getPeakBucket();
-                utilizedLicenseCount = peakBucket.getLicenseCount();
+            return licenseCount;
+        }
+
+        @Override
+        public String getCssClass(ResourceCapacityUtilization utilization)
+        {
+            Set<String> cssClasses = new HashSet<String>();
+            int utilizedLicenseCount = getUtilizedLicenseCount(utilization, FormatType.MAXIMUM).intValue();
+            int relativeUtilizedLicenseCount = (utilizedLicenseCount * 100) / licenseCount;
+            if (utilizedLicenseCount > 0) {
+                cssClasses.add("utilized");
+                cssClasses.add("utilized" + ((relativeUtilizedLicenseCount / 10) * 10));
             }
+            return StringUtils.join(cssClasses, " ");
+        }
+
+        @Override
+        public String formatUtilization(ResourceCapacityUtilization utilization, FormatType type, FormatStyle style)
+        {
+            Number utilizedLicenseCount = getUtilizedLicenseCount(utilization, type);
             StringBuilder output = new StringBuilder();
-            switch (type) {
+            switch (style) {
                 case ABSOLUTE:
-                    output.append(utilizedLicenseCount);
-                    output.append("/");
-                    output.append(licenseCount);
+                    String value = String.format("%1$.1f", utilizedLicenseCount.doubleValue());
+                    if (value.endsWith(".0")) {
+                        value = String.valueOf(utilizedLicenseCount.intValue());
+                    }
+                    output.append(value);
                     break;
                 case RELATIVE:
-                    output.append((utilizedLicenseCount * 100) / licenseCount);
+                    output.append((utilizedLicenseCount.intValue() * 100) / licenseCount);
                     output.append("%");
                     break;
                 default:
-                    throw new TodoImplementException(type);
-            }
-            if (utilizedLicenseCount > 0) {
-                output.insert(0, "<strong>");
-                output.append("</strong>");
+                    throw new TodoImplementException(style);
             }
             return output.toString();
+        }
+
+        private Number getUtilizedLicenseCount(ResourceCapacityUtilization utilization, FormatType type)
+        {
+            if (utilization != null) {
+                switch (type) {
+                    case MAXIMUM:
+                        ResourceCapacityBucket peakBucket = utilization.getPeakBucket();
+                        return peakBucket.getLicenseCount();
+                    case AVERAGE:
+                        List<ResourceCapacityBucket> buckets = utilization.getBuckets();
+                        double totalLicenseCount = 0;
+                        int bucketCount = 0;
+                        for (ResourceCapacityBucket bucket : buckets) {
+                            if (bucket.isEmpty()) {
+                                continue;
+                            }
+                            totalLicenseCount += bucket.getLicenseCount();
+                            bucketCount++;
+                        }
+                        if (bucketCount == 0) {
+                            return 0;
+                        }
+                        return totalLicenseCount / (double) bucketCount;
+                    default:
+                        throw new TodoImplementException(type);
+                }
+            }
+            else {
+                return 0;
+            }
         }
     }
 

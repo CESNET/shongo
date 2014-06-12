@@ -25,15 +25,16 @@
             <td style="width: 250px;"><tag:format value="${entry.key}" style="date"/></td>
             <c:forEach items="${resourceCapacitySet}" var="resourceCapacity">
                 <c:set var="utilization" value="${entry.value.get(resourceCapacity)}"/>
-                <td style="width: 100px;">
+                <td style="width: 150px;" class="${resourceCapacity.getCssClass(utilization)}">
                     <tag:url var="resourceCapacityUtilizationDescriptionUrl" value="<%= ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION_DESCRIPTION %>">
                         <tag:param name="interval" value="${entry.key}"/>
                         <tag:param name="resourceCapacityClass" value="${resourceCapacity.className}"/>
                         <tag:param name="resourceId" value="${resourceCapacity.resourceId}"/>
                     </tag:url>
-                    <a href="${resourceCapacityUtilizationDescriptionUrl}" target="_blank">
-                        ${resourceCapacity.formatUtilization(utilization, type)}
+                    <a class="maximum" href="${resourceCapacityUtilizationDescriptionUrl}" target="_blank">
+                        ${resourceCapacity.formatUtilization(utilization, 'MAXIMUM', style)}<c:if test="${style == 'ABSOLUTE'}">/${resourceCapacity.licenseCount}</c:if>
                     </a>
+                    <span>(${resourceCapacity.formatUtilization(utilization, 'AVERAGE', style)})</span>
                 </td>
             </c:forEach>
             <td></td>
@@ -51,5 +52,12 @@
         </c:if>
     </tr>
     </tfoot>
+    <%--
+    <tr>
+        <td></td>
+        <c:forEach items="10,20,30,40,50,60,70,80,90,100" var="item">
+            <td class="utilized utilized${item}">Test</td>
+        </c:forEach>
+    </tr>--%>
 </table>
 

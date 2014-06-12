@@ -422,6 +422,101 @@ div.information-box .spinner {
 .room-layout .GRID:before {
   background-position: -32px 1px;
 }
+/* vies/resourceCapacityUtilization.jsp */
+.jspResourceCapacityUtilization td a {
+  color: #666666;
+}
+.jspResourceCapacityUtilization th {
+  padding-left: 35px !important;
+}
+.jspResourceCapacityUtilization .maximum {
+  display: inline-block;
+  width: 50px;
+  text-align: right;
+}
+.jspResourceCapacityUtilization .utilized .maximum {
+  font-weight: bold;
+}
+.jspResourceCapacityUtilization .utilized100,
+.jspResourceCapacityUtilizationDescription .utilized100 td {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized100 span {
+  font-weight: bold;
+  color: #eb0000 !important;
+}
+.jspResourceCapacityUtilization .utilized90,
+.jspResourceCapacityUtilizationDescription .utilized90 td {
+  background-color: rgba(255, 26, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized90 span {
+  font-weight: bold;
+  color: #eb1700 !important;
+}
+.jspResourceCapacityUtilization .utilized80,
+.jspResourceCapacityUtilizationDescription .utilized80 td {
+  background-color: rgba(255, 51, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized80 span {
+  font-weight: bold;
+  color: #eb2f00 !important;
+}
+.jspResourceCapacityUtilization .utilized70,
+.jspResourceCapacityUtilizationDescription .utilized70 td {
+  background-color: rgba(255, 77, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized70 span {
+  font-weight: bold;
+  color: #eb4600 !important;
+}
+.jspResourceCapacityUtilization .utilized60,
+.jspResourceCapacityUtilizationDescription .utilized60 td {
+  background-color: rgba(255, 102, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized60 span {
+  font-weight: bold;
+  color: #eb5e00 !important;
+}
+.jspResourceCapacityUtilization .utilized50,
+.jspResourceCapacityUtilizationDescription .utilized50 td {
+  background-color: rgba(255, 128, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized50 span {
+  font-weight: bold;
+  color: #eb7500 !important;
+}
+.jspResourceCapacityUtilization .utilized40,
+.jspResourceCapacityUtilizationDescription .utilized40 td {
+  background-color: rgba(255, 153, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized40 span {
+  font-weight: bold;
+  color: #eb8d00 !important;
+}
+.jspResourceCapacityUtilization .utilized30,
+.jspResourceCapacityUtilizationDescription .utilized30 td {
+  background-color: rgba(255, 179, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized30 span {
+  font-weight: bold;
+  color: #eba400 !important;
+}
+.jspResourceCapacityUtilization .utilized20,
+.jspResourceCapacityUtilizationDescription .utilized20 td {
+  background-color: rgba(255, 204, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized20 span {
+  font-weight: bold;
+  color: #ebbc00 !important;
+}
+.jspResourceCapacityUtilization .utilized10,
+.jspResourceCapacityUtilizationDescription .utilized10 td {
+  background-color: rgba(255, 230, 0, 0.3) !important;
+}
+.jspResourceCapacityUtilizationDescription .utilized10 span {
+  font-weight: bold;
+  color: #ebd300 !important;
+}
 /* Date/Time */
 .date-time {
   display: inline-block;

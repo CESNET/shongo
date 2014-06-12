@@ -121,7 +121,20 @@
         <div class="collapse navbar-collapse navbar-left">
             <ul class="nav navbar-nav">
             <#list links as link>
-                <li><a href="${link.url}">${link.title}</a></li>
+                <#if link.hasChildLinks()>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        ${link.title}<b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <#list link.childLinks as childLink>
+                                <li><a href="${childLink.url}">${childLink.title}</a></li>
+                            </#list>
+                        </ul>
+                    </li>
+                <#else>
+                    <li><a href="${link.url}">${link.title}</a></li>
+                </#if>
             </#list>
             </ul>
         </div>

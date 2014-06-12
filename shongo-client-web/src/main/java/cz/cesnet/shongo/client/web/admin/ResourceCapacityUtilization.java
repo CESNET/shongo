@@ -32,6 +32,11 @@ public class ResourceCapacityUtilization
         }
     }
 
+    public List<ResourceCapacityBucket> getBuckets()
+    {
+        return buckets;
+    }
+
     public Collection<ReservationSummary> getReservations()
     {
         if (this.reservations == null) {

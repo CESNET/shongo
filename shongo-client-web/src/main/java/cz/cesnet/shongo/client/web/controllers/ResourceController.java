@@ -1,12 +1,10 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.admin.NotAdministratorException;
 import cz.cesnet.shongo.client.web.admin.ResourceCapacity;
 import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilization;
 import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
@@ -181,7 +179,7 @@ public class ResourceController
             @RequestParam(value = "period") Period period,
             @RequestParam(value = "start") DateTime start,
             @RequestParam(value = "end") DateTime end,
-            @RequestParam(value = "type") ResourceCapacity.FormatType type,
+            @RequestParam(value = "style") ResourceCapacity.FormatStyle style,
             @RequestParam(value = "refresh", required = false) boolean refresh)
     {
         ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
@@ -191,7 +189,7 @@ public class ResourceController
         ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationTable");
         modelAndView.addObject("resourceCapacitySet", resourceCapacityUtilizationCache.getResourceCapacities());
         modelAndView.addObject("resourceCapacityUtilization", utilization);
-        modelAndView.addObject("type", type);
+        modelAndView.addObject("style", style);
         return modelAndView;
     }
 

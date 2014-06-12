@@ -417,3 +417,32 @@ div.information-box .spinner {
 .room-layout .GRID:before {
     background-position: -32px 1px;
 }
+
+/* vies/resourceCapacityUtilization.jsp */
+.jspResourceCapacityUtilization td a {
+  color: #666666;
+}
+.jspResourceCapacityUtilization th {
+  padding-left: 35px !important;
+}
+.jspResourceCapacityUtilization .maximum {
+    display: inline-block;
+    width: 50px;
+    text-align: right;
+}
+.jspResourceCapacityUtilization .utilized .maximum {
+  font-weight: bold;
+}
+.utilizedLoop (@index) when (@index > 0) {
+    .jspResourceCapacityUtilization .utilized@{index},
+    .jspResourceCapacityUtilizationDescription .utilized@{index} td {
+        background-color: rgba(255, 255 - ((@index * 255) / 100), 0, 30%) !important;
+    }
+    .jspResourceCapacityUtilizationDescription .utilized@{index} span {
+        font-weight: bold;
+        color: darken(rgba(255, 255 - ((@index * 255) / 100), 0, 100%), 4%) !important;
+    }
+    .utilizedLoop(@index - 10);
+}
+.utilizedLoop(0){};
+.utilizedLoop(100);
