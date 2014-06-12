@@ -101,7 +101,7 @@ public abstract class ResourceCapacity
                     output.append(value);
                     break;
                 case RELATIVE:
-                    output.append((utilizedLicenseCount.intValue() * 100) / licenseCount);
+                    output.append((int)((utilizedLicenseCount.doubleValue() * 100.0) / (double) licenseCount));
                     output.append("%");
                     break;
                 default:
