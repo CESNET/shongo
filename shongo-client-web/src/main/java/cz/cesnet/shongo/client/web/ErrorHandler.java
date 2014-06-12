@@ -15,6 +15,7 @@ import cz.cesnet.shongo.report.ApiFaultException;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -91,7 +92,7 @@ public class ErrorHandler
         Throwable cause = throwable;
         ModelAndView modelAndView = null;
         while (cause != null) {
-            ModelAndView causeModelAndView = handleCause(request, cause, message);
+            ModelAndView causeModelAndView = handleCause(request, response, cause, message);
             if (causeModelAndView != null) {
                 modelAndView = causeModelAndView;
             }
@@ -237,12 +238,14 @@ public class ErrorHandler
 
     /**
      * Try to handle cause by {@link ModelAndView}.
+     *
      * @param request
+     * @param response
      * @param cause
-     * @param message
-     * @return {@link ModelAndView} or {@code null}
+     * @param message   @return {@link ModelAndView} or {@code null}
      */
-    private ModelAndView handleCause(HttpServletRequest request, Throwable cause, String message)
+    private ModelAndView handleCause(HttpServletRequest request, HttpServletResponse response, Throwable cause,
+            String message)
     {
         if (cause instanceof UserMessageException) {
             UserMessageException userMessageException = (UserMessageException) cause;
@@ -271,6 +274,7 @@ public class ErrorHandler
             return new ModelAndView("errorControllerNotAvailable");
         }
         else if (cause instanceof PageNotAuthorizedException) {
+            response.setStatus(HttpStatus.SC_UNAUTHORIZED);
             return new ModelAndView("errorPageInaccessible");
         }
         else if (cause instanceof ControllerReportSet.SecurityNotAuthorizedException) {
@@ -297,7 +301,7 @@ public class ErrorHandler
                 return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
             }
             else {
-                return handleCause(request, new AuthenticationServiceException(cause.getMessage()), message);
+                return handleCause(request, response, new AuthenticationServiceException(cause.getMessage()), message);
             }
         }
         else if (AjaxRequestMatcher.isAjaxRequest(request)) {

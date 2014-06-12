@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.client.web.admin;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
@@ -12,6 +10,8 @@ import cz.cesnet.shongo.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -22,6 +22,8 @@ import java.util.*;
  */
 public class ResourceCapacityUtilizationCache
 {
+    private static Logger logger = LoggerFactory.getLogger(ResourceCapacityUtilizationCache.class);
+
     private static final Period EXPIRATION = Period.minutes(10);
 
     private final SecurityToken securityToken;
@@ -204,10 +206,30 @@ public class ResourceCapacityUtilizationCache
         if (this.reservationInterval != null && this.reservationInterval.contains(interval)) {
             return this.reservationSetMap.get(resourceCapacity);
         }
+        DateTime start = interval.getStart();
+        DateTime end = interval.getEnd();
+
+        // Expand reservation cache at start
+        if (reservationInterval != null &&
+                reservationInterval.isAfter(start) && reservationInterval.contains(end)) {
+            interval = new Interval(start, reservationInterval.getStart());
+            reservationInterval = new Interval(start, reservationInterval.getEnd());
+        }
+        // Expand reservation cache at end
+        else if (reservationInterval != null &&
+                reservationInterval.isBefore(end) && reservationInterval.contains(start)) {
+            interval = new Interval(reservationInterval.getEnd(), end);
+            reservationInterval = new Interval(reservationInterval.getStart(), end);
+        }
+        // Load the whole reservation cache
+        else {
+            logger.info("Clearing cached reservations...");
+            reservationSetMap.clear();
+            reservationInterval = interval;
+        }
 
         // Fetch reservations for all resource capacities
-        reservationSetMap.clear();
-        reservationInterval = interval;
+        logger.info("Loading reservations for {}...", interval);
         ReservationListRequest reservationListRequest = new ReservationListRequest(securityToken);
         for (ResourceCapacity currentResourceCapacity : resourceCapacities) {
             reservationListRequest.addResourceId(currentResourceCapacity.getResourceId());
@@ -256,7 +278,7 @@ public class ResourceCapacityUtilizationCache
             }
         }
 
-        // Fetch reservations
+        // Fetch reservations for single resource capacity
         RangeSet<ReservationSummary, DateTime> reservationSet = new RangeSet<ReservationSummary, DateTime>()
         {
             @Override

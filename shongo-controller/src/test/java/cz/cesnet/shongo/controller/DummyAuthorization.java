@@ -23,6 +23,7 @@ public class DummyAuthorization extends Authorization
     private static Logger logger = LoggerFactory.getLogger(DummyAuthorization.class);
 
     private static final String ADMINISTRATOR_GROUP_NAME = "admins";
+    private static final String OPERATOR_GROUP_NAME = "operators";
     private static final String RESERVATION_GROUP_NAME = "reservation";
 
     /**
@@ -111,6 +112,7 @@ public class DummyAuthorization extends Authorization
         this.administrationModeByAccessToken.put(
                 AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken(), AdministrationMode.ADMINISTRATOR);
         createGroup(new Group(ADMINISTRATOR_GROUP_NAME, Group.Type.SYSTEM));
+        createGroup(new Group(OPERATOR_GROUP_NAME, Group.Type.SYSTEM));
         createGroup(new Group(RESERVATION_GROUP_NAME, Group.Type.SYSTEM));
 
         initialize();
