@@ -184,6 +184,9 @@ public class ResourceController
     {
         ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
                 cache.getResourceCapacityUtilizationCache(securityToken);
+        if (refresh) {
+            resourceCapacityUtilizationCache.clear();
+        }
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
                 resourceCapacityUtilizationCache.getUtilization(new Interval(start, end), period);
         ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationTable");

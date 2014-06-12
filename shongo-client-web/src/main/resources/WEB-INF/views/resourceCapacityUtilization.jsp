@@ -193,6 +193,9 @@
             <spring:message var="forward" code="views.resourceCapacityUtilization.forward"/>
             <spring:message var="backward" code="views.resourceCapacityUtilization.backward"/>
             <div class="btn-group-divided">
+                <a href="" ng-click="updateContent(true)" class="btn btn-default" title="<spring:message code="views.button.refresh"/>"><span class="fa fa-refresh"></span></a>
+            </div>
+            <div class="btn-group-divided">
                 <a class="btn btn-default" href="" ng-click="moveStart(-periodCount)" title="{{formatPeriod(period, periodCount)}} ${backward}">&lt;&lt;&lt;</a>
                 <a class="btn btn-default" href="" ng-click="moveStart(periodCount)" title="{{formatPeriod(period, periodCount)}} ${forward}">&gt;&gt;&gt;</a>
             </div>

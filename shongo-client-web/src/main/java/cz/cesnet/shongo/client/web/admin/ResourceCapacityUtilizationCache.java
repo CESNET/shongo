@@ -73,17 +73,16 @@ public class ResourceCapacityUtilizationCache
 
     public synchronized void clear()
     {
-        resourceCapacityUtilizationMap.clear();
+        this.expirationDateTime = DateTime.now().plus(EXPIRATION);
+        this.resourceCapacityUtilizationMap = null;
+        this.reservationSetMap = null;
+        this.reservationInterval = null;
     }
 
     public synchronized void clearExpired(DateTime dateTime)
     {
         if (this.expirationDateTime != null && this.expirationDateTime.isAfterNow()) {
-            this.expirationDateTime = DateTime.now().plus(EXPIRATION);
-            this.resourceCapacityUtilizationMap =
-                    new HashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
-            this.reservationSetMap = new HashMap<ResourceCapacity, RangeSet<ReservationSummary, DateTime>>();
-            this.reservationInterval = null;
+            clear();
         }
     }
 
@@ -125,7 +124,7 @@ public class ResourceCapacityUtilizationCache
     private synchronized void initMaps()
     {
         // Initialize maps which can expire
-        boolean expired = (this.expirationDateTime != null && this.expirationDateTime.isAfterNow());
+        boolean expired = (this.expirationDateTime != null && this.expirationDateTime.isBeforeNow());
         if (this.resourceCapacityUtilizationMap == null || expired) {
             this.resourceCapacityUtilizationMap =
                     new HashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
