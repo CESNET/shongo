@@ -259,8 +259,9 @@ span.error, div.error {
   border-bottom: 1px solid #eee;
 }
 .form-inline.filter .title {
-  display: inline-block;
+  position: absolute;
   font-weight: bold;
+  padding-top: 11px;
   padding-right: 10px;
   text-align: right;
   min-width: 100px;
@@ -270,6 +271,29 @@ span.error, div.error {
   margin-left: 100px;
   margin-right: 0px;
 }
+.form-inline.filter-collapsed .row {
+  display: inline-block;
+  margin-left: 0px;
+}
+.form-inline.filter-collapsed .row:first-of-type {
+  margin-left: 100px;
+}
+.form-inline.filter .row  .input-group-addon {
+  min-width: 100px;
+}
 .form-inline.filter .row  .checkbox-inline:first-child {
   margin-left: 5px;
+}
+
+/* Form picker */
+.form-picker[readonly] {
+  background-color: white;
+  cursor: auto;
+}
+
+.nav.navbar-nav>.divider {
+  height: 34px;
+  margin: 8px 6px;
+  border-left: 1px solid #e2e2e2;
+  border-right: 1px solid #fff;
 }

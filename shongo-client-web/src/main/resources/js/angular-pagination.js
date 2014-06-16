@@ -36,8 +36,9 @@ paginationModule.controller('ReadyController', function ($scope) {
  * $scope.errorContent - can be used to show an error
  */
 paginationModule.controller('PaginationController', function ($scope, $application, $element, $resource, $window, $cookieStore) {
-    // Resource used for fetching items
-    $scope.resource = null;
+    // URL
+    $scope.url = null;
+    $scope.urlParameters = null;
     // Current page index
     $scope.pageIndex = null;
     // Current page size (number of items per page)
@@ -207,9 +208,8 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     $scope.init = function (name, url, urlParameters, refreshEvent) {
         // Setup name and resource
         $scope.name = name;
-        $scope.resource = $resource(url, urlParameters, {
-            list: {method: 'GET'}
-        });
+        $scope.url = url;
+        $scope.urlParameters = urlParameters;
         // Load configuration
         var configuration = null;
         try {
@@ -307,6 +307,14 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
         }
 
         $scope.setReady(false);
+
+        var url = $scope.url;
+        if (typeof url == "function") {
+            url = url();
+        }
+        $scope.resource = $resource(url, $scope.urlParameters, {
+            list: {method: 'GET'}
+        });
         return $scope.resource.list(listParameters, function(response) {
             callback(response);
         }, function(response){

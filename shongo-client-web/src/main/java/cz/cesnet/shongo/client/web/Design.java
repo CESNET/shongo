@@ -15,6 +15,7 @@ import cz.cesnet.shongo.util.DateTimeFormatter;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.NullCacheStorage;
 import freemarker.cache.SoftCacheStorage;
+import freemarker.log._NullLoggerFactory;
 import freemarker.template.*;
 import freemarker.template.Configuration;
 import org.apache.commons.configuration.*;
@@ -586,19 +587,23 @@ public class Design
         {
             List<LinkContext> links = new LinkedList<LinkContext>();
             if (isUserAuthenticated()) {
+                links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
+            }
+            links.add(new LinkContext("navigation.help", getUrl().getHelp()));
+            if (isUserAuthenticated()) {
                 UserContext user = getUser();
                 if (user.isAdministrationMode()) {
+                    links.add(new LinkSeparatorContext());
                     links.add(new LinkContext("navigation.administration", new LinkedList<LinkContext>(){{
                         add(new LinkContext("navigation.resourceCapacityUtilization",
                                 ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION));
+                        add(new LinkSeparatorContext());
                         add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
                         add(new LinkContext("navigation.resourceReservations",
                                 ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
                     }}));
                 }
-                links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
             }
-            links.add(new LinkContext("navigation.help", getUrl().getHelp()));
             return links;
         }
 
@@ -746,6 +751,25 @@ public class Design
                 else {
                     return childLinks;
                 }
+            }
+
+            public boolean isSeparator()
+            {
+                return false;
+            }
+        }
+
+        public class LinkSeparatorContext extends LinkContext
+        {
+            public LinkSeparatorContext()
+            {
+                super(null, (String) null);
+            }
+
+            @Override
+            public boolean isSeparator()
+            {
+                return true;
             }
         }
 

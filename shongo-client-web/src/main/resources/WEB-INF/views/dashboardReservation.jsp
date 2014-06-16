@@ -1,5 +1,5 @@
 <%--
-  -- Main welcome page.
+  -- Reservations tab in dashboard.
   --%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -7,16 +7,11 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<security:authorize access="hasPermission(OPERATOR)" var="isOperator"/>
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
-<tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
-    <tag:param name="specification-type" value=":type"/>
-    <c:if test="${advancedUserInterface}">
-        <tag:param name="allocation-state" value=":allocationState" escape="false"/>
-    </c:if>
-</tag:url>
+<tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
 <tag:url var="permanentRoomCapacitiesUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
     <tag:param name="specification-type" value="PERMANENT_ROOM_CAPACITY"/>
-    <tag:param name="permanent-room=" value=":permanent-room-id"/>
     <tag:param name="count" value="5"/>
     <tag:param name="sort" value="SLOT_NEAREST"/>
 </tag:url>
@@ -50,16 +45,15 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
+<tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
-    function DashboardReservationListController($scope, $cookieStore) {
-        var showNotAllocated = $cookieStore.get("index.showNotAllocated");
-        if (showNotAllocated == null) {
-            showNotAllocated = true;
-        }
-
-        $scope.reservationList = {};
-
+    // Controller for filtering
+    function DashboardReservationListController($scope, $cookieStore, $application, $timeout) {
+        // Load filter configuration
+        $scope.reservationList = {
+            showExtendedFilter: false
+        };
         $scope.setupParameter = function(parameter, defaultValue, refreshList) {
             var value = null;
             <c:if test="${advancedUserInterface}">
@@ -73,26 +67,133 @@
                 if (newValue != oldValue) {
                     $cookieStore.put("index." + parameter, newValue);
                     if (refreshList) {
-                        $scope.$$childHead.refresh();
+                        $scope.refreshList();
                     }
                 }
             });
         };
-        $scope.setupParameter("type", "", true);
+        $scope.setupParameter("specificationType", "", true);
         $scope.setupParameter("showNotAllocated", true, true);
-        $scope.setupParameter("showPermanentRoomCapacities", true, false);
-        $scope.getAllocationState = function() {
-            return ($scope.reservationList.showNotAllocated ? null : "ALLOCATED");
+        <c:choose>
+            <c:when test="${isOperator}">
+                // We don't want to show capacities for operators (because a lot of permanent rooms can be visible)
+                $scope.reservationList.showPermanentRoomCapacities = false;
+            </c:when>
+            <c:otherwise>
+                $scope.setupParameter("showPermanentRoomCapacities", true, false);
+            </c:otherwise>
+        </c:choose>
+
+        // Watch for filter changes (which are not persisted to cookies)
+        for (var parameter in {"intervalFrom": null, "intervalTo": null, "search": null}) {
+            var parameterName = parameter;
+            $scope.$watch("reservationList." + parameter, function(newValue, oldValue){
+                if (newValue != oldValue) {
+                    $scope.refreshList(parameterName == "search" ? 1000 : 0);
+                }
+            });
+        }
+        for (var parameter in {"userId": null, "participantUserId": null}) {
+            $scope.$watch("reservationList." + parameter, function(newValue, oldValue){
+                if ((newValue != null && typeof newValue == "object" && newValue.id != null && (oldValue == null || oldValue.id != newValue.id)) || (newValue == null && oldValue != null)) {
+                    $scope.refreshList();
+                }
+            });
+        }
+
+        // Refresh list of rooms
+        var refreshListTimer = null;
+        $scope.refreshList = function(timeout) {
+            if (refreshListTimer != null) {
+                $timeout.cancel(refreshListTimer);
+            }
+            refreshListTimer = $timeout(function(){
+                $scope.$$childHead.refresh();
+                refreshListTimer = null;
+            }, timeout);
         };
-        $scope.getType = function() {
-            return ($scope.reservationList.type != "" ? $scope.reservationList.type : "PERMANENT_ROOM,ADHOC_ROOM");
+
+        // URL for listing rooms
+        $scope.getReservationRequestListDataUrl = function() {
+            var specificationType = $scope.reservationList.specificationType;
+            if ( specificationType == null || specificationType == "") {
+                specificationType = "PERMANENT_ROOM,ADHOC_ROOM";
+            }
+            var url = "${reservationRequestListDataUrl}?specification-type=" + specificationType;
+            if (!$scope.reservationList.showNotAllocated) {
+                url += "&allocation-state=ALLOCATED"
+            }
+            if ($scope.reservationList.intervalFrom != null && $scope.reservationList.intervalFrom != "") {
+                url += "&interval-from=" + $scope.reservationList.intervalFrom;
+            }
+            if ($scope.reservationList.intervalTo != null && $scope.reservationList.intervalTo != "") {
+                url += "&interval-to=" + $scope.reservationList.intervalTo;
+            }
+            if ($scope.reservationList.userId != null) {
+                url += "&user-id=" + $scope.reservationList.userId.id;
+            }
+            if ($scope.reservationList.participantUserId != null) {
+                url += "&participant-user-id=" + $scope.reservationList.participantUserId.id;
+            }
+            if ($scope.reservationList.search != null) {
+                url += "&search=" + encodeURIComponent($scope.reservationList.search);
+            }
+            return url;
+        };
+
+        // User select options
+        $scope.formatUser = function (user) {
+            var text = "<b>" + user.firstName;
+            if (user.lastName != null) {
+                text += " " + user.lastName;
+            }
+            text += "</b>";
+            if (user.organization != null) {
+                text += " (" + user.organization + ")";
+            }
+            return text;
+        };
+        $scope.userOptions = {
+            placeholder: "<spring:message code="views.select.user"/>",
+            width: 'resolve',
+            minimumInputLength: 2,
+            ajax: {
+                url: "${userListUrl}",
+                dataType: 'json',
+                quietMillis: 1000,
+                data: function (term, page) {
+                    return {
+                        filter: term
+                    };
+                },
+                results: function (data, page) {
+                    var results = [];
+                    for (var index = 0; index < data.length; index++) {
+                        var dataItem = data[index];
+                        results.push({id: dataItem.userId, text: $scope.formatUser(dataItem)});
+                    }
+                    return {results: results};
+                },
+                transport: function (options) {
+                    return $.ajax(options).fail($application.handleAjaxFailure);
+                }
+            },
+            escapeMarkup: function (markup) { return markup; },
+            initSelection: function (element, callback) {
+                var id = $(element).val();
+                callback({id: null, text: '<spring:message code="views.select.loading"/>'});
+                $.ajax("${userListUrl}?userId=" + id, {
+                    dataType: "json"
+                }).done(function (data) {
+                    callback({id: id, text: $scope.formatUser(data[0])});
+                }).fail($application.handleAjaxFailure);
+            }
         };
     }
+
+    // Controller for one permanent room
     function DashboardPermanentRoomCapacitiesController($scope, $resource) {
         $scope.items = null;
-        if ($scope.reservationRequest.type != 'PERMANENT_ROOM') {
-            return;
-        }
         if ($scope.reservationRequest.state == 'FAILED' || $scope.reservationRequest.state == 'ALLOCATED_FINISHED') {
             return;
         }
@@ -108,7 +209,7 @@
 
 <div ng-controller="DashboardReservationListController">
     <div ng-controller="PaginationController"
-         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', {allocationState: getAllocationState, type: getType}, 'refresh-rooms');">
+         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms');">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
 
@@ -117,52 +218,104 @@
         </pagination-page-size>
         <div>
             <div class="alert alert-warning">
-                <spring:message code="views.index.rooms.description"/>
+                <spring:message code="views.index.reservations.description"/>
             </div>
 
-            <%-- Filtering --%>
+            <%-- Filter: start --%>
             <c:if test="${advancedUserInterface}">
-                <form class="form-inline filter">
+                <form class="form-inline filter" ng-class="{'filter-collapsed': !showExtendedFilter}">
+                    <span class="pull-right">
+                        <a href="" ng-click="showExtendedFilter = true" ng-show="!showExtendedFilter"><spring:message code="views.index.reservations.showExtendedFilter"/></a>
+                        <a href="" ng-click="showExtendedFilter = false" ng-show="showExtendedFilter"><spring:message code="views.index.reservations.hideExtendedFilter"/></a>
+                    </span>
                     <span class="title"><spring:message code="views.filter"/>:</span>
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                            <spring:message code="views.reservationRequest.type"/>
-                        </span>
-                        <select id="type" class="form-control" ng-model="reservationList.type" style="width: 190px;">
-                            <option value=""><spring:message code="views.reservationRequest.specification.all"/></option>
-                            <option value="ADHOC_ROOM"><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></option>
-                            <option value="PERMANENT_ROOM"><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></option>
-                        </select>
+                    <div class="row">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.reservationRequest.type"/>
+                            </span>
+                            <select class="form-control" ng-model="reservationList.specificationType" style="width: 190px;">
+                                <option value=""><spring:message code="views.reservationRequest.specification.all"/></option>
+                                <option value="ADHOC_ROOM"><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></option>
+                                <option value="PERMANENT_ROOM"><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" ng-show="showExtendedFilter">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.index.reservations.intervalFrom"/>
+                            </span>
+                            <input id="intervalFrom" type="text" class="form-control form-picker" date-picker="true" readonly="true" style="width: 190px;" ng-model="reservationList.intervalFrom"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.index.reservations.intervalTo"/>
+                            </span>
+                            <input id="intervalTo" type="text" class="form-control form-picker" date-picker="true" readonly="true" style="width: 190px;" ng-model="reservationList.intervalTo"/>
+                        </div>
+                    </div>
+                    <div class="row" ng-show="showExtendedFilter">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.user"/>
+                            </span>
+                            <input id="userId" class="form-control" style="width: 300px;" ng-model="reservationList.userId" ui-select2="userOptions"/>
+                        </div>
+                        <a class="btn btn-default" href="" ng-click="reservationList.userId = null;"><i class="fa fa-times"></i></a>
+                    </div>
+                    <div class="row" ng-show="showExtendedFilter">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.index.reservations.participant"/>
+                            </span>
+                            <input id="participantUserId" class="form-control" style="width: 300px;" ng-model="reservationList.participantUserId" ui-select2="userOptions"/>
+                        </div>
+                        <a class="btn btn-default" href="" ng-click="reservationList.participantUserId = null;"><i class="fa fa-times"></i></a>
+                    </div>
+                    <div class="row" ng-show="showExtendedFilter">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.search"/>
+                            </span>
+                            <input type="text" class="form-control" style="width: 300px;" ng-model="reservationList.search"/>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="checkbox-inline">
                             <input id="showNotAllocated" type="checkbox" ng-model="reservationList.showNotAllocated"/>
                             <label for="showNotAllocated">
-                                <spring:message code="views.index.rooms.showNotAllocated"/>
+                                <spring:message code="views.index.reservations.showNotAllocated"/>
                             </label>
                         </div>
-                        <div class="checkbox-inline">
-                            <input id="showPermanentRoomCapacities" type="checkbox" ng-model="reservationList.showPermanentRoomCapacities"/>
-                            <label for="showPermanentRoomCapacities">
-                                <spring:message code="views.index.rooms.showPermanentRoomCapacities"/>
-                            </label>
-                        </div>
+                        <%-- We don't want to show capacities for operators (because a lot of permanent rooms can be visible) --%>
+                        <c:if test="${!isOperator}">
+                            <div class="checkbox-inline">
+                                <input id="showPermanentRoomCapacities" type="checkbox" ng-model="reservationList.showPermanentRoomCapacities"/>
+                                <label for="showPermanentRoomCapacities">
+                                    <spring:message code="views.index.reservations.showPermanentRoomCapacities"/>
+                                </label>
+                            </div>
+                        </c:if>
                     </div>
                 </form>
             </c:if>
+            <%-- Filter: end --%>
 
         </div>
         <div class="spinner" ng-hide="ready || errorContent"></div>
         <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
         <table class="table table-striped table-hover" ng-show="ready">
+
+            <%-- Table head: start --%>
             <thead>
             <tr>
                 <c:if test="${advancedUserInterface}">
                     <th>
-                        <pagination-sort column="DATETIME"><spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
+                        <pagination-sort column="DATETIME"><spring:message code="views.reservationRequest.createdAt"/></pagination-sort>
                     </th>
                     <th>
-                        <pagination-sort column="USER"><spring:message code="views.reservationRequest.user"/></pagination-sort>
+                        <pagination-sort column="USER"><spring:message code="views.reservationRequest.createdBy"/></pagination-sort>
                     </th>
                 </c:if>
                 <th>
@@ -197,7 +350,11 @@
                 </th>
             </tr>
             </thead>
+            <%-- Table head: end --%>
+
             <tbody>
+
+            <%-- Single reservation: start --%>
             <tr ng-repeat-start="reservationRequest in items" ng-class-odd="'odd'" ng-class-even="'even'"
                 ng-class="{'deprecated': reservationRequest.isDeprecated}">
                 <c:if test="${advancedUserInterface}">
@@ -206,7 +363,7 @@
                 </c:if>
                 <td>{{reservationRequest.typeMessage}}</td>
                 <td>
-                    <spring:message code="views.index.rooms.showDetail" var="manageRoom"/>
+                    <spring:message code="views.index.reservations.showDetail" var="manageRoom"/>
                     <a ng-show="reservationRequest.reservationId" href="${detailUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
                     <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
                     <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
@@ -233,7 +390,7 @@
                     <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
                         <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/> |
                     </span>
-                    <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${detailUrl}" tabindex="2"/>
+                    <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${detailUrl}" tabindex="2"/>
                     <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE')">
                         | <tag:listAction code="manageRoom" url="${detailRuntimeManagementUrl}" target="_blank" tabindex="4"/>
                     </span>
@@ -248,20 +405,23 @@
                     </span>
                 </td>
             </tr>
+            <%-- Single reservation: end --%>
+
+            <%-- Capacities for single permanent room: start --%>
             <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
                 ng-class="{'deprecated': reservationRequest.isDeprecated}">
                 <td ng-if="reservationRequest.type == 'PERMANENT_ROOM' && reservationList.showPermanentRoomCapacities" ng-controller="DashboardPermanentRoomCapacitiesController" colspan="6">
                     <div style="position: relative;">
                         <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
                             <a class="btn btn-default" href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                                <spring:message code="views.index.rooms.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
+                                <spring:message code="views.index.reservations.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
                             </a>
                         </div>
-                        <span><spring:message code="views.index.rooms.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</span>
+                        <span><spring:message code="views.index.reservations.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</span>
                         <ul>
                             <li ng-repeat="capacity in items">
                                 <a href="${permanentRoomCapacityDetailUrl}">{{capacity.roomParticipantCountMessage}}</a>
-                                <spring:message code="views.index.rooms.permanentRoomCapacity.slot" arguments="{{capacity.earliestSlot}}"/>
+                                <spring:message code="views.index.reservations.permanentRoomCapacity.slot" arguments="{{capacity.earliestSlot}}"/>
                                 <span ng-show="capacity.futureSlotCount">
                                     (<spring:message code="views.reservationRequestList.slotMore" arguments="{{capacity.futureSlotCount}}"/>)
                                 </span>
@@ -269,7 +429,7 @@
                             </li>
                             <li ng-show="count > items.length">
                                 <a href="${detailUrl}" tabindex="2">
-                                    <spring:message code="views.index.rooms.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
+                                    <spring:message code="views.index.reservations.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
                                 </a>
                             </li>
                             <li  ng-hide="items.length">
@@ -279,11 +439,16 @@
                     </div>
                 </td>
             </tr>
+            <%-- Capacities for single permanent room: end --%>
+
             </tbody>
             <tbody>
+
+            <%-- Empty row --%>
             <tr ng-hide="items.length">
                 <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
             </tr>
+
             </tbody>
         </table>
         <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>

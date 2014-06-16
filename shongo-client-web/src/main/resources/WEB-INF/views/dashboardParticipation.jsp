@@ -1,5 +1,5 @@
 <%--
-  -- Main welcome page.
+  -- Participation tab in dashboard.
   --%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>

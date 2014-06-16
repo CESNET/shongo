@@ -235,7 +235,7 @@
 
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">
-        <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
+        <dt><spring:message code="views.reservationRequest.createdAt"/>:</dt>
         <dd><tag:format value="${reservationRequest.dateTime}"/></dd>
     </c:if>
 

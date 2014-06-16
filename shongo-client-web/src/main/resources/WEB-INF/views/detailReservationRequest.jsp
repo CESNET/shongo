@@ -110,8 +110,8 @@
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.reservationRequest.dateTime"/></th>
-                <th><spring:message code="views.reservationRequest.user"/></th>
+                <th><spring:message code="views.reservationRequest.createdAt"/></th>
+                <th><spring:message code="views.reservationRequest.createdBy"/></th>
                 <th><spring:message code="views.reservationRequest.type"/></th>
                 <c:if test="${reservationRequest.state != null}">
                     <th><spring:message code="views.reservationRequest.state"/></th>

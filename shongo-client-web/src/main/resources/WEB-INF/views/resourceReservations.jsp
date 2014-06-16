@@ -129,13 +129,13 @@
             <span class="input-group-addon">
                 <spring:message code="views.interval.from"/>:
             </span>
-            <input id="start" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
+            <input id="start" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;"/>
         </div>
         <div class="input-group" style="display: inline-table">
             <span class="input-group-addon">
                 <spring:message code="views.interval.to"/>:
             </span>
-            <input id="end" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;"/>
+            <input id="end" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;"/>
         </div>
 
     </form>

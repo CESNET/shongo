@@ -1,5 +1,5 @@
 <%--
-  -- Main welcome page.
+  -- Dashboard in main page.
   --%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -10,10 +10,12 @@
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
+    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2']);
     module.controller("TabController", function($scope, $element) {
         $scope.$tab = $scope.$$childHead;
-        $scope.$tab.$watch("active", function(active, test) {
+        // Broadcast "refresh-<tabId>" event when a tab with <tabId> is activated
+        // event will be caught in PaginationController (see PaginationController.init method)
+        $scope.$tab.$watch("active", function(active) {
             if (active) {
                 var refreshEvent = 'refresh-' + $element.attr('id');
                 $scope.$parent.$broadcast(refreshEvent);
@@ -24,6 +26,7 @@
 
 <div ng-app="jsp:indexDashboard" class="jspIndex">
 
+    <%-- Warnings about user settings --%>
     <c:if test="${sessionScope.SHONGO_USER.localeDefaultWarning}">
         <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
             <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -79,6 +82,7 @@
         </div>
     </c:if>
 
+    <%-- Actions --%>
     <security:authorize access="hasPermission(RESERVATION)">
         <tag:expandableBlock name="actions" expandable="false" expandCode="views.select.action" cssClass="actions">
             <span><spring:message code="views.select.action"/></span>
@@ -97,11 +101,13 @@
 
     <tabset>
 
-        <spring:message code="views.index.rooms" var="roomsTitle"/>
+        <%-- Reservations tab --%>
+        <spring:message code="views.index.reservations" var="roomsTitle"/>
         <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
             <%@ include file="dashboardReservation.jsp" %>
         </tab>
 
+        <%-- Participation tab --%>
         <spring:message code="views.index.participation" var="participationTitle"/>
         <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
             <%@ include file="dashboardParticipation.jsp" %>

@@ -31,10 +31,12 @@
                         <tag:param name="resourceCapacityClass" value="${resourceCapacity.className}"/>
                         <tag:param name="resourceId" value="${resourceCapacity.resourceId}"/>
                     </tag:url>
-                    <a class="maximum" href="${resourceCapacityUtilizationDescriptionUrl}" target="_blank">
+                    <spring:message var="value" code="views.resourceCapacityUtilization.value.${style == 'ABSOLUTE' ? 'absolute' : 'relative'}"/>
+                    <spring:message var="valueAverage" code="views.resourceCapacityUtilization.value.average"/>
+                    <a class="maximum" href="${resourceCapacityUtilizationDescriptionUrl}" target="_blank" title="${value}">
                         ${resourceCapacity.formatUtilization(utilization, 'MAXIMUM', style)}<c:if test="${style == 'ABSOLUTE'}">/${resourceCapacity.licenseCount}</c:if>
                     </a>
-                    <span>(${resourceCapacity.formatUtilization(utilization, 'AVERAGE', style)})</span>
+                    <span title="${valueAverage}">(${resourceCapacity.formatUtilization(utilization, 'AVERAGE', style)})</span>
                 </td>
             </c:forEach>
             <td></td>

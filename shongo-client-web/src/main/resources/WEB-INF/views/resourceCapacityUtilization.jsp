@@ -180,14 +180,14 @@
             <span class="input-group-addon">
                 <spring:message code="views.interval.from"/>:
             </span>
-            <input id="start" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;" ng-model="start"/>
+            <input id="start" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;" ng-model="start"/>
         </div>
         &nbsp;
         <div class="input-group" style="display: inline-table">
             <span class="input-group-addon">
                 <spring:message code="views.interval.to"/>:
             </span>
-            <input id="end" class="form-control" type="text" date-picker="true" readonly="true" style="width: 100px; background-color: white;" ng-model="end"/>
+            <input id="end" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;" ng-model="end"/>
         </div>
         <div class="pull-right">
             <spring:message var="forward" code="views.resourceCapacityUtilization.forward"/>

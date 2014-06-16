@@ -38,6 +38,7 @@
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
             <add-attribute value="moment.min.js"/>
             <add-attribute value="jquery-select2.min.js"/>
+            <add-attribute value="angular-ui-select2.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
             <add-attribute value="bootstrap-datetimepicker"/>
@@ -107,7 +108,7 @@
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="content" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
-    <definition name="indexAuthenticated" extends="layoutAngular">
+    <definition name="indexAuthenticated" extends="layoutAngularForm">
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="content" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
