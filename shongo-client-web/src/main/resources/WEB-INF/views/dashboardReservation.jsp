@@ -9,7 +9,7 @@
 
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 <tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
-    <tag:param name="specification-type" value="PERMANENT_ROOM,ADHOC_ROOM"/>
+    <tag:param name="specification-type" value=":type"/>
     <c:if test="${advancedUserInterface}">
         <tag:param name="allocation-state" value=":allocationState" escape="false"/>
     </c:if>
@@ -61,7 +61,10 @@
         $scope.reservationList = {};
 
         $scope.setupParameter = function(parameter, defaultValue, refreshList) {
-            var value = $cookieStore.get("index." + parameter);
+            var value = null;
+            <c:if test="${advancedUserInterface}">
+                value = $cookieStore.get("index." + parameter);
+            </c:if>
             if (value == null) {
                 value = defaultValue;
             }
@@ -75,10 +78,14 @@
                 }
             });
         };
+        $scope.setupParameter("type", "", true);
         $scope.setupParameter("showNotAllocated", true, true);
         $scope.setupParameter("showPermanentRoomCapacities", true, false);
         $scope.getAllocationState = function() {
             return ($scope.reservationList.showNotAllocated ? null : "ALLOCATED");
+        };
+        $scope.getType = function() {
+            return ($scope.reservationList.type != "" ? $scope.reservationList.type : "PERMANENT_ROOM,ADHOC_ROOM");
         };
     }
     function DashboardPermanentRoomCapacitiesController($scope, $resource) {
@@ -101,7 +108,7 @@
 
 <div ng-controller="DashboardReservationListController">
     <div ng-controller="PaginationController"
-         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', {allocationState: getAllocationState}, 'refresh-rooms');">
+         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', {allocationState: getAllocationState, type: getType}, 'refresh-rooms');">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
 
@@ -112,20 +119,38 @@
             <div class="alert alert-warning">
                 <spring:message code="views.index.rooms.description"/>
             </div>
+
+            <%-- Filtering --%>
             <c:if test="${advancedUserInterface}">
-                <div>
-                    <div class="checkbox-inline">
-                        <input id="showNotAllocated" type="checkbox" ng-model="reservationList.showNotAllocated"/>
-                        <label for="showNotAllocated"><spring:message code="views.index.rooms.showNotAllocated"/></label>
+                <form class="form-inline filter">
+                    <span class="title"><spring:message code="views.filter"/>:</span>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <spring:message code="views.reservationRequest.type"/>
+                        </span>
+                        <select id="type" class="form-control" ng-model="reservationList.type" style="width: 190px;">
+                            <option value=""><spring:message code="views.reservationRequest.specification.all"/></option>
+                            <option value="ADHOC_ROOM"><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></option>
+                            <option value="PERMANENT_ROOM"><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></option>
+                        </select>
                     </div>
-                    <div class="checkbox-inline">
-                        <input id="showPermanentRoomCapacities" type="checkbox"
-                               ng-model="reservationList.showPermanentRoomCapacities"/>
-                        <label for="showPermanentRoomCapacities"><spring:message
-                                code="views.index.rooms.showPermanentRoomCapacities"/></label>
+                    <div class="row">
+                        <div class="checkbox-inline">
+                            <input id="showNotAllocated" type="checkbox" ng-model="reservationList.showNotAllocated"/>
+                            <label for="showNotAllocated">
+                                <spring:message code="views.index.rooms.showNotAllocated"/>
+                            </label>
+                        </div>
+                        <div class="checkbox-inline">
+                            <input id="showPermanentRoomCapacities" type="checkbox" ng-model="reservationList.showPermanentRoomCapacities"/>
+                            <label for="showPermanentRoomCapacities">
+                                <spring:message code="views.index.rooms.showPermanentRoomCapacities"/>
+                            </label>
+                        </div>
                     </div>
-                </div>
+                </form>
             </c:if>
+
         </div>
         <div class="spinner" ng-hide="ready || errorContent"></div>
         <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
