@@ -587,9 +587,6 @@ public class Design
             List<LinkContext> links = new LinkedList<LinkContext>();
             if (isUserAuthenticated()) {
                 UserContext user = getUser();
-                if (user.isAdvancedMode()) {
-                    links.add(new LinkContext("navigation.reservationRequest", ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW));
-                }
                 if (user.isAdministrationMode()) {
                     links.add(new LinkContext("navigation.administration", new LinkedList<LinkContext>(){{
                         add(new LinkContext("navigation.resourceCapacityUtilization",

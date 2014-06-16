@@ -47,24 +47,6 @@ public class ReservationListController
     private MessageSource messageSource;
 
     /**
-     * Handle default reservation request view.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST, method = RequestMethod.GET)
-    public String handleDefaultView()
-    {
-        return "forward:" + ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW;
-    }
-
-    /**
-     * Handle list of reservation requests view.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW, method = RequestMethod.GET)
-    public String handleListView()
-    {
-        return "reservationRequestList";
-    }
-
-    /**
      * Handle data request for list of reservation requests.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST_DATA, method = RequestMethod.GET)

@@ -8,7 +8,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW %></c:set>
+<c:set var="backUrl"><%= ClientWebUrl.HOME%></c:set>
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
 <c:set var="specificationType">

@@ -138,11 +138,6 @@
     <definition name="wizardContent" templateExpression="${wizardContent}">
     </definition>
 
-    <definition name="reservationRequestList" extends="layoutAngular">
-        <put-attribute name="title" value="views.reservationRequestList.title"/>
-        <put-attribute name="content" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
-    </definition>
-
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="content" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
         <put-list-attribute name="title">
