@@ -403,7 +403,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getRoomResourceName()
     {
-        return cacheProvider.getResourceSummary(roomResourceId).getName();
+        ResourceSummary resource = cacheProvider.getResourceSummary(roomResourceId);
+        if (resource != null) {
+            return resource.getName();
+        }
+        return null;
     }
 
     public void setRoomResourceId(String roomResourceId)
@@ -448,7 +452,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getRoomRecordingResourceName()
     {
-        return cacheProvider.getResourceSummary(roomRecordingResourceId).getName();
+        ResourceSummary resource = cacheProvider.getResourceSummary(roomRecordingResourceId);
+        if (resource != null) {
+            return resource.getName();
+        }
+        else {
+            return null;
+        }
     }
 
     public void setRoomRecordingResourceId(String roomRecordingResourceId)

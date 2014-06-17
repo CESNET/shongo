@@ -77,8 +77,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            options => 'technology=s description=s resource=s',
-            args => '[-technology <technologies>][-description <description>][-resource <resource-id>]',
+            options => 'technology=s search=s resource=s',
+            args => '[-technology <technologies>][-search <search>][-resource <resource-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -240,8 +240,8 @@ sub list_reservation_requests()
 {
     my ($options) = @_;
     my $request = {};
-    if ( defined($options->{'description'}) ) {
-        $request->{'description'} = $options->{'description'};
+    if ( defined($options->{'search'}) ) {
+        $request->{'search'} = $options->{'search'};
     }
     if ( defined($options->{'technology'}) ) {
         $request->{'specificationTechnologies'} = [];

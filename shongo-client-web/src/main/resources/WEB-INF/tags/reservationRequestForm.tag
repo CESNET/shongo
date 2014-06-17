@@ -305,9 +305,11 @@
                 </form:label>
                 <div class="col-xs-4">
                     <form:select cssClass="form-control" path="technology" ng-model="technology" tabindex="${tabIndex}">
-                        <form:option value="H323_SIP">
-                            <%= TechnologyModel.H323_SIP.getTitle() %>
-                        </form:option>
+                        <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
+                        <c:forEach var="technology" items="${technologies}">
+                            <form:option value="${technology}">${technology.title}</form:option>
+                        </c:forEach>
+
                         <form:option value="ADOBE_CONNECT">
                             <%= TechnologyModel.ADOBE_CONNECT.getTitle() %>
                         </form:option>

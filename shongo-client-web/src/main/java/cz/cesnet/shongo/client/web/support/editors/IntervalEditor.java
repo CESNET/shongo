@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.support.editors;
 
+import cz.cesnet.shongo.api.Converter;
 import org.joda.time.Interval;
 import org.springframework.util.StringUtils;
 
@@ -36,7 +37,7 @@ public class IntervalEditor extends PropertyEditorSupport
             setValue(null);
         }
         else {
-            setValue(Interval.parse(text));
+            setValue(Converter.convertStringToInterval(text));
         }
     }
 }

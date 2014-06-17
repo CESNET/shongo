@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
@@ -9,6 +9,9 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestState;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
+import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
+import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -17,14 +20,14 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -47,6 +50,17 @@ public class ReservationListController
     private MessageSource messageSource;
 
     /**
+     * Initialize model editors for additional types.
+     *
+     * @param binder to be initialized
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
+    {
+        binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+    }
+
+    /**
      * Handle data request for list of reservation requests.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST_DATA, method = RequestMethod.GET)
@@ -60,9 +74,15 @@ public class ReservationListController
             @RequestParam(value = "sort", required = false,
                     defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
+            @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
+            @RequestParam(value = "permanent-room-id", required = false) String permanentRoomId,
             @RequestParam(value = "specification-type", required = false) Set<SpecificationType> specificationTypes,
-            @RequestParam(value = "allocation-state", required = false) String allocationState,
-            @RequestParam(value = "permanent-room-id", required = false) String permanentRoomId)
+            @RequestParam(value = "specification-technology", required = false) TechnologyModel specificationTechnology,
+            @RequestParam(value = "interval-from", required = false) DateTime intervalFrom,
+            @RequestParam(value = "interval-to", required = false) DateTime intervalTo,
+            @RequestParam(value = "user-id", required = false) String userId,
+            @RequestParam(value = "participant-user-id", required = false) String participantUserId,
+            @RequestParam(value = "search", required = false) String search)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -71,9 +91,7 @@ public class ReservationListController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        if (!Strings.isNullOrEmpty(allocationState)) {
-            request.setAllocationState(AllocationState.valueOf(allocationState));
-        }
+        request.setAllocationState(allocationState);
         if (permanentRoomId != null) {
             request.setReusedReservationRequestId(permanentRoomId);
             specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
@@ -88,6 +106,29 @@ public class ReservationListController
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 request.addSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
             }
+        }
+        if (specificationTechnology != null) {
+            request.setSpecificationTechnologies(specificationTechnology.getTechnologies());
+        }
+        if (intervalFrom != null || intervalTo != null) {
+            if (intervalFrom == null) {
+                intervalFrom = Temporal.DATETIME_INFINITY_START;
+            }
+            if (intervalTo == null) {
+                intervalTo = Temporal.DATETIME_INFINITY_END;
+            }
+            if (!intervalFrom.isAfter(intervalTo)) {
+                request.setInterval(new Interval(intervalFrom, intervalTo));
+            }
+        }
+        if (userId != null) {
+            request.setUserId(userId);
+        }
+        if (participantUserId != null) {
+            request.setParticipantUserId(participantUserId);
+        }
+        if (search != null) {
+            request.setSearch(search);
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 

@@ -607,13 +607,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     queryFilter.addFilter("reservation_request.parent_allocation_id IS NULL");
                 }
 
-                // Filter description
-                String description = request.getDescription();
-                if (description != null) {
-                    queryFilter.addFilter("reservation_request_summary.description LIKE :description");
-                    queryFilter.addFilterParameter("description", "%" + description + "%");
-                }
-
                 // List only reservation requests which specifies given technologies
                 if (request.getSpecificationTechnologies().size() > 0) {
                     queryFilter.addFilter("reservation_request_summary.id IN ("
@@ -671,6 +664,46 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (allocationState != null) {
                     queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");
                     queryFilter.addFilterParameter("allocationState", allocationState.toString());
+                }
+
+                Interval interval = request.getInterval();
+                if (interval != null) {
+                    queryFilter.addFilter("reservation_request_summary.slot_start < :intervalEnd");
+                    queryFilter.addFilter("reservation_request_summary.slot_end > :intervalStart");
+                    queryFilter.addFilterParameter("intervalStart", interval.getStart().toDate());
+                    queryFilter.addFilterParameter("intervalEnd", interval.getEnd().toDate());
+                }
+
+                String userId = request.getUserId();
+                if (userId != null) {
+                    queryFilter.addFilter("reservation_request_summary.created_by = :userId"
+                            + " OR reservation_request_summary.updated_by = :userId"
+                            + " OR reservation_request_summary.allocation_id IN("
+                            + "   SELECT acl_object_identity.object_id FROM acl_entry"
+                            + "   LEFT JOIN acl_identity ON acl_identity.id = acl_entry.acl_identity_id"
+                            + "   LEFT JOIN acl_object_identity ON acl_object_identity.id = acl_entry.acl_object_identity_id"
+                            + "   LEFT JOIN acl_object_class ON acl_object_class.id = acl_object_identity.acl_object_class_id"
+                            + "   WHERE acl_object_class.class = 'RESERVATION_REQUEST' AND acl_identity.principal_id = :userId)");
+                    queryFilter.addFilterParameter("userId", userId);
+                }
+
+                String participantUserId = request.getParticipantUserId();
+                if (participantUserId != null) {
+                    queryFilter.addFilter("reservation_request_summary.allocation_id IN("
+                            + " SELECT reservation.allocation_id FROM reservation"
+                            + " LEFT JOIN room_endpoint_participants ON room_endpoint_participants.room_endpoint_id = reservation.executable_id"
+                            + " LEFT JOIN person_participant ON person_participant.id = abstract_participant_id"
+                            + " LEFT JOIN person ON person.id = person_participant.person_id"
+                            + " WHERE person.user_id = :participantUserId)");
+                    queryFilter.addFilterParameter("participantUserId", participantUserId);
+                }
+
+                String search = request.getSearch();
+                if (search != null) {
+                    queryFilter.addFilter("LOWER(reservation_request_summary.description) LIKE :search"
+                            + " OR LOWER(specification_summary.alias_room_name) LIKE :search"
+                            + " OR LOWER(reused_specification_summary.alias_room_name) LIKE :search");
+                    queryFilter.addFilterParameter("search", "%" + search.toLowerCase() + "%");
                 }
             }
 

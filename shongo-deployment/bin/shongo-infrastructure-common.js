@@ -279,7 +279,7 @@ module.exports = {
      * @return reservationRequestId for given {@code description} and {@coe resourceId}
      */
     getReservationRequestId: function(description, resourceId) {
-        var result = this.execClientCliCommandJsonResult("list-reservation-requests -description '" + description +"' -resource " + resourceId);
+        var result = this.execClientCliCommandJsonResult("list-reservation-requests -search '" + description +"' -resource " + resourceId);
         if (result == null || result.length != 1) {
             return null;
         }

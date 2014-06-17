@@ -203,7 +203,7 @@ public class DataMap
     {
         Object value = data.get(property);
         if (value == null) {
-            return null;
+            return new HashSet<Class<? extends T>>();
         }
         Set<Class<? extends T>> classSet = new HashSet<Class<? extends T>>();
         for (Object item : Converter.convertToSet(value, Object.class)) {

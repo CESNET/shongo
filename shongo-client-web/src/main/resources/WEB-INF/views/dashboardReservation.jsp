@@ -73,6 +73,7 @@
             });
         };
         $scope.setupParameter("specificationType", "", true);
+        $scope.setupParameter("specificationTechnology", "", true);
         $scope.setupParameter("showNotAllocated", true, true);
         <c:choose>
             <c:when test="${isOperator}">
@@ -86,20 +87,26 @@
 
         // Watch for filter changes (which are not persisted to cookies)
         for (var parameter in {"intervalFrom": null, "intervalTo": null, "search": null}) {
-            var parameterName = parameter;
-            $scope.$watch("reservationList." + parameter, function(newValue, oldValue){
+            var handler = function(newValue, oldValue){
                 if (newValue != oldValue) {
-                    $scope.refreshList(parameterName == "search" ? 1000 : 0);
+                    $scope.refreshList(this.fn.parameter == "search" ? 1000 : 0);
                 }
-            });
+            };
+            handler.parameter = parameter;
+            $scope.$watch("reservationList." + parameter, handler);
         }
         for (var parameter in {"userId": null, "participantUserId": null}) {
             $scope.$watch("reservationList." + parameter, function(newValue, oldValue){
-                if ((newValue != null && typeof newValue == "object" && newValue.id != null && (oldValue == null || oldValue.id != newValue.id)) || (newValue == null && oldValue != null)) {
+                if ((newValue != null && typeof newValue == "object" && newValue.id != 0 && (oldValue == null || oldValue.id != newValue.id)) || (newValue == null && oldValue != null)) {
                     $scope.refreshList();
                 }
             });
         }
+        $scope.$watch("reservationList.showExtendedFilter", function(newValue, oldValue){
+            if (newValue != oldValue) {
+                $scope.refreshList();
+            }
+        });
 
         // Refresh list of rooms
         var refreshListTimer = null;
@@ -120,23 +127,28 @@
                 specificationType = "PERMANENT_ROOM,ADHOC_ROOM";
             }
             var url = "${reservationRequestListDataUrl}?specification-type=" + specificationType;
+            if ($scope.reservationList.specificationTechnology != null && $scope.reservationList.specificationTechnology != "") {
+                url += "&specification-technology=" + $scope.reservationList.specificationTechnology;
+            }
             if (!$scope.reservationList.showNotAllocated) {
                 url += "&allocation-state=ALLOCATED"
             }
-            if ($scope.reservationList.intervalFrom != null && $scope.reservationList.intervalFrom != "") {
-                url += "&interval-from=" + $scope.reservationList.intervalFrom;
-            }
-            if ($scope.reservationList.intervalTo != null && $scope.reservationList.intervalTo != "") {
-                url += "&interval-to=" + $scope.reservationList.intervalTo;
-            }
-            if ($scope.reservationList.userId != null) {
-                url += "&user-id=" + $scope.reservationList.userId.id;
-            }
-            if ($scope.reservationList.participantUserId != null) {
-                url += "&participant-user-id=" + $scope.reservationList.participantUserId.id;
-            }
-            if ($scope.reservationList.search != null) {
-                url += "&search=" + encodeURIComponent($scope.reservationList.search);
+            if ($scope.reservationList.showExtendedFilter) {
+                if ($scope.reservationList.intervalFrom != null && $scope.reservationList.intervalFrom != "") {
+                    url += "&interval-from=" + $scope.reservationList.intervalFrom + "T00:00:00";
+                }
+                if ($scope.reservationList.intervalTo != null && $scope.reservationList.intervalTo != "") {
+                    url += "&interval-to=" + $scope.reservationList.intervalTo + "T23:59:59";
+                }
+                if ($scope.reservationList.userId != null) {
+                    url += "&user-id=" + $scope.reservationList.userId.id;
+                }
+                if ($scope.reservationList.participantUserId != null) {
+                    url += "&participant-user-id=" + $scope.reservationList.participantUserId.id;
+                }
+                if ($scope.reservationList.search != null && $scope.reservationList.search != "") {
+                    url += "&search=" + encodeURIComponent($scope.reservationList.search);
+                }
             }
             return url;
         };
@@ -181,7 +193,7 @@
             escapeMarkup: function (markup) { return markup; },
             initSelection: function (element, callback) {
                 var id = $(element).val();
-                callback({id: null, text: '<spring:message code="views.select.loading"/>'});
+                callback({id: id, text: '<spring:message code="views.select.loading"/>'});
                 $.ajax("${userListUrl}?userId=" + id, {
                     dataType: "json"
                 }).done(function (data) {
@@ -223,10 +235,11 @@
 
             <%-- Filter: start --%>
             <c:if test="${advancedUserInterface}">
-                <form class="form-inline filter" ng-class="{'filter-collapsed': !showExtendedFilter}">
-                    <span class="pull-right">
-                        <a href="" ng-click="showExtendedFilter = true" ng-show="!showExtendedFilter"><spring:message code="views.index.reservations.showExtendedFilter"/></a>
-                        <a href="" ng-click="showExtendedFilter = false" ng-show="showExtendedFilter"><spring:message code="views.index.reservations.hideExtendedFilter"/></a>
+                <form class="form-inline filter" ng-class="{'filter-collapsed': !reservationList.showExtendedFilter}">
+                    <input type="hidden" ng-model="reservationList.showExtendedFilter"/>
+                    <span class="toggle pull-right">
+                        <a href="" ng-click="reservationList.showExtendedFilter = true" ng-show="!reservationList.showExtendedFilter"><spring:message code="views.index.reservations.showExtendedFilter"/></a>
+                        <a href="" ng-click="reservationList.showExtendedFilter = false" ng-show="reservationList.showExtendedFilter"><spring:message code="views.index.reservations.hideExtendedFilter"/></a>
                     </span>
                     <span class="title"><spring:message code="views.filter"/>:</span>
                     <div class="row">
@@ -240,8 +253,20 @@
                                 <option value="PERMANENT_ROOM"><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></option>
                             </select>
                         </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.reservationRequest.technology"/>
+                            </span>
+                            <select class="form-control" ng-model="reservationList.specificationTechnology" style="width: 150px;">
+                                <option value=""><spring:message code="views.reservationRequest.technology.all"/></option>
+                                <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
+                                <c:forEach var="technology" items="${technologies}">
+                                    <option value="${technology}">${technology.title}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
                     </div>
-                    <div class="row" ng-show="showExtendedFilter">
+                    <div class="row" ng-show="reservationList.showExtendedFilter">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.index.reservations.intervalFrom"/>
@@ -254,8 +279,9 @@
                             </span>
                             <input id="intervalTo" type="text" class="form-control form-picker" date-picker="true" readonly="true" style="width: 190px;" ng-model="reservationList.intervalTo"/>
                         </div>
+                        <a class="btn btn-default" href="" ng-click="reservationList.intervalFrom = null; reservationList.intervalTo = null;"><i class="fa fa-times"></i></a>
                     </div>
-                    <div class="row" ng-show="showExtendedFilter">
+                    <div class="row" ng-show="reservationList.showExtendedFilter">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.user"/>
@@ -264,7 +290,7 @@
                         </div>
                         <a class="btn btn-default" href="" ng-click="reservationList.userId = null;"><i class="fa fa-times"></i></a>
                     </div>
-                    <div class="row" ng-show="showExtendedFilter">
+                    <div class="row" ng-show="reservationList.showExtendedFilter">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.index.reservations.participant"/>
@@ -273,7 +299,7 @@
                         </div>
                         <a class="btn btn-default" href="" ng-click="reservationList.participantUserId = null;"><i class="fa fa-times"></i></a>
                     </div>
-                    <div class="row" ng-show="showExtendedFilter">
+                    <div class="row" ng-show="reservationList.showExtendedFilter">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.search"/>
