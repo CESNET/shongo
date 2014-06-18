@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.admin;
+package cz.cesnet.shongo.client.web.resource;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.*;
@@ -16,46 +16,72 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * TODO:
+ * Represents utilization of all types of capacities for all resources to which a single user has access.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceCapacityUtilizationCache
+public class ResourcesUtilization
 {
-    private static Logger logger = LoggerFactory.getLogger(ResourceCapacityUtilizationCache.class);
+    private static Logger logger = LoggerFactory.getLogger(ResourcesUtilization.class);
 
-    private static final Period EXPIRATION = Period.minutes(10);
-
+    /**
+     * {@link SecurityToken} of user to which the {@link ResourcesUtilization} belongs.
+     */
     private final SecurityToken securityToken;
 
+    /**
+     * {@link ReservationService} for retrieving reservations.
+     */
     private final ReservationService reservationService;
 
+    /**
+     * List of {@link ResourceCapacity} to which the user has access.
+     */
     private final List<ResourceCapacity> resourceCapacities = new LinkedList<ResourceCapacity>();
 
+    /**
+     * Map of {@link ResourceCapacity} by class and by resource-id.
+     */
     private final Map<String, Map<Class<? extends ResourceCapacity>, ResourceCapacity>> resourceCapacityMap =
             new HashMap<String, Map<Class<? extends ResourceCapacity>, ResourceCapacity>>();
 
-    private DateTime expirationDateTime;
+    /**
+     * Map of cached {@link ResourceCapacityUtilization} for {@link ResourceCapacity} and for {@link Interval}.
+     */
+    private Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> resourceCapacityUtilizationMap =
+            new HashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
 
-    private Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> resourceCapacityUtilizationMap;
+    /**
+     * Map of cached {@link ReservationSummary}s for {@link ResourceCapacity}.
+     */
+    private Map<ResourceCapacity, RangeSet<ReservationSummary, DateTime>> reservationSetMap =
+            new HashMap<ResourceCapacity, RangeSet<ReservationSummary, DateTime>>();
 
-    private Map<ResourceCapacity, RangeSet<ReservationSummary, DateTime>> reservationSetMap;
-
+    /**
+     * {@link Interval} which is already cached in {@link #reservationSetMap}.
+     */
     private Interval reservationInterval;
 
-    public ResourceCapacityUtilizationCache(SecurityToken securityToken, ResourceService resourceService,
-            ReservationService reservationService)
+    /**
+     * Constructor.
+     *
+     * @param securityToken sets the {@link #securityToken}
+     * @param resources     to be used for fetching {@link #resourceCapacities}
+     * @param reservations  sets the {@link #reservationService}
+     */
+    public ResourcesUtilization(SecurityToken securityToken, ResourceService resources, ReservationService reservations)
     {
         this.securityToken = securityToken;
-        this.reservationService = reservationService;
+        this.reservationService = reservations;
 
+        // Fetch ResourceCapacities for all accessible resources
         ResourceListRequest resourceListRequest = new ResourceListRequest(securityToken);
         resourceListRequest.setSort(ResourceListRequest.Sort.NAME);
         resourceListRequest.addCapabilityClass(RoomProviderCapability.class);
         resourceListRequest.addCapabilityClass(RecordingCapability.class);
-        for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
+        for (ResourceSummary resourceSummary : resources.listResources(resourceListRequest)) {
             String resourceId = resourceSummary.getId();
-            Resource resource = resourceService.getResource(securityToken, resourceId);
+            Resource resource = resources.getResource(securityToken, resourceId);
             for (Capability capability : resource.getCapabilities()) {
                 if (capability instanceof RoomProviderCapability) {
                     RoomProviderCapability roomProviderCapability = (RoomProviderCapability) capability;
@@ -71,25 +97,37 @@ public class ResourceCapacityUtilizationCache
         }
     }
 
-    public synchronized void clear()
+    /**
+     * @return {@link #resourceCapacities}
+     */
+    public Collection<ResourceCapacity> getResourceCapacities()
     {
-        this.expirationDateTime = DateTime.now().plus(EXPIRATION);
-        this.resourceCapacityUtilizationMap = null;
-        this.reservationSetMap = null;
-        this.reservationInterval = null;
+        return Collections.unmodifiableList(resourceCapacities);
     }
 
-    public synchronized void clearExpired(DateTime dateTime)
+    /**
+     * @param resourceId
+     * @param capacityClass
+     * @return {@link ResourceCapacity} for given {@code resourceId} and {@code capacityClass}
+     */
+    public ResourceCapacity getResourceCapacity(String resourceId, Class<? extends ResourceCapacity> capacityClass)
     {
-        if (this.expirationDateTime != null && this.expirationDateTime.isAfterNow()) {
-            clear();
+        Map<Class<? extends ResourceCapacity>, ResourceCapacity> resourceCapacitiesByClass =
+                resourceCapacityMap.get(resourceId);
+        if (resourceCapacitiesByClass == null) {
+            return null;
         }
+        return resourceCapacitiesByClass.get(capacityClass);
     }
 
+    /**
+     * @param interval interval to be returned
+     * @param period   by which the {@code interval} should be split and for each part should be {@link ResourceCapacityUtilization} computed
+     * @return map of {@link ResourceCapacityUtilization} by {@link ResourceCapacity}s and by {@link Interval}s
+     */
     public Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> getUtilization(Interval interval,
             Period period)
     {
-        initMaps();
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilizationsByInterval =
                 new LinkedHashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
         DateTime start = interval.getStart();
@@ -115,29 +153,19 @@ public class ResourceCapacityUtilizationCache
         return utilizationsByInterval;
     }
 
+    /**
+     * @param resourceCapacity
+     * @param interval
+     * @return {@link ResourceCapacityUtilization} for given {@code resourceCapacity} and {@code interval}
+     */
     public ResourceCapacityUtilization getUtilization(ResourceCapacity resourceCapacity, Interval interval)
     {
-        initMaps();
         return getUtilization(resourceCapacity, interval, false, interval);
     }
 
-    private synchronized void initMaps()
-    {
-        // Initialize maps which can expire
-        boolean expired = (this.expirationDateTime != null && this.expirationDateTime.isBeforeNow());
-        if (this.resourceCapacityUtilizationMap == null || expired) {
-            this.resourceCapacityUtilizationMap =
-                    new HashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
-        }
-        if (this.reservationSetMap == null || expired) {
-            this.reservationSetMap = new HashMap<ResourceCapacity, RangeSet<ReservationSummary, DateTime>>();
-            this.reservationInterval = null;
-        }
-        if (expired) {
-            this.expirationDateTime = DateTime.now().plus(EXPIRATION);
-        }
-    }
-
+    /**
+     * @param resourceCapacity to be added to the {@link #resourceCapacities} and {@link #resourceCapacityMap}
+     */
     private void addResourceCapacity(ResourceCapacity resourceCapacity)
     {
         if (resourceCapacities.add(resourceCapacity)) {
@@ -154,6 +182,15 @@ public class ResourceCapacityUtilizationCache
         }
     }
 
+    /**
+     * Can be used for bulk fetching of {@link ReservationSummary}s by use {@code fetchAll} and {@code fetchInterval}.
+     *
+     * @param resourceCapacity
+     * @param interval
+     * @param fetchAll
+     * @param fetchInterval
+     * @return {@link ResourceCapacityUtilization} for given {@code resourceCapacity} and {@code interval}
+     */
     private ResourceCapacityUtilization getUtilization(ResourceCapacity resourceCapacity, Interval interval,
             boolean fetchAll, Interval fetchInterval)
     {
@@ -192,7 +229,11 @@ public class ResourceCapacityUtilizationCache
     }
 
     /**
-     * Get {@link RangeSet} for given {@code resourceCapacity}.
+     * Get {@link RangeSet} for given {@code resourceCapacity}
+     * by fetching {@link ReservationSummary}s for all {@link #resourceCapacities}.
+     * <p/>
+     * The newly fetched {@link ReservationSummary}s will stored in {@link #reservationSetMap}
+     * (because all {@link ResourceCapacity}s will be updated).
      *
      * @param resourceCapacity
      * @param interval
@@ -258,10 +299,11 @@ public class ResourceCapacityUtilizationCache
     }
 
     /**
-     * Get {@link RangeSet} for given {@code resourceCapacity}.
+     * Get {@link RangeSet} for given {@code resourceCapacity}
+     * by fetching {@link ReservationSummary}s only for given {@code resourceCapacity}.
      * <p/>
-     * When {@link RangeSet} doesn't exists in {@link #reservationSetMap}, the newly created isn't stored there
-     * (because only reservations for single {@code resourceCapacity} are fetched).
+     * The newly fetched {@link ReservationSummary}s won't be stored in {@link #reservationSetMap}
+     * (because all {@link ResourceCapacity} won't be updated).
      *
      * @param resourceCapacity
      * @param interval
@@ -297,27 +339,20 @@ public class ResourceCapacityUtilizationCache
         return reservationSet;
     }
 
-    public Collection<ResourceCapacity> getResourceCapacities()
-    {
-        return Collections.unmodifiableList(resourceCapacities);
-    }
-
-    public ResourceCapacity getResourceCapacity(String resourceId,
-            Class<? extends ResourceCapacity> resourceCapacityClass)
-    {
-        Map<Class<? extends ResourceCapacity>, ResourceCapacity> resourceCapacitiesByClass =
-                resourceCapacityMap.get(resourceId);
-        if (resourceCapacitiesByClass == null) {
-            return null;
-        }
-        return resourceCapacitiesByClass.get(resourceCapacityClass);
-    }
-
+    /**
+     * @param resourceId
+     * @param reservation
+     * @return {@link ResourceCapacity} for given {@code resourceId} and {@code reservation}
+     */
     private ResourceCapacity getResourceCapacity(String resourceId, ReservationSummary reservation)
     {
         return getResourceCapacity(resourceId, getResourceCapacityClass(reservation.getType()));
     }
 
+    /**
+     * @param reservationType
+     * @return class of {@link ResourceCapacity} for given {@code reservationType}
+     */
     private Class<? extends ResourceCapacity> getResourceCapacityClass(ReservationSummary.Type reservationType)
     {
         switch (reservationType) {

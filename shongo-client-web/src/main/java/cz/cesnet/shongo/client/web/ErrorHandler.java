@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.client.web.admin.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.auth.AuthorizationCodeExpiredException;
 import cz.cesnet.shongo.client.web.models.ErrorModel;

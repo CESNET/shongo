@@ -48,15 +48,11 @@ public enum ClientWebNavigation
             ClientWebUrl.DETAIL_PARTICIPANT_DELETE,
             "navigation.detail.participant.delete"),
 
-    ADMINISTRATION(HOME, null,
-            "navigation.administration"),
-
-    ROOM_LIST(ADMINISTRATION, ClientWebUrl.ROOM_LIST_VIEW,
-            "navigation.roomList"),
-
-    RESOURCE_RESERVATIONS(ADMINISTRATION, ClientWebUrl.RESOURCE_RESERVATIONS_VIEW,
+    RESOURCE_MANAGEMENT(HOME, null,
+            "navigation.resourceManagement"),
+    RESOURCE_RESERVATIONS(RESOURCE_MANAGEMENT, ClientWebUrl.RESOURCE_RESERVATIONS_VIEW,
             "navigation.resourceReservations"),
-    RESOURCE_CAPACITY_UTILIZATION(ADMINISTRATION, ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION,
+    RESOURCE_CAPACITY_UTILIZATION(RESOURCE_MANAGEMENT, ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION,
             "navigation.resourceCapacityUtilization");
 
     private final NavigationPage navigationPage;

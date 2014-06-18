@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.admin;
+package cz.cesnet.shongo.client.web.resource;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
@@ -12,56 +12,122 @@ import java.util.List;
 import java.util.Set;
 
 /**
-* TODO:
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Represents a type of capacity which can be utilized in a resource.
+ *
+ * Teoretically multiple different capacities can be utilized for a single resource
+ * (e.g., capacity of room licenses and recording capacity)
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public abstract class ResourceCapacity
 {
+    /**
+     * {@link ResourceSummary} of the resource in which the capacity is utilized.
+     */
     protected ResourceSummary resource;
 
+    /**
+     * Constructor.
+     *
+     * @param resource sets the {@link #resource}
+     */
     public ResourceCapacity(ResourceSummary resource)
     {
         this.resource = resource;
     }
 
+    /**
+     * @return class name of this type of capacity
+     */
     public String getClassName()
     {
         return getClass().getSimpleName();
     }
 
+    /**
+     * @return {@link ResourceSummary#getId()} for {@link #resource}
+     */
     public String getResourceId()
     {
         return resource.getId();
     }
 
+    /**
+     * @return {@link ResourceSummary#getName()} for {@link #resource}
+     */
     public String getResourceName()
     {
         return resource.getName();
     }
 
+    /**
+     * @return {@link ReservationSummary.Type} of reservations which allocate this resource capacity
+     * (e.g., capacity of room licenses are allocated by {@link ReservationSummary.Type#ROOM})
+     */
     public abstract ReservationSummary.Type getReservationType();
 
+    /**
+     * @param utilization
+     * @return css classes which shall be rendered for given {@code utilization}
+     */
     public abstract String getCssClass(ResourceCapacityUtilization utilization);
 
+    /**
+     * @param utilization
+     * @param t {@link FormatType} which should be used
+     * @param s {@link FormatStyle} which should be used
+     * @return html content which shall be rendered for given {@code utilization}
+     */
     public abstract String formatUtilization(ResourceCapacityUtilization utilization, FormatType t, FormatStyle s);
 
+    /**
+     * Specifies what utilization should be formatted in {@link #formatUtilization}.
+     */
     public static enum FormatType
     {
+        /**
+         * Maximum utilization of resource capacity (e.g., maximum number of utilized license count).
+         */
         MAXIMUM,
+
+        /**
+         * Average utilization of resource capacity (e.g., average of all utilizations).
+         */
         AVERAGE
     }
 
+    /**
+     * Specifies how the utilization value should be formatted in {@link #formatUtilization}.
+     */
     public static enum FormatStyle
     {
+        /**
+         * Absolute utilization (e.g., number of licenses).
+         */
         ABSOLUTE,
+
+        /**
+         * Percentage utilization (e.g., percentage of utilization).
+         */
         RELATIVE
     }
 
+    /**
+     * Abstract {@link ResourceCapacity} for types with license count (e.g., recording capacity or room capacity).
+     */
     protected static abstract class LicenseCount extends ResourceCapacity
     {
+        /**
+         * Total number of available licenses in the resource.
+         */
         protected Integer licenseCount;
 
+        /**
+         * Constructor.
+         *
+         * @param resource sets the {@link #resource}
+         * @param licenseCount sets the {@link #licenseCount}
+         */
         public LicenseCount(ResourceSummary resource, Integer licenseCount)
         {
             super(resource);
@@ -69,6 +135,9 @@ public abstract class ResourceCapacity
             this.licenseCount = licenseCount;
         }
 
+        /**
+         * @return {@link #licenseCount}
+         */
         public Integer getLicenseCount()
         {
             return licenseCount;
@@ -110,6 +179,11 @@ public abstract class ResourceCapacity
             return output.toString();
         }
 
+        /**
+         * @param utilization
+         * @param type
+         * @return utilized license count for given {@code type}
+         */
         private Number getUtilizedLicenseCount(ResourceCapacityUtilization utilization, FormatType type)
         {
             if (utilization != null) {
@@ -142,8 +216,17 @@ public abstract class ResourceCapacity
         }
     }
 
+    /**
+     * {@link ResourceCapacity} for resources which provides virtual rooms.
+     */
     public static class Room extends LicenseCount
     {
+        /**
+         * Constructor.
+         *
+         * @param resource sets the {@link #resource}
+         * @param capability to be used for determining available license count
+         */
         public Room(ResourceSummary resource, RoomProviderCapability capability)
         {
             super(resource, capability.getLicenseCount());
@@ -156,8 +239,17 @@ public abstract class ResourceCapacity
         }
     }
 
+    /**
+     * {@link ResourceCapacity} for resources which provides recording.
+     */
     public static class Recording extends LicenseCount
     {
+        /**
+         * Constructor.
+         *
+         * @param resource sets the {@link #resource}
+         * @param capability to be used for determining available license count
+         */
         public Recording(ResourceSummary resource, RecordingCapability capability)
         {
             super(resource, capability.getLicenseCount());

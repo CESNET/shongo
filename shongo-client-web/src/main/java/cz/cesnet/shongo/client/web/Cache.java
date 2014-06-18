@@ -3,8 +3,8 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.admin.PageNotAuthorizedException;
-import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
+import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
+import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
@@ -53,8 +53,8 @@ public class Cache
     /**
      * {@link UserInformation}s by {@link SecurityToken}.
      */
-    private ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>> systemPermissionsByToken =
-            new ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>>();
+    private ExpirationMap<SecurityToken, Map<UserPermission, Boolean>> userPermissionsByToken =
+            new ExpirationMap<SecurityToken, Map<UserPermission, Boolean>>();
 
     /**
      * {@link UserInformation}s by user-ids.
@@ -63,7 +63,7 @@ public class Cache
             new ExpirationMap<String, UserInformation>();
 
     /**
-     * {@link UserInformation}s by group-ids.
+     * {@link Group}s by group-ids.
      */
     private ExpirationMap<String, Group> groupByGroupId =
             new ExpirationMap<String, Group>();
@@ -98,9 +98,10 @@ public class Cache
             new ExpirationMap<String, Executable>();
 
     /**
-     * @see ResourceCapacityUtilizationCache
+     * @see ResourcesUtilization
      */
-    private ResourceCapacityUtilizationCache resourceCapacityUtilizationCache;
+    private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken =
+            new ExpirationMap<SecurityToken, ResourcesUtilization>();
 
     /**
      * Cached information for single user.
@@ -128,7 +129,7 @@ public class Cache
     public Cache()
     {
         // Set expiration durations
-        systemPermissionsByToken.setExpiration(Duration.standardMinutes(5));
+        userPermissionsByToken.setExpiration(Duration.standardMinutes(5));
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         groupByGroupId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
@@ -136,6 +137,7 @@ public class Cache
         reservationRequestById.setExpiration(Duration.standardMinutes(5));
         reservationById.setExpiration(Duration.standardMinutes(5));
         executableById.setExpiration(Duration.standardSeconds(10));
+        resourcesUtilizationByToken.setExpiration(Duration.standardMinutes(10));
     }
 
     /**
@@ -146,7 +148,7 @@ public class Cache
     {
         logger.debug("Clearing expired user cache...");
         DateTime dateTimeNow = DateTime.now();
-        systemPermissionsByToken.clearExpired(dateTimeNow);
+        userPermissionsByToken.clearExpired(dateTimeNow);
         userInformationByUserId.clearExpired(dateTimeNow);
         userStateByToken.clearExpired(dateTimeNow);
         for (UserState userState : userStateByToken) {
@@ -156,9 +158,7 @@ public class Cache
         reservationRequestById.clearExpired(dateTimeNow);
         reservationById.clearExpired(dateTimeNow);
         executableById.clearExpired(dateTimeNow);
-        if (resourceCapacityUtilizationCache != null) {
-            resourceCapacityUtilizationCache.clearExpired(dateTimeNow);
-        }
+        resourcesUtilizationByToken.clearExpired(dateTimeNow);
     }
 
     /**
@@ -170,11 +170,11 @@ public class Cache
     }
 
     /**
-     * @param securityToken to be removed from the {@link #systemPermissionsByToken}
+     * @param securityToken to be removed from the {@link #userPermissionsByToken}
      */
-    public synchronized void clearSystemPermissions(SecurityToken securityToken)
+    public synchronized void clearUserPermissions(SecurityToken securityToken)
     {
-        systemPermissionsByToken.remove(securityToken);
+        userPermissionsByToken.remove(securityToken);
     }
 
     /**
@@ -183,19 +183,54 @@ public class Cache
      * @return true whether requesting user has given {@code systemPermission},
      *         false otherwise
      */
-    public synchronized boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
+    public boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
     {
-        Map<SystemPermission, Boolean> systemPermissions = systemPermissionsByToken.get(securityToken);
-        if (systemPermissions == null) {
-            systemPermissions = new HashMap<SystemPermission, Boolean>();
-            systemPermissionsByToken.put(securityToken, systemPermissions);
+        return authorizationService.hasSystemPermission(securityToken, systemPermission);
+    }
+
+    public boolean hasUserPermission(SecurityToken securityToken, UserPermission userPermission)
+    {
+        Map<UserPermission, Boolean> userPermissions;
+        synchronized (this) {
+            userPermissions = userPermissionsByToken.get(securityToken);
+            if (userPermissions == null) {
+                userPermissions = new HashMap<UserPermission, Boolean>();
+                userPermissionsByToken.put(securityToken, userPermissions);
+            }
         }
-        Boolean systemPermissionResult = systemPermissions.get(systemPermission);
-        if (systemPermissionResult == null) {
-            systemPermissionResult = authorizationService.hasSystemPermission(securityToken, systemPermission);
-            systemPermissions.put(systemPermission, systemPermissionResult);
+        synchronized (userPermissions) {
+            Boolean userPermissionResult = userPermissions.get(userPermission);
+            if (userPermissionResult == null) {
+                switch (userPermission) {
+                    case ADMINISTRATION:
+                        // Handle as SystemPermission.ADMINISTRATION
+                        userPermissionResult = hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION);
+                        break;
+                    case OPERATOR:
+                        // Handle as SystemPermission.OPERATOR
+                        userPermissionResult = hasSystemPermission(securityToken, SystemPermission.OPERATOR);
+                        break;
+                    case RESERVATION:
+                        // Handle as SystemPermission.RESERVATION
+                        userPermissionResult = hasSystemPermission(securityToken, SystemPermission.RESERVATION);
+                        break;
+                    case RESOURCE_MANAGEMENT:
+                        // User has access to resource management if he is OPERATOR
+                        if (hasUserPermission(securityToken, UserPermission.OPERATOR)) {
+                            userPermissionResult = true;
+                        }
+                        // Or if he can see some resources
+                        else {
+                            ListResponse<ResourceSummary> resources =
+                                    resourceService.listResources(new ResourceListRequest(securityToken));
+                            userPermissionResult = (resources.getItemCount() > 0);
+                        }
+                        break;
+                }
+                userPermissions.put(userPermission, userPermissionResult);
+            }
+            return userPermissionResult;
         }
-        return systemPermissionResult;
     }
 
     /**
@@ -595,27 +630,20 @@ public class Cache
     }
 
     /**
-     * @param securityToken to be checked if the user has {@link SystemPermission#OPERATOR}
+     * @param securityToken for which the {@link ResourcesUtilization} shall be returned
+     * @param forceRefresh specifies whether a fresh version should be returned
+     * @return {@link ResourcesUtilization} for given {@code securityToken}
      */
-    public void checkOperator(SecurityToken securityToken)
+    public ResourcesUtilization getResourcesUtilization(SecurityToken securityToken, boolean forceRefresh)
     {
-        if (!authorizationService.hasSystemPermission(securityToken, SystemPermission.OPERATOR)) {
-            throw new PageNotAuthorizedException();
+        synchronized (resourcesUtilizationByToken) {
+            ResourcesUtilization resourcesUtilization = resourcesUtilizationByToken.get(securityToken);
+            if (resourcesUtilization == null || forceRefresh) {
+                resourcesUtilization = new ResourcesUtilization(securityToken, resourceService, reservationService);
+                resourcesUtilizationByToken.put(securityToken, resourcesUtilization);
+            }
+            return resourcesUtilization;
         }
-    }
-
-    /**
-     * @param securityToken
-     * @return {@link ResourceCapacityUtilizationCache}
-     */
-    public synchronized ResourceCapacityUtilizationCache getResourceCapacityUtilizationCache(SecurityToken securityToken)
-    {
-        checkOperator(securityToken);
-        if (resourceCapacityUtilizationCache == null) {
-            resourceCapacityUtilizationCache =
-                    new ResourceCapacityUtilizationCache(securityToken, resourceService, reservationService);
-        }
-        return resourceCapacityUtilizationCache;
     }
 
     /**

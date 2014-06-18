@@ -1,12 +1,14 @@
-package cz.cesnet.shongo.client.web.admin;
+package cz.cesnet.shongo.client.web.resource;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
+import cz.cesnet.shongo.controller.api.RoomReservation;
 import cz.cesnet.shongo.util.RangeSet;
 import org.joda.time.DateTime;
 
 /**
-* TODO:
+* Represents a special version of {@link RangeSet.Bucket} from which a sum of license count
+ * for all contained {@link ReservationSummary} can be determined.
 *
 * @author Martin Srom <martin.srom@cesnet.cz>
 */
@@ -14,7 +16,7 @@ public class ResourceCapacityBucket extends RangeSet.Bucket<DateTime, Reservatio
         implements Comparable<ResourceCapacityBucket>
 {
     /**
-     * Sum of {@link cz.cesnet.shongo.controller.api.RoomReservation#getLicenseCount()}
+     * Sum of {@link RoomReservation#getLicenseCount()}
      */
     private int licenseCount = 0;
 
@@ -90,6 +92,7 @@ public class ResourceCapacityBucket extends RangeSet.Bucket<DateTime, Reservatio
     @Override
     public int compareTo(ResourceCapacityBucket bucket)
     {
+        // Bucket with higher utilization should before bucket with lower utilization
         return -Double.compare(getLicenseCount(), bucket.getLicenseCount());
     }
 }

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.admin;
+package cz.cesnet.shongo.client.web;
 
 /**
  * Not administrator exception.

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.RoomModel;
@@ -34,14 +35,17 @@ public class PermissionEvaluator implements org.springframework.security.access.
         try {
             SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
             if (targetDomainObject == null) {
-                SystemPermission systemPermission;
-                if (permissionValue instanceof SystemPermission) {
-                    systemPermission = (SystemPermission) permissionValue;
+                if (permissionValue instanceof UserPermission) {
+                    UserPermission userPermission = (UserPermission) permissionValue;
+                    return cache.hasUserPermission(securityToken, userPermission);
+                }
+                else if (permissionValue instanceof SystemPermission) {
+                    SystemPermission systemPermission = (SystemPermission) permissionValue;
+                    return cache.hasSystemPermission(securityToken, systemPermission);
                 }
                 else {
-                    systemPermission = SystemPermission.valueOf(permissionValue.toString());
+                    throw new TodoImplementException(permissionValue != null ? permissionValue.toString() : null);
                 }
-                return cache.hasSystemPermission(securityToken, systemPermission);
             }
             else {
                 String objectId;

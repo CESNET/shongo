@@ -38,9 +38,10 @@ public class WebSecurityExpressionHandler extends DefaultWebSecurityExpressionHa
      */
     public static class SecurityExpressionRoot extends WebSecurityExpressionRoot
     {
-        public static final SystemPermission ADMINISTRATION = SystemPermission.ADMINISTRATION;
-        public static final SystemPermission OPERATOR = SystemPermission.OPERATOR;
-        public static final SystemPermission RESERVATION = SystemPermission.RESERVATION;
+        public static final UserPermission ADMINISTRATION = UserPermission.ADMINISTRATION;
+        public static final UserPermission OPERATOR = UserPermission.OPERATOR;
+        public static final UserPermission RESERVATION = UserPermission.RESERVATION;
+        public static final UserPermission RESOURCE_MANAGEMENT = UserPermission.RESOURCE_MANAGEMENT;
 
         /**
          * Constructor.

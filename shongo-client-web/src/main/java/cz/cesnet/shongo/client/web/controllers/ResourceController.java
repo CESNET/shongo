@@ -5,9 +5,9 @@ import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.admin.ResourceCapacity;
-import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilization;
-import cz.cesnet.shongo.client.web.admin.ResourceCapacityUtilizationCache;
+import cz.cesnet.shongo.client.web.resource.ResourceCapacity;
+import cz.cesnet.shongo.client.web.resource.ResourceCapacityUtilization;
+import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
@@ -98,7 +98,6 @@ public class ResourceController
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESERVATIONS_VIEW, method = RequestMethod.GET)
     public ModelAndView handleReservationsView(SecurityToken securityToken)
     {
-        cache.checkOperator(securityToken);
         Map<String, String> resources = new LinkedHashMap<String, String>();
         for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(securityToken))) {
             String resourceId = resourceSummary.getId();
@@ -161,17 +160,16 @@ public class ResourceController
     }
 
     /**
-     * Handle resource capacity utilization view
+     * Handle resource capacity utilization view.
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION, method = RequestMethod.GET)
     public String handleCapacityUtilizationView(SecurityToken securityToken)
     {
-        cache.checkOperator(securityToken);
         return "resourceCapacityUtilization";
     }
 
     /**
-     * Handle resource capacity utilization table
+     * Handle table of {@link ResourceCapacityUtilization}s.
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION_TABLE, method = RequestMethod.GET)
     public ModelAndView handleCapacityUtilizationTable(
@@ -182,22 +180,20 @@ public class ResourceController
             @RequestParam(value = "style") ResourceCapacity.FormatStyle style,
             @RequestParam(value = "refresh", required = false) boolean refresh)
     {
-        ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
-                cache.getResourceCapacityUtilizationCache(securityToken);
-        if (refresh) {
-            resourceCapacityUtilizationCache.clear();
-        }
+        ResourcesUtilization resourcesUtilization =
+                cache.getResourcesUtilization(securityToken, refresh);
+
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
-                resourceCapacityUtilizationCache.getUtilization(new Interval(start, end), period);
+                resourcesUtilization.getUtilization(new Interval(start, end), period);
         ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationTable");
-        modelAndView.addObject("resourceCapacitySet", resourceCapacityUtilizationCache.getResourceCapacities());
+        modelAndView.addObject("resourceCapacitySet", resourcesUtilization.getResourceCapacities());
         modelAndView.addObject("resourceCapacityUtilization", utilization);
         modelAndView.addObject("style", style);
         return modelAndView;
     }
 
     /**
-     * Handle resource capacity utilization table
+     * Handle single {@link ResourceCapacityUtilization}.
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION_DESCRIPTION, method = RequestMethod.GET)
     public ModelAndView handleCapacityUtilizationDescription(
@@ -209,12 +205,12 @@ public class ResourceController
         @SuppressWarnings("unchecked")
         Class<? extends ResourceCapacity> resourceCapacityClass = (Class<? extends ResourceCapacity>)
                 Class.forName(ResourceCapacity.class.getCanonicalName() + "$" + resourceCapacityClassName);
-        ResourceCapacityUtilizationCache resourceCapacityUtilizationCache =
-                cache.getResourceCapacityUtilizationCache(securityToken);
+        ResourcesUtilization resourcesUtilization =
+                cache.getResourcesUtilization(securityToken, false);
         ResourceCapacity resourceCapacity =
-                resourceCapacityUtilizationCache.getResourceCapacity(resourceId, resourceCapacityClass);
+                resourcesUtilization.getResourceCapacity(resourceId, resourceCapacityClass);
         ResourceCapacityUtilization resourceCapacityUtilization =
-                resourceCapacityUtilizationCache.getUtilization(resourceCapacity, interval);
+                resourcesUtilization.getUtilization(resourceCapacity, interval);
         ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationDescription");
 
         Map<String, UserInformation> users = new HashMap<String, UserInformation>();

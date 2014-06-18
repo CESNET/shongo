@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.admin;
+package cz.cesnet.shongo.client.web.resource;
 
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import org.joda.time.Interval;
@@ -6,22 +6,43 @@ import org.joda.time.Interval;
 import java.util.*;
 
 /**
-* TODO:
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Represents a utilization of {@link ResourceCapacity} for a specific interval.
+ * <p/>
+ * It can be initialized from list of {@link ResourceCapacityBucket}s (which contain all reservations in interval).
+ * From the buckets we can determine maximum utilization or compute average utilization.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class ResourceCapacityUtilization
 {
+    /**
+     * List of {@link ResourceCapacityBucket}s. Each bucket represents an interval in which {@link ResourceCapacity} is
+     * utilized in some way. Different buckets means different utilization. Buckets shall be sorted to be able to
+     * determine maximum utilization.
+     */
     private List<ResourceCapacityBucket> buckets = new LinkedList<ResourceCapacityBucket>();
 
+    /**
+     * List of {@link ReservationSummary} in all {@link #buckets}.
+     */
     private List<ReservationSummary> reservations;
 
+    /**
+     * Constructor.
+     *
+     * @param buckets sets the {@link #buckets}
+     */
     public ResourceCapacityUtilization(Collection<ResourceCapacityBucket> buckets)
     {
         this.buckets.addAll(buckets);
+
+        // Sort buckets (to be able to determine maximum utilization)
         Collections.sort(this.buckets);
     }
 
+    /**
+     * @return first {@link ResourceCapacityBucket} from {@link #buckets} with maximum utilization.
+     */
     public ResourceCapacityBucket getPeakBucket()
     {
         if (buckets.size() > 0) {
@@ -32,11 +53,17 @@ public class ResourceCapacityUtilization
         }
     }
 
+    /**
+     * @return {@link #buckets}
+     */
     public List<ResourceCapacityBucket> getBuckets()
     {
-        return buckets;
+        return Collections.unmodifiableList(buckets);
     }
 
+    /**
+     * @return {@link #reservations}
+     */
     public Collection<ReservationSummary> getReservations()
     {
         if (this.reservations == null) {
@@ -63,9 +90,12 @@ public class ResourceCapacityUtilization
                 }
             });
         }
-        return this.reservations;
+        return Collections.unmodifiableList(this.reservations);
     }
 
+    /**
+     * @return user-ids of {@link #reservations}
+     */
     public Collection<String> getReservationUserIds()
     {
         Set<String> userIds = new HashSet<String>();

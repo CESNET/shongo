@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.api.request.GroupListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +94,7 @@ public class UserController
             throw new IllegalArgumentException(name);
         }
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
-        cache.clearSystemPermissions(securityToken);
+        cache.clearUserPermissions(securityToken);
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
         return "redirect:" + BackUrl.getInstance(request);
@@ -113,7 +112,7 @@ public class UserController
     {
 
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
-        cache.clearSystemPermissions(securityToken);
+        cache.clearUserPermissions(securityToken);
         if (userSettings.isUseWebService()) {
             // Reload user settings (some attributes may be loaded from web service)
             userSettings.fromApi(authorizationService.getUserSettings(securityToken));

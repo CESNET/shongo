@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
+import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
@@ -9,13 +10,11 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
-import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.NullCacheStorage;
 import freemarker.cache.SoftCacheStorage;
-import freemarker.log._NullLoggerFactory;
 import freemarker.template.*;
 import freemarker.template.Configuration;
 import org.apache.commons.configuration.*;
@@ -592,13 +591,13 @@ public class Design
             links.add(new LinkContext("navigation.help", getUrl().getHelp()));
             if (isUserAuthenticated()) {
                 UserContext user = getUser();
-                if (user.isAdministrationMode()) {
+
+                if (cache.hasUserPermission(user.securityToken, UserPermission.RESOURCE_MANAGEMENT)) {
                     links.add(new LinkSeparatorContext());
-                    links.add(new LinkContext("navigation.administration", new LinkedList<LinkContext>(){{
+                    links.add(new LinkContext("navigation.resourceManagement", new LinkedList<LinkContext>(){{
                         add(new LinkContext("navigation.resourceCapacityUtilization",
                                 ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION));
                         add(new LinkSeparatorContext());
-                        add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
                         add(new LinkContext("navigation.resourceReservations",
                                 ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
                     }}));
@@ -670,12 +669,12 @@ public class Design
 
             public boolean isAdministrationModeAvailable()
             {
-                return cache.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION);
+                return cache.hasUserPermission(securityToken, UserPermission.ADMINISTRATION);
             }
 
             public boolean isReservationAvailable()
             {
-                return cache.hasSystemPermission(securityToken, SystemPermission.RESERVATION);
+                return cache.hasUserPermission(securityToken, UserPermission.RESERVATION);
             }
 
             public String getId()
