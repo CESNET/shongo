@@ -40,6 +40,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     @Override
     public void before() throws Exception
     {
+        System.setProperty(ControllerConfiguration.NOTIFICATION_USER_SETTINGS_URL,
+                "https://127.0.0.1:8182/user/settings");
+        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
+                "https://127.0.0.1:8182/detail/${reservationRequestId}");
+
         super.before();
     }
 
@@ -49,11 +54,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         super.onInit();
 
         getController().addNotificationExecutor(notificationExecutor);
-
-        System.setProperty(ControllerConfiguration.NOTIFICATION_USER_SETTINGS_URL,
-                "https://127.0.0.1:8182/user/settings");
-        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
-                "https://127.0.0.1:8182/reservation-request/${reservationRequestId}/detail");
 
         getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>()
         {{
@@ -511,7 +511,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
-        reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
 
         // 1x resource-admin: deleted
