@@ -47,7 +47,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Constructor.
      *
-     * @param recipients          sets the {@link #recipients}
+     * @param recipients sets the {@link #recipients}
      */
     public ConfigurableNotification(Collection<PersonInformation> recipients)
     {
