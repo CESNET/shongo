@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import javax.persistence.*;
 
@@ -54,15 +55,6 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
     }
 
     /**
-     * @return {@link DeviceResource} of the {@link #roomProviderCapability}
-     */
-    @Transient
-    public DeviceResource getDeviceResource()
-    {
-        return roomProviderCapability.getDeviceResource();
-    }
-
-    /**
      * @return {@link #licenseCount}
      */
     @Column(nullable = false)
@@ -106,7 +98,7 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
     {
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
-        DeviceResource deviceResource = getDeviceResource();
+        DeviceResource deviceResource = getAllocatedResource();
         roomReservationApi.setResourceId(ObjectIdentifier.formatId(deviceResource));
         roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(getLicenseCount());
@@ -118,5 +110,12 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
     public Long getTargetId()
     {
         return roomProviderCapability.getId();
+    }
+
+    @Override
+    @Transient
+    public DeviceResource getAllocatedResource()
+    {
+        return roomProviderCapability.getDeviceResource();
     }
 }

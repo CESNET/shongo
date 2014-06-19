@@ -260,10 +260,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            AclObjectClass aclObjectClass = authorization.getAclProvider().getObjectClass(
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class);
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
-                    aclObjectClass, ObjectPermission.READ);
+                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
 
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
             queryFilter.addFilterIn("id", resourceIds);

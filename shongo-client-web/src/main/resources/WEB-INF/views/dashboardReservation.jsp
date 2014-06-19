@@ -436,7 +436,7 @@
             <%-- Capacities for single permanent room: start --%>
             <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
                 ng-class="{'deprecated': reservationRequest.isDeprecated}">
-                <td ng-if="reservationRequest.type == 'PERMANENT_ROOM' && reservationList.showPermanentRoomCapacities" ng-controller="DashboardPermanentRoomCapacitiesController" colspan="6">
+                <td ng-if="reservationRequest.type == 'PERMANENT_ROOM' && reservationList.showPermanentRoomCapacities" ng-controller="DashboardPermanentRoomCapacitiesController" colspan="8">
                     <div style="position: relative;">
                         <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
                             <a class="btn btn-default" href="${createPermanentRoomCapacityUrl}" tabindex="1">
@@ -472,7 +472,7 @@
 
             <%-- Empty row --%>
             <tr ng-hide="items.length">
-                <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
+                <td colspan="8" class="empty"><spring:message code="views.list.none"/></td>
             </tr>
 
             </tbody>

@@ -431,8 +431,49 @@ public abstract class Authorization
     /**
      * @param securityToken    of the user
      * @param entity           the entity
+     * @param objectRole which the user must have for the entity
+     * @return true if the user has given {@code role} for the entity,
+     * false otherwise
+     */
+    public boolean hasObjectRole(SecurityToken securityToken,
+            PersistentObject entity, ObjectRole objectRole)
+    {
+        AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(entity);
+        return hasObjectRole(securityToken, objectIdentity, objectRole);
+    }
+
+    /**
+     * @param securityToken    of the user
+     * @param objectIdentity   the entity
+     * @param objectRole which the user must have for the entity
+     * @return true if the user has given {@code objectRole} for the entity,
+     * false otherwise
+     */
+    public boolean hasObjectRole(SecurityToken securityToken,
+            AclObjectIdentity objectIdentity, ObjectRole objectRole)
+    {
+        if (isAdministrator(securityToken)) {
+            // Administrator has all possible permissions
+            return true;
+        }
+        else if (isOperator(securityToken) && ObjectRole.READER.equals(objectRole)) {
+            // Operator has READER role for all objects
+            return true;
+        }
+        String userId = securityToken.getUserId();
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        return aclUserState.hasObjectRole(objectIdentity, objectRole);
+    }
+
+    /**
+     * @param securityToken    of the user
+     * @param entity           the entity
      * @param objectPermission which the user must have for the entity
-     * @return true if the user has given {@code permission} for the entity,
+     * @return true if the user has given {@code objectPermission} for the entity,
      * false otherwise
      */
     public boolean hasObjectPermission(SecurityToken securityToken,
@@ -446,7 +487,7 @@ public abstract class Authorization
      * @param securityToken    of the user
      * @param objectIdentity   the entity
      * @param objectPermission which the user must have for the entity
-     * @return true if the user has given {@code permission} for the entity,
+     * @return true if the user has given {@code objectPermission} for the entity,
      * false otherwise
      */
     public boolean hasObjectPermission(SecurityToken securityToken,
@@ -504,14 +545,20 @@ public abstract class Authorization
     /**
      * @param securityToken    of the user
      * @param objectClass      of objects which should be returned
-     * @param objectPermission which the user must have for the entities
-     * @return set of object identifiers for which the user with given {@code userId} has given {@code permission}
-     * or null if the user can view all objects
+     * @param objectRole       which the user must have for the entities
+     * @return set of object identifiers for which the user with given {@code userId} has given {@code objectRole}
+     * or null if the user has role for all objects
      */
-    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclObjectClass objectClass,
-            ObjectPermission objectPermission)
+    public Set<Long> getEntitiesWithRole(SecurityToken securityToken,
+            Class<? extends PersistentObject> objectClass, ObjectRole objectRole)
     {
-        if (isOperator(securityToken)) {
+        AclObjectClass aclObjectClass = aclProvider.getObjectClass(objectClass);
+        if (isAdministrator(securityToken)) {
+            // Administrator has all possible roles for all objects
+            return null;
+        }
+        if (ObjectRole.READER.equals(objectRole) && isOperator(securityToken)) {
+            // Operator has READER role for all objects
             return null;
         }
         String userId = securityToken.getUserId();
@@ -520,7 +567,39 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<Long> entities = aclUserState.getObjectsByPermission(objectClass, objectPermission);
+        Set<Long> entities = aclUserState.getObjectsByRole(aclObjectClass, objectRole);
+        if (entities == null) {
+            return Collections.emptySet();
+        }
+        return entities;
+    }
+
+    /**
+     * @param securityToken    of the user
+     * @param objectClass      of objects which should be returned
+     * @param objectPermission which the user must have for the entities
+     * @return set of object identifiers for which the user with given {@code userId} has given {@code objectPermission}
+     * or null if the user has permission all objects
+     */
+    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken,
+            Class<? extends PersistentObject> objectClass, ObjectPermission objectPermission)
+    {
+        AclObjectClass aclObjectClass = aclProvider.getObjectClass(objectClass);
+        if (isAdministrator(securityToken)) {
+            // Administrator has all possible permissions for all objects
+            return null;
+        }
+        if (ObjectPermission.READ.equals(objectPermission) && isOperator(securityToken)) {
+            // Operator has READ permission for all objects
+            return null;
+        }
+        String userId = securityToken.getUserId();
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        Set<Long> entities = aclUserState.getObjectsByPermission(aclObjectClass, objectPermission);
         if (entities == null) {
             return Collections.emptySet();
         }

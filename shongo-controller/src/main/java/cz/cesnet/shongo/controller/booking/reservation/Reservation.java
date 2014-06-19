@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
@@ -439,6 +440,15 @@ public class Reservation extends PersistentObject implements ReportableSimple
     public Reservation getAllocationReservation()
     {
         return this;
+    }
+
+    /**
+     * @return {@link Resource} which is allocated by this {@link Reservation}
+     */
+    @Transient
+    public Resource getAllocatedResource()
+    {
+        return null;
     }
 
     /**

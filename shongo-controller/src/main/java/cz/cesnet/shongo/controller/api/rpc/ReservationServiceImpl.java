@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
+import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -881,7 +882,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     reservationManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, reservation, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", objectId);
+                cz.cesnet.shongo.controller.booking.resource.Resource resource = reservation.getAllocatedResource();
+                if (resource == null || !authorization.hasObjectRole(securityToken, resource, ObjectRole.OWNER)) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", objectId);
+                }
             }
 
             return reservation.toApi(entityManager, authorization.isOperator(securityToken));
@@ -933,9 +937,25 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_summary");
 
-            // List only reservations which is current user permitted to read
-            queryFilter.addFilterId(authorization, securityToken,
+            // List only reservations which is current user permitted to read or which allocates resource owned by the user
+            Set<Long> readableReservationIds = authorization.getEntitiesWithPermission(securityToken,
                     cz.cesnet.shongo.controller.booking.reservation.Reservation.class, ObjectPermission.READ);
+            if (readableReservationIds != null) {
+                Set<Long> ownedResourceIds = authorization.getEntitiesWithRole(securityToken,
+                        cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectRole.OWNER);
+                StringBuilder filterBuilder = new StringBuilder();
+                filterBuilder.append("1=0");
+                if (!readableReservationIds.isEmpty()) {
+                    filterBuilder.append(" OR reservation_summary.id IN(:readableReservationIds)");
+                    queryFilter.addFilterParameter("readableReservationIds", readableReservationIds);
+                }
+                if (!ownedResourceIds.isEmpty()) {
+                    filterBuilder.append(" OR reservation_summary.resource_id IN(:ownedResourceIds)");
+                    queryFilter.addFilterParameter("ownedResourceIds", ownedResourceIds);
+
+                }
+                queryFilter.addFilter(filterBuilder.toString());
+            }
 
             // List only reservations of requested types
             if (request.getReservationTypes().size() > 0) {

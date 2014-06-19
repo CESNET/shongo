@@ -81,6 +81,9 @@
                     tableHtml += "<td>" + reservationAllocated +"</td>";
                     tableHtml += "</tr>";
                 }
+                if (data.length == 0) {
+                    tableHtml += "<tr><td colspan='5' class='empty'><spring:message code="views.list.none"/></td></tr>";
+                }
                 tableHtml += "</tbody>";
                 tableHtml += "</table>";
                 $("#table").html(tableHtml);

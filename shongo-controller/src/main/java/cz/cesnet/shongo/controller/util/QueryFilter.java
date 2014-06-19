@@ -154,8 +154,7 @@ public class QueryFilter
     public void addFilterId(String column, Authorization authorization, SecurityToken securityToken,
             Class<? extends PersistentObject> objectClass, ObjectPermission objectPermission)
     {
-        AclObjectClass aclObjectClass = authorization.getAclProvider().getObjectClass(objectClass);
-        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, aclObjectClass, objectPermission));
+        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, objectClass, objectPermission));
     }
 
     /**

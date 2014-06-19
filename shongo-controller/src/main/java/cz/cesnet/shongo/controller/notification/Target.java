@@ -109,7 +109,7 @@ public abstract class Target
 
         public Value(ValueReservation reservation)
         {
-            super(reservation.getValueProvider().getCapabilityResource());
+            super(reservation.getAllocatedResource());
 
             values.add(reservation.getValue());
         }
@@ -141,7 +141,7 @@ public abstract class Target
 
         public Alias(AliasReservation aliasReservation)
         {
-            super(aliasReservation.getAliasProviderCapability().getResource());
+            super(aliasReservation.getAllocatedResource());
 
             initFrom(aliasReservation);
         }
@@ -282,7 +282,7 @@ public abstract class Target
 
         public Room(RoomReservation reservation, EntityManager entityManager)
         {
-            super(reservation.getDeviceResource());
+            super(reservation.getAllocatedResource());
 
             RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
             if (roomEndpoint != null) {
@@ -290,7 +290,7 @@ public abstract class Target
             }
             else {
                 licenseCount = reservation.getLicenseCount();
-                technologies.addAll(reservation.getDeviceResource().getTechnologies());
+                technologies.addAll(reservation.getAllocatedResource().getTechnologies());
                 initFrom(reservation.getSlot(), reservation.getRoomProviderCapability(), entityManager);
             }
         }
@@ -465,7 +465,7 @@ public abstract class Target
     {
         public RecordingService(RecordingServiceReservation reservation)
         {
-            super(reservation.getDeviceResource());
+            super(reservation.getAllocatedResource());
         }
     }
 

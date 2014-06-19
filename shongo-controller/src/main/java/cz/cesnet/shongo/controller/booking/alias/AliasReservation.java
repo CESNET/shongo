@@ -167,4 +167,11 @@ public class AliasReservation extends TargetedReservation
     {
         return aliasProviderCapability.getId();
     }
+
+    @Override
+    @Transient
+    public Resource getAllocatedResource()
+    {
+        return aliasProviderCapability.getResource();
+    }
 }

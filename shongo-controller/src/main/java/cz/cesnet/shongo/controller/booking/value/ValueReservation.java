@@ -100,6 +100,13 @@ public class ValueReservation extends TargetedReservation
         return valueProvider.getId();
     }
 
+    @Override
+    @Transient
+    public Resource getAllocatedResource()
+    {
+        return valueProvider.getCapabilityResource();
+    }
+
     /**
      * @param value to be evaluated
      * @return evaluated value

@@ -72,4 +72,11 @@ public class ResourceReservation extends TargetedReservation
     {
         return resource.getId();
     }
+
+    @Override
+    @Transient
+    public Resource getAllocatedResource()
+    {
+        return resource;
+    }
 }

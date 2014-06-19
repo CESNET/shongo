@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.controller.booking.reservation.ExecutableServiceReservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import javax.persistence.*;
 
@@ -36,19 +37,17 @@ public class RecordingServiceReservation extends ExecutableServiceReservation
         this.recordingCapability = recordingCapability;
     }
 
-    /**
-     * @return {@link DeviceResource} of the {@link #recordingCapability}
-     */
-    @Transient
-    public DeviceResource getDeviceResource()
-    {
-        return recordingCapability.getDeviceResource();
-    }
-
     @Override
     @Transient
     public Long getTargetId()
     {
         return recordingCapability.getId();
+    }
+
+    @Override
+    @Transient
+    public DeviceResource getAllocatedResource()
+    {
+        return recordingCapability.getDeviceResource();
     }
 }

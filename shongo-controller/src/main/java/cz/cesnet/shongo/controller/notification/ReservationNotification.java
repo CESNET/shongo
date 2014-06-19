@@ -189,37 +189,8 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private void addAdministratorRecipientsForReservation(Reservation reservation,
             AuthorizationManager authorizationManager)
     {
-        if (reservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            Resource resource = resourceReservation.getResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
-                addRecipient(resourceAdministrator, true);
-            }
-        }
-        if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            Resource resource = roomReservation.getDeviceResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
-                addRecipient(resourceAdministrator, true);
-            }
-        }
-        if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            Resource resource = aliasReservation.getAliasProviderCapability().getResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
-                addRecipient(resourceAdministrator, true);
-            }
-        }
-        if (reservation instanceof ValueReservation) {
-            ValueReservation valueReservation = (ValueReservation) reservation;
-            Resource resource = valueReservation.getValueProvider().getCapabilityResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
-                addRecipient(resourceAdministrator, true);
-            }
-        }
-        if (reservation instanceof RecordingServiceReservation) {
-            RecordingServiceReservation valueReservation = (RecordingServiceReservation) reservation;
-            Resource resource = valueReservation.getDeviceResource();
+        Resource resource = reservation.getAllocatedResource();
+        if (resource != null) {
             for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
