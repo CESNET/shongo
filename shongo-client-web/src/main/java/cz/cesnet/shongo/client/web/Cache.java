@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
 import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
+import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
@@ -425,6 +426,40 @@ public class Cache
             result.put(objectId, objectPermissions);
         }
         return result;
+    }
+
+    /**
+     * @param securityToken to be used for fetching the {@link ResourceSummary}s
+     * @param resourceIds   resource-ids to be fetched
+     */
+    public synchronized void fetchResourceSummaries(SecurityToken securityToken, Collection<String> resourceIds)
+    {
+        Set<String> missingResourceIds = null;
+        for (String resourceId : resourceIds) {
+            if (!resourceById.contains(resourceId)) {
+                if (missingResourceIds == null) {
+                    missingResourceIds = new HashSet<String>();
+                }
+                missingResourceIds.add(resourceId);
+            }
+        }
+        if (missingResourceIds != null) {
+            ResourceListRequest request = new ResourceListRequest();
+            request.setSecurityToken(securityToken);
+            for (String resourceId : request.getResourceIds()) {
+                request.addResourceId(resourceId);
+            }
+            ListResponse<ResourceSummary> response = resourceService.listResources(request);
+            for (ResourceSummary resource : response.getItems()) {
+                String resourceId = resource.getId();
+                resourceById.put(resourceId, resource);
+                missingResourceIds.remove(resourceId);
+            }
+            if (missingResourceIds.size() > 0) {
+                throw new CommonReportSet.ObjectNotExistsException(ResourceSummary.class.getSimpleName(),
+                        missingResourceIds.iterator().next());
+            }
+        }
     }
 
     /**

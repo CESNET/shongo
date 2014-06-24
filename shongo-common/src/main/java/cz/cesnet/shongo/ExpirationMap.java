@@ -167,6 +167,14 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
+     * {@link #entries}.
+     */
+    public synchronized Set<K> keySet()
+    {
+        return entries.keySet();
+    }
+
+    /**
      * Remove all expired values.
      *
      * @param dateTime which represents "now"

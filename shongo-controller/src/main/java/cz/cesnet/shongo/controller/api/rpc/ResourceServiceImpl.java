@@ -28,10 +28,7 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceException;
-import javax.persistence.RollbackException;
+import javax.persistence.*;
 import java.util.*;
 
 /**
@@ -260,20 +257,42 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
+            Set<Long> readableResourceIds = new HashSet<Long>();
+            readableResourceIds.addAll(authorization.getEntitiesWithPermission(securityToken,
+                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ));
 
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
-            queryFilter.addFilterIn("id", resourceIds);
+            queryFilter.addFilterIn("id", readableResourceIds);
 
             // Filter requested resource-ids
             if (request.getResourceIds().size() > 0) {
                 Set<Long> requestedResourceIds = new HashSet<Long>();
-                for (String reservationRequestId : request.getResourceIds()) {
-                    requestedResourceIds.add(ObjectIdentifier.parseId(reservationRequestId, ObjectType.RESOURCE));
+                Set<Long> notReadableResourceIds = new HashSet<Long>();
+                for (String resourceApiId : request.getResourceIds()) {
+                    Long resourceId = ObjectIdentifier.parseId(resourceApiId, ObjectType.RESOURCE);
+                    if (!readableResourceIds.contains(resourceId)) {
+                        notReadableResourceIds.add(resourceId);
+                    }
+                    requestedResourceIds.add(resourceId);
                 }
                 queryFilter.addFilter("id IN(:resourceIds)");
                 queryFilter.addFilterParameter("resourceIds", requestedResourceIds);
+
+                // Check if user has any reservations for not readable resources for them to become readable
+                if (notReadableResourceIds.size() > 0) {
+                    Set<Long> readableReservationIds = authorization.getEntitiesWithPermission(securityToken,
+                            cz.cesnet.shongo.controller.booking.reservation.Reservation.class, ObjectPermission.READ);
+                    List readableResources = entityManager.createNativeQuery("SELECT resource_reservation.resource_id"
+                            + " FROM resource_reservation"
+                            + " WHERE resource_reservation.id IN (:reservationIds)"
+                            + " AND resource_reservation.resource_id IN(:resourceIds)")
+                            .setParameter("reservationIds", readableReservationIds)
+                            .setParameter("resourceIds", notReadableResourceIds)
+                            .getResultList();
+                    for (Object readableResourceId : readableResources) {
+                        readableReservationIds.add(((Number) readableResourceId).longValue());
+                    }
+                }
             }
 
             // Filter user-ids
