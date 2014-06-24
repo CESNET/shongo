@@ -316,6 +316,7 @@ public class ErrorHandler
                 error = cause.getClass().getCanonicalName();
                 description = cause.getMessage();
             }
+            logger.warn("AJAX request failed", cause);
             ModelAndView modelAndView = new ModelAndView(new MappingJacksonJsonView());
             modelAndView.addObject("error", error);
             modelAndView.addObject("description", description);
