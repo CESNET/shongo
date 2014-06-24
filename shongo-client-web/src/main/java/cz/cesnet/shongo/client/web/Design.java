@@ -549,6 +549,68 @@ public class Design
             }
             return sessionContext;
         }
+
+        public class UserContext
+        {
+            private SecurityToken securityToken;
+
+            private UserInformation userInformation;
+
+            public UserContext(SecurityToken securityToken, UserInformation userInformation)
+            {
+                this.securityToken = securityToken;
+                this.userInformation = userInformation;
+            }
+
+            public boolean isAdvancedMode()
+            {
+                return userSession.isAdvancedUserInterface();
+            }
+
+            public boolean isAdministrationMode()
+            {
+                return userSession.isAdministrationMode();
+            }
+
+            public boolean isAdministrationModeAvailable()
+            {
+                return cache.hasUserPermission(securityToken, UserPermission.ADMINISTRATION);
+            }
+
+            public boolean isReservationAvailable()
+            {
+                return cache.hasUserPermission(securityToken, UserPermission.RESERVATION);
+            }
+
+            public String getId()
+            {
+                return userInformation.getUserId();
+            }
+
+            public String getName()
+            {
+                return userInformation.getFullName();
+            }
+        }
+
+        private UserContext userContext;
+
+        public UserContext getUser()
+        {
+            if (userContext == null && userSession != null) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication instanceof OpenIDConnectAuthenticationToken) {
+                    OpenIDConnectAuthenticationToken token = (OpenIDConnectAuthenticationToken) authentication;
+                    userContext = new UserContext(token.getSecurityToken(), token.getPrincipal());
+                }
+            }
+            return userContext;
+        }
+
+        public boolean isUserAuthenticated()
+        {
+            return getUser() != null;
+        }
     }
 
     public class LayoutContext extends TemplateContext
@@ -643,68 +705,6 @@ public class Design
                     public void remove() { throw new IllegalStateException(); }
                 };
             }
-        }
-
-        public class UserContext
-        {
-            private SecurityToken securityToken;
-
-            private UserInformation userInformation;
-
-            public UserContext(SecurityToken securityToken, UserInformation userInformation)
-            {
-                this.securityToken = securityToken;
-                this.userInformation = userInformation;
-            }
-
-            public boolean isAdvancedMode()
-            {
-                return userSession.isAdvancedUserInterface();
-            }
-
-            public boolean isAdministrationMode()
-            {
-                return userSession.isAdministrationMode();
-            }
-
-            public boolean isAdministrationModeAvailable()
-            {
-                return cache.hasUserPermission(securityToken, UserPermission.ADMINISTRATION);
-            }
-
-            public boolean isReservationAvailable()
-            {
-                return cache.hasUserPermission(securityToken, UserPermission.RESERVATION);
-            }
-
-            public String getId()
-            {
-                return userInformation.getUserId();
-            }
-
-            public String getName()
-            {
-                return userInformation.getFullName();
-            }
-        }
-
-        private UserContext userContext;
-
-        public UserContext getUser()
-        {
-            if (userContext == null && userSession != null) {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication instanceof OpenIDConnectAuthenticationToken) {
-                    OpenIDConnectAuthenticationToken token = (OpenIDConnectAuthenticationToken) authentication;
-                    userContext = new UserContext(token.getSecurityToken(), token.getPrincipal());
-                }
-            }
-            return userContext;
-        }
-
-        public boolean isUserAuthenticated()
-        {
-            return getUser() != null;
         }
 
         public class LinkContext
