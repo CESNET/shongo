@@ -166,6 +166,9 @@ elsif ( defined($file) || $scripting ) {
     foreach my $line (@lines) {
 LINE:
         # check if $line is empty
+        if ( !defined($line) ) {
+            $line = '';
+        }
         if ( $line =~ /^\s*(#.+)?\s*$/ ) {
             # execute not empty command
             if ( !($command =~ /^\s*$/) ) {
@@ -180,6 +183,9 @@ LINE:
                 while ( $line =~ /^\s*}\s*$/ ) {
                     $command .= '}';
                     $line = <STDIN>;
+                    if ( !defined($line) ) {
+                        $line = '';
+                    }
                 }
                 # execute object command
                 $shell->command($command);
