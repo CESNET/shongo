@@ -257,9 +257,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            Set<Long> readableResourceIds = new HashSet<Long>();
-            readableResourceIds.addAll(authorization.getEntitiesWithPermission(securityToken,
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ));
+            Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
+                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
+            if (readableResourceIds != null) {
+                // Allow to add/delete items in the set
+                readableResourceIds = new HashSet<Long>(readableResourceIds);
+            }
 
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
             queryFilter.addFilterIn("id", readableResourceIds);
@@ -270,7 +273,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 Set<Long> notReadableResourceIds = new HashSet<Long>();
                 for (String resourceApiId : request.getResourceIds()) {
                     Long resourceId = ObjectIdentifier.parseId(resourceApiId, ObjectType.RESOURCE);
-                    if (!readableResourceIds.contains(resourceId)) {
+                    if (readableResourceIds != null && !readableResourceIds.contains(resourceId)) {
                         notReadableResourceIds.add(resourceId);
                     }
                     requestedResourceIds.add(resourceId);
