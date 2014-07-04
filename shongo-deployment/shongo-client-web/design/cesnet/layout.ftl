@@ -217,8 +217,7 @@
 <!-- CESNET's footer: end -->
 
 <!-- CESNET's linker (JS): start -->
-<script type="text/javascript" async src="${url.resources}/js/linker.js"></script>
-<!--<script type="text/javascript" async src="https://linker.cesnet.cz/linker.js"></script>-->
+<script type="text/javascript" async src="https://linker.cesnet.cz/linker.js"></script>
 <!-- CESNET's linker (JS): end -->
 
 </body>
