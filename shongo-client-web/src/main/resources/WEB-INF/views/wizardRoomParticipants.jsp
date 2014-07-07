@@ -76,8 +76,11 @@
         <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <p><spring:message code="views.room.participants.help.${reservationRequest.technology}.permanentRoom"/></p>
         </c:when>
-        <c:otherwise>
+        <c:when test="${not empty reservationRequest.technology}">
             <p><spring:message code="views.room.participants.help.${reservationRequest.technology}"/></p>
+        </c:when>
+        <c:otherwise>
+            <p><spring:message code="views.room.participants.help"/></p>
         </c:otherwise>
     </c:choose>
 

@@ -24,7 +24,12 @@ public enum SpecificationType
     /**
      * For permanent room capacity.
      */
-    PERMANENT_ROOM_CAPACITY(false);
+    PERMANENT_ROOM_CAPACITY(false),
+
+    /**
+     * For meeting room.
+     */
+    MEETING_ROOM(false);
 
     /**
      * Specifies whether it is a room.
@@ -72,6 +77,8 @@ public enum SpecificationType
                     return PERMANENT_ROOM;
             case USED_ROOM:
                 return PERMANENT_ROOM_CAPACITY;
+            case RESOURCE:
+                return MEETING_ROOM;
             default:
                 throw new TodoImplementException(reservationRequestSummary.getSpecificationType());
         }

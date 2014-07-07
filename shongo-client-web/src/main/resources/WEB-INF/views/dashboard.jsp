@@ -113,6 +113,11 @@
             <%@ include file="dashboardParticipation.jsp" %>
         </tab>
 
+        <%-- Meeting rooms tab --%>
+        <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
+        <tab id="meetingRooms" heading="${meetingRoomTitle}" ng-controller="TabController">
+            <%@ include file="dashboardMeetingRooms.jsp" %>
+        </tab>
     </tabset>
 
 </div>

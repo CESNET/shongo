@@ -35,7 +35,9 @@ public enum Technology
 
     OPEN_MEETINGS("OpenMeetings"),
 
-    WEBEX("Cisco WebEx");
+    WEBEX("Cisco WebEx"),
+
+    NONE("None");
 
     /**
      * Technology name that is visible to users.

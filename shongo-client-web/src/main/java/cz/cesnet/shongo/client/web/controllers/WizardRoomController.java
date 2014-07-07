@@ -15,12 +15,11 @@ import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.AllocationState;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -64,6 +63,9 @@ public class WizardRoomController extends WizardParticipantsController
 
     @Resource
     private ReservationService reservationService;
+
+    @Resource
+    private ResourceService resourceService;
 
     @Resource
     private AuthorizationService authorizationService;
@@ -186,6 +188,30 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
+     * Change new room to meeting type and show form for editing room attributes.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_MEETING, method = RequestMethod.GET)
+    public String handleMeetingRoom(SecurityToken securityToken, UserSession userSession)
+    {
+        ReservationRequestModel reservationRequest = getReservationRequest();
+        if (reservationRequest == null) {
+            reservationRequest = createReservationRequest(securityToken);
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
+        }
+        reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
+        //TODO:MR
+        ResourceListRequest listRequest = new ResourceListRequest(securityToken);
+        String resorceId = null;
+        for (ResourceSummary resourceSummary : resourceService.listResources(listRequest)) {
+            if (resourceSummary.getName().contains("MR")) {
+                resorceId = resourceSummary.getId();
+            }
+        }
+        reservationRequest.setMeetingResourceId(resorceId);
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+    }
+
+    /**
      * Handle duplication of an existing reservation request.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_DUPLICATE, method = RequestMethod.GET)
@@ -220,7 +246,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Show form for editing ad-hoc/permanent room attributes.
+     * Show form for editing ad-hoc/permanent/meeting room attributes.
      *
      * @param reservationRequest session attribute is required
      */

@@ -13,6 +13,9 @@
 <tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PERMANENT %>">
     <tag:param name="back-url" value="${requestScope.backUrl}"/>
 </tag:url>
+<tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_MEETING %>">
+    <tag:param name="back-url" value="${requestScope.backUrl}"/>
+</tag:url>
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
 <div class="jspWizardRoomType">
@@ -54,6 +57,10 @@
             </li>
             <li>
                 <a href="${createPermanentRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.permanent"/></a>
+                <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
+            </li>
+            <li>
+                <a href="${createMeetingRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.meeting"/></a>
                 <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
             </li>
             <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">
