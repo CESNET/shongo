@@ -55,7 +55,8 @@ public class DetailController extends AbstractDetailController implements Breadc
         RoomState roomState = null;
         String roomName = reservationRequest.getRoomName();
         String reservationId = reservationRequest.getAllocatedReservationId();
-        if (reservationId != null) {
+        //TODO:MR
+        if (reservationId != null && reservationRequest.getExecutableState() != null) {
             // We don't want to show allocated room name
             // AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, reservationId);
             // Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);

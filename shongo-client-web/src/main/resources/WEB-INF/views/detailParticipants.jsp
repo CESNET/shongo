@@ -32,8 +32,11 @@
         <c:when test="${type == 'PERMANENT_ROOM'}">
             <p><spring:message code="views.room.participants.help.${technology}.permanentRoom"/></p>
         </c:when>
-        <c:otherwise>
+        <c:when test="${not empty technology}">
             <p><spring:message code="views.room.participants.help.${technology}"/></p>
+        </c:when>
+        <c:otherwise>
+            <p><spring:message code="views.room.participants.help"/></p>
         </c:otherwise>
     </c:choose>
 

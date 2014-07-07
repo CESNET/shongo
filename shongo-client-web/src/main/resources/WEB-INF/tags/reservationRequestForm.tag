@@ -298,7 +298,7 @@
     </c:if>
 
     <c:choose>
-        <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
             <div class="form-group">
                 <form:label class="col-xs-3 control-label" path="technology">
                     <spring:message code="views.reservationRequest.technology"/>:
@@ -314,9 +314,9 @@
                 </div>
             </div>
         </c:when>
-        <c:otherwise>
+        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
             <input type="hidden" name="technology" value="{{technology}}"/>
-        </c:otherwise>
+        </c:when>
     </c:choose>
 
     <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
@@ -490,7 +490,7 @@
                     </c:otherwise>
                 </c:choose>
             </div>
-            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
                 <div class="col-xs-4">
                     <div class="input-group" style="width: 100%;">
                         <form:select path="slotBeforeMinutes" cssClass="form-control" tabindex="${tabIndex}">
@@ -547,23 +547,25 @@
                         <form:option value="DAY"><spring:message code="views.reservationRequest.duration.days"/></form:option>
                     </form:select>
                 </div>
-                <div class="col-xs-4">
-                    <div class="input-group" style="width: 100%;">
-                        <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
-                            <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
-                            <form:option value="5">5</form:option>
-                            <form:option value="10">10</form:option>
-                            <form:option value="15">15</form:option>
-                            <form:option value="20">20</form:option>
-                            <form:option value="30">30</form:option>
-                            <form:option value="45">45</form:option>
-                        </form:select>
-                        <span class="input-group-addon" style="width: 120px;">
-                            <spring:message code="views.reservationRequest.slotAfterMinutes" var="slotAfterMinutesLabel"/>
-                            <tag:help label="${slotAfterMinutesLabel}"><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
-                        </span>
+                <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+                    <div class="col-xs-4">
+                        <div class="input-group" style="width: 100%;">
+                            <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
+                                <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
+                                <form:option value="5">5</form:option>
+                                <form:option value="10">10</form:option>
+                                <form:option value="15">15</form:option>
+                                <form:option value="20">20</form:option>
+                                <form:option value="30">30</form:option>
+                                <form:option value="45">45</form:option>
+                            </form:select>
+                            <span class="input-group-addon" style="width: 120px;">
+                                <spring:message code="views.reservationRequest.slotAfterMinutes" var="slotAfterMinutesLabel"/>
+                                <tag:help label="${slotAfterMinutesLabel}"><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
+                            </span>
+                        </div>
                     </div>
-                </div>
+                </c:if>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="durationCount" cssClass="error"/>
@@ -643,23 +645,26 @@
         </div>
     </c:if>
 
-    <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
-        <form:label class="col-xs-3 control-label" path="roomPin">
-            <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
-            <tag:help label="${pinLabel}:">
-                <spring:message code="views.reservationRequest.specification.roomPin.help"/>
-            </tag:help>
+    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
+            <form:label class="col-xs-3 control-label" path="roomPin">
+                <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomPin.help"/>
+                </tag:help>
 
-        </form:label>
-        <div class="col-xs-4">
-            <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+            </form:label>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomPin" cssClass="error"/>
+            </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="roomPin" cssClass="error"/>
-        </div>
-    </div>
+    </c:if>
 
-    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'} && ${reservationRequest.specificationType != 'MEETING_ROOM'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>

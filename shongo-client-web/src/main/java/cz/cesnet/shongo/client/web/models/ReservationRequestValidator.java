@@ -73,7 +73,9 @@ public class ReservationRequestValidator implements Validator
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
         SpecificationType specificationType = reservationRequestModel.getSpecificationType();
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
+        if (specificationType != SpecificationType.MEETING_ROOM) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
+        }
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
 
@@ -107,6 +109,14 @@ public class ReservationRequestValidator implements Validator
                     break;
             }
             switch (specificationType) {
+                case MEETING_ROOM:
+                    if (reservationRequestModel.getDurationType() != null) {
+                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+                    }
+                    else {
+                        validateInterval(reservationRequestModel, errors);
+                    }
+                    break;
                 case PERMANENT_ROOM:
                     validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");

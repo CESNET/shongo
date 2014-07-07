@@ -33,6 +33,8 @@ public class ClientWebUrl
             "/wizard/room/adhoc";
     public static final String WIZARD_ROOM_PERMANENT =
             "/wizard/room/permanent";
+    public static final String WIZARD_ROOM_MEETING =
+            "/wizard/room/meeting";
     public static final String WIZARD_ROOM_DUPLICATE =
             "/wizard/room/{reservationRequestId:.+}/duplicate";
     public static final String WIZARD_ROOM_MODIFY =
