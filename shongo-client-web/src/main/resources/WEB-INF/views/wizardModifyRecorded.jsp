@@ -24,7 +24,7 @@
      */
     window.getResources = function(capabilityClass, callback) {
         var technology = "${reservationRequest.technology}";
-        $.ajax("${resourceListUrl}?capabilityClasses=" + capabilityClass + "&technology=" + technology, {
+        $.ajax("${resourceListUrl}?capabilityClass=" + capabilityClass + "&technology=" + technology, {
             dataType: "json"
         }).done(function (data) {
             var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];

@@ -261,7 +261,7 @@
      */
     window.getResources = function(capabilityClass, callback) {
         var technology = $("#technology").val();
-        $.ajax("${resourceListUrl}?capabilityClasses=" + capabilityClass + "&technology=" + technology, {
+        $.ajax("${resourceListUrl}?capabilityClass=" + capabilityClass + "&technology=" + technology, {
             dataType: "json"
         }).done(function (data) {
             var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];
@@ -309,10 +309,6 @@
                         <c:forEach var="technology" items="${technologies}">
                             <form:option value="${technology}">${technology.title}</form:option>
                         </c:forEach>
-
-                        <form:option value="ADOBE_CONNECT">
-                            <%= TechnologyModel.ADOBE_CONNECT.getTitle() %>
-                        </form:option>
                     </form:select>
                     <form:errors path="technology" cssClass="error"/>
                 </div>
