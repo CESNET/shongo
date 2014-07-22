@@ -212,7 +212,7 @@ public class ErrorHandler
             for (String administratorEmail : administratorEmails) {
                 mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
             }
-            mimeMessage.setSubject(subjectPrefix + subject);
+            mimeMessage.setSubject(subjectPrefix + subject, "utf-8");
             mimeMessage.setContent(multipart);
 
             logger.debug("Sending email from '{}' to '{}'...", new Object[]{sender, administratorEmails});
