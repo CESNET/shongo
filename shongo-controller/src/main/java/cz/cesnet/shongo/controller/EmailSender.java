@@ -171,7 +171,7 @@ public class EmailSender
         if (email.replyTo.size() > 0) {
             message.setReplyTo(email.replyTo.toArray(new Address[email.replyTo.size()]));
         }
-        message.setSubject(subjectPrefix + email.subject);
+        message.setSubject(subjectPrefix + email.subject, "utf-8");
 
         // Create content multipart
         MimeMultipart contentMultipart = new MimeMultipart("alternative");
