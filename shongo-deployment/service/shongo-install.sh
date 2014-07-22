@@ -61,7 +61,7 @@ cat > $SERVICE_DIR/shongo-controller <<EOF
 ### END INIT INFO
 
 NAME=shongo-controller
-BIN="java -jar $DEPLOYMENT_DIR/../shongo-controller/target/shongo-controller-:VERSION:.jar --daemon"
+BIN="java -Dfile.encoding=UTF-8 -jar $DEPLOYMENT_DIR/../shongo-controller/target/shongo-controller-:VERSION:.jar --daemon"
 BIN_STARTED="Controller successfully started"
 DEPLOYMENT_DIR="$DEPLOYMENT_DIR"
 LOG_DIR="$LOG_DIR"
@@ -97,7 +97,7 @@ cat > $SERVICE_DIR/shongo-connector <<EOF
 ### END INIT INFO
 
 NAME=shongo-connector
-BIN="java -jar $DEPLOYMENT_DIR/../shongo-connector/target/shongo-connector-:VERSION:.jar --daemon"
+BIN="java -Dfile.encoding=UTF-8 -jar $DEPLOYMENT_DIR/../shongo-connector/target/shongo-connector-:VERSION:.jar --daemon"
 BIN_STARTED="Connector successfully started"
 DEPLOYMENT_DIR="$DEPLOYMENT_DIR"
 LOG_DIR="$LOG_DIR"
@@ -133,7 +133,7 @@ cat > $SERVICE_DIR/shongo-client-web <<EOF
 ### END INIT INFO
 
 NAME=shongo-client-web
-BIN="java -jar $DEPLOYMENT_DIR/../shongo-client-web/target/shongo-client-web-:VERSION:.jar --daemon"
+BIN="java -Dfile.encoding=UTF-8 -jar $DEPLOYMENT_DIR/../shongo-client-web/target/shongo-client-web-:VERSION:.jar --daemon"
 BIN_STARTED="ClientWeb successfully started"
 DEPLOYMENT_DIR="$DEPLOYMENT_DIR"
 LOG_DIR="$LOG_DIR"
