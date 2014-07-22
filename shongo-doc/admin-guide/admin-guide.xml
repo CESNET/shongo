@@ -265,130 +265,286 @@ must be restarted to reload the changes. The configuration files must be located
 <code>&lt;shongo&gt;/shongo-deployment/</code> directory, where <code>&lt;shongo&gt;</code> is the location where you installed
 the Shongo (e.g., <code>/app/shongo</code>).
 
+
+
 <section>
 <title>Controller</title>
 <para>
-    To configure Controller create configuration file <code>shongo-controller.cfg.xml</code>. It can contain the following options:
+    To configure Controller create configuration file <code>shongo-controller.cfg.xml</code>.
 </para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+]]></screen>
+</para>
+<para>It can contain the following options:</para>
 <itemizedlist>
-    <listitem>
-        <para><emphasis role="bold">Domain settings</emphasis> (<code>&lt;domain&gt;</code>)</para>
-        <para>
-            The <code>domain/name</code> option specifies unique name of the domain. It will be used in all object identifiers
-            (e.g., domain name <code>meetings.cesnet.cz</code> in identifier of reservation request <code>shongo:meetings.cesnet.cz:req:1</code>).
-        </para>
-        <para>
-            The <code>domain/code</code> options specifies shortcut of domain name and it doesn't have to be unique across domains.
+
+<listitem>
+<para><emphasis role="bold">Domain settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>domain/name</code></term>
+        <listitem><para>
+            Specifies unique name of the domain. It will be used in all object identifiers
+            (e.g., domain name <code>meetings.cesnet.cz</code> will used in identifier of a reservation request <code>shongo:meetings.cesnet.cz:req:1</code>).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>domain/code</code></term>
+        <listitem><para>
+            Specifies shortcut of domain name and it doesn't have to be unique across domains.
             It will be used as prefix in email notifications (e.g., domain code <code>meetings</code> in email subject <code>[meetings] Notification ...</code>)
-        </para>
-        <para>
-            The <code>domain/organization</code> option specifies name of the organization who owns the domain.
-        </para>
-        <emphasis role="bold">Example:</emphasis>
-        <screen><![CDATA[
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>domain/organization</code></term>
+        <listitem><para>
+            Specifies name of the organization who owns the domain.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
 <domain>
     <name>meetings.cesnet.cz</name>
     <code>meetings</code>
     <organization>CESNET, z.s.p.o.</organization>
 </domain>
         ]]></screen>
-    </listitem>
-</itemizedlist>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Database settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>database/driver</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>database/url</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>database/username</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>database/password</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+</variablelist>
 <para>
     <emphasis role="bold">Example:</emphasis>
     <screen><![CDATA[
-<?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
-
-    <domain>
-        <name>meetings.cesnet.cz</name>
-        <code>meetings</code>
-        <organization>CESNET, z.s.p.o.</organization>
-    </domain>
-
-    <database>
-        <driver>org.postgresql.Driver</driver>
-        <url>jdbc:postgresql://127.0.0.1/shongo</url>
-        <username>shongo</username>
-        <password>(password)</password>
-    </database>
-
-    <security>
-        <server>https://shongo-auth.cesnet.cz</server>
-        <client-secret>(secret)</client-secret>
-    </security>
-
-    <administrator>martin.srom@cesnet.cz</administrator>
-
-    <smtp>
-        <sender>shongo@gmail.com</sender>
-        <host>smtp.gmail.com</host>
-        <port>465</port>
-        <username>shongo@gmail.com</username>
-        <password>(password)</password>
-    </smtp>
-
-</configuration>
-    ]]></screen>
+<database>
+    <driver>org.postgresql.Driver</driver>
+    <url>jdbc:postgresql://127.0.0.1/shongo</url>
+    <username>shongo</username>
+    <password>(password)</password>
+</database>
+]]></screen>
 </para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Security settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>security/server</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>security/client-id</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>security/client-secret</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<security>
+    <server>https://shongo-auth.cesnet.cz</server>
+    <client-id>meetings.cesnet.cz</client-id>
+    <client-secret>(secret)</client-secret>
+</security>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SMTP settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>smtp/sender</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<smtp>
+    <sender>shongo@gmail.com</sender>
+    <host>smtp.gmail.com</host>
+    <port>465</port>
+    <username>shongo@gmail.com</username>
+    <password>(password)</password>
+</smtp>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Administrator settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>administrator</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<administrator>martin.srom@cesnet.cz</administrator>
+<administrator>pavelka@cesnet.cz</administrator>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Email notification settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term><code>notification.reservation-request-url</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><code>notification.user-settings-url</code></term>
+        <listitem><para>
+            ...
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<notification>
+    <reservation-request-url>
+        https://meetings.cesnet.cz/detail/${reservationRequestId}
+    </reservation-request-url>
+    <user-settings-url>
+        https://meetings.cesnet.cz/user/settings
+    </user-settings-url>
+</notification>
+]]></screen>
+</para>
+</listitem>
+
+</itemizedlist>
 </section>
+
+
 
 <section>
 <title>Connector</title>
 <para>
-    To configure Connector create configuration file <code>shongo-connector.cfg.xml</code>. It can contain the following options:
-    <emphasis role="strong">TODO:</emphasis>
+    To configure Connector create configuration file <code>shongo-connector.cfg.xml</code>.
 </para>
 <para>
     <emphasis role="bold">Example:</emphasis>
     <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-
     ...
-
 </configuration>
-    ]]></screen>
+]]></screen>
 </para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>TODO:</listitem>
+
+</itemizedlist>
 </section>
+
+
 
 <section>
 <title>Web Client</title>
 <para>
-    To configure Web Client create configuration file <code>shongo-client-web.cfg.xml</code>. It can contain the following options:
-    <emphasis role="strong">TODO:</emphasis>
+    To configure Web Client create configuration file <code>shongo-client-web.cfg.xml</code>.
 </para>
 <para>
     <emphasis role="bold">Example:</emphasis>
     <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-
     ...
-
 </configuration>
-    ]]></screen>
+]]></screen>
 </para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>TODO:</listitem>
+
+</itemizedlist>
 </section>
+
+
 
 <section>
 <title>Command-Line Client</title>
 <para>
-    To configure Command-Line Client create configuration file <code>shongo-client-cli.cfg.xml</code>. It can contain the following options:
-    <emphasis role="strong">TODO:</emphasis>
+    To configure Command-Line Client create configuration file <code>shongo-client-cli.cfg.xml</code>.
 </para>
 <para>
     <emphasis role="bold">Example:</emphasis>
     <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-
     ...
-
 </configuration>
-    ]]></screen>
+]]></screen>
 </para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>TODO:</listitem>
+
+</itemizedlist>
 </section>
+
+
 
 </chapter>
 
@@ -400,13 +556,21 @@ the Shongo (e.g., <code>/app/shongo</code>).
 <section>
 <title>Services</title>
 <para>
-    To start/stop/restart all services use:
+    The applications <link linkend="shongo-controller">Controller</link>, <link linkend="shongo-connector">Connector</link> and
+    <link linkend="shongo-client-web">Client Web</link> are installed as services.
+</para>
+<para>
+    To start/stop/restart all installed services use:
     <screen>service shongo [start|stop|restart]</screen>
 
-    To start/stop/restart single services use:
-    <screen>service [shongo-controller|shongo-connector|shongo-client-web] [start|stop|restart]</screen>
+    To start/stop/restart single service use:
+    <screen>
+service shongo-controller [start|stop|restart]
+service shongo-connector [start|stop|restart]
+service shongo-client-web [start|stop|restart]
+    </screen>
 
-    To show status of all services use:
+    To show status of all installed services use:
     <screen>service shongo status</screen>
 
     To show status of single services use:
@@ -415,9 +579,24 @@ the Shongo (e.g., <code>/app/shongo</code>).
 </section>
 
 <section>
-<title>Logging</title>
+<title>Logs</title>
 <para>
-    Blabla
+    Log files from application services can be found in <code>/var/log/shongo/</code> directory. The directory contains
+    a file for each startup of each service.
+</para>
+<para>
+    If you have started a <code>shongo-controller</code> service at 12:30 on 2014-01-01 you can find it's log file here:
+    <screen>/var/log/shongo/shongo-controller_2014-01-01T12:30.log</screen>
+</para>
+</section>
+
+<section>
+<title>Command-Line Client</title>
+<para>
+    TODO: how to start shongo-client-cli
+</para>
+<para>
+    TODO: how to use shongo-client-cli
 </para>
 </section>
 </chapter>
