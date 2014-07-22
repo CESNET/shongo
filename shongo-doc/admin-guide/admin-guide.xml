@@ -94,9 +94,9 @@ Shongo consists of the following applications (modules):
             <para><emphasis role="bold">Java JDK 1.6 (Oracle)</emphasis></para>
             <para>
                 Oracle Java Development Kit is required to build all Shongo applications and
-                Oracle Java Runtime Environment (which is included in JDK) is required to run all Shongo applications
-                (<link linkend="shongo-controller">Controller</link>, <link linkend="shongo-connector">Connector</link>,
-                <link linkend="shongo-client-web">Client Web</link> and <link linkend="shongo-client-cli">Command-Line Client</link>).
+                Oracle Java Runtime Environment (which is included in JDK) is required to run most of the Shongo applications
+                (<link linkend="shongo-controller">Controller</link>, <link linkend="shongo-connector">Connector</link> and
+                <link linkend="shongo-client-web">Client Web</link>).
             </para>
             <para>
                 How to install <code>java</code> on Debian:
@@ -140,6 +140,19 @@ apt-get install oracle-java6-installer
                 <screen>psql --version</screen>
             </para>
         </listitem>
+        <listitem>
+            <para><emphasis role="bold">Perl</emphasis></para>
+            <para>
+                Perl is required only if you want to run <link linkend="shongo-client-cli">Command-Line Client</link>.
+                Other Shongo applications don't require it.
+            </para>
+            <para>
+                How to install <code>perl</code> on Debian:
+                <screen>apt-get install perl</screen>
+                Check that <code>perl</code> is installed:
+                <screen>perl --version</screen>
+            </para>
+        </listitem>
     </itemizedlist>
 </para>
 </section>
@@ -151,7 +164,7 @@ apt-get install oracle-java6-installer
 </para>
 <para>
     Clone the Git repository with the Shongo source code to location
-    where you want have the Shongo installed (e.g., <code>/app/shongo</code>).
+    where you want to have the Shongo installed (e.g., <code>/app/shongo</code>).
     You can clone the source code from the development repository (if you have access to it):
     <screen>git clone &lt;user&gt;@homeproj.cesnet.cz:shongo /app/shongo</screen>
     Or you can clone it from the GitHub:
@@ -160,7 +173,7 @@ apt-get install oracle-java6-installer
     Then go to location with the Shongo source code, checkout version of Shongo which you want to build and build it by Maven.
     <screen>
 cd /app/shongo
-git checkout v0.7.0
+git checkout v0.8.0
 mvn package
     </screen>
 
@@ -209,7 +222,7 @@ git clone https://github.com/shongo/shongo-domain-cesnet.git \
 <para>
     Services can be installed by running the following command <emphasis role="bold">as superuser</emphasis>:
     <screen>shongo-deployment/service/shongo-install.sh &lt;applications&gt;</screen>
-    The command takes one argument <code>&lt;applications&gt;</code> which can be list of Shongo application names
+    The command takes one argument <code>&lt;applications&gt;</code> which is the list of Shongo application names
     separated by spaces which should be installed or it can be leaved empty to install all applications.
 </para>
 <para>
@@ -247,24 +260,133 @@ shongo-deployment/service/shongo-uninstall.sh
 <chapter>
 <title>Configuration</title>
 
+Each Shongo application can be configured by a XML configuration file. When a configuration file is modified the application
+must be restarted to reload the changes. The configuration files must be located inside
+<code>&lt;shongo&gt;/shongo-deployment/</code> directory, where <code>&lt;shongo&gt;</code> is the location where you installed
+the Shongo (e.g., <code>/app/shongo</code>).
+
 <section>
 <title>Controller</title>
 <para>
-    Configuration file <screen>&lt;shongo&gt;/shongo-deployment/shongo-controller.cfg.xml</screen>
+    To configure Controller create configuration file <code>shongo-controller.cfg.xml</code>. It can contain the following options:
+</para>
+<itemizedlist>
+    <listitem>
+        <para><emphasis role="bold">Domain settings</emphasis> (<code>&lt;domain&gt;</code>)</para>
+        <para>
+            The <code>domain/name</code> option specifies unique name of the domain. It will be used in all object identifiers
+            (e.g., domain name <code>meetings.cesnet.cz</code> in identifier of reservation request <code>shongo:meetings.cesnet.cz:req:1</code>).
+        </para>
+        <para>
+            The <code>domain/code</code> options specifies shortcut of domain name and it doesn't have to be unique across domains.
+            It will be used as prefix in email notifications (e.g., domain code <code>meetings</code> in email subject <code>[meetings] Notification ...</code>)
+        </para>
+        <para>
+            The <code>domain/organization</code> option specifies name of the organization who owns the domain.
+        </para>
+        <emphasis role="bold">Example:</emphasis>
+        <screen><![CDATA[
+<domain>
+    <name>meetings.cesnet.cz</name>
+    <code>meetings</code>
+    <organization>CESNET, z.s.p.o.</organization>
+</domain>
+        ]]></screen>
+    </listitem>
+</itemizedlist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <domain>
+        <name>meetings.cesnet.cz</name>
+        <code>meetings</code>
+        <organization>CESNET, z.s.p.o.</organization>
+    </domain>
+
+    <database>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://127.0.0.1/shongo</url>
+        <username>shongo</username>
+        <password>(password)</password>
+    </database>
+
+    <security>
+        <server>https://shongo-auth.cesnet.cz</server>
+        <client-secret>(secret)</client-secret>
+    </security>
+
+    <administrator>martin.srom@cesnet.cz</administrator>
+
+    <smtp>
+        <sender>shongo@gmail.com</sender>
+        <host>smtp.gmail.com</host>
+        <port>465</port>
+        <username>shongo@gmail.com</username>
+        <password>(password)</password>
+    </smtp>
+
+</configuration>
+    ]]></screen>
 </para>
 </section>
 
 <section>
 <title>Connector</title>
 <para>
-    Configuration file <screen>&lt;shongo&gt;/shongo-deployment/shongo-connector.cfg.xml</screen>
+    To configure Connector create configuration file <code>shongo-connector.cfg.xml</code>. It can contain the following options:
+    <emphasis role="strong">TODO:</emphasis>
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    ...
+
+</configuration>
+    ]]></screen>
 </para>
 </section>
 
 <section>
-<title>Web interface</title>
+<title>Web Client</title>
 <para>
-    Configuration file <screen>&lt;shongo&gt;/shongo-deployment/shongo-client-web.cfg.xml</screen>
+    To configure Web Client create configuration file <code>shongo-client-web.cfg.xml</code>. It can contain the following options:
+    <emphasis role="strong">TODO:</emphasis>
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    ...
+
+</configuration>
+    ]]></screen>
+</para>
+</section>
+
+<section>
+<title>Command-Line Client</title>
+<para>
+    To configure Command-Line Client create configuration file <code>shongo-client-cli.cfg.xml</code>. It can contain the following options:
+    <emphasis role="strong">TODO:</emphasis>
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    ...
+
+</configuration>
+    ]]></screen>
 </para>
 </section>
 
