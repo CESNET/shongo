@@ -238,6 +238,7 @@
                     <tag:param name="reservationRequestId" value="${objectId}"/>
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
                 </tag:url>
+                <%-- TODO:ROOM_RECORDED_HIDDEN
                 <tag:url var="reservationRequestModifyRecordedUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_RECORDED %>">
                     <tag:param name="reservationRequestId" value="${objectId}"/>
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
@@ -248,6 +249,7 @@
                         <spring:message code="views.detail.action.modifyRecorded"/>
                     </a>
                 </div>
+                --%>
                 <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted">
                     <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
                     <a class="btn btn-default" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">

@@ -1,3 +1,11 @@
+0.8.0 (2014-07-22)
+
+    * New system role - operator.
+
+    * Resource capacity utilization view for resource administrators and operators.
+
+    * Bug fixes.
+
 0.7.0 (2014-05-13)
 
     * Management of Adobe Connect and MCU recordings.

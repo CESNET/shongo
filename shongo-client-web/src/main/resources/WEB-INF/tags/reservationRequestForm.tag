@@ -657,6 +657,7 @@
         </div>
     </div>
 
+    <%-- TODO:ROOM_RECORDED_HIDDEN
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
@@ -712,6 +713,7 @@
             </div>
         </c:if>
     </c:if>
+    --%>
 
     <jsp:doBody var="content"/>
 
