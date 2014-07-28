@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<chapter>
+<title>Modules</title>
+<para>
+
+Shongo consists of the following applications (modules):
+<itemizedlist>
+<listitem id="shongo-controller">
+<para><emphasis role="bold">Controller</emphasis></para>
+<para>
+    Controller (<code>shongo-controller</code>) is main backend application in Shongo.
+    In each domain you must run exactly one Controller.
+    Controller uses Java to run and PostgreSQL to store data.
+</para>
+</listitem>
+<listitem id="shongo-connector">
+<para><emphasis role="bold">Connector</emphasis></para>
+<para>
+    Connector (<code>shongo-connector</code>) is application to control one or several devices
+    (e.g., Cisco MCU or Adobe Connect server).
+    In each domain you can run several Connectors and each of them can control several devices.
+</para>
+<para>
+    Connector uses Java to run and JADE middleware to communicate with Controller.
+</para>
+</listitem>
+<listitem id="shongo-client-web">
+<para><emphasis role="bold">Web Client</emphasis></para>
+<para>
+    Web Client (<code>shongo-client-web</code>) is a web application which can be used by users to use Shongo.
+</para>
+<para>
+    Web Client uses Java to run and XML-RPC to communicate with Controller.
+    Web Client can run under Apache proxy.
+</para>
+</listitem>
+<listitem  id="shongo-client-cli">
+<para><emphasis role="bold">Command-Line Client</emphasis></para>
+<para>
+    Command-Line Client (<code>shongo-client-cli</code>) is a console application which can be used
+    by administrators to manage Controller.
+</para>
+<para>
+    Command-Line Client uses Perl to run and XML-RPC to communicate with Controller.
+</para>
+</listitem>
+</itemizedlist>
+
+</para>
+</chapter>
+

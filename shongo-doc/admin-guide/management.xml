@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<chapter>
+<title>Management</title>
+
+<section>
+<title>Services</title>
+<para>
+    The applications <link linkend="shongo-controller">Controller</link>, <link linkend="shongo-connector">Connector</link> and
+    <link linkend="shongo-client-web">Client Web</link> are installed as services.
+</para>
+<para>
+    To start/stop/restart all installed services use:
+    <screen>service shongo [start|stop|restart]</screen>
+
+    To start/stop/restart single service use:
+    <screen>
+service shongo-controller [start|stop|restart]
+service shongo-connector [start|stop|restart]
+service shongo-client-web [start|stop|restart]
+    </screen>
+
+    To show status of all installed services use:
+    <screen>service shongo status</screen>
+
+    To show status of single services use:
+    <screen>service [shongo-controller|shongo-connector|shongo-client-web] status</screen>
+</para>
+</section>
+
+<section>
+<title>Logs</title>
+<para>
+    Log files from application services can be found in <code>/var/log/shongo/</code> directory. The directory contains
+    a file for each startup of each service.
+</para>
+<para>
+    If you have started a <code>shongo-controller</code> service at 12:30 on 2014-01-01 you can find it's log file here:
+    <screen>/var/log/shongo/shongo-controller_2014-01-01T12:30.log</screen>
+</para>
+</section>
+
+<section>
+<title>Command-Line Client</title>
+<para>
+    TODO: how to start shongo-client-cli
+</para>
+<para>
+    TODO: how to use shongo-client-cli
+</para>
+</section>
+</chapter>
+

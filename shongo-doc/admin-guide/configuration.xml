@@ -1,0 +1,949 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<chapter>
+<title>Configuration</title>
+
+Each Shongo application can be configured by a XML configuration file. When a configuration file is modified the application
+must be restarted to reload the changes. The configuration files must be located inside
+<code>&lt;shongo&gt;/shongo-deployment/</code> directory, where <code>&lt;shongo&gt;</code> is the location where you installed
+the Shongo (e.g., <code>/app/shongo</code>).
+
+
+<section>
+<title>Controller</title>
+<para>
+    To configure Controller create configuration file <code>shongo-controller.cfg.xml</code>.
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+]]></screen>
+</para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>
+<para><emphasis role="bold">Domain settings</emphasis></para>
+<para>Configuration of domain. Each controller runs it's own domain.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>domain/name</code></term>
+        <listitem><para>
+            Specifies unique name of the domain (across all domains). It will be used in all object identifiers
+            (e.g., domain name <code>meetings.cesnet.cz</code> will be used in identifier of a reservation request <code>shongo:meetings.cesnet.cz:req:1</code>).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>domain/code</code></term>
+        <listitem><para>
+            Specifies shortcut of domain name and it doesn't have to be unique across domains.
+            It will be used as prefix in email notifications (e.g., domain code <code>meetings</code> in email subject <code>[meetings] Notification ...</code>)
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>domain/organization</code></term>
+        <listitem><para>
+            Specifies name of the organization who owns the domain.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<domain>
+    <name>meetings.cesnet.cz</name>
+    <code>meetings</code>
+    <organization>CESNET, z.s.p.o.</organization>
+</domain>
+        ]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Database settings</emphasis></para>
+<para>Configuration of connection to database.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>database/driver</code></term>
+        <listitem><para>
+            Specifies name of Java class which implements the JDBC database driver.
+            Currently the only valid value is <code>org.postgresql.Driver</code>.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>database/url</code></term>
+        <listitem><para>
+            Specifies connection string to database. The valid format is <code>jdbc:&lt;system&gt;:/&lt;host&gt;(:&lt;port&gt;)//&lt;database&gt;</code> where the <code>&lt;system&gt;</code> is name of database system (it shall be <code>postgresql</code>), the <code>&lt;host&gt;</code> and <code>&lt;port&gt;</code> are address of server and port number at which the database system is running and <code>&lt;database&gt;</code> is a name of database to use.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>database/username</code></term>
+        <listitem><para>
+            Specifies username which should be used when connecting to database.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>database/password</code></term>
+        <listitem><para>
+            Specifies password which should be used when connecting to database.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<database>
+    <driver>org.postgresql.Driver</driver>
+    <url>jdbc:postgresql://127.0.0.1/shongo</url>
+    <username>shongo</username>
+    <password>(password)</password>
+</database>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Security settings</emphasis></para>
+<para>Configuration of authentication and authorization.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>security/server</code></term>
+        <listitem><para>
+            Url to deployment of shongo authentication and authorization server where <code>&lt;url&gt;/authn/</code> and <code>&lt;url&gt;/perun/</code> endpoints are available (see AA documentation here <ulink url="https://github.com/shongo/shongo-auth-utils"><citetitle>https://github.com/shongo/shongo-auth-utils</citetitle></ulink>).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>security/client-id</code></term>
+        <listitem><para>
+            Client identifier assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>security/client-secret</code></term>
+        <listitem><para>
+            Client secret assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/authorization/administrator</code></term>
+        <listitem><para>
+            <link linkend="authorization-expression">Authorization expression</link> for decision whether an user is system administrator (administrator can switch on the administration mode and see and modify all resources and reservations). If not set, the default expression <code>group("admins").contains(id)</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/authorization/operator</code></term>
+        <listitem><para>
+            <link linkend="authorization-expression">Authorization expression</link> for decision whether an user is system operator (operator can switch on the administration mode and see all resources and reservations). If not set, the default expression <code>group("operators").contains(id)</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/authorization/reservation</code></term>
+        <listitem><para>
+            <link linkend="authorization-expression">Authorization expression</link> for decision whether an user can create new reservation requests (users without permission to create new reservation requests can only see what other users share with them). If not set, the default expression <code>loa >= 2 || group("reservation").contains(id)</code> is used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<security>
+    <server>https://shongo-auth.cesnet.cz</server>
+    <client-id>meetings.cesnet.cz</client-id>
+    <client-secret>(secret)</client-secret>
+    <authorization>
+        <administrator>group("admins").contains(id)</administrator>
+        <operator>group("operators").contains(id)</operator>
+        <reservation>loa >= 2 || group("reservation").contains(id)</reservation>
+    </authorization>
+</security>
+]]></screen>
+</para>
+<para id="authorization-expression"><emphasis role="bold">Authorization Expressions</emphasis></para>
+<para>
+    Authorization expression is a short code in scripting language which must evaluate to <code>true</code> or <code>false</code> and the result stands for whether an user has or doesn't have a role or permission. In authorization expressions you can use the following statements:
+<itemizedlist>
+<listitem><code>id</code> - user-id</listitem>
+<listitem><code>loa</code> - level of user authenticity</listitem>
+<listitem><code>group("group-name").contains(id)</code> - evaluates to <code>true</code> when user is a member of group with given <code>group-name</code> and to <code>false</code> when he isn't.</listitem>
+</itemizedlist>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Administrator settings</emphasis></para>
+<para>Configuration of administrator email addresses where system errors will be send. System errors are unhandled exceptions and all other uncommon events. The notifications about reservations won't be sent to these email adresses.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>administrator</code></term>
+        <listitem><para>
+            Specifies one system administrator email address to receive system errors. If no option is set, no system errors will be reported by email and you must watch the application log files.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<administrator>martin.srom@cesnet.cz</administrator>
+<administrator>pavelka@cesnet.cz</administrator>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Worker settings</emphasis></para>
+<para>Worker settings can be used to specify how often the reservation scheduling should be performed. Scheduling loads reservation requests created by users and allocates reservations for them.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>worker/period</code></term>
+        <listitem><para>
+            Specifies how often the scheduling is performed. The allowed values are IS08601 durations. If not set, the default value <code>PT5S</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>worker/lookahead</code></term>
+        <listitem><para>
+            Specifies how far you want to schedule in future. The value <code>P7D</code> means that Scheduler will allocate only reservations a week ahead. If you create a request for reservation which takes place after 14 days from now, you will have to wait 7 days for the scheduler to allocate it. The allowed values are IS08601 durations. If not set, the default value <code>P31D</code> is used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<worker>
+    <period>PT5S</period>
+    <lookahead>P31D</lookahead>
+</worker>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Executor settings</emphasis></para>
+<para>Executor settings can be used to specify how the creation of virtual rooms will work.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>executor/period</code></term>
+        <listitem><para>
+            Specifies how often the execution is performed (i.e., how often the Controller database should be checked for executables to start/update/stop). The allowed values are IS08601 durations. If not set, the default value <code>PT15S</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>executor/executable/start</code></term>
+        <listitem><para>
+            Specifies how the starting date/time of virtual room should be modified. If you want to start the virtual room 30 seconds in advance before user specified date/time you should use <code>PT-30S</code> value. The allowed values are IS08601 durations. If not set, the default value <code>PT-30S</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>executor/executable/stop</code></term>
+        <listitem><para>
+            Specifies how the stopping date/time of virtual room should be modified. If you want to stop the virtual room 30 seconds in advance before user specified date/time you should use <code>PT-30S</code> value. The allowed values are IS08601 durations. If not set, the default value <code>PT-30S</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>executor/executable/next-attempt</code></term>
+        <listitem><para>
+            Specifies a duration to wait until next attempt of a failed execution action can take place (e.g., if a virtual room cannot be created because request to device timed out, this value specifies the duration to wait until next attempt will take place). The allowed values are IS08601 durations. If not set, the default value <code>PT2M</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>executor/executable/max-attempt-count</code></term>
+        <listitem><para>
+            Specifies the maximum number of starting/stopping attempts which should be tried before giving up. If not set, the default value <code>15</code> is used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<executor>
+    <period>PT15S</period>
+    <executable>
+        <start>PT-30S</start>
+        <end>PT-30S</end>
+        <next-attempt>PT2M</next-attempt>
+        <max-attempt-count>15</max-attempt-count>
+    </executable>
+</executor>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Reservation settings</emphasis></para>
+<para>Reservation settings can be used to restrict the creation of new reservations.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>reservation/room/max-duration</code></term>
+        <listitem><para>
+            Specifies maximum duration of booked virtual room (e.g., adhoc-room or permanent room capacity). It does not restricts the duration of permanent rooms. If not set the default <code>P1W</code> maximum duration is used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<reservation>
+    <room>        
+        <max-duration>P1W</max-duration>
+    </room>
+</reservation>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Email notification settings</emphasis></para>
+<para>Email notifications can contain links to reservation requests and configuration of user preferences (e.g., language or timezone). Email notifications are sent by the Controller and to let the Controller know where the a web interface is located you must use the following options.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>notification/reservation-request-url</code></term>
+        <listitem><para>
+            Specifies URL to be used in email notifications at which a reservation request can be viewed in a web browser. You should use a special variable <code>${reservationRequestId}</code> as placeholder for identifier of reservation request. If not set, the URLs to reservation requests won't be used in email notifications.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>notification/user-settings-url</code></term>
+        <listitem><para>
+            Specifies URL to be used in email notifications at which user can change his preferences (e.g., language or timezone). If not set, the URLs to user preferences won't be used in email notifications.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<notification>
+    <reservation-request-url>
+        https://meetings.cesnet.cz/detail/${reservationRequestId}
+    </reservation-request-url>
+    <user-settings-url>
+        https://meetings.cesnet.cz/user/settings
+    </user-settings-url>
+</notification>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SMTP settings</emphasis></para>
+<para>Configuration of SMTP for sending email notifications. If not configured, no emails will be sent.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/sender</code></term>
+        <listitem><para>
+            Email address to be used as sender in all email notifications.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/host</code></term>
+        <listitem><para>
+            Address of SMTP server. 
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/port</code></term>
+        <listitem><para>
+            Port number of SMTP server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/username</code></term>
+        <listitem><para>
+            Username for authenticated SMTP server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/password</code></term>
+        <listitem><para>
+            Password for authenticated SMTP server.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<smtp>
+    <sender>shongo@gmail.com</sender>
+    <host>smtp.gmail.com</host>
+    <port>465</port>
+    <username>shongo@gmail.com</username>
+    <password>(password)</password>
+</smtp>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">RPC and JADE settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>rpc/host</code></term>
+        <listitem><para>
+            Specifies on which host should the RPC listen.
+            If not set, the RPC will listen on all hosts.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rpc/port</code></term>
+        <listitem><para>
+            Specifies port on which the RPC will listen.
+            If not set, the default port 8181 will be used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rpc/ssl-key-store</code></term>
+        <listitem><para>
+            Specifies filename of Java KeyStore (JKS) with SSL certificate to use for secured XML-RPC. If not set the SSL is not used for XML-RPC.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rpc/ssl-key-store-password</code></term>
+        <listitem><para>
+            Specifies password for JKS.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/host</code></term>
+        <listitem><para>
+            Specifies on which host should the JADE middleware listen.
+            If not set, the JADE middleware will listen on 127.0.0.1.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/port</code></term>
+        <listitem><para>
+            Specifies port on which the JADE middleware will listen.
+            If not set, the default port 8282 will be used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/agent-name</code></term>
+        <listitem><para>
+            Specifies JADE middleware agent name for Controller.
+            If not set the default <code>Controller</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/platform-id</code></term>
+        <listitem><para>
+            Specifies JADE middleware platform identifier.
+            If not set the default <code>Shongo</code> is used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<rpc>
+    <host>127.0.0.1</host>
+    <port>8181</port>
+</rpc>
+<jade>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+    <agent-name>Controller</agent-name>
+    <platform-id>Shongo</platform-id>
+</jade>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SSL settings</emphasis></para>
+<para>SSL settings can be used to turn off or alter hostname verification for specified hostnames.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/trusted-hostname</code></term>
+        <listitem><para>
+            Specifies hostname which should not be verified.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/mapped-hostname</code></term>
+        <listitem><para>
+            Specifies mapping from <code>source</code> hostname to <code>target</code> hostname for hostname verification.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<ssl>
+    <mapped-hostname source="shongo-auth-dev.cesnet.cz" target="hroch.cesnet.cz"/>
+    <trusted-hostname>shongo-auth.cesnet.cz</trusted-hostname>
+</ssl>
+]]></screen>
+</para>
+</listitem>
+
+</itemizedlist>
+
+<beginpage/>
+<para>Here is minimal example of <code>shongo-controller.cfg.xml</code></para>
+<screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <domain>
+        <name>meetings.cesnet.cz</name>
+        <code>meetings</code>
+        <organization>CESNET, z.s.p.o.</organization>
+    </domain>
+
+    <database>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://127.0.0.1/shongo</url>
+        <username>shongo</username>
+        <password>(password)</password>
+    </database>
+
+    <security>
+        <server>https://shongo-auth.cesnet.cz</server>
+        <client-id>meetings.cesnet.cz</client-id>
+        <client-secret>(secret)</client-secret>
+    </security>
+
+    <notification>
+        <reservation-request-url>
+            https://meetings.cesnet.cz/detail/${reservationRequestId}
+        </reservation-request-url>
+        <user-settings-url>
+            https://meetings.cesnet.cz/user/settings
+        </user-settings-url>
+    </notification>
+
+    <administrator>srom@cesnet.cz</administrator>
+    <administrator>pavelka@cesnet.cz</administrator>
+
+    <rpc>
+        <ssl-key-store>keystore/server.keystore</ssl-key-store>
+        <ssl-key-store-password>(password)</ssl-key-store-password>
+    </rpc>
+
+    <smtp>
+        <sender>no-reply@meetings.cesnet.cz</sender>
+        <host>rs.cesnet.cz</host>
+    </smtp>
+
+    <ssl>
+        <mapped-hostname source="shongo-auth-dev.cesnet.cz" target="hroch.cesnet.cz"/>
+    </ssl>
+
+</configuration>
+]]></screen>
+</section>
+
+
+<beginpage/>
+<section>
+<title>Connector</title>
+<para>
+    To configure Connector create configuration file <code>shongo-connector.cfg.xml</code>.
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+]]></screen>
+</para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>
+<para><emphasis role="bold">Configuration of connector agents</emphasis></para>
+<para>Allows you to configure agents to control device resources.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>connectors/connector</code></term>
+        <listitem><para>
+            Specifies an agent for controlling one device resource.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<connectors>
+
+    <connector>
+        <name>agent1</name>
+        <class>(DeviceResourceClass)</class>
+        ...
+    </connector>
+
+    <connector>
+        <name>agent2</name>
+        <class>(DeviceResourceClass)</class>
+        ...
+    </connector>
+
+</connectors>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Controller and JADE settings</emphasis></para>
+<para>Configuration of JADE middleware between Connector and Controller.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>controller/host</code></term>
+        <listitem><para>
+            Specifies on which host the Controller is running.
+            If not set, the JADE middleware will try to connect to 127.0.0.1.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>controller/port</code></term>
+        <listitem><para>
+            Specifies on which port number the Controller is running.
+            If not set, the JADE middleware will try to connect to 8282.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>controller/connection-check-period</code></term>
+        <listitem><para>
+            Specifies duration between connection attempts to Controller (when Connector gets disconnected). The allowed values are IS08601 durations. If not set the default value <code>PT10S</code> is used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/host</code></term>
+        <listitem><para>
+            Specifies on which host should the JADE middleware listen.
+            If not set, the JADE middleware will listen on 127.0.0.1.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>jade/port</code></term>
+        <listitem><para>
+            Specifies port on which the JADE middleware will listen.
+            If not set, the default port 8383 will be used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<controller>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+    <connection-check-period>PT10S</connection-check-period>
+</controller>
+
+<jade>
+    <host>127.0.0.1</host>
+    <port>8383</port>
+</jade>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SSL settings</emphasis></para>
+<para>SSL settings can be used to turn off or alter hostname verification for specified hostnames.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/trusted-hostname</code></term>
+        <listitem><para>
+            Specifies hostname which should not be verified.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/mapped-hostname</code></term>
+        <listitem><para>
+            Specifies mapping from <code>source</code> hostname to <code>target</code> hostname for hostname verification.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<ssl>
+    <mapped-hostname source="shongo-auth-dev.cesnet.cz" target="hroch.cesnet.cz"/>
+    <trusted-hostname>shongo-auth.cesnet.cz</trusted-hostname>
+</ssl>
+]]></screen>
+</para>
+</listitem>
+
+</itemizedlist>
+
+
+<beginpage/>
+<sect2>
+<title>Configuration of Adobe Connect connector</title>
+<para>Configuration of connector agent for Adobe Connect server.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>class</code></term>
+        <listitem><para>
+            The value must be <code>AdobeConnectConnector</code>.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>TODO: the rest of options</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<connector>
+    <name>connect</name>
+    <class>AdobeConnectConnector</class>
+    <host>connect.cesnet.cz</host>
+    <port>443</port>
+    <auth>
+        <username>admin</username>
+        <password>(password)</password>
+    </auth>
+    <options>
+        <timeout>PT10S</timeout>
+        <capacity-check-period>PT5M</capacity-check-period>
+        <url-path-extraction-from-uri>
+            connect\.cesnet\.cz/(.+)$
+        </url-path-extraction-from-uri>
+        <recordings-folder-name>shongo-rec</recordings-folder-name>
+        <meetings-folder-name>shongo</meetings-folder-name>
+        <recordings-check-period>PT5M</recordings-check-period>
+        <recordings-prefix>rec_</recordings-prefix>
+    </options>
+</connector>
+]]></screen>
+</para>
+</sect2>
+
+
+<beginpage/>
+<sect2>
+<title>Configuration of Cisco MCU connector</title>
+<para>Configuration of connector agent for Cisco MCU device.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>class</code></term>
+        <listitem><para>
+            The value must be <code>CiscoMCUConnector</code>.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>TODO: the rest of options</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<connector>
+    <name>mcu</name>
+    <class>CiscoMCUConnector</class>
+    <host>mcuc.cesnet.cz</host>
+    <port>443</port>
+    <auth>
+        <username>admin</username>
+        <password>(password)</password>
+    </auth>
+    <options>
+        <timeout>PT10S</timeout>
+        <room-number-extraction-from-h323-number>
+            (\d{3})$
+        </room-number-extraction-from-h323-number>
+        <room-number-extraction-from-sip-uri>
+            ^[+\d]*(\d{3})@
+        </room-number-extraction-from-sip-uri>
+        <participants>
+            <participant>
+                <address>950084999</address>
+                <hide>true</hide>
+            </participant>
+        </participants>
+    </options>
+</connector>
+]]></screen>
+</para>
+</sect2>
+
+
+<beginpage/>
+<sect2>
+<title>Configuration of Cisco TCS connector</title>
+<para>Configuration of connector agent for Cisco TCS device.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>class</code></term>
+        <listitem><para>
+            The value must be <code>CiscoTCSConnector</code>.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>TODO: the rest of options</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<connector>
+    <name>tcs</name>
+    <class>CiscoTCSConnector</class>
+    <host>rec1.cesnet.cz</host>
+    <port>443</port>
+    <auth>
+        <username>admin</username>
+        <password>(password)</password>
+    </auth>
+    <options>
+        <default-bitrate>768</default-bitrate>
+        <alias>999</alias>
+        <storage>/media/meetings/storage</storage>
+        <storage-permission>Require user ${userPrincipalName}</storage-permission>
+        <metadata-storage>/media/shongo-dev/metadata</metadata-storage>
+        <downloadable-url-base>https://meetings.cesnet.cz/tcs/</downloadable-url-base>
+        <check-recordings-period>PT5M</check-recordings-period>
+        <recordings-prefix>rec_</recordings-prefix>
+    </options>
+</connector>
+]]></screen>
+</para>
+</sect2>
+
+
+<beginpage/>
+<para>Here is minimal example of <code>shongo-connector.cfg.xml</code></para>
+<screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    TODO:
+
+</configuration>
+]]></screen>
+
+
+</section>
+
+
+
+
+<beginpage/>
+<section>
+<title>Web Client</title>
+<para>
+    To configure Web Client create configuration file <code>shongo-client-web.cfg.xml</code>.
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+]]></screen>
+</para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>TODO:</listitem>
+
+</itemizedlist>
+
+
+<beginpage/>
+<para>Here is minimal example of <code>shongo-client-web.cfg.xml</code></para>
+<screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    TODO:
+
+</configuration>
+]]></screen>
+
+</section>
+
+
+<beginpage/>
+<section>
+<title>Command-Line Client</title>
+<para>
+    To configure Command-Line Client create configuration file <code>shongo-client-cli.cfg.xml</code>.
+</para>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+]]></screen>
+</para>
+<para>It can contain the following options:</para>
+<itemizedlist>
+
+<listitem>
+<para><emphasis role="bold">Security settings</emphasis></para>
+<para>Configuration of user authentication. Only needed if you want to authenticate regular user in Command-Line Client which is not common use case. If plan to use Commnad-Line client only with Shongo root user you don't have to fill these options.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>security/server</code></term>
+        <listitem><para>
+            Url to deployment of shongo authentication and authorization server where <code>&lt;url&gt;/authn/</code> and <code>&lt;url&gt;/perun/</code> endpoints are available (see AA documentation here <ulink url="https://github.com/shongo/shongo-auth-utils"><citetitle>https://github.com/shongo/shongo-auth-utils</citetitle></ulink>).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/client-id</code></term>
+        <listitem><para>
+            Client identifier assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/redirect-uri</code></term>
+        <listitem><para>
+            Client redirect URI assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/client-secret</code></term>
+        <listitem><para>
+            Client secret assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<security>
+    <server>https://shongo-auth.cesnet.cz</server>
+    <client-id>client-cli</client-id>
+    <redirect-uri>127.0.0.1</redirect-uri>
+    <client-secret>(secret)</client-secret>
+</security>
+]]></screen>
+</para>
+</listitem>
+
+</itemizedlist>
+
+
+<beginpage/>
+<para>Here is minimal example of <code>shongo-client-cli.cfg.xml</code></para>
+<screen><![CDATA[
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <security>
+        <server>https://shongo-auth.cesnet.cz</server>
+        <client-id>client-cli</client-id>
+        <redirect-uri>127.0.0.1</redirect-uri>
+        <client-secret>(secret)</client-secret>
+    </security>
+
+</configuration>
+]]></screen>
+
+</section>
+
+
+
+</chapter>
+
