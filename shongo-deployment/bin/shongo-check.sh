@@ -31,14 +31,13 @@ function check_connector
         echo $RESULT
         exit 2
     fi
-    RESULT=$(echo $RESULT | sed -s 's/}, {/\n/g' | sed -s 's/^.\+"status" : "\([^"]\+\)".\+"agent" : "\([^"]\+\)".\+$/\2=\1/')
     AGENTS_NOT_EXIST=""
     AGENTS_NOT_AVAILABLE=""
     AGENTS_AVAILABLE=""
     for AGENT in $AGENTS
     do
-        if echo $RESULT | grep "$AGENT" > /dev/null; then
-            STATUS=$(echo $RESULT | sed "s/^.*$AGENT=\([^ ]\+\).\+\$/\1/g")
+        if echo $RESULT | sed -s 's/}, {/\n/g' | grep "\"agent\" : \"$AGENT\"" > /dev/null; then
+            STATUS=$(echo $RESULT | sed -s 's/}, {/\n/g' | grep "\"agent\" : \"$AGENT\""  | sed 's/^.*"status" : "\([^"]\+\)".*$/\1/g')
             if [ "$STATUS" = "AVAILABLE" ]; then
                 if [ -n "$AGENTS_AVAILABLE" ]; then
                     AGENTS_AVAILABLE="$AGENTS_AVAILABLE, "
