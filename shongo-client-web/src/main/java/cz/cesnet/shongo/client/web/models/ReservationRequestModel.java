@@ -846,7 +846,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             case MEETING_ROOM: {
                 //TODO:MR
                 if (meetingResourceId == null) {
-                    throw new TodoImplementException("TODO:MR");
+                    throw new TodoImplementException("TODO:MR - ZAPNI ADMIN MOD");
                 }
                 specification = new ResourceSpecification(meetingResourceId);
                 break;

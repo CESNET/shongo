@@ -1,25 +1,20 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.api.Resource;
-import cz.cesnet.shongo.controller.api.ResourceAllocation;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import org.joda.time.Interval;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface to the service handling operations on resources.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public interface ResourceService extends Service
-{
+public interface ResourceService extends Service {
     /**
      * Creates a new resource that will be managed by Shongo.
      * <p/>
@@ -86,4 +81,26 @@ public interface ResourceService extends Service
      */
     @API
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval);
+
+    @API
+    public String createTag(SecurityToken token, Tag tag);
+
+    @API
+    public List<Tag> listTags(TagListRequest request);
+
+    @API
+    public Tag getTag(SecurityToken token, String tagId);
+
+    @API
+    public void modifyTag(SecurityToken token, Tag tag);
+
+    @API
+    public void deleteTag(SecurityToken token, String tagId);
+
+    @API
+    public void assignResourceTag(SecurityToken token, String resourceId, String tagId);
+
+    @API
+    public void removeResourceTag(SecurityToken token, String resourceId, String tagId);
+
 }

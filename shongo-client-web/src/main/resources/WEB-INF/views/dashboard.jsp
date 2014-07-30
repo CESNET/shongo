@@ -9,6 +9,8 @@
 
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
+<tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
+
 <script type="text/javascript">
     var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2']);
     module.controller("TabController", function($scope, $element) {
@@ -93,6 +95,11 @@
                     </tag:url>
                     <a href="${createRoomUrl}" tabindex="1">
                         <spring:message code="views.index.action.createRoom"/>
+                    </a>
+                </li>
+                <li>
+                    <a href="${createMeetingRoomUrl}" tabindex="1">
+                        <spring:message code="views.index.action.bookMeetingRoom"/>
                     </a>
                 </li>
             </ul>

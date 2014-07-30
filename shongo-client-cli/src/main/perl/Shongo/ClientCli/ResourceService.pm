@@ -98,6 +98,58 @@ sub populate()
                 }
             }
         },
+        'list-tags' => {
+            desc => 'List tags',
+            options => 'resource=s',
+            args => '[-resource=<resource-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_tags($params->{'options'});
+            },
+        },
+        'create-tag' => {
+            desc => 'Create a new tag',
+            args => '[<json_attributes>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    create_tag($attributes, $params->{'options'});
+                }
+            },
+        },
+        'delete-tag' => {
+            desc => 'Delete an existing tag',
+            args => '[id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $id (split(/,/, $args[0])) {
+                        delete_tag($id);
+                    }
+                } else {
+                    delete_tag();
+                }
+            },
+        },
+        'assign-tag' => {
+            desc => 'Assign tag to resource',
+            options => 'resource=s tag=s',
+            args => '[<resource-id>] [<tag-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                assign_resource_tag(@args);
+            },
+        },
+        'remove-tag' => {
+            desc => 'Remove tag from resource',
+            options => 'resource=s tag=s',
+            args => '[<resource-id>] [<tag-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                remove_resource_tag(@args);
+            },
+        },
     });
 }
 
@@ -310,6 +362,120 @@ sub get_resource_allocation()
         printf(" %s\n", colored(uc("Reservations:"), $Shongo::ClientCli::API::Object::COLOR_HEADER));
     }
     console_print_table($table, 1);
+}
+
+sub create_tag()
+{
+    my ($attributes, $options) = @_;
+
+    $options->{'on_confirm'} = sub {
+        my ($resource) = @_;
+        console_print_info("Creating tag...");
+        my $response = Shongo::ClientCli->instance()->secure_request(
+            'Resource.createTag',
+            $resource->to_xml()
+        );
+        if ( defined($response) ) {
+            return $response;
+        }
+        return undef;
+    };
+
+    my $tag = Shongo::ClientCli::API::Object->new();
+
+    $tag->set_object_class('Tag');
+    $tag->set_object_name('Tag');
+    $tag->add_attribute(
+        'id', {
+            'title' => 'Identifier',
+            'editable' => 0
+        }
+    );
+    $tag->add_attribute(
+        'name', {
+            'required' => 1,
+            'title' => 'Tag name',
+        }
+    );
+
+    my $id = $tag->create($attributes, $options);
+    if ( defined($id) ) {
+        console_print_info("Tag '%s' successfully created.", $id);
+    }
+}
+
+sub delete_tag()
+{
+    my ($id) = @_;
+    $id = select_resource($id);
+    if ( !defined($id) ) {
+        return;
+    }
+    Shongo::ClientCli->instance()->secure_request(
+        'Resource.deleteTag',
+        RPC::XML::string->new($id)
+    );
+}
+
+sub list_tags()
+{
+    my ($options) = @_;
+    my $filter = {};
+    if ( defined($options->{'resource'}) ) {
+        $filter->{'resourceId'} = $options->{'resource'};
+    }
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_hash_request('Resource.listTags', $filter);
+    if ( !defined($response) ) {
+        return
+    }
+
+    my $table = {
+        'columns' => [
+            {'field' => 'id',           'title' => 'Identifier'},
+            {'field' => 'name',         'title' => 'Name'},
+        ],
+        'data' => []
+    };
+    foreach my $resource (@{$response}) {
+        push(@{$table->{'data'}}, {
+            'id' => $resource->{'id'},
+            'name' => $resource->{'name'},
+        });
+    }
+    console_print_table($table);
+}
+
+sub assign_resource_tag()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<resource-id> <tag-id>' must be specified.");
+        return;
+    }
+    my $resource_id = $args[0];
+    my $tag_id = $args[1];
+    Shongo::ClientCli->instance()->secure_request(
+        'Resource.assignResourceTag',
+        RPC::XML::string->new($resource_id),
+        RPC::XML::string->new($tag_id),
+    );
+}
+
+sub remove_resource_tag()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<resource-id> <tag-id>' must be specified.");
+        return;
+    }
+    my $resource_id = $args[0];
+    my $tag_id = $args[1];
+    Shongo::ClientCli->instance()->secure_request(
+        'Resource.removeResourceTag',
+        RPC::XML::string->new($resource_id),
+        RPC::XML::string->new($tag_id),
+    );
 }
 
 1;

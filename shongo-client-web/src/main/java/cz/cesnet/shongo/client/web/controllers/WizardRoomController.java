@@ -88,7 +88,9 @@ public class WizardRoomController extends WizardParticipantsController
         if (reservationRequest != null && reservationRequest instanceof ReservationRequestModificationModel) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.room.modify"));
         }
-        else {
+        else if (reservationRequest != null && SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.meetingRoom.book"));
+        } else {
             wizardView.addPage(new WizardPage(Page.SELECT, ClientWebUrl.WIZARD_ROOM,
                     "views.wizard.page.room.create"));
         }
@@ -190,7 +192,7 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * Change new room to meeting type and show form for editing room attributes.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_MEETING, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.GET)
     public String handleMeetingRoom(SecurityToken securityToken, UserSession userSession)
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
@@ -208,7 +210,7 @@ public class WizardRoomController extends WizardParticipantsController
             }
         }
         reservationRequest.setMeetingResourceId(resorceId);
-        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -232,7 +234,7 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * Modify existing virtual room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_MODIFY, method = RequestMethod.GET)
+    @RequestMapping(value = {ClientWebUrl.WIZARD_ROOM_MODIFY, ClientWebUrl.WIZARD_MEETING_ROOM_MODIFY}, method = RequestMethod.GET)
     public String handleRoomModify(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
@@ -250,7 +252,7 @@ public class WizardRoomController extends WizardParticipantsController
      *
      * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, method = RequestMethod.GET)
+    @RequestMapping(value = {ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES}, method = RequestMethod.GET)
     public ModelAndView handleRoomAttributes(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
@@ -262,7 +264,7 @@ public class WizardRoomController extends WizardParticipantsController
      *
      * @param reservationRequest to be validated
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, method = {RequestMethod.POST})
+    @RequestMapping(value = {ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES}, method = {RequestMethod.POST})
     public Object handleRoomAttributesProcess(
             UserSession userSession,
             SecurityToken securityToken,

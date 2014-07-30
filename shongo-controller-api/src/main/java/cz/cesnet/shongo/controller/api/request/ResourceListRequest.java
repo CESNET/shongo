@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,6 +21,11 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
      * Id of resources.
      */
     private Set<String> resourceIds = new HashSet<String>();
+
+    /**
+     * Id of resource tag.
+     */
+    private String tagId;
 
     /**
      * User-ids of resource owners.
@@ -129,6 +135,14 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         return capabilityClasses;
     }
 
+    public String getTagId() {
+        return tagId;
+    }
+
+    public void setTagId(String tagId) {
+        this.tagId = tagId;
+    }
+
     /**
      * @param capabilityClasses sets the {@link #capabilityClasses}
      */
@@ -194,6 +208,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     }
 
     private static final String RESOURCE_IDS = "resourceIds";
+    private static final String TAG_ID = "tagId";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
     private static final String CAPABILITY_CLASSES = "capabilityClasses";
@@ -205,6 +220,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     {
         DataMap dataMap = super.toData();
         dataMap.set(RESOURCE_IDS, resourceIds);
+        dataMap.set(TAG_ID,tagId);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
         dataMap.set(CAPABILITY_CLASSES, capabilityClasses);
@@ -218,6 +234,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     {
         super.fromData(dataMap);
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
+        tagId = dataMap.getString(TAG_ID);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
         capabilityClasses = dataMap.getClassSet(CAPABILITY_CLASSES, Capability.class);

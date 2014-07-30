@@ -72,9 +72,8 @@ public enum SpecificationType
         switch (reservationRequestSummary.getSpecificationType()) {
             case ROOM:
                 return ADHOC_ROOM;
-
             case PERMANENT_ROOM:
-                    return PERMANENT_ROOM;
+                return PERMANENT_ROOM;
             case USED_ROOM:
                 return PERMANENT_ROOM_CAPACITY;
             case RESOURCE:

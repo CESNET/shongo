@@ -10,14 +10,17 @@ import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.FilteredValueProvider;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
-import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
+import javax.sql.rowset.Predicate;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Manager for {@link Resource}.
@@ -35,6 +38,26 @@ public class ResourceManager extends AbstractManager
     public ResourceManager(EntityManager entityManager)
     {
         super(entityManager);
+    }
+
+    /**
+     * Create a new tag object in the database.
+     *
+     * @param tag
+     */
+    public void createTag(Tag tag)
+    {
+        super.create(tag);
+    }
+
+    /**
+     * Create a new resourceTag object in the database.
+     *
+     * @param resourceTag
+     */
+    public void createResourceTag(ResourceTag resourceTag)
+    {
+        super.create(resourceTag);
     }
 
     /**
@@ -57,6 +80,26 @@ public class ResourceManager extends AbstractManager
     {
         resource.validate();
         super.update(resource);
+    }
+
+    /**
+     * Delete a tag object from the database.
+     *
+     * @param tag
+     */
+    public void deleteTag(Tag tag)
+    {
+        super.delete(tag);
+    }
+
+    /**
+     * Delete a resourceTag object from the database.
+     *
+     * @param resourceTag
+     */
+    public void deleteResourceTag(ResourceTag resourceTag)
+    {
+        super.delete(resourceTag);
     }
 
     /**
@@ -297,5 +340,60 @@ public class ResourceManager extends AbstractManager
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return aliasReservations;
+    }
+
+    public List<Tag> listAllTags()
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> c = query.from(Tag.class);
+        query.select(c);
+
+        TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+    }
+
+    public Tag getTag(String tagId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> from = query.from(Tag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("id").as(Long.class), Long.parseLong(tagId));
+        query.select(from).where(param1);
+
+        TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public List<ResourceTag> getResourceTags(String resourceId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+        Root<ResourceTag> from = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), Long.parseLong(resourceId));
+        query.select(from).where(param1);
+
+        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<ResourceTag> getResourceTagsByTag(String tagId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+        Root<ResourceTag> from = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), Long.parseLong(tagId));
+        query.select(from).where(param1);
+
+        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
     }
 }

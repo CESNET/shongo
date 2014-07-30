@@ -319,7 +319,7 @@
         </c:when>
     </c:choose>
 
-    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
         <script type="text/javascript">
             $(function(){
                 var updateResources = function() {
@@ -721,32 +721,5 @@
     </c:if>
 
     <jsp:doBody var="content"/>
-
-    <c:if test="${not empty confirmTitle || cancelUrl != null}">
-        <c:set var="buttons">
-            <c:if test="${not empty confirmTitle}">
-                <spring:message code="${confirmTitle}" var="confirmTitle"/>
-                <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
-            </c:if>
-            <c:if test="${cancelUrl != null}">
-                <c:if test="${empty cancelTitle}">
-                    <c:set var="cancelTitle" value="views.button.cancel"/>
-                </c:if>
-                <a class="btn btn-default" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
-            </c:if>
-        </c:set>
-    </c:if>
-
-    <c:choose>
-        <c:when test="${not empty content}">
-            <div class="table-actions-left">${content}</div>
-            <div class="table-actions pull-right">${buttons}</div>
-        </c:when>
-        <c:otherwise>
-            <div class="form-group">
-                <div class="col-xs-offset-3 col-xs-4">${buttons}</div>
-            </div>
-        </c:otherwise>
-    </c:choose>
 
 </form:form>
