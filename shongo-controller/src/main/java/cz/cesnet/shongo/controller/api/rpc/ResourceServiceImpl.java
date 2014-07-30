@@ -4,18 +4,21 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
-import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Capability;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.Tag;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
@@ -298,6 +301,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 }
             }
 
+            // Filter requested tag-id
+            if (request.getTagId() != null) {
+                throw new TodoImplementException("MR");
+            }
+
             // Filter user-ids
             Set<String> userIds = request.getUserIds();
             if (userIds != null && !userIds.isEmpty()) {
@@ -476,6 +484,183 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             return resourceAllocation;
         }
         finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public String createTag(SecurityToken securityToken, Tag tagApi) {
+        //throw new TodoImplementException("MR");
+
+        authorization.validate(securityToken);
+        checkNotNull("resource", tagApi);
+
+        cz.cesnet.shongo.controller.booking.resource.Tag tag = new cz.cesnet.shongo.controller.booking.resource.Tag();
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            entityManager.getTransaction().begin();
+
+            // Create tag from API
+            tag.fromApi(tagApi);
+
+            // Save it
+            resourceManager.createTag(tag);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+
+        // Return resource shongo-id
+        return tag.getId().toString();
+    }
+
+    @Override
+    public List<Tag> listTags(TagListRequest request) {
+        checkNotNull("request", request);
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            List<Tag> tagList = new ArrayList();
+            List<ResourceTag> resourceTags;
+            if (request.getResourceId() == null) {
+                for (cz.cesnet.shongo.controller.booking.resource.Tag tag : resourceManager.listAllTags()) {
+                    tagList.add(tag.toApi());
+                }
+            } else {
+                resourceTags = resourceManager.getResourceTags(request.getResourceId());
+
+                for (ResourceTag resourceTag : resourceTags) {
+                    Tag tag = resourceTag.getTag().toApi();
+
+                    tagList.add(tag);
+                }
+            }
+
+            return tagList;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public Tag getTag(SecurityToken token, String tagId) {
+        checkNotNull("tag-id", tagId);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            return resourceManager.getTag(tagId).toApi();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void modifyTag(SecurityToken token, Tag tag) {
+        throw new TodoImplementException("MR");
+    }
+
+    @Override
+    public void deleteTag(SecurityToken token, String tagId) {
+        authorization.validate(token);
+        checkNotNull("tag", tagId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            entityManager.getTransaction().begin();
+
+            // Delete all assigned resourceTags TODO:MR more efective
+            for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tagId)) {
+                removeResourceTag(token, resourceTag.getResource().getId().toString(), tagId);
+            }
+            // Delete the tag
+            cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, Long.parseLong(tagId));
+            resourceManager.deleteTag(persistanceTag);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void assignResourceTag(SecurityToken token, String resourceId, String tagId) {
+        authorization.validate(token);
+        checkNotNull("resource-id", resourceId);
+        checkNotNull("tag-id",tagId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+
+        try {
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.booking.resource.Resource resource;
+            resource = resourceManager.get(Long.parseLong(resourceId));
+            cz.cesnet.shongo.controller.booking.resource.Tag tag;
+            tag = resourceManager.getTag(tagId);
+
+            ResourceTag resourceTag = new ResourceTag();
+
+            resourceTag.setResource(resource);
+            resourceTag.setTag(tag);
+
+            resourceManager.createResourceTag(resourceTag);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void removeResourceTag(SecurityToken token, String resourceId, String tagId) {
+        authorization.validate(token);
+        checkNotNull("resource", resourceId);
+        checkNotNull("tag", tagId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            entityManager.getTransaction().begin();
+
+            // Delete the resourceTag
+            for (ResourceTag resourceTag : resourceManager.getResourceTags(resourceId)) {
+                String stringTagId = resourceTag.getTag().getId().toString();
+                if (tagId.equals(stringTagId)) {
+                    resourceManager.deleteResourceTag(resourceTag);
+                    break;
+                }
+            }
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }

@@ -8,16 +8,25 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:authentication property="principal.userId" var="userId"/>
-<tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.ROOM_LIST_DATA %>">
+<tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
-<tag:url var="meetingRoomUrl" value="<%= ClientWebUrl.ROOM_DATA %>">
+<tag:url var="meetingRoomUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
     <tag:param name="objectId" value=":objectId"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
+    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
 
 <div ng-controller="PaginationController"
-     ng-init="init('roomList', '${participantRoomListUrl}', null, 'refresh-meetingRooms')">
+     ng-init="init('roomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms')">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -30,12 +39,7 @@
         <thead>
         <tr>
             <th>
-                <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.roomName"/></pagination-sort>
-            </th>
-            <th>
-                <pagination-sort column="ROOM_TECHNOLOGY">
-                    <spring:message code="views.room.technology"/>
-                </pagination-sort>
+                <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.resourceName"/></pagination-sort>
             </th>
             <th>
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
@@ -56,10 +60,9 @@
         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
             <td ng-controller="ParticipantRoomController">
                 <spring:message code="views.room.name.adhoc" var="roomNameAdhoc"/>
-                <tag:help label="{{room.type == 'ROOM' ? '${roomNameAdhoc}' : room.name}}" content="formatAliases(room.id, event)" selectable="true"/>
+                <tag:help label="{{room.type == 'ROOM' ? '${roomNameAdhoc}' : room.resourceName}}" content="formatAliases(room.id, event)" selectable="true"/>
             </td>
-            <td>{{room.technologyTitle}}</td>
-            <td><span ng-bind-html="room.slot"></span></td>
+            <td><span ng-bind-html="room.earliestSlot"></span></td>
             <td class="room-state">
                 <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
                     <span>{{room.stateHelp}}</span>
@@ -67,11 +70,12 @@
             </td>
             <td>{{room.description}}</td>
             <td>
-                <tag:url var="detailRuntimeManagementEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
-                    <tag:param name="objectId" value="{{room.id}}" escape="false"/>
-                </tag:url>
-                <span ng-show="room.stateAvailable && room.technology == 'ADOBE_CONNECT'">
-                    <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/>
+                <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomUrl}" tabindex="1"/>
+                <span ng-show="room.isWritable">
+                    <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
+                        | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
+                    </span>
+                    | <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>
                 </span>
             </td>
         </tr>

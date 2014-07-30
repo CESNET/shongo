@@ -33,8 +33,6 @@ public class ClientWebUrl
             "/wizard/room/adhoc";
     public static final String WIZARD_ROOM_PERMANENT =
             "/wizard/room/permanent";
-    public static final String WIZARD_ROOM_MEETING =
-            "/wizard/room/meeting";
     public static final String WIZARD_ROOM_DUPLICATE =
             "/wizard/room/{reservationRequestId:.+}/duplicate";
     public static final String WIZARD_ROOM_MODIFY =
@@ -65,6 +63,13 @@ public class ClientWebUrl
             "/wizard/room/finish";
     public static final String WIZARD_ROOM_FINISH_WITH_CAPACITY =
             "/wizard/room/finish?create-capacity=true";
+
+    public static final String WIZARD_MEETING_ROOM_BOOK =
+            "/wizard/meeting-room/book";
+    public static final String WIZARD_MEETING_ROOM_ATTRIBUTES =
+            "/wizard/meeting-room/attributes";
+    public static final String WIZARD_MEETING_ROOM_MODIFY =
+            "/wizard/meeting-room/{reservationRequestId:.+}/modify";
 
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY =
             "/wizard/permanent-room-capacity/create";

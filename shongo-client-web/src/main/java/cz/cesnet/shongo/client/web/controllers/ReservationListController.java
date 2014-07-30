@@ -14,11 +14,13 @@ import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -42,6 +44,9 @@ public class ReservationListController
 {
     @Resource
     private ReservationService reservationService;
+
+    @Resource
+    private ResourceService resourceService;
 
     @Resource
     private Cache cache;
@@ -105,6 +110,9 @@ public class ReservationListController
             }
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 request.addSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
+            }
+            if (specificationTypes.contains(SpecificationType.MEETING_ROOM)) {
+                request.addSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
             }
         }
         if (specificationTechnology != null) {
@@ -241,6 +249,19 @@ public class ReservationListController
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
                             "views.room.participants.value",
                             new Object[]{reservationRequest.getRoomParticipantCount()}, locale));
+                    break;
+                }
+                case MEETING_ROOM: {
+                    //TODO:MR pouze jeden
+                    String resourceId = null;
+                    for (ReservationRequestSummary requestSummary: response.getItems()) {
+                        if (requestSummary.getResourceId() != null) {
+                            resourceId = requestSummary.getResourceId();
+                        }
+                    }
+
+                    cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
+                    item.put("resourceName",resource.getName());
                     break;
                 }
             }
