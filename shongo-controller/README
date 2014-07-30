@@ -99,8 +99,8 @@ Install nagios NRPE server:
 Add "nagios.cesnet.cz" to "allowed_hosts" in "/etc/nagios/nrpe.cfg".
 Add also the following to "/etc/nagios/nrpe.cfg":
 
-    command[check_shongo_controller]=<shongo>/shongo-deployment/bin/shongo_check.sh -c shongo-dev.cesnet.cz controller
-    command[check_shongo_connector]=<shongo>/shongo-deployment/bin/shongo_check.sh -c shongo-dev.cesnet.cz connector <agent-names>
+    command[check_shongo_controller]=<shongo>/shongo-deployment/bin/shongo-check.sh -c shongo-dev.cesnet.cz shongo-controller
+    command[check_shongo_connector]=<shongo>/shongo-deployment/bin/shongo-check.sh -c shongo-dev.cesnet.cz shongo-connector <agent-names>
 
 
 

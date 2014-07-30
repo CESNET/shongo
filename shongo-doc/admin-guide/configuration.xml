@@ -9,6 +9,53 @@ must be restarted to reload the changes. The configuration files must be located
 the Shongo (e.g., <code>/app/shongo</code>).
 
 
+
+<!-- PostgreSQL database BEGIN -->
+<beginpage/>
+<section>
+<title>PostgreSQL database</title>
+<para>To configure PostgreSQL for Controller:</para>
+<para>
+Connect to PostgreSQL console (e.g., run <code>psql</code> command as <code>postgres</code> system user).
+</para>
+<para>
+Create database for the Shongo:
+<screen>
+CREATE DATABASE shongo;
+</screen>
+</para>
+<para>
+Create user for Controller to connect to the database:
+<screen>
+CREATE USER shongo WITH PASSWORD '(password)';
+</screen>
+</para>
+<para>
+Change the database owner to the created user:
+<screen>
+ALTER DATABASE shongo OWNER TO shongo;
+</screen>
+</para>
+<para>
+Add the following lines to the configuration file <code>pg_hba.conf</code>:
+<screen>
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 md5
+</screen>
+The file may be located, e.g., in <code>/etc/postgresql/9.1/main/</code> (Debian) or in <code>/var/lib/pgsql/data/pg_hba.conf</code> (Fedora).
+</para>
+<para>
+Then restart the PostgreSQL server:
+<screen>
+service postgresql restart
+</screen>
+</para>
+</section>
+<!-- PostgreSQL database END -->
+
+
+
+<!-- shongo-controller BEGIN -->
 <section>
 <title>Controller</title>
 <para>
@@ -366,11 +413,8 @@ the Shongo (e.g., <code>/app/shongo</code>).
     <emphasis role="bold">Example:</emphasis>
     <screen><![CDATA[
 <smtp>
-    <sender>shongo@gmail.com</sender>
-    <host>smtp.gmail.com</host>
-    <port>465</port>
-    <username>shongo@gmail.com</username>
-    <password>(password)</password>
+    <sender>no-reply@meetings.cesnet.cz</sender>
+    <host>rs.cesnet.cz</host>
 </smtp>
 ]]></screen>
 </para>
@@ -441,6 +485,7 @@ the Shongo (e.g., <code>/app/shongo</code>).
     <host>127.0.0.1</host>
     <port>8181</port>
 </rpc>
+
 <jade>
     <host>127.0.0.1</host>
     <port>8282</port>
@@ -481,8 +526,11 @@ the Shongo (e.g., <code>/app/shongo</code>).
 
 </itemizedlist>
 
+<!-- shongo-controller EXAMPLE -->
 <beginpage/>
-<para>Here is minimal example of <code>shongo-controller.cfg.xml</code></para>
+<sect2>
+<title>Complete example</title>
+<para>Here is a minimal example of <code>shongo-controller.cfg.xml</code></para>
 <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 
@@ -529,15 +577,16 @@ the Shongo (e.g., <code>/app/shongo</code>).
         <host>rs.cesnet.cz</host>
     </smtp>
 
-    <ssl>
-        <mapped-hostname source="shongo-auth-dev.cesnet.cz" target="hroch.cesnet.cz"/>
-    </ssl>
-
 </configuration>
 ]]></screen>
+</sect2>
+
 </section>
+<!-- shongo-controller END -->
 
 
+
+<!-- shongo-connector BEGIN -->
 <beginpage/>
 <section>
 <title>Connector</title>
@@ -675,7 +724,7 @@ the Shongo (e.g., <code>/app/shongo</code>).
 
 </itemizedlist>
 
-
+<!-- shongo-connector EXAMPLE -->
 <beginpage/>
 <sect2>
 <title>Configuration of Adobe Connect connector</title>
@@ -716,7 +765,6 @@ the Shongo (e.g., <code>/app/shongo</code>).
 ]]></screen>
 </para>
 </sect2>
-
 
 <beginpage/>
 <sect2>
@@ -763,7 +811,6 @@ the Shongo (e.g., <code>/app/shongo</code>).
 </para>
 </sect2>
 
-
 <beginpage/>
 <sect2>
 <title>Configuration of Cisco TCS connector</title>
@@ -804,25 +851,71 @@ the Shongo (e.g., <code>/app/shongo</code>).
 </para>
 </sect2>
 
-
 <beginpage/>
-<para>Here is minimal example of <code>shongo-connector.cfg.xml</code></para>
+<sect2>
+<title>Complete example</title>
+<para>Here is a minimal example of <code>shongo-connector.cfg.xml</code> with one Adobe Connect agent and one Cisco MCU agent.</para>
 <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration>
 
-    TODO:
+    <connectors>
+
+        <connector>
+            <name>connect</name>
+            <class>AdobeConnectConnector</class>
+            <host>connect.cesnet.cz</host>
+            <port>443</port>
+            <auth>
+                <username>admin</username>
+                <password>(password)</password>
+            </auth>
+            <options>
+                <timeout>PT10S</timeout>
+                <capacity-check-period>PT5M</capacity-check-period>
+                <url-path-extraction-from-uri>
+                    connect\.cesnet\.cz/(.+)$
+                </url-path-extraction-from-uri>
+                <recordings-folder-name>shongo-rec</recordings-folder-name>
+                <meetings-folder-name>shongo</meetings-folder-name>
+                <recordings-check-period>PT5M</recordings-check-period>
+                <recordings-prefix>rec_</recordings-prefix>
+            </options>
+        </connector>
+
+        <connector>
+            <name>mcu</name>
+            <class>CiscoMCUConnector</class>
+            <host>mcuc.cesnet.cz</host>
+            <port>443</port>
+            <auth>
+                <username>admin</username>
+                <password>(password)</password>
+            </auth>
+            <options>
+                <timeout>PT10S</timeout>
+                <room-number-extraction-from-h323-number>
+                    (\d{3})$
+                </room-number-extraction-from-h323-number>
+                <room-number-extraction-from-sip-uri>
+                    ^[+\d]*(\d{3})@
+                </room-number-extraction-from-sip-uri>
+            </options>
+        </connector>
+
+    </connectors>
 
 </configuration>
 ]]></screen>
-
+</sect2>
 
 </section>
+<!-- shongo-connector END -->
 
 
 
-
+<!-- shongo-client-web BEGIN -->
 <beginpage/>
 <section>
 <title>Web Client</title>
@@ -841,26 +934,293 @@ the Shongo (e.g., <code>/app/shongo</code>).
 <para>It can contain the following options:</para>
 <itemizedlist>
 
-<listitem>TODO:</listitem>
+<listitem>
+<para><emphasis role="bold">Controller and web server settings</emphasis></para>
+<para>Configuration of XML-RPC between Web-Client and Controller and configuration of web server.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>controller</code></term>
+        <listitem><para>
+            Specifies on which host and port number the Controller is running.
+            If not set, the Web Client will try to connect to Controller XML-RPC at <code>127.0.0.1:8181</code>.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>server/port</code></term>
+        <listitem><para>
+            Specifies on which port number the web server will listen.
+            If not set, the default port <code>80</code> will be used.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<controller>127.0.0.1:8181</controller>
+
+<server>
+    <port>80</port>
+</server>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Security settings</emphasis></para>
+<para>Configuration of user authentication.</para>
+<variablelist>
+    <varlistentry>
+        <term>REQUIRED <code>security/server</code></term>
+        <listitem><para>
+            Url to deployment of shongo authentication and authorization server where <code>&lt;url&gt;/authn/</code> and <code>&lt;url&gt;/perun/</code> endpoints are available (see AA documentation here <ulink url="https://github.com/shongo/shongo-auth-utils"><citetitle>https://github.com/shongo/shongo-auth-utils</citetitle></ulink>).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>security/client-id</code></term>
+        <listitem><para>
+            Client identifier assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>security/client-secret</code></term>
+        <listitem><para>
+            Client secret assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>security/redirect-uri</code></term>
+        <listitem><para>
+            Client redirect URI assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<security>
+    <server>https://shongo-auth.cesnet.cz</server>
+    <client-id>meetings.cesnet.cz</client-id>
+    <client-secret>(secret)</client-secret>
+    <redirect-uri>http://meetings.cesnet.cz:8182/login</redirect-uri>
+</security>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Design settings</emphasis></para>
+<para>Configuration of custom design for Client Web.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>design/folder</code></term>
+        <listitem><para>
+            Specifies path to folder where a custom visual design for Client Web is stored. If not set the default value <code>(default)</code> is used and the Client Web will use the default visual design.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>REQUIRED <code>design/parameters</code></term>
+        <listitem><para>
+            Specifies paremeters for custom design.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<design>
+    <folder>../shongo-domains/cesnet/shongo-client-web/design</folder>
+    <parameters>
+        <suggestion-email>vidcon@cesnet.cz</suggestion-email>
+    </parameters>
+</design>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">Administrator settings</emphasis></para>
+<para>Configuration of administrator email addresses where web server errors will be send.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>administrator</code></term>
+        <listitem><para>
+            Specifies one administrator email address to receive web server errors. If no option is set, no web server errors will be reported by email and you must watch the application log files.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<administrator>martin.srom@cesnet.cz</administrator>
+<administrator>pavelka@cesnet.cz</administrator>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SMTP settings</emphasis></para>
+<para>Configuration of SMTP for sending email error reports. If not configured, no emails will be sent.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/sender</code></term>
+        <listitem><para>
+            Email address to be used as sender in all email notifications.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/subject-prefix</code></term>
+        <listitem><para>
+            Prefix which should be used in subjects for all sent emails.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/host</code></term>
+        <listitem><para>
+            Address of SMTP server. 
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/port</code></term>
+        <listitem><para>
+            Port number of SMTP server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/username</code></term>
+        <listitem><para>
+            Username for authenticated SMTP server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>smtp/password</code></term>
+        <listitem><para>
+            Password for authenticated SMTP server.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<smtp>
+    <sender>no-reply@meetings.cesnet.cz</sender>
+    <subject-prefix xml:space="preserve">[meetings-web] </subject-prefix>        
+    <host>rs.cesnet.cz</host>
+</smtp>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">reCAPTCHA settings</emphasis></para>
+<para><ulink url="https://www.google.com/recaptcha/admin"><citetitle>reCAPTCHA</citetitle></ulink> is used in Web Client when not-authenticated user wants to send a problem report - he is required to pass reCAPTCHA verification. It used only when both <code>recaptcha/public-key</code> and <code>recaptcha/private-key</code> are set.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>recaptcha/public-key</code></term>
+        <listitem><para>
+            Public key for reCAPTCHA (see reCAPTCHA documentation for further information).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>recaptcha/private-key</code></term>
+        <listitem><para>
+            Private key for reCAPTCHA (see reCAPTCHA documentation for further information).
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<recaptcha>
+    <public-key>(recaptcha-public-key)</public-key>
+    <private-key>(recaptcha-private-key)</private-key>
+</recaptcha>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
+<para><emphasis role="bold">SSL settings</emphasis></para>
+<para>SSL settings can be used to turn off or alter hostname verification for specified hostnames.</para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/trusted-hostname</code></term>
+        <listitem><para>
+            Specifies hostname which should not be verified.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>ssl/mapped-hostname</code></term>
+        <listitem><para>
+            Specifies mapping from <code>source</code> hostname to <code>target</code> hostname for hostname verification.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<ssl>
+    <mapped-hostname source="shongo-auth-dev.cesnet.cz" target="hroch.cesnet.cz"/>
+    <trusted-hostname>shongo-auth.cesnet.cz</trusted-hostname>
+</ssl>
+]]></screen>
+</para>
+</listitem>
 
 </itemizedlist>
 
-
+<!-- shongo-client-web EXAMPLE -->
 <beginpage/>
-<para>Here is minimal example of <code>shongo-client-web.cfg.xml</code></para>
+<sect2>
+<title>Complete example</title>
+<para>Here is a minimal example of <code>shongo-client-web.cfg.xml</code></para>
 <screen><![CDATA[
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration>
 
-    TODO:
+    <controller>127.0.0.1:8181</controller>
+
+    <server>
+        <port>80</port>
+    </server>
+
+    <security>
+        <server>https://shongo-auth.cesnet.cz</server>
+        <client-id>meetings.cesnet.cz</client-id>
+        <client-secret>(secret)</client-secret>
+        <redirect-uri>http://meetings.cesnet.cz:8182/login</redirect-uri>
+    </security>
+
+    <design>
+        <folder>../shongo-domains/cesnet/shongo-client-web/design</folder>
+        <parameters>
+            <suggestion-email>vidcon@cesnet.cz</suggestion-email>
+        </parameters>
+    </design>
+
+    <administrator>martin.srom@cesnet.cz</administrator>
+    <administrator>pavelka@cesnet.cz</administrator>
+
+    <smtp>
+        <sender>no-reply@meetings.cesnet.cz</sender>
+        <subject-prefix xml:space="preserve">[meetings-web] </subject-prefix>        
+        <host>rs.cesnet.cz</host>
+    </smtp>
+
+    <recaptcha>
+        <public-key>(recaptcha-public-key)</public-key>
+        <private-key>(recaptcha-private-key)</private-key>
+    </recaptcha>
 
 </configuration>
 ]]></screen>
+</sect2>
 
 </section>
+<!-- shongo-client-web END -->
 
 
+<!-- shongo-client-cli BEGIN -->
 <beginpage/>
 <section>
 <title>Command-Line Client</title>
@@ -896,15 +1256,15 @@ the Shongo (e.g., <code>/app/shongo</code>).
         </para></listitem>
     </varlistentry>
     <varlistentry>
-        <term>OPTIONAL <code>security/redirect-uri</code></term>
-        <listitem><para>
-            Client redirect URI assigned by AA server.
-        </para></listitem>
-    </varlistentry>
-    <varlistentry>
         <term>OPTIONAL <code>security/client-secret</code></term>
         <listitem><para>
             Client secret assigned by AA server.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>security/redirect-uri</code></term>
+        <listitem><para>
+            Client redirect URI assigned by AA server.
         </para></listitem>
     </varlistentry>
 </variablelist>
@@ -914,8 +1274,8 @@ the Shongo (e.g., <code>/app/shongo</code>).
 <security>
     <server>https://shongo-auth.cesnet.cz</server>
     <client-id>client-cli</client-id>
-    <redirect-uri>127.0.0.1</redirect-uri>
     <client-secret>(secret)</client-secret>
+    <redirect-uri>127.0.0.1</redirect-uri>
 </security>
 ]]></screen>
 </para>
@@ -923,26 +1283,102 @@ the Shongo (e.g., <code>/app/shongo</code>).
 
 </itemizedlist>
 
-
-<beginpage/>
-<para>Here is minimal example of <code>shongo-client-cli.cfg.xml</code></para>
-<screen><![CDATA[
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<configuration>
-
-    <security>
-        <server>https://shongo-auth.cesnet.cz</server>
-        <client-id>client-cli</client-id>
-        <redirect-uri>127.0.0.1</redirect-uri>
-        <client-secret>(secret)</client-secret>
-    </security>
-
-</configuration>
-]]></screen>
-
 </section>
+<!-- shongo-client-cli END -->
 
+
+
+<!-- Java KeyStore BEGIN -->
+<beginpage/>
+<section>
+<title>Java KeyStore</title>
+<para>You can use the folowing commands to configure Java KeyStore.</para>
+<para>
+Listing certificates in JKS:
+<screen>
+keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts \
+        -storepass "changeit" -list  -v
+</screen>
+</para>
+<para>
+Add DER certificate to JKS:
+<screen>
+wget http://www.terena.org/activities/tcs/repository/TERENA_SSL_CA.der \
+    &amp;&amp; keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts \
+               -storepass "changeit" -noprompt -import -alias "TERENA_SSL_CA" \
+               -file TERENA_SSL_CA.der \
+    ; rm TERENA_SSL_CA.der
+</screen>
+</para>
+<para>
+Add CRT certificate to JKS:
+<screen>
+echo -n | openssl s_client -connect rec1.cesnet.cz:443 \
+        | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/host.crt \
+    &amp;&amp; keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts \
+               -storepass "changeit" -noprompt -importcert -alias "rec1.cesnet.cz" \
+               -file /tmp/host.crt \
+    ; rm /tmp/host.crt
+</screen>
+</para>
+<para>
+Remove certificate from JKS:
+<screen>
+keytool -keystore /usr/lib/jvm/java-6-oracle/jre/lib/security/cacerts \
+        -storepass "changeit" -noprompt -delete -alias "TERENA_SSL_CA"
+</screen>
+</para>
+<para>
+Run <code>java</code> with debug information about cerfificates:
+<screen>
+java -Djavax.net.debug=all
+</screen>
+</para>
+<para>
+Run <code>java</code> with custom JKS:
+<screen>
+java -Djavax.net.ssl.trustStore=&lt;keystore&gt;
+</screen>
+</para>
+</section>
+<!-- Java KeyStore END -->
+
+
+
+<!-- Nagios NRPE plugin BEGIN -->
+<beginpage/>
+<section>
+<title>Nagios NRPE plugin</title>
+<para>
+Configuration of Nagios NRPE plugin to watch <link linkend="shongo-controller">Controller</link>  and <link linkend="shongo-connector">Connector</link> agents.
+</para>
+<para>
+You must install the <code>nagios-nrpe-server</code> on system where the Shongo is installed. On Debian you can use the following command.
+<screen>
+apt-get install nagios-nrpe-server
+</screen>
+</para>
+<para>
+Next you must allow your Nagios server to be able to access your machine where the Shongo is installed in NRPE configuration file. For example if your Nagios runs at <code>nagios.cesnet.cz</code> you must add it into variable <code>allowed_hosts</code> in configuration file <code>/etc/nagios/nrpe.cfg</code>:
+<screen>
+# ALLOWED HOST ADDRESSES
+allowed_hosts=127.0.0.1,nagios.cesnet.cz
+</screen>
+</para>
+<para>
+Next you must define commands in configuration file <code>/etc/nagios/nrpe.cfg</code>. You should use <code>&lt;shongo&gt;/shongo-deployment/bin/shongo-check.sh</code> with argument <code>shongo-controller</code> or <code>shongo-connector &lt;agent-names&gt;</code> to check status of Controller or Connector agents accordingly.
+<screen>
+command[check_shongo_controller]=/app/shongo/shongo-deployment/bin/shongo-check.sh \
+        -c https://meetings.cesnet.cz shongo-controller
+command[check_shongo_connector]=/app/shongo/shongo-deployment/bin/shongo_check.sh \
+        -c https://meetings.cesnet.cz shongo-connector connect1,mcu1
+</screen>
+</para>
+<para>
+The last step is to notify your Nagios administrator to configure Nagios to watch for your defined commands (<code>check_shongo_controller</code> and <code>check_shongo_connector</code>) on system where you installed the Shongo.
+</para>
+</section>
+<!-- Nagios NRPE plugin END -->
 
 
 </chapter>

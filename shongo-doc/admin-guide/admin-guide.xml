@@ -15,14 +15,12 @@
     </author>
 </info>
 
-<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="configuration.xml"/>
-
-<!--<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="modules.xml"/>
+<!-- Includes -->
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="modules.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="installation.xml"/>
-
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="configuration.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="management.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="resources.xml"/>
--->
 
 </book> 
 

@@ -11,6 +11,8 @@ Shongo consists of the following applications (modules):
 <para>
     Controller (<code>shongo-controller</code>) is main backend application in Shongo.
     In each domain you must run exactly one Controller.
+</para>
+<para>
     Controller uses Java to run and PostgreSQL to store data.
 </para>
 </listitem>

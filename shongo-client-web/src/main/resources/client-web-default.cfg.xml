@@ -46,11 +46,8 @@
     </smtp>
 
     <!-- Administrator emails -->
-    <administrator-email></administrator-email>
-    <administrator-email></administrator-email>
-    <!-- Hotline phone numbers -->
-    <hotline></hotline>
-    <hotline></hotline>
+    <administrator></administrator>
+    <administrator></administrator>
 
     <!-- Design configuration -->
     <design>

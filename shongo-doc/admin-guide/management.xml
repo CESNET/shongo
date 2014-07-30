@@ -31,7 +31,7 @@ service shongo-client-web [start|stop|restart]
 <section>
 <title>Logs</title>
 <para>
-    Log files from application services can be found in <code>/var/log/shongo/</code> directory. The directory contains
+    Log files from application services (<code>shongo-controller</code>, <code>shongo-connector</code> and <code>shongo-client-web</code>) can be found in <code>/var/log/shongo/</code> directory. The directory contains
     a file for each startup of each service.
 </para>
 <para>
