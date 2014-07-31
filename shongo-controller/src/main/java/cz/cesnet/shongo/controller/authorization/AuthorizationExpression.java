@@ -180,7 +180,7 @@ public class AuthorizationExpression
         public Set<String> group(String groupName)
         {
             String groupId = authorization.getGroupIdByName(groupName);
-            return authorization.listGroupUserIds(groupId);
+            return authorization.listGroupUserIds(groupId).getUserIds();
         }
     }
 

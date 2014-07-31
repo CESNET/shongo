@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,6 +49,9 @@ public class UserIdSet {
     }
 
     public void addAll(UserIdSet userIds) {
+        if (userIds.isEveryone()) {
+            setEveryone(true);
+        }
         this.userIds.addAll(userIds.userIds);
     }
 
@@ -58,11 +62,38 @@ public class UserIdSet {
         return userIds.contains(userId);
     }
 
+
+
     public int size() {
+        if (everyone) {
+            return Integer.MAX_VALUE;
+        }
         return this.userIds.size();
     }
 
     public void clear() {
         userIds.clear();
+    }
+
+
+    public Set<String> getUserIds() {
+        if (this.everyone) {
+            throw new IllegalArgumentException("Cannot get all user-ids for group everyone.");
+        }
+
+        return Collections.unmodifiableSet(this.userIds);
+    }
+
+    public void retainAll(UserIdSet userIds) {
+        if (!userIds.isEveryone()) {
+            if (everyone) {
+                clear();
+                setEveryone(false);
+                addAll(userIds);
+            }
+            else {
+                this.userIds.retainAll(userIds.getUserIds());
+            }
+        }
     }
 }

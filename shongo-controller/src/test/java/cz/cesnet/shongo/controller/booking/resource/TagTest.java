@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -41,6 +42,9 @@ public class TagTest extends AbstractControllerTest {
         aclEntry.setObjectId(tagId);
         aclEntry.setRole(ObjectRole.READER);
         authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry);
+
+        Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_ROOT)).size() > 0);
+        Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_USER1)).size() > 0);
 
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_ROOT)).getItemCount() > 0);
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER1)).getItemCount() > 0);

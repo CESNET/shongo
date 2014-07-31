@@ -4,6 +4,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -72,7 +73,7 @@ public class SchedulerContext
     /**
      * Set of user-ids for which the reservations are being allocated.
      */
-    private Set<String> userIds = new HashSet<String>();
+    private UserIdSet userIds = new UserIdSet();
 
     /**
      * @see SchedulerContextState
@@ -249,12 +250,14 @@ public class SchedulerContext
      */
     public boolean containsOwnerUserId(Resource resource)
     {
-        Set<String> resourceOwnerIds = new HashSet<String>();
-        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resource, ObjectRole.OWNER));
+        UserIdSet resourceOwnerIds = authorizationManager.getUserIdsWithRole(resource, ObjectRole.OWNER);
+        if (resourceOwnerIds.isEveryone() || userIds.isEveryone()) {
+            return true;
+        }
         if (resourceOwnerIds.size() == 0) {
             resourceOwnerIds.add(resource.getUserId());
         }
-        return !Collections.disjoint(resourceOwnerIds, userIds);
+        return !Collections.disjoint(resourceOwnerIds.getUserIds(), userIds.getUserIds());
     }
 
     /**
