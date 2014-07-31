@@ -7,6 +7,8 @@ import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
 import cz.cesnet.shongo.controller.api.Group;
 import org.joda.time.Duration;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -67,7 +69,7 @@ public class AuthorizationCache
     /**
      * Cache of user-ids by group-ids for users which are in the group.
      */
-    private ExpirationMap<String, Set<String>> userIdsByGroupId = new ExpirationMap<String, Set<String>>();
+    private ExpirationMap<String, UserIdSet> userIdsByGroupId = new ExpirationMap<String, UserIdSet>();
 
     /**
      * @param expiration sets the {@link #userIdByAccessTokenCache} expiration
@@ -278,6 +280,14 @@ public class AuthorizationCache
     }
 
     /**
+     * @return List of {@link AclUserState}
+     */
+    public synchronized Collection<AclUserState> listAclUserStates()
+    {
+        return aclUserStateCache.values();
+    }
+
+    /**
      * Put given {@code userAcl} to the cache by the given {@code userId}.
      *
      * @param userId
@@ -362,7 +372,7 @@ public class AuthorizationCache
      * @param groupId
      * @return set of user-ids for given {@code groupId}
      */
-    public synchronized Set<String> getUserIdsInGroup(String groupId)
+    public synchronized UserIdSet getUserIdsInGroup(String groupId)
     {
         return userIdsByGroupId.get(groupId);
     }
@@ -373,7 +383,7 @@ public class AuthorizationCache
      * @param groupId
      * @param userIds
      */
-    public synchronized void putUserIdsInGroup(String groupId, Set<String> userIds)
+    public synchronized void putUserIdsInGroup(String groupId, UserIdSet userIds)
     {
         userIdsByGroupId.put(groupId, userIds);
     }

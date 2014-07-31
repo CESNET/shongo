@@ -276,6 +276,29 @@
         })
     };
 
+    /**
+     * Get list of resources by assigned tag.
+     *
+     * @param capabilityClass
+     * @param callback
+     */
+    window.getResourcesByTag = function(capabilityClass, callback) {
+        var technology = $("#technology").val();
+        $.ajax("${resourceListUrl}?&tag=" + technology, {
+            dataType: "json"
+        }).done(function (data) {
+            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];
+            for (var index = 0; index < data.length; index++) {
+                var resource = data[index];
+                resources.push({
+                    id: resource.id,
+                    text: "<strong>" + resource.name + "</strong> (" + resource.id + ")"
+                });
+            }
+            callback(resources);
+        })
+    };
+
     $(function(){
         $("#timeZone").select2();
     });

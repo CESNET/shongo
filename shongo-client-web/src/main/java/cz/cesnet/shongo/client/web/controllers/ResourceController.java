@@ -67,7 +67,8 @@ public class ResourceController
     public List<Map<String, Object>> handleResourceListData(
             SecurityToken securityToken,
             @RequestParam(value = "capabilityClass", required = false) String capabilityClassName,
-            @RequestParam(value = "technology", required = false) TechnologyModel technology)
+            @RequestParam(value = "technology", required = false) TechnologyModel technology,
+            @RequestParam(value = "tag", required = false) String tag)
             throws ClassNotFoundException
     {
         ResourceListRequest resourceListRequest = new ResourceListRequest();
@@ -79,6 +80,9 @@ public class ResourceController
         }
         if (technology != null) {
             resourceListRequest.setTechnologies(technology.getTechnologies());
+        }
+        if (tag != null) {
+            resourceListRequest.setTagName(tag);
         }
         List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
         for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {

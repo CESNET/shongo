@@ -85,6 +85,22 @@ public enum ObjectType
                             ObjectPermission.READ
                     });
                 }}
+            , null),
+
+
+    /**
+     * Represents a {@link cz.cesnet.shongo.controller.api.Tag}.
+     */
+    TAG("tag",
+            new HashMap<ObjectRole, ObjectPermission[]>()
+            {{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
+                            ObjectPermission.READ, ObjectPermission.WRITE
+                    });
+                    put(ObjectRole.READER, new ObjectPermission[]{
+                            ObjectPermission.READ
+                    });
+                }}
             , null);
 
     /**

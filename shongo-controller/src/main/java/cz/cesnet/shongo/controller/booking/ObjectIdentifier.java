@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -272,6 +273,16 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param tag for which the local identifier should be formatted
+     * @return given {@code tag} tag identifier.
+     */
+    public static String formatId(Tag tag)
+    {
+        tag.checkPersisted();
+        return formatLocalId(ObjectTypeResolver.getObjectType(Tag.class), tag.getId().toString());
+    }
+
+    /**
      * @param reservationRequest for which the global identifier should be formatted
      * @return given {@code resource} global identifier.
      */
@@ -408,7 +419,14 @@ public class ObjectIdentifier
         if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
             return parsePersistenceId(objectId);
         }
-        ObjectIdentifier objectIdentifier = parse(domain, objectId);
+        ObjectIdentifier objectIdentifier;
+        Matcher matcher = LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId);
+        if (matcher.matches()) {
+            objectIdentifier = new ObjectIdentifier(ObjectType.getByCode(matcher.group(1)), parsePersistenceId(matcher.group(2)));
+        }
+        else {
+            objectIdentifier = parse(domain, objectId);
+        }
         if (objectIdentifier.objectType != objectType) {
             throw new ControllerReportSet.IdentifierInvalidTypeException(objectId, objectType.getCode());
         }
@@ -457,6 +475,18 @@ public class ObjectIdentifier
     private static String formatId(String domain, ObjectType objectType, String objectLocalId)
     {
         return String.format("shongo:%s:%s:%s", domain,
+                (objectType == null ? "*" : objectType.getCode()),
+                (objectLocalId == null ? "*" : objectLocalId));
+    }
+
+    /**
+     * @param objectType    object type for the identifier
+     * @param objectLocalId object local id for the identifier
+     * @return object local identifier.
+     */
+    private static String formatLocalId(ObjectType objectType, String objectLocalId)
+    {
+        return String.format("%s:%s",
                 (objectType == null ? "*" : objectType.getCode()),
                 (objectLocalId == null ? "*" : objectLocalId));
     }

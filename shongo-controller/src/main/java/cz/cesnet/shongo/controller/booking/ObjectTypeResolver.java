@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -101,6 +102,8 @@ public class ObjectTypeResolver
                 return Reservation.class;
             case EXECUTABLE:
                 return Executable.class;
+            case TAG:
+                return Tag.class;
             default:
                 throw new TodoImplementException(objectType);
         }

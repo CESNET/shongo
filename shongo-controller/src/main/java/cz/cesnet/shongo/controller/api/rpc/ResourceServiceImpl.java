@@ -306,6 +306,16 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 throw new TodoImplementException("MR");
             }
 
+            // Filter requested tag-name TODO:MR nepouzivat
+            if (request.getTagName() != null) {
+                queryFilter.addFilter("resource_summary.id IN ("
+                        + " SELECT resource_tag.resource_id FROM resource_tag "
+                        + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
+                        + " WHERE tag.name='"+request.getTagName()+"')");
+                        //+ " WHERE device_resource_technologies.technologies IN(:tags))");
+                //queryFilter.addFilterParameter("tags", );
+            }
+
             // Filter user-ids
             Set<String> userIds = request.getUserIds();
             if (userIds != null && !userIds.isEmpty()) {
@@ -490,8 +500,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
     @Override
     public String createTag(SecurityToken securityToken, Tag tagApi) {
-        //throw new TodoImplementException("MR");
-
         authorization.validate(securityToken);
         checkNotNull("resource", tagApi);
 
@@ -499,7 +507,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
         try {
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Create tag from API
@@ -508,17 +519,23 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Save it
             resourceManager.createTag(tag);
 
+            authorizationManager.createAclEntry(AclIdentityType.USER, securityToken.getUserId(), tag, ObjectRole.OWNER);
+
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
             entityManager.close();
         }
 
-        // Return resource shongo-id
-        return tag.getId().toString();
+        // Return tag shongo-id
+        return ObjectIdentifier.formatId(tag);
     }
 
     @Override
@@ -537,7 +554,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     tagList.add(tag.toApi());
                 }
             } else {
-                resourceTags = resourceManager.getResourceTags(request.getResourceId());
+                Long persistenceResourceId = ObjectIdentifier.parseId(request.getResourceId(),ObjectType.RESOURCE);
+                resourceTags = resourceManager.getResourceTags(persistenceResourceId);
 
                 for (ResourceTag resourceTag : resourceTags) {
                     Tag tag = resourceTag.getTag().toApi();
@@ -561,7 +579,22 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            return resourceManager.getTag(tagId).toApi();
+            return resourceManager.getTag(ObjectIdentifier.parseId(tagId,ObjectType.TAG)).toApi();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public Tag findTag(SecurityToken token, String name) {
+        checkNotNull("name", name);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            return resourceManager.findTag(name).toApi();
         }
         finally {
             entityManager.close();
@@ -583,10 +616,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
 
-            // Delete all assigned resourceTags TODO:MR more efective
-            for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tagId)) {
-                removeResourceTag(token, resourceTag.getResource().getId().toString(), tagId);
-            }
             // Delete the tag
             cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, Long.parseLong(tagId));
             resourceManager.deleteTag(persistanceTag);
@@ -614,9 +643,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.resource.Resource resource;
-            resource = resourceManager.get(Long.parseLong(resourceId));
+            resource = resourceManager.get(ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE));
             cz.cesnet.shongo.controller.booking.resource.Tag tag;
-            tag = resourceManager.getTag(tagId);
+            tag = resourceManager.getTag(ObjectIdentifier.parseId(tagId,ObjectType.TAG));
 
             ResourceTag resourceTag = new ResourceTag();
 
@@ -647,13 +676,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Delete the resourceTag
-            for (ResourceTag resourceTag : resourceManager.getResourceTags(resourceId)) {
-                String stringTagId = resourceTag.getTag().getId().toString();
-                if (tagId.equals(stringTagId)) {
-                    resourceManager.deleteResourceTag(resourceTag);
-                    break;
-                }
-            }
+            Long persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
+            Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
+            resourceManager.deleteResourceTag(resourceManager.getResourceTag(persistenceResourceId,persistenceTagId));
 
             entityManager.getTransaction().commit();
         }

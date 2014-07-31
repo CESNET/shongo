@@ -355,13 +355,13 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getResultList();
     }
 
-    public Tag getTag(String tagId)
+    public Tag getTag(Long tagId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
         Root<Tag> from = query.from(Tag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("id").as(Long.class), Long.parseLong(tagId));
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("id").as(Long.class), tagId);
         query.select(from).where(param1);
 
         TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
@@ -369,13 +369,49 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public List<ResourceTag> getResourceTags(String resourceId)
+    public Tag findTag(String name)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> from = query.from(Tag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("name").as(String.class), name);
+        query.select(from).where(param1);
+
+        TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public ResourceTag getResourceTag(Long resourceId, Long tagId)
+    {
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+            Root<ResourceTag> from = query.from(ResourceTag.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), resourceId);
+            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(from.get("tag"), tagId);
+            query.select(from);
+            query.where(param1);
+            query.where(param2);
+
+            TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getSingleResult();
+        } catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(ResourceTag.class, tagId);
+            //TODO:MR add resourceId
+        }
+    }
+
+    public List<ResourceTag> getResourceTags(Long resourceId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
         Root<ResourceTag> from = query.from(ResourceTag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), Long.parseLong(resourceId));
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), resourceId);
         query.select(from).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
@@ -383,13 +419,13 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getResultList();
     }
 
-    public List<ResourceTag> getResourceTagsByTag(String tagId)
+    public List<ResourceTag> getResourceTagsByTag(Long tagId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
         Root<ResourceTag> from = query.from(ResourceTag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), Long.parseLong(tagId));
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), tagId);
         query.select(from).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);

@@ -16,8 +16,6 @@ public class ResourceTag extends SimplePersistentObject {
 
     private Tag tag;
 
-    private List<Tag> tags = new ArrayList<Tag>();
-
     @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public Resource getResource() {

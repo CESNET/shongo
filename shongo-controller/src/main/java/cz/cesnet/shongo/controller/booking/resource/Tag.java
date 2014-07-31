@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +36,7 @@ public class Tag extends SimplePersistentObject {
 
     public void toApi(cz.cesnet.shongo.controller.api.Tag tagApi)
     {
-        tagApi.setId(id);
+        tagApi.setId(ObjectIdentifier.formatId(this));
         tagApi.setName(name);
     }
 
