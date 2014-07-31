@@ -50,7 +50,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             reusedReservationRequestId = reusedAllocation.getReservationRequest().getId();
         }
 
-        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER)) {
+        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER).getUserIds()) {
             addRecipient(authorizationManager.getUserInformation(userId), false);
         }
     }

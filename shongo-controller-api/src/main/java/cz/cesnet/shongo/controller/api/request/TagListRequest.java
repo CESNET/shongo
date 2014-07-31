@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
  *
@@ -9,6 +10,15 @@ import cz.cesnet.shongo.api.DataMap;
 public class TagListRequest extends AbstractRequest
 {
     String resourceId;
+
+    public TagListRequest() {
+    }
+
+    public TagListRequest(SecurityToken securityToken)
+    {
+        super(securityToken);
+    }
+
 
     public String getResourceId() {
         return resourceId;

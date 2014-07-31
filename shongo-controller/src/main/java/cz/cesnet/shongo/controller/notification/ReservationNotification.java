@@ -59,7 +59,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         this.id = ObjectIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
-        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, ObjectRole.OWNER));
+        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, ObjectRole.OWNER).getUserIds());
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);

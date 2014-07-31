@@ -135,14 +135,14 @@ public class AuthorizationManager extends AclEntryManager
      * @param objectRole
      * @return list of user-ids with given {@code role} for given {@code object}
      */
-    public Set<String> getUserIdsWithRole(PersistentObject object, ObjectRole objectRole)
+    public UserIdSet getUserIdsWithRole(PersistentObject object, ObjectRole objectRole)
     {
         AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(object);
         List<AclEntry> entries = entityManager.createNamedQuery("AclEntry.findByObjectIdentityAndRole", AclEntry.class)
                 .setParameter("objectIdentity", objectIdentity)
                 .setParameter("role", objectRole.toString())
                 .getResultList();
-        Set<String> userIds = new LinkedHashSet<String>();
+        UserIdSet userIds = new UserIdSet();
         for (AclEntry entry : entries) {
             userIds.addAll(authorization.getUserIds(entry.getIdentity()));
         }
@@ -157,7 +157,8 @@ public class AuthorizationManager extends AclEntryManager
     public Collection<UserInformation> getUsersWithRole(PersistentObject object, ObjectRole objectRole)
     {
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (String userId : getUserIdsWithRole(object, objectRole)) {
+        UserIdSet userIdSet = getUserIdsWithRole(object, objectRole);
+        for (String userId : userIdSet.getUserIds()) {
             users.add(getUserInformation(userId));
         }
         return users;

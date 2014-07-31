@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -104,7 +105,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         }
         else {
             // Get user-ids
-            Set<String> userIds = request.getUserIds();
+            UserIdSet userIds = new  UserIdSet(request.getUserIds());
             if (userIds.size() == 0) {
                 userIds = null;
             }
@@ -112,7 +113,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             // Update user-ids by groups
             Set<String> groupIds = request.getGroupIds();
             if (groupIds.size() > 0) {
-                Set<String> groupsUserIds = new HashSet<String>();
+                UserIdSet groupsUserIds = new UserIdSet();
                 for (String groupId : groupIds) {
                     groupsUserIds.addAll(authorization.listGroupUserIds(groupId));
                 }
@@ -126,7 +127,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             // Get users
             if (userIds != null && userIds.size() < 3) {
-                for (String userId : userIds) {
+                for (String userId : userIds.getUserIds()) {
                     users.add(authorization.getUserInformation(userId));
                 }
                 // Filter them
@@ -135,7 +136,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 }
             }
             else {
-                Collection<UserInformation> result = authorization.listUserInformation(userIds, search);
+                Collection<UserInformation> result = authorization.listUserInformation(userIds.getUserIds(), search);
                 for (UserInformation userInformation : result) {
                     users.add(userInformation);
                 }

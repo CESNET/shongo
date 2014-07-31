@@ -637,7 +637,7 @@ public abstract class Authorization
             aclObjectState = fetchAclObjectState(aclObjectIdentity);
             cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
-        Set<String> userIds = aclObjectState.getUserIdsByRole(objectRole);
+        Set<String> userIds = aclObjectState.getUserIdsByRole(objectRole).getUserIds();
         if (userIds == null) {
             return Collections.emptySet();
         }
@@ -829,7 +829,7 @@ public abstract class Authorization
         onAddGroupUser(groupId, userId);
 
         // Update cache
-        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        UserIdSet userIds = cache.getUserIdsInGroup(groupId);
         if (userIds != null) {
             userIds.add(userId);
         }
@@ -847,7 +847,7 @@ public abstract class Authorization
         onRemoveGroupUser(groupId, userId);
 
         // Update cache
-        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        UserIdSet userIds = cache.getUserIdsInGroup(groupId);
         if (userIds != null) {
             userIds.remove(userId);
         }
@@ -1062,13 +1062,14 @@ public abstract class Authorization
 
         // Update AclUserState cache
         AclIdentity aclIdentity = aclEntry.getIdentity();
-        if (AclIdentityType.GROUP.equals(aclIdentity.getType()) && EVERYONE_GROUP_ID.equals(aclIdentity.getPrincipalId())) {
+        UserIdSet userIdSet = getUserIds(aclIdentity);
+        if (userIdSet.isEveryone()) {
             for (AclUserState aclUserState : cache.listAclUserStates()) {
                 aclUserState.addAclEntry(aclEntry);
             }
         }
         else {
-            for (String userId : getUserIds(aclIdentity)) {
+            for (String userId : userIdSet.getUserIds()) {
                 AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
                 if (aclUserState == null) {
                     aclUserState = fetchAclUserState(userId);
@@ -1118,10 +1119,19 @@ public abstract class Authorization
         cache.removeAclEntryById(aclEntry);
 
         // Update AclUserState cache
-        for (String userId : getUserIds(aclEntry.getIdentity())) {
-            AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-            if (aclUserState != null) {
+        AclIdentity aclIdentity = aclEntry.getIdentity();
+        UserIdSet userIdSet = getUserIds(aclIdentity);
+        if (userIdSet.isEveryone()) {
+            for (AclUserState aclUserState : cache.listAclUserStates()) {
                 aclUserState.removeAclEntry(aclEntry);
+            }
+        }
+        else {
+            for (String userId : userIdSet.getUserIds()) {
+                AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+                if (aclUserState != null) {
+                    aclUserState.removeAclEntry(aclEntry);
+                }
             }
         }
 
