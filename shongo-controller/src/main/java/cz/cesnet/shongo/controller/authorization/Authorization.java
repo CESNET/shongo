@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.*;
-import cz.cesnet.shongo.controller.api.Group;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.acl.AclEntry;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
@@ -34,9 +35,19 @@ public abstract class Authorization
     public static final String ROOT_USER_ID = "0";
 
     /**
+     * Group-id for everyone
+     */
+    public static final String EVERYONE_GROUP_ID = "";
+
+    /**
      * Root shongo-user.
      */
     public static final UserData ROOT_USER_DATA;
+
+    /**
+     * Everyone group.
+     */
+    public static final Group EVERYONE_GROUP;
 
     /**
      * Static initialization.
@@ -46,6 +57,12 @@ public abstract class Authorization
         UserInformation rootUserInformation = ROOT_USER_DATA.getUserInformation();
         rootUserInformation.setUserId(ROOT_USER_ID);
         rootUserInformation.setLastName("root");
+
+        EVERYONE_GROUP = new Group();
+        EVERYONE_GROUP.setName("everyone");
+        EVERYONE_GROUP.setDescription("group for everyone");
+        EVERYONE_GROUP.setType(Group.Type.SYSTEM);
+        EVERYONE_GROUP.addAdministrator(ROOT_USER_ID);
     }
 
     /**
@@ -706,11 +723,15 @@ public abstract class Authorization
             group = cache.getGroupByGroupId(groupId);
         }
         else {
-            try {
-                group = onGetGroup(groupId);
+            if (EVERYONE_GROUP_ID.equals(groupId)) {
+                group = EVERYONE_GROUP;
             }
-            catch (ControllerReportSet.GroupNotExistsException exception) {
-                group = null;
+            else {
+                try {
+                    group = onGetGroup(groupId);
+                } catch (ControllerReportSet.GroupNotExistsException exception) {
+                    group = null;
+                }
             }
             cache.putGroupByGroupId(groupId, group);
         }
@@ -727,17 +748,22 @@ public abstract class Authorization
      */
     public final List<Group> listGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
-        return onListGroups(filterGroupIds, filterGroupTypes);
+        List<Group> groupList = onListGroups(filterGroupIds, filterGroupTypes);
+        groupList.add(0, EVERYONE_GROUP);
+        return groupList;
     }
 
     /**
      * @return list of user-ids for users which are in group with given {@code groupId}
      */
-    public final Set<String> listGroupUserIds(String groupId)
+    public final UserIdSet listGroupUserIds(String groupId)
     {
-        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        if (EVERYONE_GROUP_ID.equals(groupId)) {
+            return new UserIdSet(true);
+        }
+        UserIdSet userIds = cache.getUserIdsInGroup(groupId);
         if (userIds == null) {
-            userIds = new HashSet<String>(onListGroupUserIds(groupId));
+            userIds = new UserIdSet(onListGroupUserIds(groupId));
             cache.putUserIdsInGroup(groupId, userIds);
         }
         return userIds;
@@ -757,6 +783,9 @@ public abstract class Authorization
      */
     public final String createGroup(Group group)
     {
+        if (EVERYONE_GROUP.getName().compareToIgnoreCase(group.getName()) == 0) {
+            throw new ControllerReportSet.GroupAlreadyExistsException(group.getName());
+        }
         return onCreateGroup(group);
     }
 
@@ -765,6 +794,9 @@ public abstract class Authorization
      */
     public final void modifyGroup(Group group)
     {
+        if (EVERYONE_GROUP_ID.equals(group.getId())) {
+            throw new IllegalArgumentException("Group everyone cannot be modified.");
+        }
         onModifyGroup(group);
 
         // Update cache
@@ -776,6 +808,9 @@ public abstract class Authorization
      */
     public final void deleteGroup(String groupId)
     {
+        if (EVERYONE_GROUP_ID.equals(groupId)) {
+            throw new IllegalArgumentException("Group everyone cannot be deleted.");
+        }
         onDeleteGroup(groupId);
 
         // Update cache
@@ -788,6 +823,9 @@ public abstract class Authorization
      */
     public final void addGroupUser(String groupId, String userId)
     {
+        if (EVERYONE_GROUP_ID.equals(groupId)) {
+            throw new IllegalArgumentException("Group everyone cannot be modified.");
+        }
         onAddGroupUser(groupId, userId);
 
         // Update cache
@@ -803,6 +841,9 @@ public abstract class Authorization
      */
     public void removeGroupUser(String groupId, String userId)
     {
+        if (EVERYONE_GROUP_ID.equals(groupId)) {
+            throw new IllegalArgumentException("Group everyone cannot be modified.");
+        }
         onRemoveGroupUser(groupId, userId);
 
         // Update cache
@@ -1020,14 +1061,21 @@ public abstract class Authorization
         cache.putAclEntryById(aclEntry);
 
         // Update AclUserState cache
-        for (String userId : getUserIds(aclEntry.getIdentity())) {
-            AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-            if (aclUserState == null) {
-                aclUserState = fetchAclUserState(userId);
-                cache.putAclUserStateByUserId(userId, aclUserState);
-            }
-            else {
+        AclIdentity aclIdentity = aclEntry.getIdentity();
+        if (AclIdentityType.GROUP.equals(aclIdentity.getType()) && EVERYONE_GROUP_ID.equals(aclIdentity.getPrincipalId())) {
+            for (AclUserState aclUserState : cache.listAclUserStates()) {
                 aclUserState.addAclEntry(aclEntry);
+            }
+        }
+        else {
+            for (String userId : getUserIds(aclIdentity)) {
+                AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+                if (aclUserState == null) {
+                    aclUserState = fetchAclUserState(userId);
+                    cache.putAclUserStateByUserId(userId, aclUserState);
+                } else {
+                    aclUserState.addAclEntry(aclEntry);
+                }
             }
         }
 
@@ -1047,11 +1095,11 @@ public abstract class Authorization
      * @param aclIdentity
      * @return collection of user-id for given {@code aclIdentity}
      */
-    public Set<String> getUserIds(AclIdentity aclIdentity)
+    public UserIdSet getUserIds(AclIdentity aclIdentity)
     {
         switch (aclIdentity.getType()) {
             case USER:
-                return Collections.singleton(aclIdentity.getPrincipalId());
+                return new UserIdSet(aclIdentity.getPrincipalId());
             case GROUP:
                 return listGroupUserIds(aclIdentity.getPrincipalId());
             default:

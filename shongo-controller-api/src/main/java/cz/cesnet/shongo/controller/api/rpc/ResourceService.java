@@ -92,6 +92,9 @@ public interface ResourceService extends Service {
     public Tag getTag(SecurityToken token, String tagId);
 
     @API
+    public Tag findTag(SecurityToken token, String name);
+
+    @API
     public void modifyTag(SecurityToken token, Tag tag);
 
     @API

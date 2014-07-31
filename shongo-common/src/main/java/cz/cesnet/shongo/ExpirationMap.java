@@ -4,6 +4,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
+import javax.persistence.Entity;
 import java.util.*;
 
 /**
@@ -172,6 +173,18 @@ public class ExpirationMap<K, V> implements Iterable<V>
     public synchronized Set<K> keySet()
     {
         return entries.keySet();
+    }
+
+    /**
+     * {@link #entries}.
+     */
+    public synchronized Collection<V> values()
+    {
+        List<V> values = new LinkedList<V>();
+        for (Entry<V> entry : entries.values()) {
+            values.add(entry.value);
+        }
+        return values;
     }
 
     /**

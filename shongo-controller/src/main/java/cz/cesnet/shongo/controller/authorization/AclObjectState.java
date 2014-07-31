@@ -22,7 +22,7 @@ public class AclObjectState
     /**
      * Map of user-ids which by role which has the role for the object.
      */
-    private Map<ObjectRole, Set<String>> userIdsByRole = new HashMap<ObjectRole, Set<String>>();
+    private Map<ObjectRole, UserIdSet> userIdsByRole = new HashMap<ObjectRole, UserIdSet>();
 
     /**
      * @param aclEntry to be added to the {@link AclObjectState}
@@ -32,9 +32,9 @@ public class AclObjectState
         Long aclEntryId = aclEntry.getId();
         if (aclEntries.put(aclEntryId, aclEntry) == null) {
             ObjectRole role = ObjectRole.valueOf(aclEntry.getRole());
-            Set<String> userIds = userIdsByRole.get(role);
+            UserIdSet userIds = userIdsByRole.get(role);
             if (userIds == null) {
-                userIds = new HashSet<String>();
+                userIds = new UserIdSet();
                 userIdsByRole.put(role, userIds);
             }
             userIds.addAll(authorization.getUserIds(aclEntry.getIdentity()));
@@ -50,7 +50,7 @@ public class AclObjectState
         if (aclEntries.remove(aclEntryId) != null) {
             String aclEntryRole = aclEntry.getRole();
             ObjectRole role = ObjectRole.valueOf(aclEntryRole);
-            Set<String> userIds = userIdsByRole.get(role);
+            UserIdSet userIds = userIdsByRole.get(role);
             if (userIds != null) {
                 // Update user-ids
                 userIds.clear();
@@ -77,11 +77,11 @@ public class AclObjectState
     /**
      * @return {@link Set} of user-ids which has the given {@code role} for the object
      */
-    public synchronized Set<String> getUserIdsByRole(ObjectRole role)
+    public synchronized UserIdSet getUserIdsByRole(ObjectRole role)
     {
-        Set<String> userIds = userIdsByRole.get(role);
+        UserIdSet userIds = userIdsByRole.get(role);
         if (userIds != null) {
-            return Collections.unmodifiableSet(userIds);
+            return userIds;
         }
         return null;
     }
