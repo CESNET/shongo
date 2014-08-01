@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.*;
@@ -15,6 +16,10 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceTag;
+import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
@@ -488,6 +493,15 @@ public class AuthorizationManager extends AclEntryManager
             if (executable.canBeModified()) {
                 executable.setModified(true);
             }
+        }
+        else if (object instanceof Tag) {
+            // Update tagged resources ACLs
+            Tag tag = (Tag) object;
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tag.getId())) {
+                createAclEntriesForChildEntity(tag,resourceTag.getResource());
+            }
+            //throw new TodoImplementException("MR");
         }
     }
 

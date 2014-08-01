@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;

@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.*;
 
