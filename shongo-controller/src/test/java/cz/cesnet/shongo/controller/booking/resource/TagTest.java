@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.AclIdentityType;
-import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -41,13 +40,21 @@ public class TagTest extends AbstractControllerTest {
         aclEntry.setIdentityType(AclIdentityType.GROUP);
         aclEntry.setObjectId(tagId);
         aclEntry.setRole(ObjectRole.READER);
-        authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry);
+        String aclEntryId = authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry);
 
         Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_ROOT)).size() > 0);
         Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_USER1)).size() > 0);
 
+        ListResponse<AclEntry> response = authorizationService.listAclEntries(new AclEntryListRequest(SECURITY_TOKEN_ROOT));
+
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_ROOT)).getItemCount() > 0);
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER1)).getItemCount() > 0);
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER2)).getItemCount() > 0);
+
+        authorizationService.deleteAclEntry(SECURITY_TOKEN_ROOT,aclEntryId);
+
+        Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_ROOT)).getItemCount() > 0);
+        Assert.assertFalse(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER1)).getItemCount() > 0);
+        Assert.assertFalse(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER2)).getItemCount() > 0);
     }
 }

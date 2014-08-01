@@ -37,7 +37,7 @@ public abstract class Authorization
     /**
      * Group-id for everyone
      */
-    public static final String EVERYONE_GROUP_ID = "";
+    public static final String EVERYONE_GROUP_ID = "-1";
 
     /**
      * Root shongo-user.
@@ -1013,6 +1013,7 @@ public abstract class Authorization
         for (String groupId : listUserGroupIds(userId)) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
         }
+        aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, EVERYONE_GROUP_ID));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {

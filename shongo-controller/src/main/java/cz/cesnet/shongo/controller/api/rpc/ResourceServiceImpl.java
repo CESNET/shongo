@@ -613,16 +613,24 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
         try {
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Delete the tag
             cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, Long.parseLong(tagId));
+            authorizationManager.deleteAclEntriesForEntity(persistanceTag);
             resourceManager.deleteTag(persistanceTag);
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
