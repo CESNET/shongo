@@ -24,10 +24,7 @@ public enum ObjectType
                             ObjectPermission.READ
                     });
                 }},
-            new HashSet<ObjectRole>()
-            {{
-                    add(ObjectRole.OWNER);
-                }}
+            null
     ),
 
     /**
@@ -49,10 +46,7 @@ public enum ObjectType
                             ObjectPermission.PROVIDE_RESERVATION_REQUEST
                     });
                 }},
-            new HashSet<ObjectRole>()
-            {{
-                    add(ObjectRole.OWNER);
-                }}
+            null
     ),
 
     /**
@@ -100,8 +94,11 @@ public enum ObjectType
                     put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
-                }}
-            , null);
+                }},
+            new HashSet<ObjectRole>()
+            {{
+                    add(ObjectRole.READER);
+            }});
 
     /**
      * Unique code for the {@link ObjectType}.
@@ -207,11 +204,14 @@ public enum ObjectType
 
     /**
      * @param role to be checked
-     * @return true whether given {@code role} for this {@link ObjectType} should be propagated to authorization server,
+     * @return true whether given {@code role} for this {@link ObjectType} should be propagated to child entity,
      *         false otherwise
      */
     public boolean isRolePropagatable(ObjectRole role)
     {
+        if (propagatableRoles == null) {
+            return true;
+        }
         return propagatableRoles.contains(role);
     }
 

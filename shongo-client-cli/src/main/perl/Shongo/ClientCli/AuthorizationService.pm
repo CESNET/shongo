@@ -124,7 +124,7 @@ sub populate()
         },
         'create-acl' => {
             desc => 'Create ACL entry',
-            args => '<user-id> <object-id> <role>',
+            args => '[user/group:]<user-id> <object-id> <role>',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 create_acl(@args);
@@ -499,12 +499,27 @@ sub create_acl()
 {
     my (@args) = @_;
     if ( scalar(@args) < 3 ) {
-        console_print_error("Arguments '<user-id> <object-id> <role>' must be specified.");
+        console_print_error("Arguments '[user/group:]<user-id> <object-id> <role>' must be specified.");
         return;
     }
+    my $principalId =  RPC::XML::string->new($args[0]);
+    my $principalType = 'USER';
+
+    my $type = (split /:/, $$principalId)[0];
+    my $formatedId = (split /:/, $$principalId)[1];
+
+    if ( $type eq 'group' ) {
+        $principalType = 'GROUP';
+    }
+    else {
+        if ( ! $type eq 'user' ) {
+            $formatedId = $$principalId;
+        }
+    }
+
     my $response = Shongo::ClientCli->instance()->secure_request('Authorization.createAclEntry', {
-        'identityType' => 'USER',
-        'identityPrincipalId' => RPC::XML::string->new($args[0]),
+        'identityType' => $principalType,
+        'identityPrincipalId' => $formatedId,
         'objectId' => RPC::XML::string->new($args[1]),
         'role' => RPC::XML::string->new($args[2])
     });

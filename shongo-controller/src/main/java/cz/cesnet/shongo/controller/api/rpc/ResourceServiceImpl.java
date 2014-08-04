@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import com.sun.deploy.association.AssociationAlreadyRegisteredException;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
@@ -24,6 +26,7 @@ import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import org.hibernate.DuplicateMappingException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
 import org.joda.time.Interval;
@@ -610,6 +613,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void deleteTag(SecurityToken token, String tagId) {
         authorization.validate(token);
         checkNotNull("tag", tagId);
+        Long persistanceId = ObjectIdentifier.parseId(tagId,ObjectType.TAG);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -620,12 +624,26 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Delete the tag
-            cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, Long.parseLong(tagId));
+            cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag;
+            persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
             authorizationManager.deleteAclEntriesForEntity(persistanceTag);
             resourceManager.deleteTag(persistanceTag);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+        }
+        catch (RollbackException exception) {
+            if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                PersistenceException cause = (PersistenceException) exception.getCause();
+                if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                    logger.warn("Resource '" + tagId + "' cannot be deleted because is still referenced.",
+                            exception);
+                    ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
+                            cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
+                    return;
+                }
+            }
+            throw exception;
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -646,8 +664,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
         try {
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.resource.Resource resource;
@@ -662,9 +682,25 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             resourceManager.createResourceTag(resourceTag);
 
+            authorizationManager.createAclEntriesForChildEntity(tag, resource);
+
+
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        catch (RollbackException exception) {
+            if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                PersistenceException cause = (PersistenceException) exception.getCause();
+                if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                    throw new IllegalArgumentException("Tag (tag-id: " + tagId + " has been allready assigned to this resource (resource-id: " + resourceId + ").",exception);
+                }
+            }
+            throw exception;
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -680,17 +716,29 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
+
         try {
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Delete the resourceTag
             Long persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
             Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
-            resourceManager.deleteResourceTag(resourceManager.getResourceTag(persistenceResourceId,persistenceTagId));
+            ResourceTag resourceTag = resourceManager.getResourceTag(persistenceResourceId,persistenceTagId);
+
+            resourceManager.deleteResourceTag(resourceTag);
+
+            //TODO:MR smazat acl pro child
+            authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
 
             entityManager.getTransaction().commit();
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }

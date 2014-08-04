@@ -37,7 +37,7 @@ public abstract class Authorization
     /**
      * Group-id for everyone
      */
-    public static final String EVERYONE_GROUP_ID = "-1";
+    public static final String EVERYONE_GROUP_ID = "0";
 
     /**
      * Root shongo-user.

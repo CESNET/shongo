@@ -268,7 +268,7 @@ public class DummyAuthorization extends Authorization
     @Override
     public String onCreateGroup(Group group)
     {
-        int groupId = groups.size();
+        int groupId = groups.size() + 1;
         while (groups.containsKey(String.valueOf(groupId))) {
             groupId++;
         }
