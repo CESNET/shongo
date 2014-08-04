@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.jade.Container;
+import org.hibernate.metamodel.source.annotations.entity.IdType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.nio.channels.AcceptPendingException;
 import java.util.*;
 
 /**
@@ -749,6 +751,29 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             throw new RuntimeException("Multiple " + new AclEntry(userId, objectId, role).toString() + ".");
         }
         return aclEntries.getItem(0);
+    }
+
+    /**
+     * @param groupId
+     * @param objectId
+     * @param role
+     * @return {@link cz.cesnet.shongo.controller.api.AclEntry} with given parameters
+     * @throws Exception
+     */
+    protected AclEntry getAclEntryForGroup(String groupId, String objectId, ObjectRole role) throws Exception
+    {
+        AclEntryListRequest request = new AclEntryListRequest(SECURITY_TOKEN);
+        request.addObjectId(objectId);
+        request.addRole(role);
+        ListResponse<AclEntry> aclEntries = getAuthorizationService().listAclEntries(request);
+
+        for (AclEntry aclEntry : aclEntries) {
+            if (AclIdentityType.GROUP.equals(aclEntry.getIdentityType()) && aclEntry.getIdentityPrincipalId().equals(groupId)) {
+                return aclEntry;
+            }
+        }
+
+        return null;
     }
 
     /**

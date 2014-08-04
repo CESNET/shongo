@@ -6,7 +6,10 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.acl.*;
+import cz.cesnet.shongo.controller.acl.AclEntry;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
@@ -23,6 +26,11 @@ import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
 /**
@@ -261,25 +269,6 @@ public class AuthorizationManager extends AclEntryManager
     }
 
     /**
-     * Creates all {@link AclEntry}s from given {@code parentObject} to all child objects which the
-     * child object allows.
-     *
-     * @param parentObject from which should be fetch all existing {@link AclEntry}s and distributed to all childs
-     */
-    public void updateAclEntriesForChildEntities(PersistentObject parentObject)
-    {
-        if (activeTransaction == null) {
-            throw new IllegalStateException("No transaction is active.");
-        }
-
-        AclObjectIdentity parentObjectIdentity = aclProvider.getObjectIdentity(parentObject);
-        Collection<AclEntry> parentAclEntries = activeTransaction.getAclEntries(parentObjectIdentity);
-        for (AclEntry parentAclEntry : parentAclEntries) {
-            afterAclEntryCreated(parentAclEntry, parentObject);
-        }
-    }
-
-    /**
      * Create a new child {@link AclEntry}.
      *
      * @param parentAclEntry
@@ -290,6 +279,11 @@ public class AuthorizationManager extends AclEntryManager
     private void createChildAclEntry(AclEntry parentAclEntry, AclIdentity identity, PersistentObject childEntity,
             ObjectRole objectRole, AclEntryDependency.Type dependencyType)
     {
+        AclObjectIdentity parentObjectIdentity = parentAclEntry.getObjectIdentity();
+        if (!ObjectTypeResolver.getObjectType(parentObjectIdentity).isRolePropagatable(objectRole)) {
+            return;
+        }
+
         AclEntry childAclEntry = createAclEntry(identity, childEntity, objectRole);
 
         List<AclEntryDependency> aclEntryDependencies =
@@ -332,6 +326,38 @@ public class AuthorizationManager extends AclEntryManager
         for (AclEntry aclEntry : activeTransaction.getAclEntries(objectIdentity)) {
             deleteAclEntry(aclEntry, true);
         }
+    }
+
+    /**
+     * Delete inherited {@link AclEntry}s for given {@code childObject} from given {@code parentObject}.
+     *
+     * @param parentObject
+     * @param childObject
+     */
+    public void deleteAclEntriesForChildEntity(PersistentObject parentObject, PersistentObject childObject)
+    {
+        AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(childObject);
+        Collection<cz.cesnet.shongo.controller.acl.AclEntry> list = activeTransaction.getAclEntries(objectIdentity);
+        getAclEntry()
+        for (AclEntry aclEntry : activeTransaction.getAclEntries(objectIdentity)) {
+            deleteAclEntry(aclEntry, true);
+        }
+
+
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<AclEntry> query = criteriaBuilder.createQuery(AclEntry.class);
+        Root<AclEntry> aclEntries = query.from(AclEntry.class);
+        Join<AclEntry,AclEntryDependency> join = aclEntries.join("parentAclEntry");
+
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), tagId);
+        query.select(from).where(param1);
+
+        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+
     }
 
     /**
@@ -499,9 +525,9 @@ public class AuthorizationManager extends AclEntryManager
             Tag tag = (Tag) object;
             ResourceManager resourceManager = new ResourceManager(entityManager);
             for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tag.getId())) {
-                createAclEntriesForChildEntity(tag,resourceTag.getResource());
+                createChildAclEntry(aclEntry, identity, resourceTag.getResource(), objectRole,
+                        AclEntryDependency.Type.DELETE_CASCADE);
             }
-            //throw new TodoImplementException("MR");
         }
     }
 

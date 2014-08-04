@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
@@ -11,9 +13,12 @@ import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collection;
 
 /**
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
@@ -35,26 +40,96 @@ public class TagTest extends AbstractControllerTest {
         String resourceId = createResource(resource);
         resourceService.assignResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId);
 
-        AclEntry aclEntry = new AclEntry();
-        aclEntry.setIdentityPrincipalId(Authorization.EVERYONE_GROUP_ID);
-        aclEntry.setIdentityType(AclIdentityType.GROUP);
-        aclEntry.setObjectId(tagId);
-        aclEntry.setRole(ObjectRole.READER);
-        String aclEntryId = authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry);
+        // set another owner of the tag
+        AclEntry aclEntry1 = new AclEntry();
+        aclEntry1.setIdentityPrincipalId(getUserId(SECURITY_TOKEN_USER3));
+        aclEntry1.setIdentityType(AclIdentityType.USER);
+        aclEntry1.setObjectId(tagId);
+        aclEntry1.setRole(ObjectRole.OWNER);
+        authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry1);
 
+        // set read permissions for everyone
+        AclEntry aclEntry2 = new AclEntry();
+        aclEntry2.setIdentityPrincipalId(Authorization.EVERYONE_GROUP_ID);
+        aclEntry2.setIdentityType(AclIdentityType.GROUP);
+        aclEntry2.setObjectId(tagId);
+        aclEntry2.setRole(ObjectRole.READER);
+        String aclEntryId = authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry2);
+
+        // test if everyone has read permission for tag
         Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_ROOT)).size() > 0);
         Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_USER1)).size() > 0);
+        Assert.assertTrue(resourceService.listTags(new TagListRequest(SECURITY_TOKEN_USER2)).size() > 0);
 
-        ListResponse<AclEntry> response = authorizationService.listAclEntries(new AclEntryListRequest(SECURITY_TOKEN_ROOT));
+        // role owner for user3 should not be inherited
+        Assert.assertNull(getAclEntry(getUserId(SECURITY_TOKEN_USER3),resourceId,ObjectRole.OWNER));
 
+        // test if everyone has read permission for resource
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_ROOT)).getItemCount() > 0);
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER1)).getItemCount() > 0);
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER2)).getItemCount() > 0);
 
         authorizationService.deleteAclEntry(SECURITY_TOKEN_ROOT,aclEntryId);
 
+        // test if inherited permissions has been deleted
         Assert.assertTrue(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_ROOT)).getItemCount() > 0);
         Assert.assertFalse(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER1)).getItemCount() > 0);
         Assert.assertFalse(resourceService.listResources(new ResourceListRequest(SECURITY_TOKEN_USER2)).getItemCount() > 0);
+    }
+
+    @Test
+    public void testRemoveTagsChildAcls() throws Exception
+    {
+        ResourceService resourceService = getResourceService();
+        AuthorizationService authorizationService = getAuthorizationService();
+
+        // tag1 init
+        cz.cesnet.shongo.controller.api.Tag tag1 = new cz.cesnet.shongo.controller.api.Tag();
+        tag1.setName("testTag1");
+        String tagId1 = resourceService.createTag(SECURITY_TOKEN_ROOT, tag1);
+
+        AclEntry aclEntry1 = new AclEntry();
+        aclEntry1.setIdentityPrincipalId(Authorization.EVERYONE_GROUP_ID);
+        aclEntry1.setIdentityType(AclIdentityType.GROUP);
+        aclEntry1.setObjectId(tagId1);
+        aclEntry1.setRole(ObjectRole.READER);
+        String aclEntryId1 = authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry1);
+
+        // tag2 init
+        cz.cesnet.shongo.controller.api.Tag tag2 = new cz.cesnet.shongo.controller.api.Tag();
+        tag2.setName("testTag2");
+        String tagId2 = resourceService.createTag(SECURITY_TOKEN_ROOT, tag2);
+
+        AclEntry aclEntry2 = new AclEntry();
+        aclEntry2.setIdentityPrincipalId(Authorization.EVERYONE_GROUP_ID);
+        aclEntry2.setIdentityType(AclIdentityType.GROUP);
+        aclEntry2.setObjectId(tagId2);
+        aclEntry2.setRole(ObjectRole.READER);
+        String aclEntryId2 = authorizationService.createAclEntry(SECURITY_TOKEN_ROOT,aclEntry2);
+
+        // resource1 init
+        cz.cesnet.shongo.controller.api.Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = createResource(resource);
+
+        // assign tags to resource
+        resourceService.assignResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId1);
+        resourceService.assignResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId2);
+
+        // test correct assigned acls
+        Assert.assertNotNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
+
+        // remove resource-tag1
+        resourceService.removeResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId1);
+        DatabaseHelper.runDatabaseManagerAndWait(createEntityManager());
+        // test if resource still have inherited acl from tag2
+        Assert.assertNotNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
+
+        // remove resource-tag2
+        resourceService.removeResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId2);
+        DatabaseHelper.runDatabaseManagerAndWait(createEntityManager());
+        // test if all inherited acls has been deleted
+        Assert.assertNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
     }
 }
