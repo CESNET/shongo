@@ -60,7 +60,7 @@ public abstract class Authorization
 
         EVERYONE_GROUP = new Group();
         EVERYONE_GROUP.setName("everyone");
-        EVERYONE_GROUP.setDescription("group for everyone");
+        EVERYONE_GROUP.setDescription("Group of all users");
         EVERYONE_GROUP.setType(Group.Type.SYSTEM);
         EVERYONE_GROUP.addAdministrator(ROOT_USER_ID);
     }
@@ -749,6 +749,7 @@ public abstract class Authorization
     public final List<Group> listGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
         List<Group> groupList = onListGroups(filterGroupIds, filterGroupTypes);
+        EVERYONE_GROUP.setId(Long.parseLong(EVERYONE_GROUP_ID));
         groupList.add(0, EVERYONE_GROUP);
         return groupList;
     }

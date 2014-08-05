@@ -122,13 +122,13 @@ public class TagTest extends AbstractControllerTest {
 
         // remove resource-tag1
         resourceService.removeResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId1);
-        DatabaseHelper.runDatabaseManagerAndWait(createEntityManager());
+
         // test if resource still have inherited acl from tag2
         Assert.assertNotNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
 
         // remove resource-tag2
         resourceService.removeResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId2);
-        DatabaseHelper.runDatabaseManagerAndWait(createEntityManager());
+
         // test if all inherited acls has been deleted
         Assert.assertNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
     }
