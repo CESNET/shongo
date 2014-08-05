@@ -499,7 +499,7 @@ sub create_acl()
 {
     my (@args) = @_;
     if ( scalar(@args) < 3 ) {
-        console_print_error("Arguments '[user/group:]<user-id> <object-id> <role>' must be specified.");
+        console_print_error("Arguments '[user|group:]<user-id> <object-id> <role>' must be specified.");
         return;
     }
     my $principalId =  RPC::XML::string->new($args[0]);

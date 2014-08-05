@@ -45,6 +45,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private Integer allocationOrder;
 
     /**
+     * Description of the resource.
+     */
+    private String description;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -141,6 +146,14 @@ public class ResourceSummary extends IdentifiedComplexType
         return allocationOrder;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
@@ -155,6 +168,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String PARENT_RESOURCE_ID = "parentResourceId";
     private static final String ALLOCATABLE = "allocatable";
     private static final String ALLOCATION_ORDER = "allocationOrder";
+    private static final String DESCRIPTION = "description";
 
     @Override
     public DataMap toData()
@@ -166,6 +180,7 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
+        dataMap.set(DESCRIPTION,description);
         return dataMap;
     }
 
@@ -179,5 +194,6 @@ public class ResourceSummary extends IdentifiedComplexType
         allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
+        description = dataMap.getString(DESCRIPTION);
     }
 }

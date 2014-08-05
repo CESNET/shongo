@@ -111,6 +111,7 @@ public class ReservationRequestValidator implements Validator
             switch (specificationType) {
                 case MEETING_ROOM:
                     if (reservationRequestModel.getDurationType() != null) {
+                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     }
                     else {
@@ -215,6 +216,7 @@ public class ReservationRequestValidator implements Validator
                     else if (userError instanceof AllocationStateReport.MaximumDurationExceeded) {
                         errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
                     }
+                    //TODO: MR
                     else {
                         logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
                     }

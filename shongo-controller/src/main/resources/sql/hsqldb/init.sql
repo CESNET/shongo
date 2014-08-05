@@ -12,11 +12,12 @@ DROP VIEW executable_summary IF EXISTS;
 CREATE VIEW resource_summary AS
 SELECT
     resource.id AS id,
-    resource.id AS parent_resource_id,
+    resource.resource_id AS parent_resource_id,
     resource.user_id AS user_id,
     resource.name AS name,
     resource.allocatable AS allocatable,
     resource.allocation_order AS allocation_order,
+    resource.description AS description,
     GROUP_CONCAT(device_resource_technologies.technologies SEPARATOR ',') AS technologies
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id

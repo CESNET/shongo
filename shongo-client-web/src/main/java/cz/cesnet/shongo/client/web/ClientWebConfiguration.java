@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.TodoImplementException;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.apache.commons.configuration.*;
 import org.apache.commons.configuration.tree.ConfigurationNode;
@@ -346,5 +347,13 @@ public class ClientWebConfiguration extends CombinedConfiguration
     public boolean isReCaptchaConfigured()
     {
         return !Strings.isNullOrEmpty(getReCaptchaPublicKey()) && !Strings.isNullOrEmpty(getReCaptchaPrivateKey());
+    }
+
+    /**
+     * @return name of tag for meeting rooms
+     */
+    public String getMeetingRoomTagName()
+    {
+        return getString("tags.meeting-room");
     }
 }

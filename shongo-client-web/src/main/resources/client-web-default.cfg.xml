@@ -71,4 +71,10 @@
         <!--<trusted-hostname>host-name</trusted-hostname>-->
     <!--</ssl>-->
 
+    <!-- tags configuration -->
+    <!--<tags>-->
+        <!-- Tag name for filltering meeting rooms resources -->
+        <!--<meeting-room>mr</meeting-room>-->
+    <!--</tags>-->
+
 </configuration>
