@@ -24,13 +24,23 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceTag;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
+import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.ejb.EntityManagerImpl;
+import org.hibernate.ejb.HibernateEntityManager;
 
+import javax.mail.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Metamodel;
+import java.security.acl.Acl;
 import java.util.*;
 
 /**
@@ -336,28 +346,29 @@ public class AuthorizationManager extends AclEntryManager
      */
     public void deleteAclEntriesForChildEntity(PersistentObject parentObject, PersistentObject childObject)
     {
-        AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(childObject);
-        Collection<cz.cesnet.shongo.controller.acl.AclEntry> list = activeTransaction.getAclEntries(objectIdentity);
-        getAclEntry()
-        for (AclEntry aclEntry : activeTransaction.getAclEntries(objectIdentity)) {
-            deleteAclEntry(aclEntry, true);
-        }
-
-
+        AclObjectIdentity childObjectIdentity = aclProvider.getObjectIdentity(childObject);
+        AclObjectIdentity parentObjectIdentity = aclProvider.getObjectIdentity(parentObject);
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<AclEntry> query = criteriaBuilder.createQuery(AclEntry.class);
-        Root<AclEntry> aclEntries = query.from(AclEntry.class);
-        Join<AclEntry,AclEntryDependency> join = aclEntries.join("parentAclEntry");
+        CriteriaQuery<AclEntryDependency> query = criteriaBuilder.createQuery(AclEntryDependency.class);
+        Root<AclEntryDependency> aclEntryDependencyRoot = query.from(AclEntryDependency.class);
+        Join<AclEntryDependency,AclEntry> join = aclEntryDependencyRoot.join("childAclEntry");
+        query.where(criteriaBuilder.equal(join.get("objectIdentity"),childObjectIdentity));
 
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), tagId);
-        query.select(from).where(param1);
+        TypedQuery<AclEntryDependency> typedQuery = entityManager.createQuery(query);
+        List<AclEntryDependency> aclEntryDependencyList = typedQuery.getResultList();
 
-        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
-
-        return typedQuery.getResultList();
-
+        // delete dependency and childAclEntry if it has only one parent
+        for (AclEntryDependency aclEntryDependency : aclEntryDependencyList) {
+            if (aclEntryDependency.getParentAclEntry().getObjectIdentity().equals(parentObjectIdentity)) {
+                entityManager.remove(aclEntryDependency);
+                if (aclEntryDependencyList.size() == 1) {
+                    deleteAclEntry(aclEntryDependency.getChildAclEntry());
+                }
+                return;
+            }
+        }
     }
 
     /**

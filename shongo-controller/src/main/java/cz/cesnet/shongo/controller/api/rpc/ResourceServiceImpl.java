@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import com.sun.deploy.association.AssociationAlreadyRegisteredException;
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
@@ -19,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
@@ -26,7 +25,6 @@ import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
-import org.hibernate.DuplicateMappingException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
 import org.joda.time.Interval;
@@ -309,14 +307,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 throw new TodoImplementException("MR");
             }
 
-            // Filter requested tag-name TODO:MR nepouzivat
+            // Filter requested tag-name
             if (request.getTagName() != null) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_tag.resource_id FROM resource_tag "
                         + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
                         + " WHERE tag.name='"+request.getTagName()+"')");
-                        //+ " WHERE device_resource_technologies.technologies IN(:tags))");
-                //queryFilter.addFilterParameter("tags", );
             }
 
             // Filter user-ids
@@ -730,7 +726,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             resourceManager.deleteResourceTag(resourceTag);
 
-            //TODO:MR smazat acl pro child
             authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
 
             entityManager.getTransaction().commit();
