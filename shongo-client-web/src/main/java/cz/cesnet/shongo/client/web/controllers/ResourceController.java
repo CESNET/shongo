@@ -90,6 +90,7 @@ public class ResourceController
             resource.put("id", resourceSummary.getId());
             resource.put("name", resourceSummary.getName());
             resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
+            resource.put("description", (resourceSummary.getDescription()));
             resources.add(resource);
 
         }

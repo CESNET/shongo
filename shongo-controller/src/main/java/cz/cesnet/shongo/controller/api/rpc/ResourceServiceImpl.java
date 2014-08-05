@@ -388,6 +388,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 resourceSummary.setName(record[3].toString());
                 resourceSummary.setAllocatable(record[4] != null && (Boolean) record[4]);
                 resourceSummary.setAllocationOrder(record[5] != null ? (Integer) record[5] : null);
+                resourceSummary.setDescription(record[7] != null ? record[7].toString() : "");
                 if (record[6] != null) {
                     String recordTechnologies = record[6].toString();
                     if (!recordTechnologies.isEmpty()) {

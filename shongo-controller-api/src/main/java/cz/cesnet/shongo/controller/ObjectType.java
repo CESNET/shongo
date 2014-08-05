@@ -144,7 +144,7 @@ public enum ObjectType
             this.propagatableRoles = Collections.unmodifiableSet(propagatableRoles);
         }
         else {
-            this.propagatableRoles = Collections.emptySet();
+            this.propagatableRoles = null;
         }
     }
 

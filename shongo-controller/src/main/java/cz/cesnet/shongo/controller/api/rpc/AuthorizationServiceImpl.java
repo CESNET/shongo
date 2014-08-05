@@ -136,7 +136,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 }
             }
             else {
-                Collection<UserInformation> result = authorization.listUserInformation(userIds.getUserIds(), search);
+                Collection<UserInformation> result = authorization.listUserInformation(userIds != null ? userIds.getUserIds() : null, search);
                 for (UserInformation userInformation : result) {
                     users.add(userInformation);
                 }

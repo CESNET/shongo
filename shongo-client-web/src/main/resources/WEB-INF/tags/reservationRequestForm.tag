@@ -282,17 +282,16 @@
      * @param capabilityClass
      * @param callback
      */
-    window.getResourcesByTag = function(capabilityClass, callback) {
-        var technology = $("#technology").val();
-        $.ajax("${resourceListUrl}?&tag=" + technology, {
+    window.getResourcesByTag = function(tagName, callback) {
+        $.ajax("${resourceListUrl}?&tag=" + tagName, {
             dataType: "json"
         }).done(function (data) {
-            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.resourceId.none"/>"}];
+            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.choose"/>"}];
             for (var index = 0; index < data.length; index++) {
                 var resource = data[index];
                 resources.push({
                     id: resource.id,
-                    text: "<strong>" + resource.name + "</strong> (" + resource.id + ")"
+                    text: "<strong>" + resource.name + "</strong> (" + resource.description + ")"
                 });
             }
             callback(resources);
@@ -374,6 +373,48 @@
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="roomResourceId">
                 <spring:message code="views.reservationRequest.specification.resourceId"/>:
+            </form:label>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomResourceId" cssClass="error"/>
+            </div>
+        </div>
+    </c:if>
+
+    <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
+        <script type="text/javascript">
+            $(function(){
+                var updateResources = function() {
+                    window.getResourcesByTag("${configuration.getMeetingRoomTagName()}", function(resources) {
+                        $("#roomResourceId").select2({
+                            data: resources,
+                            escapeMarkup: function (markup) {
+                                return markup;
+                            },
+                            initSelection: function(element, callback) {
+                                var id = $(element).val();
+                                for (var index = 0; index < resources.length; index++) {
+                                    if (resources[index].id == id) {
+                                        callback(resources[index]);
+                                        return;
+                                    }
+                                }
+                                // Id wasn't found and thus set default value
+                                callback(resources[0]);
+                                $("#roomResourceId").val(resources[0].id);
+                            }
+                        });
+                    });
+                };
+                $("#technology").change(updateResources);
+                updateResources();
+            });
+        </script>
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="roomResourceId">
+                <spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:
             </form:label>
             <div class="col-xs-4">
                 <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>

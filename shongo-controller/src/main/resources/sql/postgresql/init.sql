@@ -94,11 +94,12 @@ SELECT 'Number of columns changed to text type: ' || alter_text_columns();
 CREATE VIEW resource_summary AS
 SELECT
     resource.id AS id,
-    resource.id AS parent_resource_id,
+    resource.resource_id AS parent_resource_id,
     resource.user_id AS user_id,
     resource.name AS name,
     resource.allocatable AS allocatable,
     resource.allocation_order AS allocation_order,
+    resource.description AS description,
     string_agg(device_resource_technologies.technologies, ',') AS technologies
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
