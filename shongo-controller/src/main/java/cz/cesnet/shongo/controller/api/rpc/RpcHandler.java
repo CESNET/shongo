@@ -220,7 +220,7 @@ public class RpcHandler implements XmlRpcHandler
             else {
                 String message = "Failed to invoke " + ((Service) pInstance).getServiceName() + "." + pMethod.getName()
                         + ": " + throwable.getMessage();
-                throw new XmlRpcException(message, exception);
+                throw new RpcApiFaultXmlRpcException(requestContext, new CommonReportSet.UnknownErrorReport( message), throwable);
             }
         }
         finally {
