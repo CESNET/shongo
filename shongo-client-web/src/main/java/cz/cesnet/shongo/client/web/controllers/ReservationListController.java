@@ -252,16 +252,18 @@ public class ReservationListController
                     break;
                 }
                 case MEETING_ROOM: {
-                    //TODO:MR pouze jeden
+                    //TODO:MR allow only one resource for meeting room
                     String resourceId = null;
                     for (ReservationRequestSummary requestSummary: response.getItems()) {
                         if (requestSummary.getResourceId() != null) {
                             resourceId = requestSummary.getResourceId();
+                            break;
                         }
                     }
 
                     cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
                     item.put("resourceName",resource.getName());
+                    item.put("resourceDescription",resource.getDescription());
                     break;
                 }
             }

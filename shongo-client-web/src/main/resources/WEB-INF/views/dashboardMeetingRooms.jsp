@@ -11,8 +11,8 @@
 <tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
-<tag:url var="meetingRoomUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
-    <tag:param name="objectId" value=":objectId"/>
+<tag:url var="meetingRoomDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
+    <tag:param name="objectId" value="{{room.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
@@ -41,11 +41,14 @@
             <th>
                 <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.resourceName"/></pagination-sort>
             </th>
+            <th width="200px">
+                <pagination-sort column="OWNER"><spring:message code="views.room.bookedBy"/></pagination-sort>
+            </th>
             <th>
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
             </th>
             <th width="200px">
-                <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort><tag:helpRoomState/>
+                <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
             </th>
             <th>
                 <spring:message code="views.room.description"/>
@@ -60,17 +63,26 @@
         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
             <td ng-controller="ParticipantRoomController">
                 <spring:message code="views.room.name.adhoc" var="roomNameAdhoc"/>
-                <tag:help label="{{room.type == 'ROOM' ? '${roomNameAdhoc}' : room.resourceName}}" content="formatAliases(room.id, event)" selectable="true"/>
+                <tag:help label="{{room.resourceName}}" selectable="true">
+                    <span>
+                        <strong><spring:message code="views.room.roomDescription"/></strong>
+                        <br />
+                        {{room.resourceDescription}}
+                    </span>
+                </tag:help>
+            </td>
+            <td>
+                <span>{{room.user}}</span>
             </td>
             <td><span ng-bind-html="room.earliestSlot"></span></td>
-            <td class="room-state">
+            <td class="reservation-request-state">
                 <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
                     <span>{{room.stateHelp}}</span>
                 </tag:help>
             </td>
             <td>{{room.description}}</td>
             <td>
-                <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomUrl}" tabindex="1"/>
+                <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
                 <span ng-show="room.isWritable">
                     <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>

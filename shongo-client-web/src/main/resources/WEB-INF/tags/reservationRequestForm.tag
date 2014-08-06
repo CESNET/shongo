@@ -423,6 +423,17 @@
                 <form:errors path="roomResourceId" cssClass="error"/>
             </div>
         </div>
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="meetingResourceId">
+                <spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:
+            </form:label>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="meetingResourceId" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="meetingResourceId" cssClass="error"/>
+            </div>
+        </div>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">

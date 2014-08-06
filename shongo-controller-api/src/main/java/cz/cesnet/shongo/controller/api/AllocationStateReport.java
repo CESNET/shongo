@@ -146,6 +146,14 @@ public class AllocationStateReport extends AbstractObjectReport
                     }
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_ALREADY_ALLOCATED)) {
+                Map<String, Object> parentReport = findParentReport(
+                        parentReports, AllocationStateReportMessages.ALLOCATING_ALIAS);
+                String resourceName = (String) ((HashMap<String,Object>) report.get("resource")).get("name");
+                //TODO: set interval
+                Interval interval = Converter.convertToInterval(report.get("interval"));
+                return new ResourceAlreadyAllocated(resourceName, interval);
+            }
             else if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
                 return new MaximumDurationExceeded(Converter.convertToPeriod(report.get("maxDuration")));
             }
@@ -481,6 +489,30 @@ public class AllocationStateReport extends AbstractObjectReport
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             return MESSAGE_SOURCE.getMessage("aliasAlreadyAllocated." + this.aliasType, locale, value,
+                    dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Resource with name {@link #resourceName}  is already allocated in specified {@link #interval}.
+     */
+    public static class ResourceAlreadyAllocated extends UserError
+    {
+        private String resourceName;
+
+        private Interval interval;
+
+        public ResourceAlreadyAllocated(String resourceName, Interval interval)
+        {
+            this.resourceName = resourceName;
+            this.interval = interval;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("resourceAlreadyAllocated", locale, this.resourceName,
                     dateTimeFormatter.formatInterval(interval));
         }
     }

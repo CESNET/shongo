@@ -6,10 +6,7 @@ import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.controller.api.AliasSpecification;
-import cz.cesnet.shongo.controller.api.AllocationStateReport;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.apache.commons.lang.StringUtils;
@@ -216,7 +213,10 @@ public class ReservationRequestValidator implements Validator
                     else if (userError instanceof AllocationStateReport.MaximumDurationExceeded) {
                         errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
                     }
-                    //TODO: MR
+                    else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
+                        errors.rejectValue("roomResourceId", null, userError.getMessage(locale, timeZone));
+                        //TODO:MR missing interval
+                    }
                     else {
                         logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
                     }
