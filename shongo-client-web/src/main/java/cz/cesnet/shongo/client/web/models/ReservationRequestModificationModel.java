@@ -26,7 +26,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     {
         super(reservationRequest, cacheProvider);
 
-        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
+        if (SpecificationType.ADHOC_ROOM.equals(specificationType)) {
             // Get allocated room name
             ReservationRequestSummary reservationRequestSummary =
                     cacheProvider.getAllocatedReservationRequestSummary(reservationRequest.getId());
@@ -81,6 +81,9 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         this.original.roomAccessMode = this.roomAccessMode;
         this.original.roomMeetingName = this.roomMeetingName;
         this.original.roomMeetingDescription = this.roomMeetingDescription;
+        if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
+            this.original.meetingResourceId = this.meetingResourceId;
+        }
     }
 
     public Boolean getAdhocRoomRetainRoomName()
