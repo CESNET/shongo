@@ -87,7 +87,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * TODO:MR
      * Temporary for meeting rooms
      */
-    protected String meetingResourceId;
+    protected String meetingRoomResourceId;
 
     protected Integer roomParticipantCount;
 
@@ -287,12 +287,30 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return slotBeforeMinutes;
     }
 
-    public String getMeetingResourceId() {
-        return meetingResourceId;
+    public String getMeetingRoomResourceId() {
+        return meetingRoomResourceId;
     }
 
-    public void setMeetingResourceId(String meetingResourceId) {
-        this.meetingResourceId = meetingResourceId;
+    public void setMeetingRoomResourceId(String meetingRoomResourceId) {
+        this.meetingRoomResourceId = meetingRoomResourceId;
+    }
+
+    public String getMeetingRoomResourceName()
+    {
+        ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        if (resource != null) {
+            return resource.getName();
+        }
+        return null;
+    }
+
+    public String getMeetingRoomResourceDescription()
+    {
+        ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        if (resource != null) {
+            return resource.getDescription();
+        }
+        return null;
     }
 
     public Period getSlotBefore()
@@ -670,8 +688,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
         } else if (specification instanceof ResourceSpecification) {
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
-            meetingResourceId = resourceSpecification.getResourceId();
-            //TODO:MR
+            meetingRoomResourceId = resourceSpecification.getResourceId();
             specificationType = SpecificationType.MEETING_ROOM;
         } else {
             throw new UnsupportedApiException(specification);
@@ -844,7 +861,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 break;
             }
             case MEETING_ROOM: {
-                specification = new ResourceSpecification(roomResourceId);
+                specification = new ResourceSpecification(meetingRoomResourceId);
                 break;
             }
             default:

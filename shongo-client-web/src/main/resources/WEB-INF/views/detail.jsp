@@ -195,7 +195,7 @@
             </tab>
         </c:if>
 
-        <c:if test="${!isPeriodic}">
+        <c:if test="${!isPeriodic && specificationType != 'MEETING_ROOM'}">
             <spring:message var="detailParticipantsTitle" code="views.detail.tab.participants"/>
             <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>

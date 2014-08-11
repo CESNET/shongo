@@ -108,7 +108,7 @@ public class ReservationRequestValidator implements Validator
             switch (specificationType) {
                 case MEETING_ROOM:
                     if (reservationRequestModel.getDurationType() != null) {
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomResourceId", "validation.field.required");
+                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     }
                     else {
@@ -214,8 +214,7 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
                     }
                     else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
-                        errors.rejectValue("roomResourceId", null, userError.getMessage(locale, timeZone));
-                        //TODO:MR missing interval
+                        errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
                     }
                     else {
                         logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);

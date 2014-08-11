@@ -82,7 +82,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         this.original.roomMeetingName = this.roomMeetingName;
         this.original.roomMeetingDescription = this.roomMeetingDescription;
         if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
-            this.original.meetingResourceId = this.meetingResourceId;
+            this.original.meetingRoomResourceId = this.meetingRoomResourceId;
         }
     }
 
