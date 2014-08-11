@@ -150,7 +150,6 @@ public class AllocationStateReport extends AbstractObjectReport
                 Map<String, Object> parentReport = findParentReport(
                         parentReports, AllocationStateReportMessages.ALLOCATING_ALIAS);
                 String resourceName = (String) ((HashMap<String,Object>) report.get("resource")).get("name");
-                //TODO: set interval
                 Interval interval = Converter.convertToInterval(report.get("interval"));
                 return new ResourceAlreadyAllocated(resourceName, interval);
             }

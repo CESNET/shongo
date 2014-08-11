@@ -391,12 +391,10 @@ public class SchedulerContext
     /**
      * @param reservationTask
      * @param collidingReservations
-     * @param schedulerReport
      * @return true whether a collision exists and the allocation should be aborted,
      *         false otherwise
      */
-    public boolean detectCollisions(ReservationTask reservationTask, List<? extends Reservation> collidingReservations,
-            SchedulerReport schedulerReport)
+    public boolean detectCollisions(ReservationTask reservationTask, List<? extends Reservation> collidingReservations)
             throws SchedulerException
     {
         if (collidingReservations.size() == 0) {
@@ -429,7 +427,8 @@ public class SchedulerContext
             reservationTask.addReport(new SchedulerReportSet.CollidingReservationsReport(map));
             return false;
         }
-        throw new SchedulerException(schedulerReport);
+        Reservation reservation = collidingReservations.get(0);
+        throw new SchedulerReportSet.ResourceAlreadyAllocatedException(reservation.getAllocatedResource(), reservation.getSlot());
     }
 
 }

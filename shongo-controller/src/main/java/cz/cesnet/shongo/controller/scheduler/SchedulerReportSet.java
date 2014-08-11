@@ -255,12 +255,14 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The resource {@link #resource} is already allocated.
+     * The resource {@link #resource} is already allocated in the time slot {@link #interval}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceAlreadyAllocatedReport")
     public static class ResourceAlreadyAllocatedReport extends ResourceReport
     {
+        protected org.joda.time.Interval interval;
+
         public ResourceAlreadyAllocatedReport()
         {
         }
@@ -272,9 +274,22 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-already-allocated";
         }
 
-        public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
         {
             setResource(resource);
+            setInterval(interval);
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
         }
 
         @javax.persistence.Transient
@@ -297,6 +312,7 @@ public class SchedulerReportSet extends AbstractReportSet
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("resource", resource);
+            parameters.put("interval", interval);
             return parameters;
         }
 
@@ -324,19 +340,26 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceAlreadyAllocatedException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        public ResourceAlreadyAllocatedException(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
         {
             ResourceAlreadyAllocatedReport report = new ResourceAlreadyAllocatedReport();
             report.setResource(resource);
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ResourceAlreadyAllocatedException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        public ResourceAlreadyAllocatedException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
         {
             super(throwable);
             ResourceAlreadyAllocatedReport report = new ResourceAlreadyAllocatedReport();
             report.setResource(resource);
+            report.setInterval(interval);
             this.report = report;
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override

@@ -2,10 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.WizardPage;
+import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
@@ -102,8 +99,11 @@ public class WizardRoomController extends WizardParticipantsController
             wizardView.addPage(new WizardPage(Page.ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
                     "views.wizard.page.userRoles"));
         }
-        wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
-                "views.wizard.page.participants"));
+        //TODO:MR temporary until model is changed
+        if (reservationRequest == null || !SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
+                    "views.wizard.page.participants"));
+        }
         wizardView.addPage(new WizardPage(Page.CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
                 "views.wizard.page.confirm"));
     }
@@ -201,16 +201,8 @@ public class WizardRoomController extends WizardParticipantsController
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
-        //TODO:MR
-        ResourceListRequest listRequest = new ResourceListRequest(securityToken);
-        String resorceId = null;
-        for (ResourceSummary resourceSummary : resourceService.listResources(listRequest)) {
-            if (resourceSummary.getName().contains("MR")) {
-                resorceId = resourceSummary.getId();
-            }
-        }
-        reservationRequest.setMeetingResourceId(resorceId);
-        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
+
+       return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -289,8 +281,12 @@ public class WizardRoomController extends WizardParticipantsController
         else if (finish) {
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
-        else if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+        else if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
+        }
+        //TODO MR: temporary until model change
+        else if (SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType())) {
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
         }
         else {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;

@@ -7,17 +7,26 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:set var="backUrl"><%= ClientWebUrl.HOME%></c:set>
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
-<c:set var="specificationType">
+<c:set var="specificationTypeMessage">
     <strong><spring:message code="views.specificationType.forWithName.${specificationType}" arguments=" ${reservationRequest.roomName}"/></strong>
 </c:set>
 
+<script type="text/javascript">
+    var module = angular.module('jsp:reservationRequestDelete', ['ngApplication', 'ngTooltip']);
+
+
+</script>
+
+<div ng-app="jsp:reservationRequestDelete">
+
 <c:choose>
     <c:when test="${dependencies.size() > 0}">
-        <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${specificationType}"/></p>
+        <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${specificationTypeMessage}"/></p>
         <ul>
             <c:forEach var="dependency" items="${dependencies}">
                 <li>
@@ -34,7 +43,26 @@
         </ul>
     </c:when>
     <c:otherwise>
-        <p><spring:message code="views.reservationRequestDelete.question" arguments="${specificationType}"/></p>
+        <c:choose>
+            <c:when test="${specificationType == 'MEETING_ROOM'}">
+                <c:set var="timeSlotMessage">
+                    <c:if test="${reservationRequest.futureSlotCount > 0}">
+                        <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="${reservationRequest.futureSlotCount}"/>
+                            <tag:help label="(${slotMore})" cssClass="push-top">
+                                <div>
+                                    <c:forEach var="nextSlot" items="${reservationSlots}" begin="${fn:length(reservationSlots) - reservationRequest.futureSlotCount}">
+                                        <strong>${nextSlot}</strong><br />
+                                    </c:forEach>
+                                </div>
+                            </tag:help>
+                    </c:if>
+                </c:set>
+                <span><spring:message code="views.reservationRequestDelete.question.${specificationType}" arguments="${slot} ${timeSlotMessage}" argumentSeparator=";"/></span>
+            </c:when>
+            <c:otherwise>
+                <p><spring:message code="views.reservationRequestDelete.question" arguments="${specificationTypeMessage}"/></p>
+            </c:otherwise>
+        </c:choose>
     </c:otherwise>
 </c:choose>
 
@@ -60,3 +88,4 @@
     </c:otherwise>
 </c:choose>
 
+</div>

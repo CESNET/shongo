@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:authentication property="principal.userId" var="userId"/>
-<tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
+<tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.MEETING_ROOM_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
 <tag:url var="meetingRoomDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
@@ -74,7 +74,15 @@
             <td>
                 <span>{{room.user}}</span>
             </td>
-            <td><span ng-bind-html="room.earliestSlot"></span></td>
+            <td>
+                <span ng-bind-html="room.earliestSlot"></span>
+                <span ng-show="room.futureSlotCount">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{room.futureSlotCount}}"/>
+                    <tag:help label="(${slotMore})" cssClass="push-top">
+                        <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                    </tag:help>
+                </span>
+            </td>
             <td class="reservation-request-state">
                 <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
                     <span>{{room.stateHelp}}</span>

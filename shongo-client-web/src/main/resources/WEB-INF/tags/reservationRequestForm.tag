@@ -287,6 +287,8 @@
             dataType: "json"
         }).done(function (data) {
             var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.choose"/>"}];
+
+
             for (var index = 0; index < data.length; index++) {
                 var resource = data[index];
                 resources.push({
@@ -388,7 +390,7 @@
             $(function(){
                 var updateResources = function() {
                     window.getResourcesByTag("${configuration.getMeetingRoomTagName()}", function(resources) {
-                        $("#roomResourceId").select2({
+                        $("#meetingRoomResourceId").select2({
                             data: resources,
                             escapeMarkup: function (markup) {
                                 return markup;
@@ -403,35 +405,23 @@
                                 }
                                 // Id wasn't found and thus set default value
                                 callback(resources[0]);
-                                $("#roomResourceId").val(resources[0].id);
+                                $("#meetingRoomResourceId").val(resources[0].id);
                             }
                         });
                     });
                 };
-                $("#technology").change(updateResources);
                 updateResources();
             });
         </script>
         <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="roomResourceId">
+            <form:label class="col-xs-3 control-label" path="meetingRoomResourceId">
                 <spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:
             </form:label>
             <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="meetingRoomResourceId" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="roomResourceId" cssClass="error"/>
-            </div>
-        </div>
-        <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="meetingResourceId">
-                <spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:
-            </form:label>
-            <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="meetingResourceId" tabindex="${tabIndex}"/>
-            </div>
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="meetingResourceId" cssClass="error"/>
+                <form:errors path="meetingRoomResourceId" cssClass="error"/>
             </div>
         </div>
     </c:if>
@@ -510,17 +500,19 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-        <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="roomParticipantCount">
-                <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
-            </form:label>
-            <div class="col-xs-2">
-                <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+        <c:if test="reservationRequest.specificationType != 'MEETING_ROOM'">
+            <div class="form-group">
+                <form:label class="col-xs-3 control-label" path="roomParticipantCount">
+                    <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
+                </form:label>
+                <div class="col-xs-2">
+                    <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+                </div>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="roomParticipantCount" cssClass="error"/>
+                </div>
             </div>
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="roomParticipantCount" cssClass="error"/>
-            </div>
-        </div>
+        </c:if>
 
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="timeZone">

@@ -52,6 +52,20 @@
         </tag:help>
     </dd>
 
+    <%-- Meeting room name and description --%>
+    <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
+        <dt><spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:</dt>
+        <dd>
+            <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
+            <span>${reservationRequest.meetingRoomResourceName}</span>
+        </dd>
+        <dt><spring:message code="views.room.roomDescription"/>:</dt>
+        <dd>
+            <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
+            <span>${reservationRequest.meetingRoomResourceDescription}</span>
+        </dd>
+    </c:if>
+
     <%-- Event from request --%>
     <c:if test="${not empty reservationRequest.parentReservationRequestId}">
         <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
@@ -208,24 +222,27 @@
     </c:if>
 
     <%-- Participants --%>
-    <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
-    <dd>
-        <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
-            ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
-        </c:forEach>
-        <c:if test="${empty reservationRequest.roomParticipants}">
-            <spring:message code="views.reservationRequest.participants.none"/>
-        </c:if>
-    </dd>
+    <%-- TODO: MR: Do not show participants for meeting rooms yet --%>
+    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+        <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
+        <dd>
+            <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
+                ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
+            </c:forEach>
+            <c:if test="${empty reservationRequest.roomParticipants}">
+                <spring:message code="views.reservationRequest.participants.none"/>
+            </c:if>
+        </dd>
 
-    <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
-    <dd>
-        <spring:message code="views.button.${reservationRequest.roomParticipantNotificationEnabled ? 'yes' : 'no'}" var="roomParticipantNotificationEnabled"/>
-        <tag:help label="${roomParticipantNotificationEnabled}">
-            <spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/>
-        </tag:help>
+        <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
+        <dd>
+            <spring:message code="views.button.${reservationRequest.roomParticipantNotificationEnabled ? 'yes' : 'no'}" var="roomParticipantNotificationEnabled"/>
+            <tag:help label="${roomParticipantNotificationEnabled}">
+                <spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/>
+            </tag:help>
 
-    </dd>
+        </dd>
+    </c:if>
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
         <dt><spring:message code="views.reservationRequest.specification.roomMeetingName"/>:</dt>
         <dd>

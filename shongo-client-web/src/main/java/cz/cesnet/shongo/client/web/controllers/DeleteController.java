@@ -6,9 +6,13 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.support.*;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.joda.time.Interval;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for reverting and deleting reservation requests.
@@ -75,10 +82,17 @@ public class DeleteController implements BreadcrumbProvider
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             Model model)
     {
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, messageProvider.getLocale(), messageProvider.getTimeZone());
         ReservationRequestSummary reservationRequest =
                 cache.getReservationRequestSummary(securityToken, reservationRequestId);
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-        String roomName = reservationRequest.getRoomName();
+        String roomName;
+        if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
+            roomName = cache.getResourceSummary(securityToken,reservationRequest.getResourceId()).getName();
+        }
+        else {
+            roomName = reservationRequest.getRoomName();
+        }
         String title = messageProvider.getMessage("views.reservationRequestDelete.title",
                 messageProvider.getMessage("views.specificationType.forWithName." + specificationType,
                         roomName != null ? roomName : ""));
@@ -89,6 +103,18 @@ public class DeleteController implements BreadcrumbProvider
         model.addAttribute("specificationType", specificationType);
         model.addAttribute("reservationRequest", reservationRequest);
         model.addAttribute("dependencies", dependencies);
+        if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
+            Interval slot = reservationRequest.getEarliestSlot();
+            model.addAttribute("slot", formatter.formatInterval(slot));
+            if (reservationRequest.getFutureSlotCount() != null && reservationRequest.getFutureSlotCount() > 0) {
+                List<Reservation> reservations = reservationService.getReservationRequestReservations(securityToken, reservationRequestId);
+                List<String> reservationSlots = new LinkedList<String>();
+                for (Reservation reservation : reservations) {
+                    reservationSlots.add(formatter.formatInterval(reservation.getSlot()));
+                }
+                model.addAttribute("reservationSlots", reservationSlots);
+            }
+        }
 
         // Initialize breadcrumb
         if (breadcrumb != null) {

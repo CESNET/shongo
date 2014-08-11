@@ -223,8 +223,7 @@ public class ResourceCache extends AbstractCache<Resource>
         schedulerContextState.applyReservations(resourceId, slot, resourceReservations, ResourceReservation.class);
 
         // Perform check
-        schedulerContext.detectCollisions(reservationTask, resourceReservations,
-                new SchedulerReportSet.ResourceAlreadyAllocatedReport(resource));
+        schedulerContext.detectCollisions(reservationTask, resourceReservations);
     }
 
     /**

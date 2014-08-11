@@ -62,7 +62,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No resource was found.");
         addMessage(RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource.id}.");
         addMessage(RESOURCE_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is disabled for allocation.");
-        addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated.");
+        addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated in the time slot ${interval}.");
         addMessage(RESOURCE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
         addMessage(RESOURCE_ROOM_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.");
         addMessage(RESOURCE_RECORDING_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} doesn't have any available licenses for recording.");
