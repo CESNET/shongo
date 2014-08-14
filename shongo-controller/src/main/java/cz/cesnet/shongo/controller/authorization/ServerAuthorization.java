@@ -892,6 +892,17 @@ public class ServerAuthorization extends Authorization
                         data.get("loa").getIntValue()));
         }
 
+        // TODO: remove when production AA server is updated
+        if (data.has("authentication_info")) {
+            JsonNode authenticationInfo = data.get("authentication_info");
+            if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
+                userData.setUserAuthorizationData(new UserAuthorizationData(
+                    authenticationInfo.get("provider").getTextValue(),
+                    null,
+                    authenticationInfo.get("loa").getIntValue()));
+            }
+        }
+
         return userData;
     }
 
