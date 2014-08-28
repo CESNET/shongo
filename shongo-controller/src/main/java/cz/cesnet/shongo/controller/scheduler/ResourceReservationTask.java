@@ -127,7 +127,6 @@ public class ResourceReservationTask extends ReservationTask
 
             // Check if requested resource is not fully available in the requested slot
             schedulerContext.detectCollisions(this, collidingReservations);
-            //TODO: solve maintenance bug
 
             // Allocate endpoint reservation
             if (deviceResource.isTerminal()) {

@@ -1,7 +1,14 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.AbstractSchedulerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.ResourceSpecification;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;

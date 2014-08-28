@@ -196,7 +196,11 @@ public class RoomReservationTask extends ReservationTask
     public void addTechnologyVariant(Set<Technology> technologies)
     {
         if (technologies.isEmpty()) {
-            throw new IllegalArgumentException("Technologies cannot be empty.");
+            if (roomProviderCapability != null) {
+                technologies = roomProviderCapability.getDeviceResource().getTechnologies();
+            } else {
+                throw new IllegalArgumentException("Technologies cannot be empty.");
+            }
         }
         technologyVariants.add(technologies);
     }
@@ -300,6 +304,9 @@ public class RoomReservationTask extends ReservationTask
     public void migrateReservation(Reservation oldReservation, Reservation newReservation, EntityManager entityManager)
             throws SchedulerException
     {
+        if (oldReservation.getExecutable() == null) {
+            return;
+        }
         Executable oldExecutable = oldReservation.getExecutable();
         Executable newExecutable = newReservation.getExecutable();
 

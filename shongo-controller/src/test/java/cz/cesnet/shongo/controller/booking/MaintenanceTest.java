@@ -3,10 +3,26 @@ package cz.cesnet.shongo.controller.booking;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.DeviceResource;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.ResourceReservation;
+import cz.cesnet.shongo.controller.api.ResourceSpecification;
+import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import cz.cesnet.shongo.controller.api.RoomReservation;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot;
+import cz.cesnet.shongo.controller.booking.reservation.*;
+import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.resource.Capability;
+import cz.cesnet.shongo.controller.booking.room.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -195,4 +211,56 @@ public class MaintenanceTest extends AbstractControllerTest
         reallocate(secondReservationRequestId);
         checkAllocated(secondReservationRequestId);
     }
+
+    @Test
+    public void testPermanentRoomOverMaintenance() throws Exception
+    {       /*
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("MCU-test");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(50));
+        mcu.setAllocatable(true);
+        String resourceId = createResource(SECURITY_TOKEN,mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
+        reservationRequest.setSlot("2013-01-02T00:00", "P1D");
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runWorker(Interval.parse("2013-01-01T00:00/2014-01-04T08:00"));
+        List<Reservation> reservations = getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id);
+        Assert.assertEquals(1, reservations.size());
+
+        // -----------------------------------------------------
+
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.USER);
+        permanentRoomReservationRequest.setSpecification(
+                new RoomSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
+        Assert.assertEquals("001", permanentRoomExecutable.getAliasByType(AliasType.H323_E164).getValue());
+
+        // Create one MCU and allocate some virtual rooms on it
+        // -----------------------------------------------------
+        cz.cesnet.shongo.controller.booking.resource.DeviceResource mcu = new cz.cesnet.shongo.controller.booking.resource.DeviceResource();
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.ADOBE_CONNECT);
+        mcu.addCapability(new cz.cesnet.shongo.controller.booking.room.RoomProviderCapability(50));
+        mcu.setAllocatable(true);
+        createResource(mcu.toApi(createEntityManager()));
+
+        cz.cesnet.shongo.controller.booking.room.RoomReservation room1 = new cz.cesnet.shongo.controller.booking.room.RoomReservation();
+        room1.setRoomProviderCapability(mcu.getCapability(cz.cesnet.shongo.controller.api.RoomProviderCapability.class));
+        room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
+        room1.setLicenseCount(10);
+        createReservation(room1);
+        */
+    }
+
 }
