@@ -55,6 +55,10 @@ sub new()
         'enum' => $Purpose,
         'required' => 1
     });
+    $self->add_attribute('priority', {
+        'title' => 'Priority (default = 0)',
+        'type' => 'int'
+    });
     $self->add_attribute('description');
     $self->add_attribute('specification', {
         'complex' => 1,

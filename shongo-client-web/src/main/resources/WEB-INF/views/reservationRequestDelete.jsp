@@ -22,8 +22,6 @@
 
 </script>
 
-<div ng-app="jsp:reservationRequestDelete">
-
 <c:choose>
     <c:when test="${dependencies.size() > 0}">
         <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${specificationTypeMessage}"/></p>
@@ -47,14 +45,23 @@
             <c:when test="${specificationType == 'MEETING_ROOM'}">
                 <c:set var="timeSlotMessage">
                     <c:if test="${reservationRequest.futureSlotCount > 0}">
+                        <span ng-app="jsp:reservationRequestDelete">
                         <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="${reservationRequest.futureSlotCount}"/>
                             <tag:help label="(${slotMore})" cssClass="push-top">
-                                <div>
-                                    <c:forEach var="nextSlot" items="${reservationSlots}" begin="${fn:length(reservationSlots) - reservationRequest.futureSlotCount}">
-                                        <strong>${nextSlot}</strong><br />
-                                    </c:forEach>
-                                </div>
+                                <c:choose>
+                                    <c:when test="${fn:length(reservationSlots) - reservationRequest.futureSlotCount > 0}">
+                                        <c:forEach var="nextSlot" items="${reservationSlots}" begin="${fn:length(reservationSlots) - reservationRequest.futureSlotCount}">
+                                            <strong>${nextSlot}</strong><br />
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tag:help label="(${slotMore})" cssClass="push-top">
+                                            <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                                        </tag:help>
+                                    </c:otherwise>
+                                </c:choose>
                             </tag:help>
+                        </span>
                     </c:if>
                 </c:set>
                 <span><spring:message code="views.reservationRequestDelete.question.${specificationType}" arguments="${slot} ${timeSlotMessage}" argumentSeparator=";"/></span>
@@ -87,5 +94,3 @@
         </div>
     </c:otherwise>
 </c:choose>
-
-</div>

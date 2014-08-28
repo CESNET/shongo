@@ -637,12 +637,12 @@ public abstract class Authorization
             aclObjectState = fetchAclObjectState(aclObjectIdentity);
             cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
-        Set<String> userIds = aclObjectState.getUserIdsByRole(objectRole).getUserIds();
+        UserIdSet userIds = aclObjectState.getUserIdsByRole(objectRole);
         if (userIds == null) {
             return Collections.emptySet();
         }
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (String userId : userIds) {
+        for (String userId : userIds.getUserIds()) {
             users.add(getUserInformation(userId));
         }
         return users;

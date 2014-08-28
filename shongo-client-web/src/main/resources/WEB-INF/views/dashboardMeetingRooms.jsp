@@ -32,7 +32,7 @@
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
-    <div class="alert alert-warning"><spring:message code="views.index.participation.description"/></div>
+    <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
     <div class="spinner" ng-hide="ready || errorContent"></div>
     <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
     <table class="table table-striped table-hover" ng-show="ready">

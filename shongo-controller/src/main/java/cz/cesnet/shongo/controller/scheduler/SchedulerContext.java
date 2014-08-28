@@ -428,6 +428,7 @@ public class SchedulerContext
             return false;
         }
         Reservation reservation = collidingReservations.get(0);
+
         throw new SchedulerReportSet.ResourceAlreadyAllocatedException(reservation.getAllocatedResource(), reservation.getSlot());
     }
 
