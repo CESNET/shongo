@@ -274,7 +274,12 @@ public class ConnectorContainer
             throw new RuntimeException("Properties file '" + filename + "' was not found in the classpath.");
         }
         try {
-            properties.load(inputStream);
+            try {
+                properties.load(inputStream);
+            }
+            finally {
+                inputStream.close();
+            }
         }
         catch (IOException exception) {
             throw new RuntimeException(exception);

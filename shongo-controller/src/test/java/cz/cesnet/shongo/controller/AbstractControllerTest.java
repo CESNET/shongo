@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.jade.Container;
-import org.hibernate.metamodel.source.annotations.entity.IdType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.nio.channels.AcceptPendingException;
 import java.util.*;
 
 /**

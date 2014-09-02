@@ -47,7 +47,12 @@ public class ClientWeb
             throw new RuntimeException("Properties file '" + filename + "' was not found in the classpath.");
         }
         try {
-            properties.load(inputStream);
+            try {
+                properties.load(inputStream);
+            }
+            finally {
+                inputStream.close();
+            }
         }
         catch (IOException exception) {
             throw new RuntimeException(exception);
@@ -122,8 +127,14 @@ public class ClientWeb
 
                 // Read class-path from manifest
                 InputStream manifestStream = classLoader.getResourceAsStream("META-INF/MANIFEST.MF");
-                Manifest manifest = new Manifest(manifestStream);
-                String manifestClassPath = manifest.getMainAttributes().getValue("Class-Path");
+                String manifestClassPath;
+                try {
+                    Manifest manifest = new Manifest(manifestStream);
+                    manifestClassPath = manifest.getMainAttributes().getValue("Class-Path");
+                }
+                finally {
+                    manifestStream.close();
+                }
 
                 // Setup new class loader from the manifest class-path
                 List<URL> newUrls = new LinkedList<URL>();
