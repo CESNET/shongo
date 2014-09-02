@@ -165,21 +165,27 @@ public class NativeQuery
         try {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             StringBuilder sqlBuilder = new StringBuilder();
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                line = line.replaceAll("/\\*.*?\\*/", "");
-                line = line.replaceAll("\\s*/\\*.*", "");
-                line = line.replaceAll("^\\s*\\*.*", "");
-                if (!line.isEmpty()) {
-                    if (line.charAt(0) == 65279) {
-                        line = line.substring(1);
-                    }
+            try {
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    line = line.replaceAll("/\\*.*?\\*/", "");
+                    line = line.replaceAll("\\s*/\\*.*", "");
+                    line = line.replaceAll("^\\s*\\*.*", "");
                     if (!line.isEmpty()) {
-                        sqlBuilder.append(line);
-                        sqlBuilder.append("\n");
+                        if (line.charAt(0) == 65279) {
+                            line = line.substring(1);
+                        }
+                        if (!line.isEmpty()) {
+                            sqlBuilder.append(line);
+                            sqlBuilder.append("\n");
+                        }
                     }
+                    line = bufferedReader.readLine();
                 }
-                line = bufferedReader.readLine();
+            }
+            finally {
+                bufferedReader.close();
+                inputStream.close();
             }
             return sqlBuilder.toString();
         }

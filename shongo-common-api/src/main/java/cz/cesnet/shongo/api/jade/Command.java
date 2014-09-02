@@ -17,14 +17,14 @@ public abstract class Command implements jade.content.AgentAction
     /**
      * Used for generating {@link #id}.
      */
-    private static Long lastGeneratedId = Long.valueOf(0);
+    private static Long lastGeneratedId = 0l;
 
     /**
      * @return {@link #id}
      */
     public Long getId()
     {
-        synchronized (lastGeneratedId) {
+        synchronized (Command.class) {
             if (this.id == null) {
                 this.id = ++lastGeneratedId;
             }
@@ -37,7 +37,7 @@ public abstract class Command implements jade.content.AgentAction
      */
     public void setId(Long id)
     {
-        synchronized (lastGeneratedId) {
+        synchronized (Command.class) {
             if (id > lastGeneratedId) {
                 lastGeneratedId = id;
             }

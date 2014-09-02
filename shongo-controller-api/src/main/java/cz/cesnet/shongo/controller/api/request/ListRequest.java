@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import com.sun.org.apache.regexp.internal.recompile;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
