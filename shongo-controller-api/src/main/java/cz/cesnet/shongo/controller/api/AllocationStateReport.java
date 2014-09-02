@@ -125,7 +125,7 @@ public class AllocationStateReport extends AbstractObjectReport
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
             if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_FOUND)) {
-                if (userError == null) {
+                if (ResourceNotFound.hasHigherPriorityThan(userError)) {
                     String parentId = (String) parentReports.lastElement().get(ID);
                     if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
                         return new ResourceNotFound(ResourceNotFound.Type.RECORDING);
@@ -136,12 +136,14 @@ public class AllocationStateReport extends AbstractObjectReport
                 }
             }
             else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_ALLOCATABLE)) {
-                String parentId = (String) parentReports.lastElement().get(ID);
-                if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
-                    userError = new ResourceNotFound(ResourceNotFound.Type.RECORDING);
-                }
-                else {
-                    userError = new ResourceNotFound();
+                if (ResourceNotFound.hasHigherPriorityThan(userError)) {
+                    String parentId = (String) parentReports.lastElement().get(ID);
+                    if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
+                        userError = new ResourceNotFound(ResourceNotFound.Type.RECORDING);
+                    }
+                    else {
+                        userError = new ResourceNotFound();
+                    }
                 }
             }
             else if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
@@ -323,6 +325,7 @@ public class AllocationStateReport extends AbstractObjectReport
          */
         public static <T extends UserError> boolean hasHigherPriorityThan(T userErrorType)
         {
+            // Resource not found has the lowest possible priority (everything else should be reported instead of it)
             if (userErrorType == null || userErrorType instanceof ResourceNotFound) {
                 return true;
             }

@@ -160,16 +160,24 @@ public class AllocationStateReportTest extends AbstractControllerTest
     @Test
     public void testExceedMaximumFuture() throws Exception
     {
-        Resource resource = new Resource();
-        resource.setName("resource");
-        resource.setAllocatable(true);
-        resource.setMaximumFuture(new DateTime("2012-11-01T00:00"));
-        String resourceId = createResource(resource);
+        Resource resource1 = new Resource();
+        resource1.setName("resource");
+        resource1.setAllocatable(true);
+        resource1.setMaximumFuture(new DateTime("2012-11-01T00:00"));
+        resource1.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
+        createResource(resource1);
+
+        Resource resource2 = new Resource();
+        resource2.setName("resource");
+        resource2.setAllocatable(false);
+        resource2.setMaximumFuture(new DateTime("2012-11-01T00:00"));
+        resource2.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
+        createResource(resource2);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
