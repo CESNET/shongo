@@ -80,12 +80,14 @@ public class AllocationStateReport extends AbstractObjectReport
                 reportId, getUserType(), Report.Language.fromLocale(locale), timeZone, report);
         messageBuilder.append("-");
         Report.Type reportType = getReportType(report);
-        switch (reportType) {
-            case ERROR:
-                messageBuilder.append("[ERROR] ");
-                break;
-            default:
-                break;
+        if (reportType != null) {
+            switch (reportType) {
+                case ERROR:
+                    messageBuilder.append("[ERROR] ");
+                    break;
+                default:
+                    break;
+            }
         }
 
         Collection<Map<String, Object>> childReports = getReportChildren(report);

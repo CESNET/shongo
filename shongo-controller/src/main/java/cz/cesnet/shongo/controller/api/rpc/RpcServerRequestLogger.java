@@ -60,7 +60,7 @@ public class RpcServerRequestLogger
     {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(inputStream));
+            reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             String line = null;
             StringBuilder requestBuilder = new StringBuilder();
             while ((line = reader.readLine()) != null) {

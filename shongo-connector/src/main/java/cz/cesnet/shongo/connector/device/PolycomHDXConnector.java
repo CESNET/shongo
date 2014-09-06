@@ -63,7 +63,7 @@ public class PolycomHDXConnector extends AbstractDeviceConnector implements Endp
      */
     public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
     {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 
         final String address;
         final String username;
@@ -75,6 +75,9 @@ public class PolycomHDXConnector extends AbstractDeviceConnector implements Endp
         else {
             System.out.print("address: ");
             address = in.readLine();
+            if (address == null) {
+                throw new IllegalArgumentException("Address is empty.");
+            }
         }
 
         if (args.length > 1) {

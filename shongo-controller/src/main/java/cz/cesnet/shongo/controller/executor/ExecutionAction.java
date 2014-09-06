@@ -663,7 +663,9 @@ public abstract class ExecutionAction<T> extends Thread
         protected void createDependency(ExecutionAction actionFrom, ExecutionAction actionTo)
         {
             // Deactivation must be done in reverse order than activation
-            super.createDependency(actionTo, actionFrom);
+            ExecutionAction deactivationActionFrom = actionTo;
+            ExecutionAction deactivationActionTo = actionFrom;
+            super.createDependency(deactivationActionFrom, deactivationActionTo);
         }
 
         @Override

@@ -159,6 +159,9 @@ public class iCalendar
     private VTimeZone getVTimeZone(org.joda.time.DateTimeZone dateTimeZone)
     {
         TimeZone timezone = timeZoneRegistry.getTimeZone(dateTimeZone.getID());
+        if (timezone == null) {
+            throw new IllegalArgumentException("Unknown timezone " + dateTimeZone);
+        }
         return timezone.getVTimeZone();
     }
 

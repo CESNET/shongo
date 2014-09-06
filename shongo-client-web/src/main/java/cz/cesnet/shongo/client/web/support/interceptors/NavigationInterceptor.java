@@ -93,7 +93,7 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
                 if (controller instanceof BreadcrumbProvider) {
                     // Create breadcrumb by controller
                     BreadcrumbProvider breadcrumbProvider = (BreadcrumbProvider) controller;
-                    breadcrumb = breadcrumbProvider.createBreadcrumb(navigationPage, request.getRequestURI());
+                    breadcrumb = breadcrumbProvider.createBreadcrumb(navigationPage, request);
                 }
                 else if (navigationPage != null) {
                     // Create breadcrumb from navigation page

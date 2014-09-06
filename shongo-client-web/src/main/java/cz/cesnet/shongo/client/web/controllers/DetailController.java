@@ -5,11 +5,13 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
+import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.controller.api.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -20,20 +22,15 @@ import java.util.*;
 @Controller
 public class DetailController extends AbstractDetailController implements BreadcrumbProvider
 {
-    /**
-     * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDetailView}
-     */
-    private Breadcrumb breadcrumb;
-
     @Override
-    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, String requestURI)
+    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, HttpServletRequest request)
     {
         if (navigationPage == null) {
             return null;
         }
+        String requestURI = request.getRequestURI();
         if (ClientWebNavigation.DETAIL.isNavigationPage(navigationPage)) {
-            breadcrumb = new Breadcrumb(navigationPage.getParentNavigationPage(), requestURI);
-            return breadcrumb;
+            return new Breadcrumb(navigationPage.getParentNavigationPage(), requestURI);
         }
         return new Breadcrumb(navigationPage, requestURI);
     }
@@ -43,6 +40,7 @@ public class DetailController extends AbstractDetailController implements Breadc
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_VIEW, method = RequestMethod.GET)
     public ModelAndView handleDetailView(
+            HttpServletRequest request,
             SecurityToken securityToken,
             Locale locale,
             @PathVariable(value = "objectId") String objectId,
@@ -98,6 +96,7 @@ public class DetailController extends AbstractDetailController implements Breadc
         }
 
         // Initialize breadcrumb
+        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(NavigationInterceptor.BREADCRUMB_REQUEST_ATTRIBUTE);
         if (breadcrumb != null) {
             breadcrumb.addPages(ReservationRequestModel.getPagesForBreadcrumb(
                     reservationRequestId, specificationType, parentReservationRequestId,

@@ -183,6 +183,9 @@ public class ResourceCache extends AbstractCache<Resource>
                 devices.retainAll(technologyDevices);
             }
         }
+        if (devices == null) {
+            devices = new HashSet<Long>();
+        }
         return devices;
     }
 

@@ -68,7 +68,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
             throws IOException, CommandException, InterruptedException, ConnectorInitException, SAXException,
                    XPathExpressionException, TransformerException, ParserConfigurationException
     {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 
         final String address;
         final String username;
@@ -80,6 +80,9 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         else {
             System.out.print("address: ");
             address = in.readLine();
+            if (address == null) {
+                throw new IllegalArgumentException("Address is empty.");
+            }
         }
 
         if (args.length > 1) {

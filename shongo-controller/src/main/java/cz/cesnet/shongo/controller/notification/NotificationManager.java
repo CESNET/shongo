@@ -103,7 +103,7 @@ public class NotificationManager extends Component implements Component.Authoriz
     /**
      * @return {@link #redirectTo}
      */
-    public PersonInformation getRedirectTo()
+    public synchronized PersonInformation getRedirectTo()
     {
         return redirectTo;
     }

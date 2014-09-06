@@ -264,7 +264,9 @@ public class Shell extends CommandSet
             try {
                 console.getOutput().write(console.getPrompt() + console.getCursorBuffer().toString());
                 console.getOutput().flush();
-                thread = null;
+                synchronized (Shell.class) {
+                    thread = null;
+                }
             }
             catch (Exception exception) {
             }
@@ -281,23 +283,25 @@ public class Shell extends CommandSet
      */
     public void rePrompt()
     {
-        if (thread == null) {
-            try {
-                console.getOutput().write("\n");
-                console.getOutput().flush();
+        synchronized (Shell.class) {
+            if (thread == null) {
+                try {
+                    console.getOutput().write("\n");
+                    console.getOutput().flush();
+                }
+                catch (IOException e) {
+                }
+                try {
+                    thread = new RePromptThread();
+                    thread.start();
+                }
+                catch (Exception exception) {
+                    logger.error("Failed to run re-prompt thread for shell.", exception);
+                }
             }
-            catch (IOException e) {
+            if (thread != null) {
+                thread.at = System.nanoTime() + 1000000;
             }
-            try {
-                thread = new RePromptThread();
-                thread.start();
-            }
-            catch (Exception exception) {
-                logger.error("Failed to run re-prompt thread for shell.", exception);
-            }
-        }
-        if (thread != null) {
-            thread.at = System.nanoTime() + 1000000;
         }
     }
 

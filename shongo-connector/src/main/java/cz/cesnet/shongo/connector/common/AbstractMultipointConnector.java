@@ -33,6 +33,9 @@ public abstract class AbstractMultipointConnector extends AbstractDeviceConnecto
     {
         String roomId = room.getId();
         Room oldRoom = getRoom(roomId);
+        if (oldRoom == null) {
+            throw new CommandException("Room " + roomId + " doesn't exist.");
+        }
         // If recreation is needed, recreate the room
         if (isRecreateNeeded(oldRoom, room)) {
             return recreateRoom(oldRoom, room);

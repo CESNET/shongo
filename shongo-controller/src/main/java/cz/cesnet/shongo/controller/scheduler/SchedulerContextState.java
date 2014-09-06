@@ -657,65 +657,68 @@ public class SchedulerContextState
             // Disable logging of the reverting
             Savepoint storedCurrentSavepoint = currentSavepoint;
             currentSavepoint = null;
+            try {
 
-            // Revert changes
-            for (ObjectType objectType : changes.keySet()) {
-                Map<Object, ObjectState> objectTypeChanges = changes.get(objectType);
-                switch (objectType) {
-                    case NOTIFICATION:
-                        for (Object object : objectTypeChanges.keySet()) {
-                            ObjectState objectState = objectTypeChanges.get(object);
-                            if (objectState == ObjectState.ADDED) {
-                                removeNotification((AbstractNotification) object);
+                // Revert changes
+                for (ObjectType objectType : changes.keySet()) {
+                    Map<Object, ObjectState> objectTypeChanges = changes.get(objectType);
+                    switch (objectType) {
+                        case NOTIFICATION:
+                            for (Object object : objectTypeChanges.keySet()) {
+                                ObjectState objectState = objectTypeChanges.get(object);
+                                if (objectState == ObjectState.ADDED) {
+                                    removeNotification((AbstractNotification) object);
+                                }
+                                else {
+                                    addNotification((AbstractNotification) object);
+                                }
                             }
-                            else {
-                                addNotification((AbstractNotification) object);
+                            break;
+                        case REFERENCED_RESOURCE:
+                            for (Object object : objectTypeChanges.keySet()) {
+                                ObjectState objectState = objectTypeChanges.get(object);
+                                if (objectState == ObjectState.ADDED) {
+                                    removeReferencedResource((Resource) object);
+                                }
+                                else {
+                                    addReferencedResource((Resource) object);
+                                }
                             }
-                        }
-                        break;
-                    case REFERENCED_RESOURCE:
-                        for (Object object : objectTypeChanges.keySet()) {
-                            ObjectState objectState = objectTypeChanges.get(object);
-                            if (objectState == ObjectState.ADDED) {
-                                removeReferencedResource((Resource) object);
+                            break;
+                        case ALLOCATED_RESERVATION:
+                            for (Object object : objectTypeChanges.keySet()) {
+                                ObjectState objectState = objectTypeChanges.get(object);
+                                if (objectState == ObjectState.ADDED) {
+                                    removeAllocatedReservation((Reservation) object);
+                                }
+                                else {
+                                    addAllocatedReservation((Reservation) object);
+                                }
                             }
-                            else {
-                                addReferencedResource((Resource) object);
+                            break;
+                        case AVAILABLE_RESERVATION:
+                            for (Object object : objectTypeChanges.keySet()) {
+                                @SuppressWarnings("unchecked")
+                                AvailableReservation<Reservation> availableReservation =
+                                        (AvailableReservation<Reservation>) object;
+                                ObjectState objectState = objectTypeChanges.get(object);
+                                if (objectState == ObjectState.ADDED) {
+                                    removeAvailableReservation(availableReservation, false, false);
+                                }
+                                else {
+                                    addAvailableReservation(availableReservation);
+                                }
                             }
-                        }
-                        break;
-                    case ALLOCATED_RESERVATION:
-                        for (Object object : objectTypeChanges.keySet()) {
-                            ObjectState objectState = objectTypeChanges.get(object);
-                            if (objectState == ObjectState.ADDED) {
-                                removeAllocatedReservation((Reservation) object);
-                            }
-                            else {
-                                addAllocatedReservation((Reservation) object);
-                            }
-                        }
-                        break;
-                    case AVAILABLE_RESERVATION:
-                        for (Object object : objectTypeChanges.keySet()) {
-                            @SuppressWarnings("unchecked")
-                            AvailableReservation<Reservation> availableReservation =
-                                    (AvailableReservation<Reservation>) object;
-                            ObjectState objectState = objectTypeChanges.get(object);
-                            if (objectState == ObjectState.ADDED) {
-                                removeAvailableReservation(availableReservation, false, false);
-                            }
-                            else {
-                                addAvailableReservation(availableReservation);
-                            }
-                        }
-                        break;
-                    default:
-                        throw new TodoImplementException(objectType);
+                            break;
+                        default:
+                            throw new TodoImplementException(objectType);
+                    }
                 }
             }
-
-            // Restore current savepoint
-            currentSavepoint = storedCurrentSavepoint;
+            finally {
+                // Restore current savepoint
+                currentSavepoint = storedCurrentSavepoint;
+            }
 
             destroy();
         }

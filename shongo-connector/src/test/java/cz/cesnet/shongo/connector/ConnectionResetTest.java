@@ -30,7 +30,9 @@ public class ConnectionResetTest
     public void testConnectionReset() throws Exception
     {
         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(XmlRpcErrorLogger.class);
-        logger.setLevel(Level.OFF);
+        if (logger != null) {
+            logger.setLevel(Level.OFF);
+        }
 
         WebServer webServer = new WebServer(0);
         XmlRpcServer xmlRpcServer = webServer.getXmlRpcServer();

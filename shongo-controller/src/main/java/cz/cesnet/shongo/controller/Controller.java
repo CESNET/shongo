@@ -692,7 +692,7 @@ public class Controller
      *
      * @param controller
      */
-    public static Controller create(Controller controller)
+    public static synchronized Controller create(Controller controller)
     {
         if (instance != null) {
             throw new IllegalStateException("Another instance of controller already exists.");

@@ -86,7 +86,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
      */
     public static void main(String[] args) throws IOException, CommandException, InterruptedException
     {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 
         final String address;
         final String username;
@@ -98,6 +98,9 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
         else {
             System.out.print("address: ");
             address = in.readLine();
+            if (address == null) {
+                throw new IllegalArgumentException("Address is empty.");
+            }
         }
 
         if (args.length > 1) {
@@ -517,8 +520,8 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
             commandLock.lock();
         }
 
-        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
         try {
+            logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
             sendCommand(command);
 Reading:
             while (true) {
@@ -680,6 +683,7 @@ Reading:
         CallState callState = DEVICE_CALL_STATES.get(fields[3]);
         if (callState == null) {
             logger.error("Unknown call state got from asynchronous message: {}", fields[3]);
+            callState = CallState.OTHER;
         }
 
         int callId;

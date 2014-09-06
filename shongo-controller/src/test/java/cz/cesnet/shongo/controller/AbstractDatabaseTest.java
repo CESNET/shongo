@@ -31,7 +31,7 @@ public abstract class AbstractDatabaseTest
     /**
      * Enable driver for debugging SQL.
      */
-    protected static void enableDebugDriver()
+    protected static synchronized void enableDebugDriver()
     {
         connectionDriver = "net.sf.log4jdbc.DriverSpy";
         connectionUrl = connectionUrl.replace("jdbc:", "jdbc:log4jdbc:");
@@ -47,7 +47,9 @@ public abstract class AbstractDatabaseTest
      */
     protected EntityManagerFactory getEntityManagerFactory()
     {
-        return entityManagerFactory;
+        synchronized (AbstractControllerTest.class) {
+            return entityManagerFactory;
+        }
     }
 
     /**
@@ -55,7 +57,9 @@ public abstract class AbstractDatabaseTest
      */
     protected EntityManager createEntityManager()
     {
-        return entityManagerFactory.createEntityManager();
+        synchronized (AbstractControllerTest.class) {
+            return entityManagerFactory.createEntityManager();
+        }
     }
 
     /**
@@ -66,24 +70,26 @@ public abstract class AbstractDatabaseTest
     @Before
     public void before() throws Exception
     {
-        if (entityManagerFactory == null) {
-            // For testing purposes use only in-memory database
-            Map<String, String> properties = new HashMap<String, String>();
-            properties.put("hibernate.connection.driver_class", connectionDriver);
-            properties.put("hibernate.connection.url", connectionUrl);
-            properties.put("hibernate.connection.username", "sa");
-            properties.put("hibernate.connection.password", "");
+        synchronized (AbstractControllerTest.class) {
+            if (entityManagerFactory == null) {
+                // For testing purposes use only in-memory database
+                Map<String, String> properties = new HashMap<String, String>();
+                properties.put("hibernate.connection.driver_class", connectionDriver);
+                properties.put("hibernate.connection.url", connectionUrl);
+                properties.put("hibernate.connection.username", "sa");
+                properties.put("hibernate.connection.password", "");
 
-            logger.info("Creating entity manager factory...");
-            Timer timer = new Timer();
-            entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
-            logger.info("Entity manager factory created in {} ms.", timer.stop());
+                logger.info("Creating entity manager factory...");
+                Timer timer = new Timer();
+                entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
+                logger.info("Entity manager factory created in {} ms.", timer.stop());
 
-            Controller.initializeDatabase(entityManagerFactory);
-        }
-        else {
-            logger.info("Reusing existing entity manager factory.");
-            clearData();
+                Controller.initializeDatabase(entityManagerFactory);
+            }
+            else {
+                logger.info("Reusing existing entity manager factory.");
+                clearData();
+            }
         }
     }
 
@@ -101,17 +107,19 @@ public abstract class AbstractDatabaseTest
      */
     protected void clearData()
     {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            logger.info("Clearing database data...");
-            entityManager.getTransaction().begin();
-            entityManager.createNativeQuery(
-                    "TRUNCATE SCHEMA PUBLIC RESTART IDENTITY AND COMMIT NO CHECK").executeUpdate();
-            entityManager.getTransaction().commit();
-            logger.info("Database data cleared.");
-        }
-        finally {
-            entityManager.close();
+        synchronized (AbstractControllerTest.class) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                logger.info("Clearing database data...");
+                entityManager.getTransaction().begin();
+                entityManager.createNativeQuery(
+                        "TRUNCATE SCHEMA PUBLIC RESTART IDENTITY AND COMMIT NO CHECK").executeUpdate();
+                entityManager.getTransaction().commit();
+                logger.info("Database data cleared.");
+            }
+            finally {
+                entityManager.close();
+            }
         }
     }
 }

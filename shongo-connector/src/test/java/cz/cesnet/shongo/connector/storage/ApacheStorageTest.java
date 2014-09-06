@@ -138,15 +138,20 @@ public class ApacheStorageTest
         // Check file
         logger.info("Checking file...");
         InputStream inputStream = storage.getFileContent(null, "test");
-        fileData.rewind();
-        int position = 0;
-        while (inputStream.available() != 0) {
-            byte[] expected = new byte[1024];
-            byte[] actual = new byte[1024];
-            fileData.get(expected);
-            inputStream.read(actual);
-            Assert.assertEquals("Check at position " + position, new String(expected), new String(actual));
-            position += 1024;
+        try {
+            fileData.rewind();
+            int position = 0;
+            while (inputStream.available() != 0) {
+                byte[] expected = new byte[1024];
+                byte[] actual = new byte[1024];
+                fileData.get(expected);
+                inputStream.read(actual);
+                Assert.assertEquals("Check at position " + position, new String(expected), new String(actual));
+                position += 1024;
+            }
+        }
+        finally {
+            inputStream.close();
         }
     }
 

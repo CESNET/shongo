@@ -1210,7 +1210,7 @@ ParamsLoop:
         return roomSummary;
     }
 
-    private Collection<RoomParticipant> getRoomParticipants(String roomId, boolean withHidden) throws CommandException
+    private synchronized Collection<RoomParticipant> getRoomParticipants(String roomId, boolean withHidden) throws CommandException
     {
         Command cmd = new Command("participant.enumerate");
         cmd.setParameter("operationScope", new String[]{"currentState"});
@@ -1332,20 +1332,22 @@ ParamsLoop:
     {
         String roomParticipantSnapshotUrl;
         String cacheId = roomId + ":" + roomParticipantId;
-        synchronized (roomParticipantSnapshotUrlCache) {
-            roomParticipantSnapshotUrl = roomParticipantSnapshotUrlCache.get(cacheId);
-            if (roomParticipantSnapshotUrl == null) {
-                Command cmd = new Command("participant.status");
-                cmd.setParameter("operationScope", new String[]{"currentState"});
-                identifyParticipant(cmd, roomId, roomParticipantId);
-                Map<String, Object> result = execApi(cmd);
-                @SuppressWarnings("unchecked")
-                Map<String, Object> state = (Map<String, Object>) result.get("currentState");
-                roomParticipantSnapshotUrl = (String) state.get("previewURL");
+        synchronized (this) {
+            synchronized (roomParticipantSnapshotUrlCache) {
+                roomParticipantSnapshotUrl = roomParticipantSnapshotUrlCache.get(cacheId);
                 if (roomParticipantSnapshotUrl == null) {
-                    throw new CommandException("Participant " + roomParticipantId + " doesn't have snapshot.");
+                    Command cmd = new Command("participant.status");
+                    cmd.setParameter("operationScope", new String[]{"currentState"});
+                    identifyParticipant(cmd, roomId, roomParticipantId);
+                    Map<String, Object> result = execApi(cmd);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> state = (Map<String, Object>) result.get("currentState");
+                    roomParticipantSnapshotUrl = (String) state.get("previewURL");
+                    if (roomParticipantSnapshotUrl == null) {
+                        throw new CommandException("Participant " + roomParticipantId + " doesn't have snapshot.");
+                    }
+                    roomParticipantSnapshotUrlCache.put(cacheId, roomParticipantSnapshotUrl);
                 }
-                roomParticipantSnapshotUrlCache.put(cacheId, roomParticipantSnapshotUrl);
             }
         }
 
@@ -1388,7 +1390,7 @@ ParamsLoop:
      */
     public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
     {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
 
         final String address;
         final String username;
@@ -1400,6 +1402,9 @@ ParamsLoop:
         else {
             System.out.print("address: ");
             address = in.readLine();
+            if (address == null) {
+                throw new IllegalArgumentException("Address is empty.");
+            }
         }
 
         if (args.length > 1) {
