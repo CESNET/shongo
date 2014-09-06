@@ -259,12 +259,14 @@ public class BackUrl
          */
         public static SessionData getInstance(HttpServletRequest request)
         {
-            SessionData sessionData = (SessionData) WebUtils.getSessionAttribute(request, BACK_URL_SESSION_ATTRIBUTE);
-            if (sessionData == null) {
-                sessionData = new SessionData();
-                WebUtils.setSessionAttribute(request, BACK_URL_SESSION_ATTRIBUTE, sessionData);
+            synchronized (request) {
+                SessionData sessionData = (SessionData) WebUtils.getSessionAttribute(request, BACK_URL_SESSION_ATTRIBUTE);
+                if (sessionData == null) {
+                    sessionData = new SessionData();
+                    WebUtils.setSessionAttribute(request, BACK_URL_SESSION_ATTRIBUTE, sessionData);
+                }
+                return sessionData;
             }
-            return sessionData;
         }
     }
 

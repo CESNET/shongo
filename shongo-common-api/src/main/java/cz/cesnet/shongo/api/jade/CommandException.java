@@ -7,7 +7,6 @@ package cz.cesnet.shongo.api.jade;
  */
 public class CommandException extends Exception
 {
-
     /**
      * Constructor.
      */

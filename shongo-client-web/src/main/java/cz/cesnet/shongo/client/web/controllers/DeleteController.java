@@ -6,10 +6,8 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.support.*;
-import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.Interval;
@@ -33,31 +31,13 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class DeleteController implements BreadcrumbProvider
+public class DeleteController
 {
     @Resource
     private ReservationService reservationService;
 
     @Resource
     private Cache cache;
-
-    /**
-     * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDeleteView}
-     */
-    private Breadcrumb breadcrumb;
-
-    @Override
-    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, String requestURI)
-    {
-        if (navigationPage == null) {
-            return null;
-        }
-        if (ClientWebNavigation.RESERVATION_REQUEST_DELETE.isNavigationPage(navigationPage)) {
-            breadcrumb = new Breadcrumb(navigationPage, requestURI);
-            return breadcrumb;
-        }
-        return new Breadcrumb(navigationPage, requestURI);
-    }
 
     /**
      * Handle revert of reservation request.
@@ -77,6 +57,7 @@ public class DeleteController implements BreadcrumbProvider
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
     public String handleDeleteView(
+            HttpServletRequest request,
             SecurityToken securityToken,
             MessageProvider messageProvider,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -88,7 +69,12 @@ public class DeleteController implements BreadcrumbProvider
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
         String roomName;
         if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
-            roomName = cache.getResourceSummary(securityToken,reservationRequest.getResourceId()).getName();
+            String resourceId = reservationRequest.getResourceId();
+            ResourceSummary resource = cache.getResourceSummary(securityToken, resourceId);
+            if (resource == null) {
+                throw new IllegalStateException("Summary for resource " + resourceId + " cannot be retrieved.");
+            }
+            roomName = resource.getName();
         }
         else {
             roomName = reservationRequest.getRoomName();
@@ -117,6 +103,7 @@ public class DeleteController implements BreadcrumbProvider
         }
 
         // Initialize breadcrumb
+        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(NavigationInterceptor.BREADCRUMB_REQUEST_ATTRIBUTE);
         if (breadcrumb != null) {
             breadcrumb.addPages(breadcrumb.getPagesCount() - 1,
                     ReservationRequestModel.getPagesForBreadcrumb(reservationRequest));

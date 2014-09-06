@@ -778,8 +778,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("type", "meeting");
         setRoomAttributes(attributes, newRoom);
         String newRoomUrl = attributes.getValue("url-path");
-        String oldRoomUrl = oldRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
-        return !getLastPathSegmentFromURI(oldRoomUrl).equalsIgnoreCase(newRoomUrl);
+        Alias oldRoomAlias = oldRoom.getAlias(AliasType.ADOBE_CONNECT_URI);
+        String oldRoomUrl = oldRoomAlias != null ? oldRoomAlias.getValue() : null;
+        String segment = getLastPathSegmentFromURI(oldRoomUrl);
+        return segment == null || !segment.equalsIgnoreCase(newRoomUrl);
     }
 
     @Override
@@ -843,7 +845,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             //TODO: manage creating new Room with same name
             //TODO: backup recordings ???
 
-            String newRoomUrl = newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
+            Alias newRoomAlias = newRoom.getAlias(AliasType.ADOBE_CONNECT_URI);
+            if (newRoomAlias == null) {
+                throw new CommandException("Room doesn't have ADOBE_CONNECT_URI alias.");
+            }
+            String newRoomUrl = newRoomAlias.getValue();
             String msg = "Room has been modified, you have been redirected to the new one (" + newRoomUrl + ").";
             endMeeting(oldRoomId, URLEncoder.encode(msg, "UTF8"), true, URLEncoder.encode(newRoomUrl, "UTF8"));
         }
@@ -870,8 +876,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected String getLastPathSegmentFromURI(String uri)
     {
+        if (uri == null) {
+            return null;
+        }
         String[] uriArray = uri.split("/");
-
         return (uriArray.length > 1 ? uriArray[uriArray.length - 1] : null);
     }
 
@@ -891,6 +899,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         Element scoInfo = getScoInfo(roomId);
         Document document = scoInfo.getDocument();
+        if (document == null) {
+            throw new IllegalStateException("Document isn't set.");
+        }
         XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
         return xmlOutput.outputString(document);
     }

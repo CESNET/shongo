@@ -288,6 +288,9 @@ public class DatabaseMigration
         // Create hibernate configuration
         org.hibernate.ejb.Ejb3Configuration ejb3Configuration = new org.hibernate.ejb.Ejb3Configuration();
         ejb3Configuration = ejb3Configuration.configure(persistenceUnitName, properties);
+        if (ejb3Configuration == null) {
+            throw new IllegalStateException("EJB3 configuration is null");
+        }
         org.hibernate.cfg.Configuration configuration = ejb3Configuration.getHibernateConfiguration();
 
         // Create dialect

@@ -161,7 +161,7 @@ public abstract class DateTimeSlot extends SimplePersistentObject implements Clo
     public final boolean willOccur()
     {
         Interval slot = getEarliest();
-        return slot.isAfter(DateTime.now());
+        return slot != null && slot.isAfter(DateTime.now());
     }
 
     /**

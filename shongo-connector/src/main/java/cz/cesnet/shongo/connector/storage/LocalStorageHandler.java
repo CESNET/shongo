@@ -389,11 +389,13 @@ public class LocalStorageHandler
             }
         });
         List<File> files = new LinkedList<File>();
-        for (String ioFile : ioFiles) {
-            File file = new File();
-            file.setFolderId(folderId);
-            file.setFileName(ioFile);
-            files.add(file);
+        if (ioFiles != null) {
+            for (String ioFile : ioFiles) {
+                File file = new File();
+                file.setFolderId(folderId);
+                file.setFileName(ioFile);
+                files.add(file);
+            }
         }
         return files;
     }
@@ -488,10 +490,12 @@ public class LocalStorageHandler
     {
         if (file.isDirectory()) {
             String[] children = file.list();
-            for (String child : children) {
-                boolean success = deleteRecursive(new java.io.File(file, child));
-                if (!success) {
-                    return false;
+            if (children != null) {
+                for (String child : children) {
+                    boolean success = deleteRecursive(new java.io.File(file, child));
+                    if (!success) {
+                        return false;
+                    }
                 }
             }
         }

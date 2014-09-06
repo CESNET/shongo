@@ -500,7 +500,7 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-        <c:if test="reservationRequest.specificationType != 'MEETING_ROOM'">
+        <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
             <div class="form-group">
                 <form:label class="col-xs-3 control-label" path="roomParticipantCount">
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:

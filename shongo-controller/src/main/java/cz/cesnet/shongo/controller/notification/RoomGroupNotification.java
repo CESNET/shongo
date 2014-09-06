@@ -110,9 +110,11 @@ public class RoomGroupNotification extends ConfigurableNotification
             participantRoles.add(participantRole);
 
             RoomEndpoint roomEndpoint = roomNotification.getRoomEndpoint();
-            String roomEndpointPin = roomEndpoint.getPin();
-            if (roomEndpointPin != null && !roomEndpointPin.equals(samePin)) {
-                samePin = null;
+            if (roomEndpoint != null) {
+                String roomEndpointPin = roomEndpoint.getPin();
+                if (roomEndpointPin != null && !roomEndpointPin.equals(samePin)) {
+                    samePin = null;
+                }
             }
 
             roomNotifications.add(roomNotification);
@@ -312,10 +314,14 @@ public class RoomGroupNotification extends ConfigurableNotification
             String samePin)
     {
         RoomEndpoint roomEndpoint = notification.getRoomEndpoint();
+        if (roomEndpoint == null) {
+            throw new RuntimeException("Room endpoint is required.");
+        }
         StringBuilder outputBuilder = new StringBuilder();
         StringBuilder recordsBuilder = new StringBuilder();
 
-        String meetingName = roomEndpoint.getMeetingName();
+        String meetingName = null;
+        meetingName = roomEndpoint.getMeetingName();
         if (meetingName != null) {
             meetingName = " \"" + meetingName + "\"";
         }

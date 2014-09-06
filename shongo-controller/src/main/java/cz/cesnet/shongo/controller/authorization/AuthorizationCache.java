@@ -74,7 +74,7 @@ public class AuthorizationCache
     /**
      * @param expiration sets the {@link #userIdByAccessTokenCache} expiration
      */
-    public void setUserIdExpiration(Duration expiration)
+    public synchronized void setUserIdExpiration(Duration expiration)
     {
         userIdByAccessTokenCache.setExpiration(expiration);
         userIdByPrincipalNameCache.setExpiration(expiration);
@@ -83,7 +83,7 @@ public class AuthorizationCache
     /**
      * @param expiration sets the {@link #userDataByUserIdCache} expiration
      */
-    public void setUserInformationExpiration(Duration expiration)
+    public synchronized void setUserInformationExpiration(Duration expiration)
     {
         userDataByUserIdCache.setExpiration(expiration);
         userAuthorizationDataByAccessTokenCache.setExpiration(expiration);
@@ -92,7 +92,7 @@ public class AuthorizationCache
     /**
      * @param expiration sets the {@link #aclUserStateCache} expiration
      */
-    public void setAclExpiration(Duration expiration)
+    public synchronized void setAclExpiration(Duration expiration)
     {
         aclEntryCache.setExpiration(expiration);
         aclUserStateCache.setExpiration(expiration);
@@ -102,7 +102,7 @@ public class AuthorizationCache
     /**
      * @param expiration sets the {@link #groupIdByName} expiration
      */
-    public void setGroupExpiration(Duration expiration)
+    public synchronized void setGroupExpiration(Duration expiration)
     {
         groupByGroupId.setExpiration(expiration);
         groupIdByName.setExpiration(expiration);

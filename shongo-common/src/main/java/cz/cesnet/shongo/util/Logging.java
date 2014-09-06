@@ -38,7 +38,7 @@ public class Logging
     /**
      * Disable printing by System.out.
      */
-    public static void disableSystemOut()
+    public static synchronized void disableSystemOut()
     {
         systemOut = System.out;
         System.setOut(new NullPrintStream());
@@ -47,7 +47,7 @@ public class Logging
     /**
      * Enable printing by System.out.
      */
-    public static void enableSystemOut()
+    public static synchronized void enableSystemOut()
     {
         if (systemOut != null) {
             System.setOut(systemOut);
@@ -63,7 +63,7 @@ public class Logging
     /**
      * Disable printing by System.err.
      */
-    public static void disableSystemErr()
+    public static synchronized void disableSystemErr()
     {
         systemErr = System.err;
         System.setErr(new NullPrintStream());
@@ -72,7 +72,7 @@ public class Logging
     /**
      * Enable printing by System.err.
      */
-    public static void enableSystemErr()
+    public static synchronized void enableSystemErr()
     {
         if (systemErr != null) {
             System.setErr(systemErr);

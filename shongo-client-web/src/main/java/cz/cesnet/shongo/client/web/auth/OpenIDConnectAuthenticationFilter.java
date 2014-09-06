@@ -307,13 +307,15 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
      */
     protected static String getStoredState(HttpSession session)
     {
-        Object value = session.getAttribute(SESSION_STATE_VARIABLE);
-        if (value != null && value instanceof String) {
-            session.removeAttribute(SESSION_STATE_VARIABLE);
-            return (String) value;
-        }
-        else {
-            return null;
+        synchronized (session) {
+            Object value = session.getAttribute(SESSION_STATE_VARIABLE);
+            if (value != null && value instanceof String) {
+                session.removeAttribute(SESSION_STATE_VARIABLE);
+                return (String) value;
+            }
+            else {
+                return null;
+            }
         }
     }
 }

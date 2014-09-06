@@ -209,7 +209,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     }
 
     @Override
-    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
+    public synchronized void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
         this.login = username;
         this.password = password;
@@ -494,7 +494,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             Recording recording;
             try {
                 InputStream inputStream = metadataStorage.getFileContent(recordingFolderId, metadataFileName);
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
                 StringBuilder inputStringBuilder = new StringBuilder();
@@ -941,15 +941,23 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                             Document resultDocumentTmp = saxBuilder.build(new StringReader(resultString));
                             Element rootElementTmp = resultDocumentTmp.getRootElement();
                             this.ns1 = rootElementTmp.getNamespace(NS_NS1);
+                            if (this.ns1 == null) {
+                                throw new IllegalStateException("Namespace doesn't exist.");
+                            }
+
                         }
                         Document resultDocument = saxBuilder.build(new StringReader(removeNamespace(resultString)));
                         Element rootElement = resultDocument.getRootElement();
                         Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
                         Element bodyElement = rootElement.getChild("Body", envelopeNS);
                         if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                            String fault = bodyElement.getChild("Fault", envelopeNS).getChildText("faultstring");
+                            String faultString = "Unknown";
+                            Element fault = bodyElement.getChild("Fault", envelopeNS);
+                            if (fault != null) {
+                                faultString = fault.getChildText("faultstring");
+                            }
                             throw new FaultException("Command '" + command.getCommand() + "' issuing error: "
-                                    + goodResponse.getStatusLine().getReasonPhrase(), fault);
+                                    + goodResponse.getStatusLine().getReasonPhrase(), faultString);
                         }
                         return bodyElement;
                     }

@@ -182,7 +182,7 @@ public class MeetingRoomController {
                     isDeprecated = false;
                     break;
                 default:
-                    isDeprecated = earliestSlot.getEnd().isBeforeNow();
+                    isDeprecated = earliestSlot != null && earliestSlot.getEnd().isBeforeNow();
                     break;
             }
             item.put("isDeprecated", isDeprecated);

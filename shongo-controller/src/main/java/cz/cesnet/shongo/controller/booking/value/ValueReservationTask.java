@@ -145,7 +145,10 @@ public class ValueReservationTask extends ReservationTask
         catch (ValueProvider.NoAvailableValueException exception) {
             Interval overlapInterval = slot;
             for (Interval interval : usedValues.values()) {
-                overlapInterval = overlapInterval.overlap(interval);
+                Interval newOverlapInterval = overlapInterval.overlap(interval);
+                if (newOverlapInterval != null) {
+                    overlapInterval = newOverlapInterval;
+                }
             }
             throw new SchedulerReportSet.ValueNotAvailableException(overlapInterval);
         }

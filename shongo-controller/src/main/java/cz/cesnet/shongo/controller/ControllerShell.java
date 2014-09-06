@@ -26,19 +26,12 @@ public class ControllerShell extends Shell
     private static Logger logger = LoggerFactory.getLogger(ControllerShell.class);
 
     /**
-     * @see Controller
-     */
-    private Controller controller;
-
-    /**
      * Constructor.
      *
-     * @param controller sets the {@link #controller}
+     * @param controller
      */
     public ControllerShell(final Controller controller)
     {
-        this.controller = controller;
-
         Container controllerContainer = controller.getJadeContainer();
         ControllerAgent controllerAgent = controller.getAgent();
 
@@ -97,22 +90,24 @@ public class ControllerShell extends Shell
                     {
                         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getRootLogger();
                         ConsoleAppender consoleAppender = (ConsoleAppender) logger.getAppender("CONSOLE");
-                        String[] args = commandLine.getArgs();
-                        String filter = null;
-                        if (args.length > 1) {
-                            filter = args[1].trim();
-                            if (filter.equals("*")) {
-                                filter = null;
+                        if (consoleAppender != null) {
+                            String[] args = commandLine.getArgs();
+                            String filter = null;
+                            if (args.length > 1) {
+                                filter = args[1].trim();
+                                if (filter.equals("*")) {
+                                    filter = null;
+                                }
                             }
+                            consoleAppender.setFilter(null);
+                            if (filter != null) {
+                                ControllerShell.logger.info("Enabling logger filter for '{}'.", filter);
+                            }
+                            else {
+                                ControllerShell.logger.info("Disabling logger filter.");
+                            }
+                            consoleAppender.setFilter(filter);
                         }
-                        consoleAppender.setFilter(null);
-                        if (filter != null) {
-                            ControllerShell.logger.info("Enabling logger filter for '{}'.", filter);
-                        }
-                        else {
-                            ControllerShell.logger.info("Disabling logger filter.", filter);
-                        }
-                        consoleAppender.setFilter(filter);
                     }
                 });
         addCommand("notification", "[on|off|redirect <email-address>] Configure notification executor", new CommandHandler()

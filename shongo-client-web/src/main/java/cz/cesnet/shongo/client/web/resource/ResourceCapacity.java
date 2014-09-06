@@ -190,7 +190,12 @@ public abstract class ResourceCapacity
                 switch (type) {
                     case MAXIMUM:
                         ResourceCapacityBucket peakBucket = utilization.getPeakBucket();
-                        return peakBucket.getLicenseCount();
+                        if (peakBucket != null) {
+                            return peakBucket.getLicenseCount();
+                        }
+                        else {
+                            return 0;
+                        }
                     case AVERAGE:
                         List<ResourceCapacityBucket> buckets = utilization.getBuckets();
                         double totalLicenseCount = 0;

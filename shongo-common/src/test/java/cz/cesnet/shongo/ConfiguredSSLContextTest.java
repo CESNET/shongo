@@ -49,7 +49,7 @@ public class ConfiguredSSLContextTest
             inputStream = connection.getErrorStream();
         }
         StringBuilder result = new StringBuilder();
-        BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream));
+        BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
         String line;
         while ((line = bufferReader.readLine()) != null) {
             result.append(line);
@@ -69,7 +69,7 @@ public class ConfiguredSSLContextTest
         StringBuilder result = new StringBuilder();
         if (entity != null) {
             InputStream inputStream = entity.getContent();
-            BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             String line;
             while ((line = bufferReader.readLine()) != null) {
                 result.append(line);

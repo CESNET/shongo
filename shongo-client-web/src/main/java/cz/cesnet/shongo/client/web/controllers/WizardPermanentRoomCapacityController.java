@@ -117,9 +117,11 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         reservationRequestModel.setId(null);
         reservationRequestModel.setStart(DateTime.now());
-        WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
-        WebUtils.setSessionAttribute(request, "permanentRooms",
-                ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        synchronized (request) {
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
+            WebUtils.setSessionAttribute(request, "permanentRooms",
+                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        }
         return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY);
     }
 
@@ -135,7 +137,9 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
                 reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
-        WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
+        synchronized (request) {
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
+        }
         return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY);
     }
 

@@ -346,7 +346,7 @@ public class ControllerConfiguration extends CombinedConfiguration
      * @param authorization
      * @return set of administrators to which errors are reported.
      */
-    public List<PersonInformation> getAdministrators(EntityManager entityManager, Authorization authorization)
+    public synchronized List<PersonInformation> getAdministrators(EntityManager entityManager, Authorization authorization)
     {
         return getAdministrators(new AuthorizationManager(entityManager, authorization));
     }

@@ -848,14 +848,17 @@ public class Converter
     @SuppressWarnings("unchecked")
     public static <T> T convert(Object value, Class<T> targetClass)
     {
-        if (targetClass.isInstance(value)) {
+        if (targetClass == null) {
+            throw new IllegalArgumentException("Target class cannot be null");
+        }
+        else if (targetClass.isInstance(value)) {
             return (T) value;
         }
-        if (String.class.equals(targetClass)) {
+        else if (String.class.equals(targetClass)) {
             return (T) convertToString(value);
         }
         else if (Enum.class.isAssignableFrom(targetClass)) {
-            return (T) convertToEnum(value, (Class<Enum>)targetClass);
+            return (T) convertToEnum(value, (Class<Enum>) targetClass);
         }
         else if (DateTime.class.equals(targetClass)) {
             return (T) convertToDateTime(value);
@@ -883,7 +886,7 @@ public class Converter
             return (T) convertToClass(value);
         }
         String from = (value != null ? value.getClass().getName() : "null");
-        String to = (targetClass != null ? targetClass.getName() : "null");
+        String to = targetClass.getName();
         throw new TodoImplementException(from + " -> " + to);
     }
 

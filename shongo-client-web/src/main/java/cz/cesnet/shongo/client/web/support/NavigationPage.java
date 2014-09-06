@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web.support;
 
+import cz.cesnet.shongo.TodoImplementException;
+
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -82,6 +84,9 @@ public class NavigationPage extends Page
         }
         if (urlAttributes == null) {
             buildUrl();
+            if (urlAttributes == null) {
+                throw new IllegalStateException("Url attributes should be initialized.");
+            }
         }
         StringBuilder urlBuilder = new StringBuilder();
         Iterator<String> urlLiteralIterator = urlLiterals.iterator();

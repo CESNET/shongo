@@ -46,6 +46,9 @@ class ShellCompletionHandler extends CandidateListCompletionHandler
         // Else get common prefix
         else {
             newBuffer = getUnambiguousCompletions(candidates);
+            if (newBuffer == null) {
+                newBuffer = buffer;
+            }
             showCandidates = true;
         }
 

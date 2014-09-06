@@ -704,6 +704,9 @@ public class ServerAuthorization extends Authorization
             }
             else if (statusCode >= HttpStatus.SC_OK && statusCode <= HttpStatus.SC_ACCEPTED) {
                 JsonNode data = readJson(response.getEntity());
+                if (data == null) {
+                    data = jsonMapper.createObjectNode();
+                }
                 return requestHandler.success(data);
             }
             else {
@@ -755,7 +758,7 @@ public class ServerAuthorization extends Authorization
         try {
             InputStream inputStream = httpEntity.getContent();
             try {
-                int ava = inputStream.available();
+                int available = inputStream.available();
                 return jsonMapper.readTree(inputStream);
             }
             finally {

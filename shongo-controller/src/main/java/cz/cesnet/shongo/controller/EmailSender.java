@@ -213,11 +213,14 @@ public class EmailSender
         message.setContent(messageMultipart);
 
         StringBuilder recipientString = new StringBuilder();
-        for (Address recipient : message.getRecipients(Message.RecipientType.TO)) {
-            if (recipientString.length() > 0) {
-                recipientString.append(", ");
+        Address[] recipients = message.getRecipients(Message.RecipientType.TO);
+        if (recipients != null) {
+            for (Address recipient : recipients) {
+                if (recipientString.length() > 0) {
+                    recipientString.append(", ");
+                }
+                recipientString.append(recipient.toString());
             }
-            recipientString.append(recipient.toString());
         }
         logger.debug("Sending email '{}' from '{}' to '{}'...", new Object[]{email.subject, sender, recipientString});
         Transport.send(message);
