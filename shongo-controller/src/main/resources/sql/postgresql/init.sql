@@ -23,7 +23,7 @@ DECLARE count INT = 0;
 BEGIN
     RAISE NOTICE 'Creating missing FK indexes...';
     FOR result IN (
-      SELECT 'CREATE INDEX ' || relname || '_' || array_to_string(column_name_list, '_') || '_idx ' ||
+      SELECT 'CREATE INDEX idx_' || relname || '_' || array_to_string(column_name_list, '_') || ' ' ||
              'ON ' || conrelid || ' (' || array_to_string(column_name_list, ',') || ')' AS command
       FROM (
           SELECT DISTINCT conrelid,
