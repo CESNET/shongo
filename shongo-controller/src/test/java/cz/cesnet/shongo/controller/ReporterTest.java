@@ -31,42 +31,45 @@ public class ReporterTest
         reporterLogger.setLevel(Level.OFF);
         Domain.setLocalDomain(new Domain("test"));
 
-        // Create email sender
-        final MutableInt emailCount = new MutableInt(0);
-        EmailSender emailSender = new EmailSender("test", null) {
-            @Override
-            public boolean isInitialized() {
-                return true;
-            }
+        try {
+            // Create email sender
+            final MutableInt emailCount = new MutableInt(0);
+            EmailSender emailSender = new EmailSender("test", null) {
+                @Override
+                public boolean isInitialized() {
+                    return true;
+                }
 
-            @Override
-            public void sendEmail(Email email) throws MessagingException {
-                logger.info(email.getSubject());
-                emailCount.increment();
-            }
-        };
+                @Override
+                public void sendEmail(Email email) throws MessagingException {
+                    logger.info(email.getSubject());
+                    emailCount.increment();
+                }
+            };
 
-        // Create reporter
-        final List<String> administratorEmails = new LinkedList<String>();
-        administratorEmails.add("shongo@cesnet.cz");
-        Reporter reporter = Reporter.create(new Reporter(emailSender, null) {
-            @Override
-            protected List<String> getAdministratorEmails() {
-                return administratorEmails;
-            }
-        });
-        reporter.setCacheExpiration(Duration.standardSeconds(1));
+            // Create reporter
+            final List<String> administratorEmails = new LinkedList<String>();
+            administratorEmails.add("shongo@cesnet.cz");
+            Reporter reporter = Reporter.create(new Reporter(emailSender, null) {
+                @Override
+                protected List<String> getAdministratorEmails() {
+                    return administratorEmails;
+                }
+            });
+//            reporter.setCacheExpiration(Duration.standardSeconds(1));
 
-        // Report
-        for (int index = 0; index < 3024; index++) {
-            reporter.reportInternalError(Reporter.SCHEDULER, "Test", new Exception());
+            // Report
+            for (int index = 0; index < 3024; index++) {
+                reporter.reportInternalError(Reporter.SCHEDULER, "Test", new Exception());
+            }
+            reporter.clearCache(null);
+            reporter.destroy();
+            // 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 1000, 1
+            Assert.assertEquals(13, emailCount.intValue());
         }
-        reporter.clearCache(null);
-        reporter.destroy();
-        // 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 1000, 1
-        Assert.assertEquals(13, emailCount.intValue());
-
-        Domain.setLocalDomain(null);
-        reporterLogger.setLevel(reporterLoggerLevel);
+        finally {
+            Domain.setLocalDomain(null);
+            reporterLogger.setLevel(reporterLoggerLevel);
+        }
     }
 }

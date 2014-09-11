@@ -163,9 +163,9 @@
     </script>
 </head>
 
-<%-- When user is logged in the detection can last longer and thus show message with cancel button --%>
+<%-- When user is logged in the detection can last longer and thus show message with cancel button, autocancel in 10 s --%>
 <security:authorize access="isAuthenticated()">
-<body>
+<body onload="setTimeout(function() {cancelTimeZone();},10000);">
 <div class="center-content">
     <div class="information-box">
         <span class="spinner"></span>
