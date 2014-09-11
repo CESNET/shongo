@@ -885,14 +885,14 @@ public class ServerAuthorization extends Authorization
                 userData.setTimeZone(timeZone);
             }
         }
+        // for AuthN Server v0.6.4 and newer
         if (data.has("authn_provider") && data.has("authn_instant") && data.has("loa")) {
                 userData.setUserAuthorizationData(new UserAuthorizationData(
                         data.get("authn_provider").getTextValue(),
                         DateTime.parse(data.get("authn_instant").getTextValue()),
                         data.get("loa").getIntValue()));
         }
-
-        // TODO: remove when production AA server is updated
+        // for AuthN Server v0.6.3 and older
         if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
