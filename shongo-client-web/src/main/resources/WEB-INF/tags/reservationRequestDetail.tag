@@ -7,6 +7,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%@attribute name="reservationRequest" required="false"
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
@@ -62,7 +63,9 @@
         <dt><spring:message code="views.room.roomDescription"/>:</dt>
         <dd>
             <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
-            <span>${reservationRequest.meetingRoomResourceDescription}</span>
+            <c:set var="newLine" value="\n" />
+            <c:set var="myText" value="one\ntwo\nthree" />
+            <span>${fn:replace(reservationRequest.meetingRoomResourceDescription, newLine, '<br />')}</span>
         </dd>
     </c:if>
 

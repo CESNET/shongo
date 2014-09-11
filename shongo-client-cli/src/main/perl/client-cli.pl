@@ -147,6 +147,7 @@ if ( defined($cmd) ) {
         $shell->command($item);
     }
 }
+
 # Run command from file
 elsif ( defined($file) || $scripting ) {
     # Load lines from file or standard input
