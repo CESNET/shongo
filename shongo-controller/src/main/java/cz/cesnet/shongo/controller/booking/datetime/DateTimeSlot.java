@@ -216,5 +216,10 @@ public abstract class DateTimeSlot extends SimplePersistentObject implements Clo
     public abstract boolean equalsApi(Object slotApi);
 
     @Override
-    public abstract DateTimeSlot clone();
+    public DateTimeSlot clone() throws CloneNotSupportedException
+    {
+        DateTimeSlot dateTimeSlot = (DateTimeSlot) super.clone();
+        dateTimeSlot.setIdNull();
+        return dateTimeSlot;
+    }
 }

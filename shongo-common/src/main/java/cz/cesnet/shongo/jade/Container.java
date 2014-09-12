@@ -320,6 +320,9 @@ public class Container
                     return false;
                 }
             }
+            if (agentController == null) {
+                return false;
+            }
             try {
                 agentController.start();
             }

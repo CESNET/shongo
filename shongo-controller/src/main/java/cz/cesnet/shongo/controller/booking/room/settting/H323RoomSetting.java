@@ -226,9 +226,9 @@ public class H323RoomSetting extends RoomSetting
     }
 
     @Override
-    public RoomSetting clone()
+    public RoomSetting clone() throws CloneNotSupportedException
     {
-        H323RoomSetting roomSetting = new H323RoomSetting();
+        H323RoomSetting roomSetting = (H323RoomSetting) super.clone();
         roomSetting.setPin(getPin());
         return roomSetting;
     }

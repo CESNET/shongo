@@ -212,105 +212,116 @@ public class LocalStorageHandler
         try {
             int fileContentIndex = 0;
             OutputStream fileOutputStream = new FileOutputStream(fileUrl);
-            byte[] buffer = new byte[4096];
-            while (true) {
-                // Read next bytes into buffer
-                int readResumeCount = MAX_RESUME_COUNT;
-                int bytesRead;
+            try {
+                byte[] buffer = new byte[4096];
                 while (true) {
-                    try {
-                        bytesRead = fileContent.read(buffer, 0, buffer.length);
-                        readResumeCount = MAX_RESUME_COUNT;
+                    // Read next bytes into buffer
+                    int readResumeCount = MAX_RESUME_COUNT;
+                    int bytesRead;
+                    while (true) {
+                        try {
+                            bytesRead = fileContent.read(buffer, 0, buffer.length);
+                            readResumeCount = MAX_RESUME_COUNT;
+                            break;
+                        }
+                        catch (IOException exception) {
+                            // Check if resume isn't available
+                            if (resumeSupport == null || --readResumeCount <= 0) {
+                                throw exception;
+                            }
+
+                            String message = "Creation of file " + folderUrl + "/" + fileName + ": ";
+                            logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
+
+                            // Wait before resuming
+                            try {
+                                Thread.sleep(WAIT_SLEEP);
+                            }
+                            catch (InterruptedException sleepException) {
+                                logger.warn("Thread.sleep", sleepException);
+                            }
+
+                            // Reopen file content stream
+                            logger.info(message + "Trying to resume the reading the data at {}...", fileContentIndex);
+                            InputStream oldFileContent = fileContent;
+                            try {
+                                fileContent = resumeSupport.reopenInputStream(fileContent, fileContentIndex);
+                                logger.info(message + "Resume succeeded, continuing in file creation...");
+                            }
+                            catch (Exception resumeException) {
+                                throw new RuntimeException("Reopening input stream failed for creation of file " +
+                                        folderUrl + "/" + fileName + ".", resumeException);
+                            }
+                            finally {
+                                try {
+                                    oldFileContent.close();
+                                }
+                                catch (IOException closeException) {
+                                    logger.debug("Failed to close old input stream...");
+                                }
+                            }
+                        }
+                        catch (Exception exception) {
+                            throw new RuntimeException("Reading input stream failed for creation of file " +
+                                    folderUrl + "/" + fileName + " at " + fileContentIndex + ".", exception);
+                        }
+                    }
+
+                    // Check for end of file content
+                    if (bytesRead == -1) {
                         break;
                     }
-                    catch (IOException exception) {
-                        // Check if resume isn't available
-                        if (resumeSupport == null || --readResumeCount <= 0) {
-                            throw exception;
-                        }
-
-                        String message = "Creation of file " + folderUrl + "/" + fileName + ": ";
-                        logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
-
-                        // Wait before resuming
-                        try {
-                            Thread.sleep(WAIT_SLEEP);
-                        }
-                        catch (InterruptedException sleepException) {
-                            logger.warn("Thread.sleep", sleepException);
-                        }
-
-                        // Reopen file content stream
-                        logger.info(message + "Trying to resume the reading the data at {}...", fileContentIndex);
-                        try {
-                            fileContent = resumeSupport.reopenInputStream(fileContent, fileContentIndex);
-                            logger.info(message + "Resume succeeded, continuing in file creation...");
-                        }
-                        catch (Exception resumeException) {
-                            throw new RuntimeException("Reopening input stream failed for creation of file " +
-                                    folderUrl + "/" + fileName + ".", resumeException);
-                        }
-                    }
-                    catch (Exception exception) {
-                        throw new RuntimeException("Reading input stream failed for creation of file " +
-                                folderUrl + "/" + fileName + " at " + fileContentIndex + ".", exception);
-                    }
-                }
-
-                // Check for end of file content
-                if (bytesRead == -1) {
-                    break;
-                }
-                // Check if folder isn't already deleted
-                if (foldersBeingDeleted.contains(file.getFolderId())) {
-                    logger.warn("Creation of file " + folderUrl + "/" + fileName +
-                            " has been stopped because folder " + folderId + " is being deleted.");
-                    break;
-                }
-                // Write bytes from buffer
-                int writeResumeCount = MAX_RESUME_COUNT;
-                while (true) {
-                    try {
-                        fileOutputStream.write(buffer, 0, bytesRead);
-                        writeResumeCount = MAX_RESUME_COUNT;
+                    // Check if folder isn't already deleted
+                    if (foldersBeingDeleted.contains(file.getFolderId())) {
+                        logger.warn("Creation of file " + folderUrl + "/" + fileName +
+                                " has been stopped because folder " + folderId + " is being deleted.");
                         break;
                     }
-                    catch (IOException exception) {
-                        // Close output stream
-                        fileOutputStream.close();
-
-                        // Check if resume isn't available
-                        if (--writeResumeCount <= 0) {
-                            throw exception;
-                        }
-
-                        // Resume writing
+                    // Write bytes from buffer
+                    int writeResumeCount = MAX_RESUME_COUNT;
+                    while (true) {
                         try {
-                            fileOutputStream = new FileOutputStream(fileUrl);
+                            fileOutputStream.write(buffer, 0, bytesRead);
+                            writeResumeCount = MAX_RESUME_COUNT;
+                            break;
                         }
-                        catch (Exception resumeException) {
-                            throw new RuntimeException("Reopening output stream failed for creation of file " +
-                                    file.getFolderId() + ":" + file.getFileName() + ".", resumeException);
-                        }
-                        logger.warn("Writing file {}:{} failed at {}, resuming...", new Object[]{
-                                file.getFolderId(), file.getFileName(), fileContentIndex
-                        });
-                        try {
-                            Thread.sleep(WAIT_SLEEP);
-                        }
-                        catch (InterruptedException sleepException) {
-                            logger.warn("Thread.sleep", sleepException);
+                        catch (IOException exception) {
+                            // Close output stream
+                            fileOutputStream.close();
+
+                            // Check if resume isn't available
+                            if (--writeResumeCount <= 0) {
+                                throw exception;
+                            }
+
+                            // Resume writing
+                            try {
+                                fileOutputStream = new FileOutputStream(fileUrl);
+                            }
+                            catch (Exception resumeException) {
+                                throw new RuntimeException("Reopening output stream failed for creation of file " +
+                                        file.getFolderId() + ":" + file.getFileName() + ".", resumeException);
+                            }
+                            logger.warn("Writing file {}:{} failed at {}, resuming...", new Object[]{
+                                    file.getFolderId(), file.getFileName(), fileContentIndex
+                            });
+                            try {
+                                Thread.sleep(WAIT_SLEEP);
+                            }
+                            catch (InterruptedException sleepException) {
+                                logger.warn("Thread.sleep", sleepException);
+                            }
                         }
                     }
+
+                    // Move file content
+                    fileContentIndex += bytesRead;
                 }
-
-
-                // Move file content
-                fileContentIndex += bytesRead;
             }
-
-            fileContent.close();
-            fileOutputStream.close();
+            finally {
+                fileContent.close();
+                fileOutputStream.close();
+            }
         }
         catch (IOException exception) {
             throw new RuntimeException("File '" + fileUrl + "' cannot be created.", exception);

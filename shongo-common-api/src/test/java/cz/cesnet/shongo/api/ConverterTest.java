@@ -214,7 +214,7 @@ public class ConverterTest
                     assertMapEquals(expectedCollection, objectCollection);
                 }
                 else if (expectedValue instanceof Set && objectValue instanceof Object[]) {
-                    Collection<Object> expectedSet = new LinkedList<Object>();
+                    Set<Object> expectedSet = new HashSet<Object>();
                     for (Object expectedValueItem : (Set) expectedValue) {
                         if (expectedValueItem instanceof ComplexType) {
                             expectedSet.add(Converter.convertComplexTypeToMap((ComplexType) expectedValueItem));
@@ -273,6 +273,7 @@ public class ConverterTest
         Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(expected.getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(expected.getClass(), propertyName);
+            Assert.assertNotNull(property);
             Object expectedValue = processValue(property.getValue(expected));
             Object objectValue = processValue(property.getValue(object));
             Assert.assertEquals(expectedValue, objectValue);

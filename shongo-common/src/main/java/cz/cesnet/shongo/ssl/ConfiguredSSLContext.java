@@ -259,9 +259,13 @@ public class ConfiguredSSLContext
         {
             File javaTrustStoreFile = findJavaTrustStoreFile();
             InputStream inputStream = new FileInputStream(javaTrustStoreFile);
-            certificateStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            certificateStore.load(inputStream, null);
-            inputStream.close();
+            try {
+                certificateStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                certificateStore.load(inputStream, null);
+            }
+            finally {
+                inputStream.close();
+            }
             initDefaultTrustManager();
         }
 

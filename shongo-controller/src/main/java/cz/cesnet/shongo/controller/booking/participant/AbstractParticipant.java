@@ -31,11 +31,20 @@ public abstract class AbstractParticipant extends SimplePersistentObject impleme
     /**
      * @return cloned instance of {@link AbstractParticipant}.
      */
-    public AbstractParticipant clone()
+    public AbstractParticipant clone() throws CloneNotSupportedException
     {
-        AbstractParticipant specification = ClassHelper.createInstanceFromClass(getClass());
+        AbstractParticipant specification = (AbstractParticipant) super.clone();
+        specification.cloneReset();
         specification.synchronizeFrom(this);
         return specification;
+    }
+
+    /**
+     * Perform reset for clone operation().
+     */
+    protected void cloneReset()
+    {
+        setIdNull();
     }
 
     /**

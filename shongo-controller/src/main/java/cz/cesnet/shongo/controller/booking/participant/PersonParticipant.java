@@ -2,11 +2,13 @@ package cz.cesnet.shongo.controller.booking.participant;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
+import java.util.HashSet;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant} defined by a {@link cz.cesnet.shongo.controller.booking.person.AbstractPerson}.
@@ -94,6 +96,13 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
     }
 
     @Override
+    protected void cloneReset()
+    {
+        super.cloneReset();
+        person = null;
+    }
+
+    @Override
     public boolean synchronizeFrom(AbstractParticipant participant)
     {
         PersonParticipant personParticipant = (PersonParticipant) participant;
@@ -102,7 +111,12 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
         modified |= !ObjectHelper.isSamePersistent(getPerson(), personParticipant.getPerson());
         modified |= !ObjectHelper.isSame(getRole(), personParticipant.getRole());
 
-        setPerson(personParticipant.getPerson().clone());
+        try {
+            setPerson(personParticipant.getPerson().clone());
+        }
+        catch (CloneNotSupportedException exception) {
+            throw new RuntimeException(exception);
+        }
         setRole(personParticipant.getRole());
 
         return modified;

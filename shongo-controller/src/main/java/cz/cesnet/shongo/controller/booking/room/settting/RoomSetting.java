@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.room.settting;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.connector.api.RoomService;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Entity;
@@ -15,7 +16,7 @@ import javax.persistence.InheritanceType;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class RoomSetting extends SimplePersistentObject implements ObjectHelper.SameCheckable
+public abstract class RoomSetting extends SimplePersistentObject implements ObjectHelper.SameCheckable, Cloneable
 {
     /**
      * @return {@link RoomSetting} converted to {@link cz.cesnet.shongo.api.RoomSetting}
@@ -71,8 +72,11 @@ public abstract class RoomSetting extends SimplePersistentObject implements Obje
     {
     }
 
-    /**
-     * @return cloned instance
-     */
-    public abstract RoomSetting clone();
+    @Override
+    public RoomSetting clone() throws CloneNotSupportedException
+    {
+        RoomSetting roomSetting = (RoomSetting) super.clone();
+        roomSetting.setIdNull();
+        return roomSetting;
+    }
 }

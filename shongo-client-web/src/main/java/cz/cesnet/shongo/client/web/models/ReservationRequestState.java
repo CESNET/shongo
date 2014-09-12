@@ -124,10 +124,7 @@ public enum ReservationRequestState
         }
         switch (allocationState) {
             case ALLOCATED:
-                if (executableState == null) {
-                    return ALLOCATED;
-                }
-                else {
+                if (executableState != null) {
                     switch (specificationType) {
                         case PERMANENT_ROOM:
                             switch (executableState) {
@@ -172,6 +169,7 @@ public enum ReservationRequestState
                             }
                     }
                 }
+                return ALLOCATED;
             case ALLOCATION_FAILED:
                 if (reservationRequestType.equals(ReservationRequestType.MODIFIED) && lastReservationId != null) {
                     return MODIFICATION_FAILED;

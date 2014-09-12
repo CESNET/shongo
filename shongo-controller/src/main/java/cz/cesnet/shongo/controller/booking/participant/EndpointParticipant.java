@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.booking.participant;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.util.ObjectHelper;
+import jade.tools.gui.ACLTextArea;
 
 import javax.persistence.*;
 import java.util.*;
@@ -139,11 +141,19 @@ public abstract class EndpointParticipant extends AbstractParticipant
     }
 
     @Override
-    public AbstractParticipant clone()
+    public AbstractParticipant clone() throws CloneNotSupportedException
     {
-        AbstractParticipant participant = super.clone();
+        EndpointParticipant participant = (EndpointParticipant) super.clone();
         updateTechnologies();
         return participant;
+    }
+
+    @Override
+    protected void cloneReset()
+    {
+        super.cloneReset();
+        technologies = new HashSet<Technology>();
+        persons = new ArrayList<AbstractPerson>();
     }
 
     @Override
@@ -157,6 +167,19 @@ public abstract class EndpointParticipant extends AbstractParticipant
 
         setTechnologies(endpointParticipant.getTechnologies());
         setCallInitiation(endpointParticipant.getCallInitiation());
+
+        if (!ObjectHelper.isSame(getPersons(), endpointParticipant.getPersons())) {
+            this.persons.clear();
+            for (AbstractPerson person : endpointParticipant.getPersons()) {
+                try {
+                    addPerson(person.clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            modified = true;
+        }
 
         return modified;
     }

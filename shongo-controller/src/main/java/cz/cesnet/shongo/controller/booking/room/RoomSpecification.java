@@ -250,7 +250,12 @@ public class RoomSpecification extends Specification
     {
         this.participants.clear();
         for (AbstractParticipant participant : participants) {
-            this.participants.add(participant.clone());
+            try {
+                this.participants.add(participant.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
         }
     }
 
@@ -288,7 +293,12 @@ public class RoomSpecification extends Specification
     {
         this.roomSettings.clear();
         for (RoomSetting roomConfiguration : roomSettings) {
-            this.roomSettings.add(roomConfiguration.clone());
+            try {
+                this.roomSettings.add(roomConfiguration.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
         }
     }
 

@@ -149,6 +149,8 @@ public class DatabasePerformanceTest
     private void enableSqlLogger(boolean enable)
     {
         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
-        logger.setLevel(enable ? Level.ALL : Level.OFF);
+        if (logger != null) {
+            logger.setLevel(enable ? Level.ALL : Level.OFF);
+        }
     }
 }

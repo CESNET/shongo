@@ -616,11 +616,10 @@ public class RoomReservationTask extends ReservationTask
             reservation.setSlot(slot);
 
             // Allocated room endpoint
-            RoomEndpoint oldRoomEndpoint = null;
             RoomEndpoint roomEndpoint = null;
             if (allocateRoomEndpoint && schedulerContext.isExecutableAllowed()) {
                 // Allocate room endpoint
-                roomEndpoint = allocateRoomEndpoint(roomProviderVariant, oldRoomEndpoint);
+                roomEndpoint = allocateRoomEndpoint(roomProviderVariant);
                 roomEndpoint.setSlot(slot);
                 roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
                 roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
@@ -697,11 +696,6 @@ public class RoomReservationTask extends ReservationTask
                     }
                 }
             }
-            // Stop old room endpoint
-            if (oldRoomEndpoint != null && oldRoomEndpoint.getState().isStarted()) {
-                // If room endpoint exists it will be stopped
-                oldRoomEndpoint.setSlotEnd(DateTime.now());
-            }
 
             // Set executable to room reservation
             reservation.setExecutable(roomEndpoint);
@@ -725,10 +719,9 @@ public class RoomReservationTask extends ReservationTask
      * Allocate {@link RoomEndpoint} for given {@code roomProviderVariant}.
      *
      * @param roomProviderVariant to be allocated
-     * @param oldRoomEndpoint     which is already allocated and which can be reallocated
      * @return (re)allocated {@link RoomEndpoint} or null if no executable should be allocated
      */
-    private RoomEndpoint allocateRoomEndpoint(RoomProviderVariant roomProviderVariant, RoomEndpoint oldRoomEndpoint)
+    private RoomEndpoint allocateRoomEndpoint(RoomProviderVariant roomProviderVariant)
             throws SchedulerException
     {
         RoomProviderCapability roomProviderCapability = roomProviderVariant.getRoomProviderCapability();
@@ -739,7 +732,12 @@ public class RoomReservationTask extends ReservationTask
         roomConfiguration.setTechnologies(roomProviderVariant.getTechnologies());
         roomConfiguration.setLicenseCount(roomProviderVariant.getLicenseCount());
         for (RoomSetting roomSetting : roomSettings) {
-            roomConfiguration.addRoomSetting(roomSetting.clone());
+            try {
+                roomConfiguration.addRoomSetting(roomSetting.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
         }
 
         AvailableExecutable<RoomEndpoint> availableRoomEndpoint = roomProviderVariant.getReusableRoomEndpoint();
@@ -766,25 +764,11 @@ public class RoomReservationTask extends ReservationTask
 
             addReport(new SchedulerReportSet.ExecutableReusingReport(reusedRoomEndpoint));
 
-            // Allocate room endpoint
-            if (oldRoomEndpoint != null && oldRoomEndpoint instanceof UsedRoomEndpoint) {
-                UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) oldRoomEndpoint;
-                if (deviceResourceId.equals(usedRoomEndpoint.getResource().getId())) {
-                    // Reallocate existing room endpoint
-                    usedRoomEndpoint.clearAssignedAliases();
-                    return usedRoomEndpoint;
-                }
-                else {
-                    throw new TodoImplementException("Schedule room migration.");
-                }
-            }
-            else {
-                // Create new used room endpoint
-                UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
-                usedRoomEndpoint.setReusedRoomEndpoint(reusedRoomEndpoint);
-                usedRoomEndpoint.setRoomConfiguration(roomConfiguration);
-                return usedRoomEndpoint;
-            }
+            // Create new used room endpoint
+            UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
+            usedRoomEndpoint.setReusedRoomEndpoint(reusedRoomEndpoint);
+            usedRoomEndpoint.setRoomConfiguration(roomConfiguration);
+            return usedRoomEndpoint;
         }
         // Allocate UsedRoomEndpoint
         else if (reusedRoomEndpoint != null) {
@@ -822,25 +806,11 @@ public class RoomReservationTask extends ReservationTask
         else {
             addReport(new SchedulerReportSet.AllocatingExecutableReport());
 
-            if (oldRoomEndpoint != null && oldRoomEndpoint instanceof ResourceRoomEndpoint) {
-                // Reallocate ResourceRoomEndpoint
-                ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) oldRoomEndpoint;
-                if (deviceResourceId.equals(resourceRoomEndpoint.getResource().getId())) {
-                    // Reallocate existing room endpoint
-                    resourceRoomEndpoint.clearAssignedAliases();
-                    return resourceRoomEndpoint;
-                }
-                else {
-                    throw new TodoImplementException("Schedule room migration.");
-                }
-            }
-            else {
-                // Reallocate new ResourceRoomEndpoint
-                ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
-                resourceRoomEndpoint.setRoomProviderCapability(roomProviderCapability);
-                resourceRoomEndpoint.setRoomConfiguration(roomConfiguration);
-                return resourceRoomEndpoint;
-            }
+            // Allocate new ResourceRoomEndpoint
+            ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+            resourceRoomEndpoint.setRoomProviderCapability(roomProviderCapability);
+            resourceRoomEndpoint.setRoomConfiguration(roomConfiguration);
+            return resourceRoomEndpoint;
         }
     }
 
@@ -880,9 +850,10 @@ public class RoomReservationTask extends ReservationTask
         Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
         // Remove all aliases which should be supported but which aren't technology compatible with current
         // room configuration
-        for (AliasType aliasType : roomAliasTypes) {
-            if (!aliasType.getTechnology().isCompatibleWith(roomTechnologies)) {
-                roomAliasTypes.remove(aliasType);
+        Iterator<AliasType> iterator = roomAliasTypes.iterator();
+        while (iterator.hasNext()) {
+            if (!iterator.next().getTechnology().isCompatibleWith(roomTechnologies)) {
+                iterator.remove();
             }
         }
 

@@ -143,7 +143,12 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
             slots.clear();
             for (DateTimeSlot slot : reservationRequestSet.getSlots()) {
-                addSlot(slot.clone());
+                try {
+                    addSlot(slot.clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
         }
         return modified;

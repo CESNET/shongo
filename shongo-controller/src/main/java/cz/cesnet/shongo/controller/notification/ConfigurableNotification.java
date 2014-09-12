@@ -175,7 +175,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
         // Render message for each configuration
         if (configurations.size() == 1) {
             // Single message
-            return getRenderedMessage(recipient, configurations.get(0), notificationManager).clone();
+            try {
+                return getRenderedMessage(recipient, configurations.get(0), notificationManager).clone();
+            }
+            catch (CloneNotSupportedException exception) {
+                exception.printStackTrace();
+                throw new RuntimeException(exception);
+            }
         }
         else {
             // Multiple messages

@@ -120,8 +120,21 @@ public class RpcServlet extends XmlRpcServlet
         {
             if (RpcServerRequestLogger.isEnabled()) {
                 pStream = RpcServerRequestLogger.logRequest(pStream);
+                try {
+                    return super.getRequest(pConfig, pStream);
+                }
+                finally {
+                    try {
+                        pStream.close();
+                    }
+                    catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
+                }
             }
-            return super.getRequest(pConfig, pStream);
+            else {
+                return super.getRequest(pConfig, pStream);
+            }
         }
 
         @Override
@@ -130,8 +143,21 @@ public class RpcServlet extends XmlRpcServlet
         {
             if (RpcServerRequestLogger.isEnabled()) {
                 pStream = RpcServerRequestLogger.logResponse(pStream);
+                try {
+                    super.writeResponse(pConfig, pStream, pResult);
+                }
+                finally {
+                    try {
+                        pStream.close();
+                    }
+                    catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
+                }
             }
-            super.writeResponse(pConfig, pStream, pResult);
+            else {
+                super.writeResponse(pConfig, pStream, pResult);
+            }
         }
 
         @Override

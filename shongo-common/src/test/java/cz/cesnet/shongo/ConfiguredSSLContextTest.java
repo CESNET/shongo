@@ -49,12 +49,23 @@ public class ConfiguredSSLContextTest
             inputStream = connection.getErrorStream();
         }
         StringBuilder result = new StringBuilder();
-        BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-        String line;
-        while ((line = bufferReader.readLine()) != null) {
-            result.append(line);
+        if (inputStream != null) {
+            try {
+                BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                try {
+                    String line;
+                    while ((line = bufferReader.readLine()) != null) {
+                        result.append(line);
+                    }
+                }
+                finally {
+                    bufferReader.close();
+                }
+            }
+            finally {
+                inputStream.close();
+            }
         }
-        inputStream.close();
         if (connection.getResponseCode() != 200) {
             result.insert(0, "ERROR " + connection.getResponseCode() + ": ");
         }
@@ -69,12 +80,21 @@ public class ConfiguredSSLContextTest
         StringBuilder result = new StringBuilder();
         if (entity != null) {
             InputStream inputStream = entity.getContent();
-            BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            String line;
-            while ((line = bufferReader.readLine()) != null) {
-                result.append(line);
+            try {
+                BufferedReader bufferReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                try {
+                    String line;
+                    while ((line = bufferReader.readLine()) != null) {
+                        result.append(line);
+                    }
+                }
+                finally {
+                    bufferReader.close();
+                }
             }
-            inputStream.close();
+            finally {
+                inputStream.close();
+            }
         }
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             result.insert(0, "ERROR " + response.getStatusLine().getStatusCode() + ": ");

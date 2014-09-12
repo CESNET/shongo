@@ -410,7 +410,10 @@ public class ReusementTest extends AbstractControllerTest
                 getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
         RoomSpecification roomSpecification =
                 (RoomSpecification) reservationRequest.getSpecification();
-        roomSpecification.getEstablishment().getAliasSpecificationByType(AliasType.H323_E164).setValue("555");
+        RoomEstablishment establishment = roomSpecification.getEstablishment();
+        AliasSpecification aliasSpecification = establishment.getAliasSpecificationByType(AliasType.H323_E164);
+        Assert.assertNotNull(aliasSpecification);
+        aliasSpecification.setValue("555");
         permanentRoomReservationRequestId = allocate(reservationRequest, new DateTime("2013-07-01T13:00"));
 
         // Check allocated permanent room alias value

@@ -259,35 +259,36 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         record[4].toString()).toApi());
                 executableSummary.setRoomDescription(record[8] != null ? (String) record[8] : null);
 
-                switch (executableSummary.getType()) {
-                    case USED_ROOM:
-                        executableSummary.setRoomId(
-                                ObjectIdentifier.formatId(ObjectType.EXECUTABLE, record[9].toString()));
-                    case ROOM:
-                        executableSummary.setRoomName(record[5] != null ? record[5].toString() : null);
-                        if (record[6] != null) {
-                            String technologies = record[6].toString();
-                            if (!technologies.isEmpty()) {
-                                for (String technology : technologies.split(",")) {
-                                    executableSummary.addTechnology(Technology.valueOf(technology.trim()));
-                                }
+                ExecutableSummary.Type executableSummaryType = executableSummary.getType();
+                if (ExecutableSummary.Type.USED_ROOM.equals(executableSummaryType)) {
+                    executableSummary.setRoomId(
+                            ObjectIdentifier.formatId(ObjectType.EXECUTABLE, record[9].toString()));
+                }
+                if (ExecutableSummary.Type.ROOM.equals(executableSummaryType) ||
+                        ExecutableSummary.Type.USED_ROOM.equals(executableSummaryType)) {
+                    executableSummary.setRoomName(record[5] != null ? record[5].toString() : null);
+                    if (record[6] != null) {
+                        String technologies = record[6].toString();
+                        if (!technologies.isEmpty()) {
+                            for (String technology : technologies.split(",")) {
+                                executableSummary.addTechnology(Technology.valueOf(technology.trim()));
                             }
                         }
-                        executableSummary.setRoomLicenseCount(((Number) record[7]).intValue());
-                        if (record[10] != null && record[11] != null) {
-                            executableSummary.setRoomUsageSlot(
-                                    new Interval(new DateTime(record[10]), new DateTime(record[11])));
-                        }
-                        if (record[12] != null) {
-                            executableSummary.setRoomUsageState(
-                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                                            record[12].toString()).toApi());
-                        }
-                        if (record[13] != null) {
-                            executableSummary.setRoomUsageLicenseCount(((Number) record[13]).intValue());
-                        }
-                        executableSummary.setRoomUsageCount(((Number) record[14]).intValue());
-                        break;
+                    }
+                    executableSummary.setRoomLicenseCount(((Number) record[7]).intValue());
+                    if (record[10] != null && record[11] != null) {
+                        executableSummary.setRoomUsageSlot(
+                                new Interval(new DateTime(record[10]), new DateTime(record[11])));
+                    }
+                    if (record[12] != null) {
+                        executableSummary.setRoomUsageState(
+                                cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
+                                        record[12].toString()).toApi());
+                    }
+                    if (record[13] != null) {
+                        executableSummary.setRoomUsageLicenseCount(((Number) record[13]).intValue());
+                    }
+                    executableSummary.setRoomUsageCount(((Number) record[14]).intValue());
                 }
 
                 response.addItem(executableSummary);
@@ -470,7 +471,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (executable instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
                 for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
-                    participants.put(participant.getId(), participant.clone());
+                    try {
+                        participants.put(participant.getId(), participant.clone());
+                    }
+                    catch (CloneNotSupportedException exception) {
+                        throw new RuntimeException(exception);
+                    }
                 }
             }
 

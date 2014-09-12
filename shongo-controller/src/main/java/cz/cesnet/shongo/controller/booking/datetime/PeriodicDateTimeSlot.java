@@ -203,9 +203,9 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
     }
 
     @Override
-    public DateTimeSlot clone()
+    public DateTimeSlot clone() throws CloneNotSupportedException
     {
-        PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
+        PeriodicDateTimeSlot periodicDateTimeSlot = (PeriodicDateTimeSlot) super.clone();
         periodicDateTimeSlot.setPeriodicDateTime(periodicDateTime.clone());
         periodicDateTimeSlot.setDuration(duration);
         return periodicDateTimeSlot;

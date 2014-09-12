@@ -312,7 +312,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_tag.resource_id FROM resource_tag "
                         + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
-                        + " WHERE tag.name='"+request.getTagName()+"')");
+                        + " WHERE tag.name = :tagName)", "tagName", request.getTagName());
             }
 
             // Filter user-ids

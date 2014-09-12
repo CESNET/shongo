@@ -109,9 +109,10 @@ public class Alias extends SimplePersistentObject implements Cloneable
     }
 
     @Override
-    public Alias clone()
+    public Alias clone() throws CloneNotSupportedException
     {
-        Alias alias = new Alias();
+        Alias alias = (Alias) super.clone();
+        alias.setIdNull();
         alias.setType(type);
         alias.setValue(value);
         return alias;

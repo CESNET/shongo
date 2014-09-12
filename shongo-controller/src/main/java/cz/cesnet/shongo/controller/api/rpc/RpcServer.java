@@ -175,8 +175,21 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         {
             if (RpcServerRequestLogger.isEnabled()) {
                 pStream = RpcServerRequestLogger.logRequest(pStream);
+                try {
+                    return super.getRequest(pConfig, pStream);
+                }
+                finally {
+                    try {
+                        pStream.close();
+                    }
+                    catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
+                }
             }
-            return super.getRequest(pConfig, pStream);
+            else {
+                return super.getRequest(pConfig, pStream);
+            }
         }
 
         @Override
@@ -185,21 +198,46 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         {
             if (RpcServerRequestLogger.isEnabled()) {
                 pStream = RpcServerRequestLogger.logResponse(pStream);
-            }
-            RequestData data = (RequestData) pConfig;
-            try {
-                if (data.isByteArrayRequired()) {
-                    super.writeResponse(pConfig, pStream, pResult);
-                    data.getConnection().writeResponse(data, pStream);
+                RequestData data = (RequestData) pConfig;
+                try {
+                    if (data.isByteArrayRequired()) {
+                        super.writeResponse(pConfig, pStream, pResult);
+                        data.getConnection().writeResponse(data, pStream);
+                    }
+                    else {
+                        data.getConnection().writeResponseHeader(data, -1);
+                        super.writeResponse(pConfig, pStream, pResult);
+                        pStream.flush();
+                    }
                 }
-                else {
-                    data.getConnection().writeResponseHeader(data, -1);
-                    super.writeResponse(pConfig, pStream, pResult);
-                    pStream.flush();
+                catch (IOException exception) {
+                    throw new XmlRpcException(exception.getMessage(), exception);
+                }
+                finally {
+                    try {
+                        pStream.close();
+                    }
+                    catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
                 }
             }
-            catch (IOException e) {
-                throw new XmlRpcException(e.getMessage(), e);
+            else {
+                RequestData data = (RequestData) pConfig;
+                try {
+                    if (data.isByteArrayRequired()) {
+                        super.writeResponse(pConfig, pStream, pResult);
+                        data.getConnection().writeResponse(data, pStream);
+                    }
+                    else {
+                        data.getConnection().writeResponseHeader(data, -1);
+                        super.writeResponse(pConfig, pStream, pResult);
+                        pStream.flush();
+                    }
+                }
+                catch (IOException exception) {
+                    throw new XmlRpcException(exception.getMessage(), exception);
+                }
             }
         }
 
@@ -209,21 +247,46 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         {
             if (RpcServerRequestLogger.isEnabled()) {
                 pStream = RpcServerRequestLogger.logResponse(pStream);
-            }
-            RequestData data = (RequestData) pConfig;
-            try {
-                if (data.isByteArrayRequired()) {
-                    super.writeError(pConfig, pStream, pError);
-                    data.getConnection().writeError(data, pError, (ByteArrayOutputStream) pStream);
+                RequestData data = (RequestData) pConfig;
+                try {
+                    if (data.isByteArrayRequired()) {
+                        super.writeError(pConfig, pStream, pError);
+                        data.getConnection().writeError(data, pError, (ByteArrayOutputStream) pStream);
+                    }
+                    else {
+                        data.getConnection().writeErrorHeader(data, pError, -1);
+                        super.writeError(pConfig, pStream, pError);
+                        pStream.flush();
+                    }
                 }
-                else {
-                    data.getConnection().writeErrorHeader(data, pError, -1);
-                    super.writeError(pConfig, pStream, pError);
-                    pStream.flush();
+                catch (IOException exception) {
+                    throw new XmlRpcException(exception.getMessage(), exception);
+                }
+                finally {
+                    try {
+                        pStream.close();
+                    }
+                    catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
                 }
             }
-            catch (IOException e) {
-                throw new XmlRpcException(e.getMessage(), e);
+            else {
+                RequestData data = (RequestData) pConfig;
+                try {
+                    if (data.isByteArrayRequired()) {
+                        super.writeError(pConfig, pStream, pError);
+                        data.getConnection().writeError(data, pError, (ByteArrayOutputStream) pStream);
+                    }
+                    else {
+                        data.getConnection().writeErrorHeader(data, pError, -1);
+                        super.writeError(pConfig, pStream, pError);
+                        pStream.flush();
+                    }
+                }
+                catch (IOException exception) {
+                    throw new XmlRpcException(exception.getMessage(), exception);
+                }
             }
         }
 

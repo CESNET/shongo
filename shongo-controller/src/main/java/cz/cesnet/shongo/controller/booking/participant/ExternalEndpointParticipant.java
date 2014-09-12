@@ -11,6 +11,7 @@ import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -101,6 +102,21 @@ public class ExternalEndpointParticipant extends EndpointParticipant implements 
     }
 
     @Override
+    public AbstractParticipant clone() throws CloneNotSupportedException
+    {
+        ExternalEndpointParticipant participant = (ExternalEndpointParticipant) super.clone();
+        updateTechnologies();
+        return participant;
+    }
+
+    @Override
+    protected void cloneReset()
+    {
+        super.cloneReset();
+        aliases = new ArrayList<Alias>();
+    }
+
+    @Override
     public boolean synchronizeFrom(AbstractParticipant participant)
     {
         ExternalEndpointParticipant externalEndpointParticipant = (ExternalEndpointParticipant) participant;
@@ -110,7 +126,12 @@ public class ExternalEndpointParticipant extends EndpointParticipant implements 
         if (!ObjectHelper.isSame(getAliases(), externalEndpointParticipant.getAliases())) {
             this.aliases.clear();
             for (Alias alias : externalEndpointParticipant.getAliases()) {
-                addAlias(alias.clone());
+                try {
+                    addAlias(alias.clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
             modified = true;
         }
