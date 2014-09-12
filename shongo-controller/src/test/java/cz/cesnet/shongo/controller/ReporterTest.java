@@ -28,7 +28,9 @@ public class ReporterTest
     {
         org.apache.log4j.Logger reporterLogger = LogManager.getLogger(Reporter.class);
         org.apache.log4j.Level reporterLoggerLevel = reporterLogger.getLevel();
-        reporterLogger.setLevel(Level.OFF);
+        if (reporterLogger != null) {
+            reporterLogger.setLevel(Level.OFF);
+        }
         Domain.setLocalDomain(new Domain("test"));
 
         try {
@@ -69,7 +71,9 @@ public class ReporterTest
         }
         finally {
             Domain.setLocalDomain(null);
-            reporterLogger.setLevel(reporterLoggerLevel);
+            if (reporterLogger != null) {
+                reporterLogger.setLevel(reporterLoggerLevel);
+            }
         }
     }
 }

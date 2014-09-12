@@ -12,7 +12,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotificationMessage
+public class NotificationMessage implements Cloneable
 {
     /**
      * Available {@link java.util.Locale}s for {@link AbstractNotification}s.
@@ -164,9 +164,9 @@ outer:
         content.append(childContent.toString().replaceAll("\n", "\n" + indent));
     }
 
-    public NotificationMessage clone()
+    public NotificationMessage clone() throws CloneNotSupportedException
     {
-        NotificationMessage notificationMessage = new NotificationMessage();
+        NotificationMessage notificationMessage = (NotificationMessage) super.clone();
         notificationMessage.userSettingsUrl = this.userSettingsUrl;
         notificationMessage.languages.addAll(this.languages);
         notificationMessage.title = this.title;

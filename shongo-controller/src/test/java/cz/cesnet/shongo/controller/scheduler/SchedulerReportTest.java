@@ -114,12 +114,14 @@ public class SchedulerReportTest extends AbstractSchedulerTest
         ReservationTask reservationTask =
                 reservationTaskProvider1.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
         Reservation reservation = print(userType, reservationTask);
-        reservation.generateTestingId();
-        schedulerContextState.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
+        if (reservation != null) {
+            reservation.generateTestingId();
+            schedulerContextState.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
 
-        reservationTask =
-                reservationTaskProvider2.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
-        print(userType, reservationTask);
+            reservationTask =
+                    reservationTaskProvider2.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
+            print(userType, reservationTask);
+        }
     }
 
     private Reservation print(Report.UserType userType, ReservationTask reservationTask) throws SchedulerException

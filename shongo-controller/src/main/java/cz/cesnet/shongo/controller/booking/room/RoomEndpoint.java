@@ -228,7 +228,12 @@ public abstract class RoomEndpoint extends Endpoint
     {
         this.participants.clear();
         for (AbstractParticipant participant : participants) {
-            this.participants.add(participant.clone());
+            try {
+                this.participants.add(participant.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
         }
     }
 
@@ -520,6 +525,7 @@ public abstract class RoomEndpoint extends Endpoint
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
+        super.onStart(executor, executableManager);
         return State.STARTED;
     }
 

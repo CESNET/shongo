@@ -48,7 +48,12 @@ public class ExternalEndpoint extends Endpoint
             addTechnology(technology);
         }
         for (Alias alias : externalEndpointSpecification.getAliases()) {
-            addAlias(alias.clone());
+            try {
+                addAlias(alias.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
         }
     }
 

@@ -60,9 +60,9 @@ public class AdobeConnectRoomSetting extends RoomSetting
     }
 
     @Override
-    public RoomSetting clone()
+    public RoomSetting clone() throws CloneNotSupportedException
     {
-        AdobeConnectRoomSetting roomSetting = new AdobeConnectRoomSetting();
+        AdobeConnectRoomSetting roomSetting = (AdobeConnectRoomSetting) super.clone();
         roomSetting.setPin(getPin());
         roomSetting.setAccessMode(getAccessMode());
         return roomSetting;

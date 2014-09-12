@@ -22,6 +22,7 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
 import jade.core.AID;
 import org.joda.time.DateTime;
@@ -258,7 +259,9 @@ public class ExecutableTest extends AbstractExecutorTest
         CreateRoom createRoomAction =
                 mcuAgent.getPerformedCommandByClass(
                         CreateRoom.class);
-        Assert.assertEquals("1234", createRoomAction.getRoom().getRoomSetting(H323RoomSetting.class).getPin());
+        H323RoomSetting roomSetting = createRoomAction.getRoom().getRoomSetting(H323RoomSetting.class);
+        Assert.assertNotNull(roomSetting);
+        Assert.assertEquals("1234", roomSetting.getPin());
     }
 
     /**
@@ -537,6 +540,7 @@ public class ExecutableTest extends AbstractExecutorTest
                 UsedRoomEndpoint.class, result.getStoppedExecutables().get(0).getClass());
         permanentRoom = getRoom(permanentRoomExecutableId);
         roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
+        Assert.assertNotNull(roomSetting);
         Assert.assertEquals("1234", roomSetting.getPin());
         Assert.assertEquals(AdobeConnectPermissions.PRIVATE, roomSetting.getAccessMode());
 

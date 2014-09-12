@@ -10,6 +10,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.util.Arrays;
 
 /**
  * Logger for XML-RPC request and response XMLs.
@@ -61,7 +62,7 @@ public class RpcServerRequestLogger
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            String line = null;
+            String line;
             StringBuilder requestBuilder = new StringBuilder();
             while ((line = reader.readLine()) != null) {
                 requestBuilder.append(line);
@@ -75,10 +76,12 @@ public class RpcServerRequestLogger
         }
         finally {
             try {
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             }
-            catch (IOException e) {
-                throw new XmlRpcException(e.getMessage(), e);
+            catch (IOException exception) {
+                exception.printStackTrace();
             }
         }
     }
@@ -92,13 +95,37 @@ public class RpcServerRequestLogger
     public static OutputStream logResponse(final OutputStream outputStream)
     {
         if (outputStream instanceof ByteArrayOutputStream) {
-            return new ByteArrayOutputStream()
+            final ByteArrayOutputStream byteArrayOutputStream = (ByteArrayOutputStream) outputStream;
+            return new OutputStream()
             {
                 @Override
-                public void writeTo(OutputStream outputStream) throws IOException
+                public void write(int b)
                 {
-                    logResponse(toString());
-                    super.writeTo(outputStream);
+                    byteArrayOutputStream.write(b);
+                }
+
+                @Override
+                public void write(byte b[]) throws IOException
+                {
+                    byteArrayOutputStream.write(b);
+                }
+
+                @Override
+                public void write(byte b[], int off, int len)
+                {
+                    byteArrayOutputStream.write(b, off, len);
+                }
+
+                @Override
+                public void flush() throws IOException
+                {
+                    byteArrayOutputStream.flush();
+                }
+
+                @Override
+                public void close() throws IOException
+                {
+                    logResponse(byteArrayOutputStream.toString());
                 }
             };
         }
@@ -120,12 +147,29 @@ public class RpcServerRequestLogger
                 }
 
                 @Override
+                public void write(byte b[]) throws IOException
+                {
+                    outputStream.write(b);
+                }
+
+                @Override
+                public void write(byte b[], int off, int len) throws IOException
+                {
+                    outputStream.write(b, off, len);
+                }
+
+                @Override
+                public void flush() throws IOException
+                {
+                    outputStream.flush();
+                }
+
+                @Override
                 public void close() throws IOException
                 {
                     if (stringBuilder.length() > 0) {
                         logResponse(stringBuilder.toString());
                     }
-                    outputStream.close();
                 }
             };
         }

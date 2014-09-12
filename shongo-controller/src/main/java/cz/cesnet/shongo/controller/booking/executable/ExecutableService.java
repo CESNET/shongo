@@ -198,9 +198,10 @@ public abstract class ExecutableService extends ExecutionTarget
             executableManager.createExecutionReport(this, executionReport);
             return State.ACTIVATION_FAILED;
         }
-
-        // Return the old state
-        setState(oldState);
+        finally {
+            // Return the old state
+            setState(oldState);
+        }
 
         return State.ACTIVE;
     }
@@ -227,9 +228,10 @@ public abstract class ExecutableService extends ExecutionTarget
             executableManager.createExecutionReport(this, executionReport);
             return State.DEACTIVATION_FAILED;
         }
-
-        // Return the old state
-        setState(oldState);
+        finally {
+            // Return the old state
+            setState(oldState);
+        }
 
         return State.NOT_ACTIVE;
     }

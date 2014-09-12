@@ -315,7 +315,12 @@ public class CompartmentReservationTask extends ReservationTask
             // Create connection by alias
             if (alias != null) {
                 connection = new Connection();
-                connection.setAlias(alias.clone());
+                try {
+                    connection.setAlias(alias.clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
             else {
                 DeviceResource deviceResource = null;
@@ -350,7 +355,12 @@ public class CompartmentReservationTask extends ReservationTask
 
                 // Create connection by the created alias
                 connection = new Connection();
-                connection.setAlias(alias.clone());
+                try {
+                    connection.setAlias(alias.clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
 
             connection.setSlot(slot);

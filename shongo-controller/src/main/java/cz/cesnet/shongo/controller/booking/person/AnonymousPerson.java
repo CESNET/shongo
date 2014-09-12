@@ -123,9 +123,9 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     }
 
     @Override
-    public AnonymousPerson clone()
+    public AnonymousPerson clone() throws CloneNotSupportedException
     {
-        AnonymousPerson person = new AnonymousPerson();
+        AnonymousPerson person = (AnonymousPerson) super.clone();
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);

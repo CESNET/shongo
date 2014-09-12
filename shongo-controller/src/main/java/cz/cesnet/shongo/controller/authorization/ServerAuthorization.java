@@ -1090,12 +1090,17 @@ public class ServerAuthorization extends Authorization
         try {
             File file = new File(fileName);
             if (!file.exists()) {
-                file.createNewFile();
-                chmod(fileName, 0600);
+                if (file.createNewFile()) {
+                    chmod(fileName, 0600);
+                }
             }
             BufferedWriter output = new BufferedWriter(new FileWriter(file));
-            output.write(accessToken);
-            output.close();
+            try {
+                output.write(accessToken);
+            }
+            finally {
+                output.close();
+            }
         }
         catch (IOException exception) {
             logger.error("Cannot write root access token to file " + fileName, exception);

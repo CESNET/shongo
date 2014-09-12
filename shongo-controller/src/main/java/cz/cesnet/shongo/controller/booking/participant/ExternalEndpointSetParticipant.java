@@ -2,12 +2,14 @@ package cz.cesnet.shongo.controller.booking.participant;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.executable.ExternalEndpointSet;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -134,6 +136,13 @@ public class ExternalEndpointSetParticipant extends AbstractParticipant implemen
         setCount(externalEndpointSetParticipant.getCount());
 
         return modified;
+    }
+
+    @Override
+    protected void cloneReset()
+    {
+        super.cloneReset();
+        technologies = new HashSet<Technology>();
     }
 
     @Override

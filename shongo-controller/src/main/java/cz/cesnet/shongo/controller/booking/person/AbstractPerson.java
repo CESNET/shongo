@@ -56,6 +56,10 @@ public abstract class AbstractPerson extends SimplePersistentObject implements C
     public abstract void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api);
 
     @Override
-    public abstract AbstractPerson clone();
-
+    public AbstractPerson clone() throws CloneNotSupportedException
+    {
+        AbstractPerson person = (AbstractPerson) super.clone();
+        person.setIdNull();
+        return person;
+    }
 }

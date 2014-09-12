@@ -950,9 +950,9 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         Element rootElement = resultDocument.getRootElement();
                         Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
                         Element bodyElement = rootElement.getChild("Body", envelopeNS);
-                        if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                        if (bodyElement == null || goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                             String faultString = "Unknown";
-                            Element fault = bodyElement.getChild("Fault", envelopeNS);
+                            Element fault = bodyElement != null ? bodyElement.getChild("Fault", envelopeNS) : null;
                             if (fault != null) {
                                 faultString = fault.getChildText("faultstring");
                             }

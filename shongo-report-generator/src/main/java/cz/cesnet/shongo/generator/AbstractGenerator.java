@@ -80,11 +80,22 @@ public abstract class AbstractGenerator
      */
     public void writeFile(String fileName, String content) throws IOException
     {
-        new File(fileName).delete();
+        if (new File(fileName).delete()) {
+            logger.debug("Deleting old file {}...", fileName);
+        }
         java.io.FileWriter fileWriter = new java.io.FileWriter(fileName);
-        java.io.BufferedWriter out = new java.io.BufferedWriter(fileWriter);
-        out.write(content);
-        out.close();
+        try {
+            java.io.BufferedWriter out = new java.io.BufferedWriter(fileWriter);
+            try {
+                out.write(content);
+            }
+            finally {
+                out.close();
+            }
+        }
+        finally {
+            fileWriter.close();
+        }
     }
 
     /**

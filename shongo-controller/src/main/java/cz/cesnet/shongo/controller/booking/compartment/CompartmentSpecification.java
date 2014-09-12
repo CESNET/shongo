@@ -194,7 +194,12 @@ public class CompartmentSpecification extends Specification
         }
         // Add new participants
         for (AbstractParticipant participant : compartmentSpecification.getParticipants()) {
-            addParticipant(participant.clone());
+            try {
+                addParticipant(participant.clone());
+            }
+            catch (CloneNotSupportedException exception) {
+                throw new RuntimeException(exception);
+            }
             modified = true;
         }
 

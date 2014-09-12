@@ -72,9 +72,9 @@ public class UserPerson extends AbstractPerson
     }
 
     @Override
-    public UserPerson clone()
+    public UserPerson clone() throws CloneNotSupportedException
     {
-        UserPerson person = new UserPerson();
+        UserPerson person = (UserPerson) super.clone();
         person.setUserId(userId);
         return person;
     }

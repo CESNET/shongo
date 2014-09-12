@@ -256,7 +256,7 @@ public abstract class ReportSetMessages
                 int index = 0;
                 while (index < components.length) {
                     String component = components[index];
-                    Object value = parameters.get(component);
+                    Object value = parameters != null ? parameters.get(component) : null;
                     index++;
                     if (index == components.length) {
                         return value;

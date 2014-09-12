@@ -211,9 +211,9 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
     }
 
     @Override
-    public DateTimeSlot clone()
+    public DateTimeSlot clone() throws CloneNotSupportedException
     {
-        AbsoluteDateTimeSlot absoluteDateTimeSlot = new AbsoluteDateTimeSlot();
+        AbsoluteDateTimeSlot absoluteDateTimeSlot = (AbsoluteDateTimeSlot) super.clone();
         absoluteDateTimeSlot.setSlotStart(slotStart);
         absoluteDateTimeSlot.setSlotEnd(slotEnd);
         return absoluteDateTimeSlot;

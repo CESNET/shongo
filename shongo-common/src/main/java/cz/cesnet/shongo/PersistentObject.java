@@ -39,6 +39,14 @@ public abstract class PersistentObject
     }
 
     /**
+     * Set id to null.
+     */
+    protected void setIdNull()
+    {
+        this.id = null;
+    }
+
+    /**
      * @return {@link #id}
      */
     @Transient

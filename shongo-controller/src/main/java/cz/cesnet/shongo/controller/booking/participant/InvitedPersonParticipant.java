@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.booking.participant;
 
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 
 import javax.persistence.*;
+import java.util.HashSet;
 
 /**
  * Represents a {@link PersonParticipant} with invitation.
@@ -104,6 +106,13 @@ public class InvitedPersonParticipant extends PersonParticipant implements State
     }
 
     @Override
+    protected void cloneReset()
+    {
+        super.cloneReset();
+        endpointParticipant = null;
+    }
+
+    @Override
     public boolean synchronizeFrom(AbstractParticipant participant)
     {
         InvitedPersonParticipant invitedPersonParticipant = (InvitedPersonParticipant) participant;
@@ -113,8 +122,13 @@ public class InvitedPersonParticipant extends PersonParticipant implements State
         if (getEndpointParticipant() != invitedPersonParticipant.getEndpointParticipant()) {
             // We want make change only in the following scenarios
             if (getEndpointParticipant() == null || invitationState != InvitationState.ACCEPTED) {
-                setEndpointParticipant(
-                        (EndpointParticipant) invitedPersonParticipant.getEndpointParticipant().clone());
+                try {
+                    setEndpointParticipant(
+                            (EndpointParticipant) invitedPersonParticipant.getEndpointParticipant().clone());
+                }
+                catch (CloneNotSupportedException exception) {
+                    throw new RuntimeException(exception);
+                }
                 modified = true;
             }
         }

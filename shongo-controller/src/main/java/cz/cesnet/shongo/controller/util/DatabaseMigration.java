@@ -351,9 +351,19 @@ public class DatabaseMigration
 
         File directory = new File(filePath);
         if (directory.exists()) {
-            BufferedWriter file = new BufferedWriter(new FileWriter(fileName));
-            file.write(fileContent.toString());
-            file.close();
+            FileWriter fileWriter = new FileWriter(fileName);
+            try {
+                BufferedWriter file = new BufferedWriter(fileWriter);
+                try {
+                    file.write(fileContent.toString());
+                }
+                finally {
+                    file.close();
+                }
+            }
+            finally {
+                fileWriter.close();
+            }
         }
     }
 

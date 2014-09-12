@@ -436,12 +436,14 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     }
 
     @Override
-    protected PeriodicDateTime clone()
+    protected PeriodicDateTime clone() throws CloneNotSupportedException
     {
-        PeriodicDateTime periodicDateTime = new PeriodicDateTime();
+        PeriodicDateTime periodicDateTime = (PeriodicDateTime) super.clone();
+        periodicDateTime.setIdNull();
         periodicDateTime.setStart(start);
         periodicDateTime.setPeriod(period);
         periodicDateTime.setEnd(end);
+        rules = new ArrayList<Rule>();
         for (Rule rule : rules) {
             periodicDateTime.addRule(rule.clone());
         }
@@ -494,6 +496,13 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
          * Rule interval "to" date/time.
          */
         private ReadablePartial dateTimeTo;
+
+        /**
+         * Constructor.
+         */
+        private Rule()
+        {
+        }
 
         /**
          * Construct rule that performs it's effect for concrete date/time.
@@ -587,9 +596,14 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
         }
 
         @Override
-        protected Rule clone()
+        protected Rule clone() throws CloneNotSupportedException
         {
-            return new Rule(type, dateTimeFrom, dateTimeTo);
+            Rule rule = (Rule) super.clone();
+            rule.id = null;
+            rule.type = type;
+            rule.dateTimeFrom = dateTimeFrom;
+            rule.dateTimeTo = dateTimeTo;
+            return rule;
         }
     }
 }

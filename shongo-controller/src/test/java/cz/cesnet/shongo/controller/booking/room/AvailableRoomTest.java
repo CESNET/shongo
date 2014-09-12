@@ -191,7 +191,8 @@ public class AvailableRoomTest extends AbstractSchedulerTest
         for (RoomProviderCapability roomProviderCapability :
                 resourceCache.getDeviceCapabilities(RoomProviderCapability.class, technologies)) {
             SchedulerContext schedulerContext = createSchedulerContext(slot);
-            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot, null);
+            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(
+                    roomProviderCapability, slot, new RoomReservationTask(schedulerContext, slot));
             if (availableRoom.getAvailableLicenseCount() >= licenseCount) {
                 availableRooms.add(availableRoom);
             }
