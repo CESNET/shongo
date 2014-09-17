@@ -91,7 +91,7 @@ public class ErrorHandler
         Throwable cause = throwable;
         ModelAndView modelAndView = null;
         while (cause != null) {
-            ModelAndView causeModelAndView = handleCause(request, response, cause, message);
+            ModelAndView causeModelAndView = handleCause(request, response, cause, message, modelAndView);
             if (causeModelAndView != null) {
                 modelAndView = causeModelAndView;
             }
@@ -241,10 +241,12 @@ public class ErrorHandler
      * @param request
      * @param response
      * @param cause
-     * @param message   @return {@link ModelAndView} or {@code null}
+     * @param message
+     * @param oldModelAndView  already prepared ModelAndView for handling cause
+     * @return {@link ModelAndView} or {@code null}
      */
     private ModelAndView handleCause(HttpServletRequest request, HttpServletResponse response, Throwable cause,
-            String message)
+            String message, ModelAndView oldModelAndView)
     {
         if (cause instanceof UserMessageException) {
             UserMessageException userMessageException = (UserMessageException) cause;
@@ -300,10 +302,11 @@ public class ErrorHandler
                 return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
             }
             else {
-                return handleCause(request, response, new AuthenticationServiceException(cause.getMessage()), message);
+                return handleCause(request, response, new AuthenticationServiceException(cause.getMessage()), message, oldModelAndView);
             }
         }
-        else if (AjaxRequestMatcher.isAjaxRequest(request)) {
+        // Log AJAX error (if the error wasn't handled in previous invocation of this method)
+        else if (AjaxRequestMatcher.isAjaxRequest(request) && oldModelAndView == null) {
             String error;
             String description;
             if (cause instanceof ReportRuntimeException) {
