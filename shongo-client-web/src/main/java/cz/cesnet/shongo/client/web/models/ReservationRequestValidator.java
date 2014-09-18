@@ -167,7 +167,7 @@ public class ReservationRequestValidator implements Validator
 
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
-            availabilityCheckRequest.setPurpose(ReservationRequestModel.PURPOSE);
+            availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());

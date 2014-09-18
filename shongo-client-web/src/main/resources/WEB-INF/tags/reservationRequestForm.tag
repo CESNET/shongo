@@ -383,6 +383,23 @@
                 <form:errors path="roomResourceId" cssClass="error"/>
             </div>
         </div>
+
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="purpose">
+                <spring:message code="views.reservationRequest.purpose"/>:
+            </form:label>
+            <div class="col-xs-4">
+                <form:select cssClass="form-control" path="purpose" tabindex="${tabIndex}">
+                    <spring:eval var="purposes" expression="T(cz.cesnet.shongo.controller.ReservationRequestPurpose).values()"/>
+                    <c:forEach var="purpose" items="${purposes}">
+                        <form:option value="${purpose}">${purpose}</form:option>
+                    </c:forEach>
+                </form:select>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="purpose" cssClass="error"/>
+            </div>
+        </div>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">

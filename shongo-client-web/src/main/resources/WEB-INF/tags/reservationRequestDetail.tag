@@ -53,6 +53,23 @@
         </tag:help>
     </dd>
 
+    <%-- Purpose for debuging and maintenance purposes --%>
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
+        <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
+        <dd>
+            <c:choose>
+                <c:when test="${not empty reservationRequest.purpose}">
+                    <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}" />
+                </c:when>
+                <c:otherwise>
+                    <spring:message code="views.reservationRequest.purpose" />
+                </c:otherwise>
+            </c:choose>
+            <span>${reservationRequest.meetingRoomResourceName}</span>
+        </dd>
+    </c:if>
+    <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}" />
+
     <%-- Meeting room name and description --%>
     <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
         <dt><spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:</dt>
