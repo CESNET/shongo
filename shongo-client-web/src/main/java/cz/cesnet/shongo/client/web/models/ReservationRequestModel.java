@@ -39,8 +39,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestModel.class);
 
-    public static final ReservationRequestPurpose PURPOSE = ReservationRequestPurpose.USER;
-
     private CacheProvider cacheProvider;
 
     protected String id;
@@ -50,6 +48,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     protected ReservationRequestType type;
 
     protected String description;
+
+    protected ReservationRequestPurpose purpose = ReservationRequestPurpose.USER;
 
     protected DateTime dateTime;
 
@@ -215,6 +215,14 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public String getDescription()
     {
         return description;
+    }
+
+    public ReservationRequestPurpose getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(ReservationRequestPurpose purpose) {
+        this.purpose = purpose;
     }
 
     public void setDescription(String description)
@@ -1036,7 +1044,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (!Strings.isNullOrEmpty(id)) {
             abstractReservationRequest.setId(id);
         }
-        abstractReservationRequest.setPurpose(PURPOSE);
+        abstractReservationRequest.setPurpose(purpose);
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             abstractReservationRequest.setReusement(ReservationRequestReusement.OWNED);
@@ -1123,6 +1131,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         attributes.put("ID", id);
         attributes.put("Type", specificationType);
         attributes.put("Description", description);
+        attributes.put("Purpose", purpose);
         attributes.put("Technology", technology);
         attributes.put("Start", start);
         attributes.put("End", end);

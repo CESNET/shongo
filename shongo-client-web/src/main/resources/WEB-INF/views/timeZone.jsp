@@ -160,12 +160,29 @@
         else {
             init();
         }
+
+        var count=15;
+
+        var counter=setInterval(delayedCancelTimeZone, 1000);
+
+        function delayedCancelTimeZone()
+        {
+            count=count-1;
+            if (count <= 0)
+            {
+                clearInterval(counter);
+                cancelTimeZone();
+                return;
+            }
+
+            document.getElementById("timer").innerHTML=count + " secs"; // watch for spelling
+        }
     </script>
 </head>
 
-<%-- When user is logged in the detection can last longer and thus show message with cancel button, autocancel in 10 s --%>
+<%-- When user is logged in the detection can last longer and thus show message with cancel button, autocancel in 15 s --%>
 <security:authorize access="isAuthenticated()">
-<body onload="setTimeout(function() {cancelTimeZone();},10000);">
+<body onload="delayedCancelTimeZone();">
 <div class="center-content">
     <div class="information-box">
         <span class="spinner"></span>
@@ -177,6 +194,7 @@
         <span class="description">
             <spring:message code="views.timeZone.waiting"/>
         </span>
+        <span id="timer" class="description"></span>
     </div>
 </div>
 </body>
