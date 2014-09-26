@@ -239,6 +239,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     protected void endMeeting(String roomId) throws CommandException
     {
         String message = null; //"The room is currently unavailable for joining / Do místnosti se aktuálně není možné připojit";
+
         endMeeting(roomId, message, false, null);
     }
 
