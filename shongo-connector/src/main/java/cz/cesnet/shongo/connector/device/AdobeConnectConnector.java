@@ -494,7 +494,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -514,7 +513,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        // TODO: erase content and re-create room?
+        // TODO: erase content and re-create room? Not supported yet.
     }
 
     @Override
