@@ -207,7 +207,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         endMeetingAttributes.add("sco-id", roomId);
         endMeetingAttributes.add("state", state.toString());
 
-        //TODO:little buggy -check with every upgrade of AC
         if (message != null) {
             try {
                 endMeetingAttributes.add("message",URLEncoder.encode(message,"UTF8"));
