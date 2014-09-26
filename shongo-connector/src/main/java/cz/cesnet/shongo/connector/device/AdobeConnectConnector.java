@@ -302,7 +302,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Set room access mode (public, protected, private).
+     * Set {@link cz.cesnet.shongo.api.AdobeConnectPermissions} room access mode (public, protected, private).
      * Default access mode (when param mode is null) is AdobeConnectAccessMode.PROTECTED
      *
      * @param roomId
