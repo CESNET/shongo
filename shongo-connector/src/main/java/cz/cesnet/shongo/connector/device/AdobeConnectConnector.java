@@ -513,7 +513,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        // TODO: erase content and re-create room? Not supported yet.
+        // TODO: erase content and re-create room?
     }
 
     @Override
