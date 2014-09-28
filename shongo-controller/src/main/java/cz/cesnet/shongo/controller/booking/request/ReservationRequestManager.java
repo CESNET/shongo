@@ -170,6 +170,7 @@ public class ReservationRequestManager extends AbstractManager
         for (AbstractReservationRequest version : versions) {
             delete(version, authorizationManager, true);
         }
+        allocation.setReservationRequest(null);
 
         transaction.commit();
 

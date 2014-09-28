@@ -143,7 +143,7 @@ SELECT
     END AS type,
     alias_specification_summary.room_name AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
-    COALESCE(value_provider_capability.resource_id, resource_specification.resource_id) AS resource_id
+    COALESCE(value_provider_capability.resource_id, resource_specification.resource_id, room_specification.device_resource_id) AS resource_id
 FROM specification
 LEFT JOIN specification_technologies ON specification_technologies.specification_id = specification.id
 LEFT JOIN room_specification ON room_specification.id = specification.id
@@ -352,6 +352,7 @@ FROM (
  * View of summary for each reservation.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 CREATE VIEW reservation_summary AS
 WITH RECURSIVE reservation_allocation AS (
@@ -462,6 +463,7 @@ CREATE VIEW executable_summary AS
 SELECT
     DISTINCT ON(executable.id)
     executable.id AS id,
+    room_provider_capability.resource_id AS resource_id,
     CASE
         WHEN used_room_endpoint.id IS NOT NULL THEN 'USED_ROOM'
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
@@ -497,6 +499,8 @@ LEFT JOIN endpoint_assigned_aliases ON endpoint_assigned_aliases.endpoint_id = e
 LEFT JOIN alias ON alias.id = endpoint_assigned_aliases.alias_id AND alias.type = 'ROOM_NAME'
 LEFT JOIN room_endpoint_earliest_usage ON room_endpoint_earliest_usage.id = executable.id
 LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = executable.id
+LEFT JOIN resource_room_endpoint ON resource_room_endpoint.id = room_endpoint.id OR resource_room_endpoint.id = used_room_endpoint.room_endpoint_id
+LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = resource_room_endpoint.room_provider_capability_id
 LEFT JOIN executable_service ON executable_service.executable_id = executable.id OR executable_service.executable_id = room_endpoint_usage.id
 LEFT JOIN recording_service ON recording_service.id = executable_service.id
 LEFT JOIN resource_room_endpoint_recording_folder_ids ON resource_room_endpoint_recording_folder_ids.resource_room_endpoint_id = executable.id OR resource_room_endpoint_recording_folder_ids.resource_room_endpoint_id = used_room_endpoint.room_endpoint_id
@@ -504,6 +508,7 @@ GROUP BY
     executable.id,
     execution_target.id,
     room_endpoint.id,
+    room_provider_capability.id,
     used_room_endpoint.id,
     room_configuration.id,
     alias.id,

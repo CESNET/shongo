@@ -48,15 +48,16 @@ sub populate()
         },
         'delete-resource' => {
             desc => 'Delete an existing resource',
-            args => '[id]',
+            options => 'force',
+            args => '[id] [--force]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
                     foreach my $id (split(/,/, $args[0])) {
-                        delete_resource($id);
+                        delete_resource($params->{'options'}, $id);
                     }
                 } else {
-                    delete_resource();
+                    delete_resource($params->{'options'});
                 }
             },
         },
@@ -224,11 +225,78 @@ sub modify_resource()
 
 sub delete_resource()
 {
-    my ($id) = @_;
+    my ($options, $id) = @_;
     $id = select_resource($id);
     if ( !defined($id) ) {
         return;
     }
+
+    if ( defined($options->{'force'}) ) {
+        my $reservation_requests = {};
+        # add reservation requests
+        my $response = Shongo::ClientCli->instance()->secure_hash_request('Reservation.listReservationRequests', {
+            'specificationResourceId' => $id,
+            'history' => 1
+        });
+        if ( !defined($response) ) {
+            return;
+        }
+        foreach my $reservation_request (@{$response->{'items'}}) {
+            $reservation_requests->{$reservation_request->{'id'}} = undef;
+        }
+        # add reservation requests from reservations
+        $response = Shongo::ClientCli->instance()->secure_hash_request('Reservation.listReservations', {
+            'resourceIds' => [$id]
+        });
+        if ( !defined($response) ) {
+            return;
+        }
+        foreach my $reservation (@{$response->{'items'}}) {
+            $reservation_requests->{$reservation->{'reservationRequestId'}} = undef;
+        }
+
+        # Delete reservation requests
+        if (scalar(keys %{$reservation_requests}) > 0) {
+            console_print_info("Reservation Requests referencing the resource:");
+            foreach my $reservation_request_id (keys %{$reservation_requests}) {
+                console_print_info(" %s", $reservation_request_id);
+            }
+            my $result = console_read("Do you want to delete the reservation requests? [y/n]");
+            if ($result eq 'y') {
+                foreach my $reservation_request_id (keys %{$reservation_requests}) {
+                    Shongo::ClientCli->instance()->secure_request(
+                        'Reservation.deleteReservationRequestHard',
+                        RPC::XML::string->new($reservation_request_id)
+                    );
+                }
+            }
+        }
+
+        # Delete executables
+        $response = Shongo::ClientCli->instance()->secure_hash_request('Executable.listExecutables', {
+            'resourceId' => $id,
+            'history' => 1
+        });
+        if ( !defined($response) ) {
+            return
+        }
+        if (scalar(@{$response->{'items'}}) > 0) {
+            console_print_info("Executables referencing the resource:");
+            foreach my $executable (@{$response->{'items'}}) {
+                console_print_info(" %s", $executable->{'id'});
+            }
+            my $result = console_read("Do you want to delete the executables? [y/n]");
+            if ($result eq 'y') {
+                foreach my $executable (@{$response->{'items'}}) {
+                    Shongo::ClientCli->instance()->secure_request(
+                        'Executable.deleteExecutable',
+                        RPC::XML::string->new($executable->{'id'})
+                    );
+                }
+            }
+        }
+    }
+
     Shongo::ClientCli->instance()->secure_request(
         'Resource.deleteResource',
         RPC::XML::string->new($id)

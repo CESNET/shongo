@@ -189,6 +189,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             // List only usages of specified room
+            if (request.getResourceId() != null) {
+                queryFilter.addFilter("executable_summary.resource_id = :resourceId");
+                queryFilter.addFilterParameter("resourceId", ObjectIdentifier.parseId(
+                        request.getResourceId(), ObjectType.RESOURCE));
+            }
+
+            // List only usages of specified room
             if (request.getRoomId() != null) {
                 queryFilter.addFilter("executable_summary.room_id = :roomId");
                 queryFilter.addFilterParameter("roomId", ObjectIdentifier.parseId(

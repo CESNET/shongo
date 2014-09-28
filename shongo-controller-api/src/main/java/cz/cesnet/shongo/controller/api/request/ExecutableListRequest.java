@@ -28,6 +28,11 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     private Set<ExecutableSummary.Type> types = new HashSet<ExecutableSummary.Type>();
 
     /**
+     * Resource of the executable.
+     */
+    private String resourceId;
+
+    /**
      * Specifies identifier for {@link AbstractRoomExecutable} which must be used by returned {@link Executable}s
      * (e.g., {@link cz.cesnet.shongo.controller.api.UsedRoomExecutable}).
      */
@@ -102,6 +107,22 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     }
 
     /**
+     * @return {@link #resourceId}
+     */
+    public String getResourceId()
+    {
+        return resourceId;
+    }
+
+    /**
+     * @param resourceId sets the {@link #resourceId}
+     */
+    public void setResourceId(String resourceId)
+    {
+        this.resourceId = resourceId;
+    }
+
+    /**
      * @return {@link #roomId}
      */
     public String getRoomId()
@@ -163,6 +184,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
 
     private static final String HISTORY = "history";
     private static final String TYPES = "types";
+    private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_ID = "roomId";
     private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
     private static final String PARTICIPANT_USER_ID = "participantUserId";
@@ -173,6 +195,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         DataMap dataMap = super.toData();
         dataMap.set(HISTORY, history);
         dataMap.set(TYPES, types);
+        dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_ID, roomId);
         dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
         dataMap.set(PARTICIPANT_USER_ID, participantUserId);
@@ -185,6 +208,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         super.fromData(dataMap);
         history = dataMap.getBool(HISTORY);
         types = (Set) dataMap.getSet(TYPES, ExecutableSummary.Type.class);
+        resourceId = dataMap.getString(RESOURCE_ID);
         roomId = dataMap.getString(ROOM_ID);
         roomLicenseCount = dataMap.getString(ROOM_LICENSE_COUNT);
         participantUserId = dataMap.getString(PARTICIPANT_USER_ID);

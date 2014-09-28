@@ -872,6 +872,9 @@ public class Converter
         else if (ReadablePartial.class.isAssignableFrom(targetClass)) {
             return (T) convertToReadablePartial(value);
         }
+        else if (Long.class.equals(targetClass) && value instanceof Number) {
+            return (T) new Long(((Number) value).longValue());
+        }
         else if (ComplexType.class.isAssignableFrom(targetClass)) {
             Class<? extends ComplexType> abstractObjectClass = (Class<? extends ComplexType>) targetClass;
             if (value == null) {

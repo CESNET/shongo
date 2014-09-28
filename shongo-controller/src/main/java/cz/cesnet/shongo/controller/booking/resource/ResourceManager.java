@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.value.ValueProviderCapability;
@@ -10,16 +11,17 @@ import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.FilteredValueProvider;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
-import javax.sql.rowset.Predicate;
 import java.util.List;
 
 /**
@@ -109,6 +111,21 @@ public class ResourceManager extends AbstractManager
      */
     public void delete(Resource resource)
     {
+        // Delete scheduler reports
+        List reportIds = entityManager.createNativeQuery(
+                "SELECT id FROM scheduler_report WHERE resource_id = :resourceId")
+                .setParameter("resourceId", resource.getId())
+                .getResultList();
+        if (reportIds.size() > 0) {
+            List<SchedulerReport> reports = entityManager.createQuery("SELECT report FROM SchedulerReport report"
+                    + " WHERE report.id IN(:reportIds)", SchedulerReport.class)
+                    .setParameter("reportIds", Converter.convertToSet(reportIds, Long.class))
+                    .getResultList();
+            for (SchedulerReport report : reports) {
+                entityManager.remove(report);
+            }
+        }
+
         for (Capability capability : resource.getCapabilities()) {
             if (capability instanceof AliasProviderCapability) {
                 AliasProviderCapability aliasProviderCapability = (AliasProviderCapability) capability;

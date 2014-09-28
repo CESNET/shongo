@@ -138,6 +138,7 @@ LEFT JOIN recording_service_reservation ON recording_service_reservation.id = re
 CREATE VIEW executable_summary AS
 SELECT
     executable.id AS id,
+    room_provider_capability.resource_id AS resource_id,
     CASE
         WHEN used_room_endpoint.id IS NOT NULL THEN 'USED_ROOM'
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
@@ -168,12 +169,15 @@ FROM executable
 LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
 LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
+LEFT JOIN resource_room_endpoint ON resource_room_endpoint.id = room_endpoint.id OR resource_room_endpoint.id = used_room_endpoint.room_endpoint_id
+LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = resource_room_endpoint.room_provider_capability_id
 LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
 LEFT JOIN room_configuration_technologies ON room_configuration_technologies.room_configuration_id = room_configuration.id
 GROUP BY
     executable.id,
     execution_target.id,
     room_endpoint.id,
+    room_provider_capability.id,
     used_room_endpoint.id,
     room_configuration.id
 ORDER BY executable.id

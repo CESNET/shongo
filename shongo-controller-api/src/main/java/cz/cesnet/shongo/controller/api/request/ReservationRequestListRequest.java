@@ -82,6 +82,11 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private String search;
 
     /**
+     * Specifies whether deleted reservation request should be also returned.
+     */
+    private boolean history;
+
+    /**
      * Constructor.
      */
     public ReservationRequestListRequest()
@@ -314,6 +319,22 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     }
 
     /**
+     * @return {@link #history}
+     */
+    public boolean isHistory()
+    {
+        return history;
+    }
+
+    /**
+     * @param history sets the {@link #history}
+     */
+    public void setHistory(boolean history)
+    {
+        this.history = history;
+    }
+
+    /**
      * Enumeration of attributes by which the resulting {@link ListResponse} can be sorted.
      */
     public static enum Sort
@@ -341,6 +362,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String USER_ID = "userId";
     private static final String PARTICIPANT_USER_ID = "participantUserId";
     private static final String SEARCH = "search";
+    private static final String HISTORY = "history";
 
     @Override
     public DataMap toData()
@@ -357,6 +379,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(USER_ID, userId);
         dataMap.set(PARTICIPANT_USER_ID, participantUserId);
         dataMap.set(SEARCH, search);
+        dataMap.set(HISTORY, history);
         return dataMap;
     }
 
@@ -376,5 +399,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         userId = dataMap.getString(USER_ID);
         participantUserId = dataMap.getString(PARTICIPANT_USER_ID);
         search = dataMap.getString(SEARCH);
+        history = dataMap.getBool(HISTORY);
     }
 }
