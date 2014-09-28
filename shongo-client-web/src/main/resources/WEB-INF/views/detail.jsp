@@ -31,6 +31,11 @@
             if (tabRefreshParameters.count > 0 && (tabRefreshParameters.count % 3) == 0) {
                 // Double refresh timeout after three refreshes
                 tabRefreshParameters.timeout *= 2;
+
+                // Stop refreshing when timeout is longer than 10 minutes
+                if (tabRefreshParameters.timeout > (5 * 60)) {
+                    return;
+                }
             }
             tabRefreshParameters.count++;
 
