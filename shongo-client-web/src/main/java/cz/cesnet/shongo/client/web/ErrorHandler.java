@@ -296,12 +296,13 @@ public class ErrorHandler
             return modelAndView;
         }
         else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
-            logger.warn("Invalid security token, redirecting to login page...", cause);
             UserSession userSession = UserSession.getInstance(request);
-            if (userSession.attemptLogin()) {
+            if (userSession.attemptLogin() && !AjaxRequestMatcher.isAjaxRequest(request)) {
+                logger.warn("Invalid security token, redirecting to login page...", cause);
                 return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
             }
             else {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return handleCause(request, response, new AuthenticationServiceException(cause.getMessage()), message, oldModelAndView);
             }
         }

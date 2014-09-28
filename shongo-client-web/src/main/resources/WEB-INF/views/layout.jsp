@@ -55,12 +55,18 @@
 <c:if test="${isAuthenticated}">
     <!-- Check for expired session: start -->
     <script type="text/javascript">
+        window.isSessionExpired = function() { return false; };
+        window.displaySessionExpired = function() {
+            window.isSessionExpired = function() { return true; };
+            window.displaySessionExpired = function() {};
+            $("body").prepend("${sessionExpiredOverlay}");
+        };
         var __sessionExpiredTimer = setInterval(function(){
             console.debug("Checking for expired session...");
             $.ajax("${loggedUrl}").fail(function(response){
                 if (response.status == 401) {
                     clearInterval(__sessionExpiredTimer);
-                    $("body").prepend("${sessionExpiredOverlay}");
+                    window.displaySessionExpired();
                 }
             });
         }, 5 * 60 * 1000);

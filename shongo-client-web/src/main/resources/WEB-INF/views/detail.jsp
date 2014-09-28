@@ -45,8 +45,10 @@
                 // Cancel promise and callback
                 tabRefreshParameters.promise = null;
                 tabRefreshParameters.promiseCallback = null;
-                // Perform callback
-                callback();
+                // Perform callback (when session is not expired)
+                if (!window.isSessionExpired()) {
+                    callback();
+                }
             }, tabRefreshParameters.timeout * 1000);
         };
 
