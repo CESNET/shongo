@@ -40,8 +40,8 @@ applicationModule.factory("$application", function() {
         },
         handleAjaxFailure: function(response) {
             if (response.status == 401) {
-                // User login timeout and thus refresh whole page
-                window.location.reload();
+                // When user session has timeout show "logged out"
+                window.displaySessionExpired();
                 return true;
             }
             return false;
