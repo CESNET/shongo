@@ -498,6 +498,53 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public void deleteReservationRequestHard(SecurityToken securityToken, String reservationRequestId)
+    {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+
+            if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", objectId);
+            }
+            switch (reservationRequest.getState()) {
+                case MODIFIED:
+                    throw new ControllerReportSet.ReservationRequestNotDeletableException(objectId.toId());
+            }
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            if (!isReservationRequestDeletable(reservationRequest, reservationManager)) {
+                throw new ControllerReportSet.ReservationRequestNotDeletableException(
+                        ObjectIdentifier.formatId(reservationRequest));
+            }
+
+            reservationRequest.setUpdatedBy(securityToken.getUserId());
+            reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
     public void updateReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
@@ -591,8 +638,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             // Else other filters
             else {
-                // List only latest versions of a reservation requests (no it's modifications or deleted requests)
-                queryFilter.addFilter("reservation_request_summary.state = 'ACTIVE'");
+                if (request.isHistory()) {
+                    // List only latest versions of a reservation requests with deleted requests
+                    queryFilter.addFilter("reservation_request_summary.state != 'MODIFIED'");
+                }
+                else {
+                    // List only latest versions of a reservation requests (no it's modifications or deleted requests)
+                    queryFilter.addFilter("reservation_request_summary.state = 'ACTIVE'");
+                }
 
                 // List only child reservation requests for specified parent reservation request
                 String parentReservationRequestId = request.getParentReservationRequestId();

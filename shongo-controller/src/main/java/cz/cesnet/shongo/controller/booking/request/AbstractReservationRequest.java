@@ -182,7 +182,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #allocation}
      */
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = false)
     @Access(AccessType.FIELD)
     public Allocation getAllocation()
     {

@@ -195,10 +195,10 @@ public class Allocation extends SimplePersistentObject
     @PreUpdate
     public void onUpdate()
     {
-        if (reservationRequest == null) {
-            throw new RuntimeException("A reservation request is not set for the allocation.");
-        }
         if (state != State.DELETED) {
+            if (reservationRequest == null) {
+                throw new RuntimeException("A reservation request is not set for the allocation.");
+            }
             if (reservationRequest instanceof ReservationRequest) {
                 state = State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS;
             }
