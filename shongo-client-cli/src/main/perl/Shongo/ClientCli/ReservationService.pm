@@ -114,8 +114,8 @@ sub populate()
         },
         'list-reservations' => {
             desc => 'List existing reservations',
-            options => 'user=s technology=s',
-            args => '[-user=*|<user-id>]',
+            options => 'user=s technology=s resource=s',
+            args => '[-user=*|<user-id> -resource=<resource-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservations($params->{'options'});
@@ -390,6 +390,9 @@ sub list_reservations()
 {
     my ($options) = @_;
     my $request = {};
+    if ( defined($options->{'resource'}) ) {
+        $request->{'resourceIds'} = [$options->{'resource'}];
+    }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Reservation.listReservations', $request);
     if ( !defined($response) ) {
