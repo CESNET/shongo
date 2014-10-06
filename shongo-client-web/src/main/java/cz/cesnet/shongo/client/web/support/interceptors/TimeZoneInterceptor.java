@@ -70,7 +70,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
             else {
                 // Redirect to current request url without time-zone-offset parameter
                 String queryString = request.getQueryString();
-                queryString = queryString.replaceAll("time-zone-offset=[^&]*?($|[&;])", "");
+                queryString = queryString.replaceAll("time-zone=[^&]*?($|[&;])", "");
                 StringBuilder requestUriBuilder = new StringBuilder();
                 requestUriBuilder.append(request.getRequestURI());
                 if (!queryString.isEmpty()) {
