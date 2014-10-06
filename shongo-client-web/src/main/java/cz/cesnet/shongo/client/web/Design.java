@@ -370,7 +370,7 @@ public class Design
                         languageUrl = requestUrl + "?lang=:lang";
                     }
                 }
-                return languageUrl;
+                return baseUrl + languageUrl;
             }
 
             public String getLanguageEn()
