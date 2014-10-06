@@ -89,14 +89,16 @@
         <tag:expandableBlock name="actions" expandable="false" expandCode="views.select.action" cssClass="actions">
             <span><spring:message code="views.select.action"/></span>
             <ul>
-                <li>
+                <%-- Removed for CEITEC - temporary --%>
+                <%--li>
                     <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
                         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                     </tag:url>
                     <a href="${createRoomUrl}" tabindex="1">
                         <spring:message code="views.index.action.createRoom"/>
                     </a>
-                </li>
+                </li--%>
+                <%-- Removed for CEITEC - temporary --%>
                 <li>
                     <a href="${createMeetingRoomUrl}" tabindex="1">
                         <spring:message code="views.index.action.bookMeetingRoom"/>
@@ -107,23 +109,30 @@
     </security:authorize>
 
     <tabset>
-
-        <%-- Reservations tab --%>
+        <%-- Removed for CEITEC - temporary --%>
+        <%-- Reservations tab -->
         <spring:message code="views.index.reservations" var="roomsTitle"/>
         <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
             <%@ include file="dashboardReservation.jsp" %>
-        </tab>
+        </tab--%>
 
-        <%-- Participation tab --%>
+        <%-- Participation tab -->
         <spring:message code="views.index.participation" var="participationTitle"/>
         <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
             <%@ include file="dashboardParticipation.jsp" %>
-        </tab>
+        </tab--%>
+        <%-- END Removed for CEITEC - temporary --%>
 
         <%-- Meeting rooms tab --%>
-        <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
-        <tab id="meetingRooms" heading="${meetingRoomTitle}" ng-controller="TabController">
+        <spring:message code="views.index.myMeetingRooms" var="myMeetingRoomTitle"/>
+        <tab id="meetingRooms" heading="${myMeetingRoomTitle}" ng-controller="TabController">
             <%@ include file="dashboardMeetingRooms.jsp" %>
+        </tab>
+
+        <%-- Your meeting rooms reservation request tab --%>
+        <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
+        <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
+            <%@ include file="dashboardMeetingRoomReservations.jsp" %>
         </tab>
     </tabset>
 

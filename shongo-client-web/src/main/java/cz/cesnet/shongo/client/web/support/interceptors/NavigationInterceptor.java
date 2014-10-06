@@ -106,7 +106,8 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
         }
 
         // Request URL
-        String requestUri = request.getRequestURI();
+        String servletPath = request.getServletPath();
+        String requestUri = request.getServletPath();
         String queryString = request.getQueryString();
         StringBuilder requestUriBuilder = new StringBuilder();
         requestUriBuilder.append(requestUri);

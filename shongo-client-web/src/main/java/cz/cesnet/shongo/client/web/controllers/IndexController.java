@@ -1,10 +1,14 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.Design;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +22,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Index controller.
@@ -29,6 +36,9 @@ public class IndexController
 {
     @Resource
     private Design design;
+
+    @javax.annotation.Resource
+    protected ResourceService resourceService;
 
     /**
      * Handle main (index) view.
@@ -46,6 +56,30 @@ public class IndexController
         }
         ModelAndView modelAndView = new ModelAndView((authentication != null ? "indexAuthenticated" : "indexAnonymous"));
         modelAndView.addObject("mainContent", design.renderTemplateMain(request));
+
+        if (authentication != null) {
+            Map<String, String> resources = new LinkedHashMap<String, String>();
+
+            OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
+            for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(authenticationToken.getSecurityToken()))) {
+                String resourceId = resourceSummary.getId();
+                StringBuilder resourceTitle = new StringBuilder();
+                resourceTitle.append("<b>");
+                resourceTitle.append(resourceSummary.getName());
+                resourceTitle.append("</b>");
+                Set<Technology> resourceTechnologies = resourceSummary.getTechnologies();
+                if (!resourceTechnologies.isEmpty()) {
+                    resourceTitle.append(" (");
+                    for (Technology technology : resourceTechnologies) {
+                        resourceTitle.append(technology.getName());
+                    }
+                    resourceTitle.append(")");
+                }
+                resources.put(resourceId, resourceTitle.toString());
+            }
+            modelAndView.addObject("resources", resources);
+        }
+
         return modelAndView;
     }
 

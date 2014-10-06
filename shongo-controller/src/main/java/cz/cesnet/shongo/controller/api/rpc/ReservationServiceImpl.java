@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -17,8 +18,8 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -842,10 +843,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(objectId.getPersistenceId());
-
-            if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
-            }
+            //TODO: MR: CEITEC - uncomment ASAP
+            /*if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
+                if (!authorization.hasObjectPermission(securityToken, , ObjectPermission.READ)) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
+                }
+            }*/
 
             return reservationRequest.toApi(authorization.isOperator(securityToken));
         }
@@ -992,7 +995,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_summary");
 
-            //
+            // Show reservations
             Boolean hasReadForAll = false;
             if (request.getResourceIds().size() == 1) {
                 String resourceId = request.getResourceIds().iterator().next();

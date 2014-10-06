@@ -186,8 +186,10 @@ public class ClientWebUrl
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
 
-    public static final String MEETING_ROOM_LIST_DATA =
-            "/meeting-room/list/data";
+    public static final String MEETING_ROOM_RESERVATION_REQUEST_LIST_DATA =
+            "/meeting-room/reservation-request/list/data";
+    public static final String MEETING_ROOM_RESERVATION_LIST_DATA =
+            "/meeting-room/reservation/list/data";
 
     public static final String USER_SETTINGS =
             "/user/settings";
