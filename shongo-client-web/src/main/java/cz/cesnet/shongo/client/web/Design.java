@@ -395,7 +395,6 @@ public class Design
 
             public String getUserSettings()
             {
-                String url = baseUrl + applyBackUrl(ClientWebUrl.USER_SETTINGS);
                 return baseUrl + applyBackUrl(ClientWebUrl.USER_SETTINGS);
             }
 
