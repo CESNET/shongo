@@ -395,6 +395,7 @@ public class Design
 
             public String getUserSettings()
             {
+                String url = baseUrl + applyBackUrl(ClientWebUrl.USER_SETTINGS);
                 return baseUrl + applyBackUrl(ClientWebUrl.USER_SETTINGS);
             }
 
@@ -648,9 +649,9 @@ public class Design
         {
             List<LinkContext> links = new LinkedList<LinkContext>();
             if (isUserAuthenticated()) {
-                links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
+                links.add(new LinkContext("navigation.userSettings", getUrl().applyBackUrl(ClientWebUrl.USER_SETTINGS)));
             }
-            links.add(new LinkContext("navigation.help", getUrl().getHelp()));
+            links.add(new LinkContext("navigation.help", getUrl().applyBackUrl(ClientWebUrl.HELP)));
             if (isUserAuthenticated()) {
                 UserContext user = getUser();
 

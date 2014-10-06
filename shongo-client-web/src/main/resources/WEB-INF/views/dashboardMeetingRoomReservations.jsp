@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:authentication property="principal.userId" var="userId"/>
-<tag:url var="meetingRoomListUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_REQUEST_LIST_DATA %>">
+<tag:url var="meetingRoomReservationListUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
 <tag:url var="meetingRoomDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
@@ -24,8 +24,82 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
+<tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
+
+<script type="text/javascript">
+    // Controller for filtering
+    function DashboardReservationListController($scope, $cookieStore, $application, $timeout) {
+        var dateTime = moment();
+
+        $scope.resourceIdOptions = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data: [
+                <c:forEach items="${resources}" var="resource">
+                {id: "${resource.key}", text: "${resource.value}"},
+                </c:forEach>
+            ]
+        }
+
+        $scope.reservationsFilter = {
+            intervalFrom: dateTime.weekday(0).format("YYYY-MM-DD"),
+            intervalTo: dateTime.weekday(6).format("YYYY-MM-DD"),
+            resourceId: $scope.resourceIdOptions.data[0].id
+        };
+
+        $scope.$watchCollection('[reservationsFilter.intervalFrom, reservationsFilter.intervalTo, reservationsFilter.resourceId]', function(newValues, oldValues, scope) {
+            $scope.$$childHead.refresh();
+        });
+
+        // URL for listing rooms
+        $scope.getReservationListDataUrl = function() {
+            var url = "${meetingRoomReservationListUrl}";
+            if ($scope.reservationsFilter.intervalFrom != null && $scope.reservationsFilter.intervalFrom != "") {
+                url += "&interval-from=" + $scope.reservationsFilter.intervalFrom + "T00:00:00";
+            }
+            if ($scope.reservationsFilter.intervalTo != null && $scope.reservationsFilter.intervalTo != "") {
+                url += "&interval-to=" + $scope.reservationsFilter.intervalTo + "T23:59:59";
+            }
+            if ($scope.reservationsFilter.resourceId != null && $scope.reservationsFilter.resourceId.id != null) {
+                console.debug("url-param:",$scope.reservationsFilter.resourceId.id);
+                url += "&resource-id=" + encodeURIComponent($scope.reservationsFilter.resourceId.id);
+            } else  {
+                //TODO: MR opravit
+                console.trace();
+                return;
+            }
+            console.debug("url-",url);
+            return url;
+        };
+    }
+</script>
+
+<div ng-controller="DashboardReservationListController">
 <div ng-controller="PaginationController"
-     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms')">
+     ng-init="init('meetingRoomReservationList', getReservationListDataUrl, null, 'refresh-meetingRoomsReservations')">
+    <form class="form-inline">
+        <label for="meetingRoomResourceId"><spring:message code="views.resource"/>:</label>
+        <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
+
+        &nbsp;
+        <label for="start"><spring:message code="views.interval"/>:</label>
+        <div class="input-group" style="display: inline-table;">
+            <span class="input-group-addon">
+                <spring:message code="views.interval.from"/>:
+            </span>
+            <input id="start" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;" ng-model="reservationsFilter.intervalFrom"/>
+        </div>
+        <div class="input-group" style="display: inline-table">
+            <span class="input-group-addon">
+                <spring:message code="views.interval.to"/>:
+            </span>
+            <input id="end" class="form-control form-picker" type="text" date-picker="true" readonly="true" style="width: 100px;" ng-model="reservationsFilter.intervalTo"/>
+        </div>
+
+    </form>
+
+
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -46,9 +120,9 @@
             <th>
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
             </th>
-            <th width="200px">
+            <%--th width="200px">
                 <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
-            </th>
+            </th--%>
             <th>
                 <spring:message code="views.room.description"/>
             </th>
@@ -61,7 +135,6 @@
         <tbody>
         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
             <td>
-                <spring:message code="views.room.name.adhoc" var="roomNameAdhoc"/>
                 <tag:help label="{{room.resourceName}}" selectable="true">
                     <span>
                         <strong><spring:message code="views.room.roomDescription"/></strong>
@@ -74,28 +147,28 @@
                 <span>{{room.user}}</span>
             </td>
             <td>
-                <span ng-bind-html="room.earliestSlot"></span>
-                <span ng-show="room.futureSlotCount">
+                <span ng-bind-html="room.slot"></span>
+                <%--span ng-show="room.futureSlotCount">
                     <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{room.futureSlotCount}}"/>
                     <tag:help label="(${slotMore})" cssClass="push-top">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
-                </span>
+                </span--%>
             </td>
-            <td class="reservation-request-state">
+            <%--td class="reservation-request-state">
                 <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
                     <span>{{room.stateHelp}}</span>
                 </tag:help>
-            </td>
+            </td--%>
             <td>{{room.description}}</td>
             <td>
-                <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
+                <%--tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
                 <span ng-show="room.isWritable">
                     <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
                     | <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>
-                </span>
+                </span--%>
             </td>
         </tr>
         </tbody>
@@ -106,4 +179,5 @@
         </tbody>
     </table>
     <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+</div>
 </div>
