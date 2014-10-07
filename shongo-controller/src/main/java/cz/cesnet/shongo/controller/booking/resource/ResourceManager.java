@@ -410,8 +410,7 @@ public class ResourceManager extends AbstractManager
             javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), resourceId);
             javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(from.get("tag"), tagId);
             query.select(from);
-            query.where(param1);
-            query.where(param2);
+            query.where(param1,param2);
 
             TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
 

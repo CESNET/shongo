@@ -725,9 +725,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
             ResourceTag resourceTag = resourceManager.getResourceTag(persistenceResourceId,persistenceTagId);
 
-            resourceManager.deleteResourceTag(resourceTag);
-
             authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
+
+            resourceManager.deleteResourceTag(resourceTag);
 
             entityManager.getTransaction().commit();
         }
