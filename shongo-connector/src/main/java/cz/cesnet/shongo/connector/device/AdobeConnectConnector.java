@@ -207,17 +207,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         endMeetingAttributes.add("sco-id", roomId);
         endMeetingAttributes.add("state", state.toString());
 
-        // Not working on connect.cesnet.cz
-        /*if (message != null) {
-            // Replace all sequences of " " and "." by single space
-            message = message.replaceAll("[ \\.]+", " ");
+        //TODO:little buggy -check with every upgrade of AC
+        if (message != null) {
             try {
                 endMeetingAttributes.add("message",URLEncoder.encode(message,"UTF8"));
             }
             catch (UnsupportedEncodingException e) {
                 throw new CommandException("Error while message encoding.", e);
             }
-        }*/
+        }
 
         if (redirect == true && url != null) {
             endMeetingAttributes.add("redirect",redirect.toString());
@@ -241,7 +239,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        String message = "The room is currently unavailable for joining / Do mistnosti se aktualne neni mozne pripojit";
+        String message = "The+room+is+currently+unavailable+for+joining+/+Do+místnosti+se+aktuálně+není+možné+připojit";
 
         endMeeting(roomId, message, false, null);
     }

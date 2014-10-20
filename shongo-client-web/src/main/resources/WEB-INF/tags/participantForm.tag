@@ -151,7 +151,7 @@
     </div>
 
     <c:choose>
-        <c:when test="${hideRole}">
+        <c:when test="${hideRole}S'">
             <form:hidden path="role" value="PARTICIPANT"/>
         </c:when>
         <c:otherwise>
@@ -166,12 +166,20 @@
                         </c:forEach>
                     </tag:help>
                 </form:label>
-                <div class="col-xs-4">
+                <div class="col-xs-4" ng-hide="type == 'ANONYMOUS'">
                     <form:select cssClass="form-control" path="role" tabindex="${tabIndex}">
                         <c:forEach items="${roles}" var="role">
                             <form:option value="${role}"><spring:message
                                     code="views.participant.role.${role}"/></form:option>
                         </c:forEach>
+                    </form:select>
+                    <form:errors path="role" cssClass="error"/>
+                </div>
+                <div class="col-xs-4" ng-show="type == 'ANONYMOUS'">
+                    <form:select cssClass="form-control" path="role" tabindex="${tabIndex}">
+                        <spring:eval var="participant" expression="T(cz.cesnet.shongo.ParticipantRole).PARTICIPANT"/>
+                        <form:option value="${participant}"><spring:message
+                                code="views.participant.role.${participant}"/></form:option>
                     </form:select>
                     <form:errors path="role" cssClass="error"/>
                 </div>
