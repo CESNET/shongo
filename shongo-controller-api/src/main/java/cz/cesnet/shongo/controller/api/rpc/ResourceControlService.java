@@ -155,4 +155,10 @@ public interface ResourceControlService extends Service
      */
     @API
     public void deleteRecording(SecurityToken token, String deviceResourceId, String recordingId);
+
+    @API
+    public void makeRecordingPublic(SecurityToken token, String deviceResourceId, String recordingId);
+
+    @API
+    public void makeRecordingPrivate(SecurityToken token, String deviceResourceId, String recordingId);
 }

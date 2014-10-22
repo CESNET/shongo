@@ -353,7 +353,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
     @Override
     public Collection<Recording> listRecordings(String recordingFolderId)
-            throws CommandException, CommandUnsupportedException
+            throws CommandException
     {
         List<Recording> recordings = new ArrayList<Recording>();
         for (cz.cesnet.shongo.connector.storage.File file : metadataStorage.listFiles(recordingFolderId, null)) {
@@ -615,6 +615,18 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         catch (InterruptedException exception) {
             throw new CommandException("Check recordings interrupted", exception);
         }
+    }
+
+    @Override
+    public void makeRecordingPublic(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+
+    }
+
+    @Override
+    public void makeRecordingPrivate(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+
     }
 
     /**

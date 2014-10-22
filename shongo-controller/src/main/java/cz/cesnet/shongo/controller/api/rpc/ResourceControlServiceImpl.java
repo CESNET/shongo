@@ -6,9 +6,7 @@ import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
 import cz.cesnet.shongo.connector.api.jade.endpoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
-import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecording;
-import cz.cesnet.shongo.connector.api.jade.recording.GetRecording;
-import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
+import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -334,6 +332,70 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             }
             performDeviceCommand(deviceResourceId, agentName, new DeleteRecording(recordingId));
             recordingsCache.removeRecording(deviceResourceId, recordingFolderId, recordingId);
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void makeRecordingPublic(SecurityToken token, String deviceResourceId, String recordingId)
+    {
+        authorization.validate(token);
+        checkNotNull("deviceResourceId", deviceResourceId);
+        checkNotNull("recordingId", recordingId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        try {
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
+            DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            Recording recording = (Recording) performDeviceCommand(
+                    deviceResourceId, agentName, new GetRecording(recordingId));
+            String recordingFolderId = recording.getRecordingFolderId();
+            Executable executable =
+                    executableManager.getExecutableByRecordingFolder(deviceResource, recordingFolderId);
+            if (executable == null
+                    || !authorization.hasObjectPermission(token, executable, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "make recording public %s in device %s", recordingId, deviceResourceIdentifier);
+            }
+            performDeviceCommand(deviceResourceId, agentName, new MakeRecordingPublic(recordingId));
+            recordingsCache.removeExecutableRecordings(executable.getId());
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void makeRecordingPrivate(SecurityToken token, String deviceResourceId, String recordingId)
+    {
+        authorization.validate(token);
+        checkNotNull("deviceResourceId", deviceResourceId);
+        checkNotNull("recordingId", recordingId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        try {
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
+            DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            Recording recording = (Recording) performDeviceCommand(
+                    deviceResourceId, agentName, new GetRecording(recordingId));
+            String recordingFolderId = recording.getRecordingFolderId();
+            Executable executable =
+                    executableManager.getExecutableByRecordingFolder(deviceResource, recordingFolderId);
+            if (executable == null
+                    || !authorization.hasObjectPermission(token, executable, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "make recording private %s in device %s", recordingId, deviceResourceIdentifier);
+            }
+            performDeviceCommand(deviceResourceId, agentName, new MakeRecordingPrivate(recordingId));
+            recordingsCache.removeExecutableRecordings(executable.getId());
         }
         finally {
             entityManager.close();

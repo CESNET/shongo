@@ -56,6 +56,11 @@ public class Recording extends IdentifiedComplexType
     private Duration duration;
 
     /**
+     * Is recording public in AC server.
+     */
+    private Boolean isPublic;
+
+    /**
      * @see cz.cesnet.shongo.api.Recording.State
      */
     private State state;
@@ -204,6 +209,14 @@ public class Recording extends IdentifiedComplexType
         this.duration = duration;
     }
 
+    public Boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
     /**
      * @return {@link #state}
      */
@@ -228,6 +241,7 @@ public class Recording extends IdentifiedComplexType
     public static final String EDITABLE_URL = "editUrl";
     public static final String BEGIN_DATE = "beginDate";
     public static final String DURATION = "duration";
+    public static final String IS_PUBLIC = "isPublic";
     public static final String FILENAME = "filename";
     public static final String STATE = "state";
 
@@ -243,6 +257,7 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(EDITABLE_URL, editUrl);
         dataMap.set(BEGIN_DATE, beginDate);
         dataMap.set(DURATION, duration);
+        dataMap.set(IS_PUBLIC,isPublic);
         dataMap.set(FILENAME, fileName);
         dataMap.set(STATE, state);
         return dataMap;
@@ -260,6 +275,7 @@ public class Recording extends IdentifiedComplexType
         editUrl = dataMap.getString(EDITABLE_URL);
         beginDate = dataMap.getDateTime(BEGIN_DATE);
         duration = dataMap.getDuration(DURATION);
+        isPublic = dataMap.getBoolean(IS_PUBLIC);
         fileName = dataMap.getString(FILENAME);
         state = dataMap.getEnum(STATE, State.class);
     }

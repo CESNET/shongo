@@ -121,4 +121,18 @@ public interface RecordingService
      * @throws CommandException
      */
     public void checkRecordings() throws CommandException;
+
+    /**
+     * Make Recording public. Accessed by everyone.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingPublic(String recordingId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Make Recording private. Authorized like recorded room.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingPrivate(String recordingId) throws CommandException, CommandUnsupportedException;
 }

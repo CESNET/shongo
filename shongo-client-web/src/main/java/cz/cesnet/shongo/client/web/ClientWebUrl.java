@@ -163,6 +163,10 @@ public class ClientWebUrl
             "/detail/{objectId:.+}/recordings/data";
     public static final String DETAIL_RECORDING_DELETE =
             "/detail/{objectId:.+}/recording/{resourceId:.+}/{recordingId:.+}/delete";
+    public static final String DETAIL_RECORDING_MAKE_PUBLIC =
+            "/detail/{objectId:.+}/recording/{resourceId:.+}/{recordingId:.+}/public";
+    public static final String DETAIL_RECORDING_MAKE_PRIVATE =
+            "/detail/{objectId:.+}/recording/{resourceId:.+}/{recordingId:.+}/private";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";

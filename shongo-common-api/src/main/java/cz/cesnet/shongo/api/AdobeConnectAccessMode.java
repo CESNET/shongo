@@ -10,17 +10,22 @@ import java.awt.datatransfer.DataFlavor;
 public enum AdobeConnectAccessMode
 {
     /**
-     * Adobe Connect meeting access mode: anyone who has the URL for the meeting can enter the room
+     * Adobe Connect view permission: anyone who has the URL can access. Used for recordings.
+     */
+    VIEW("view"),
+
+    /**
+     * Adobe Connect meeting access mode: anyone who has the URL for the meeting can enter the room. Used for meetings.
      */
     PUBLIC("view-hidden"),
 
     /**
-     * Adobe Connect meeting access mode: only registered users and accepted guests can enter the room
+     * Adobe Connect meeting access mode: only registered users and accepted guests can enter the room.
      */
     PROTECTED("remove"),
 
     /**
-     * Adobe Connect meeting access mode: only registered users and participants can enter
+     * Adobe Connect meeting access mode: only registered users and participants can enter.
      */
     PRIVATE("denied");
 

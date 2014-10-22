@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.connector.device;
 
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Recording;
-import cz.cesnet.shongo.api.RecordingFolder;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
@@ -33,6 +30,11 @@ import java.util.regex.Pattern;
 public class AdobeConnectRecordingManager
 {
     private static Logger logger = LoggerFactory.getLogger(AdobeConnectRecordingManager.class);
+
+    /**
+     * Recordings are recognized by icon type
+     */
+    private final String RECORDING_ICON = "archive";
 
     /**
      * Pattern for recording names (with _[])
@@ -312,14 +314,20 @@ public class AdobeConnectRecordingManager
 
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", recordingFolderId);
-        attributes.add("filter-icon", "archive");
+        attributes.add("filter-icon", RECORDING_ICON);
         attributes.add("filter-out-date-end", "null");
 
         Element response = connector.execApi("sco-contents", attributes);
         for (Element resultRecording : response.getChild("scos").getChildren()) {
-            recordingList.add(parseRecording(resultRecording));
+            Recording recording = parseRecording(resultRecording);
+            recording.setPublic(isRecordingPublic(recording.getId()));
+            recordingList.add(recording);
         }
         return Collections.unmodifiableList(recordingList);
+    }
+
+    private boolean isRecordingPublic(String recordingId) throws CommandException {
+        return connector.isSCOPublic(recordingId);
     }
 
     /**
@@ -340,7 +348,7 @@ public class AdobeConnectRecordingManager
         String scoId = connector.getScoByUrl(path);
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", scoId);
-        attributes.add("filter-icon", "archive");
+        attributes.add("filter-icon", RECORDING_ICON);
         attributes.add("filter-date-end", "null");
         Element response = connector.execApi("sco-contents", attributes);
         Element resultRecording = response.getChild("scos").getChild("sco");
@@ -473,6 +481,25 @@ public class AdobeConnectRecordingManager
         setRecordingPermissionsAsMeetings(roomId, connector.getSCOPermissions(roomId));
     }
 
+    public void makeRecordingPublic(String recordingId) throws CommandException
+    {
+        checkIfRecording(recordingId);
+        connector.setScoPermissions(recordingId, AdobeConnectAccessMode.VIEW);
+    }
+
+    public void makeRecordingPrivate(String recordingId) throws CommandException
+    {
+        checkIfRecording(recordingId);
+        connector.setScoPermissions(recordingId, AdobeConnectAccessMode.PROTECTED);
+    }
+
+    public void checkIfRecording(String scoId) throws CommandException
+    {
+        Element scoElement = connector.getScoInfo(scoId);
+        if (!RECORDING_ICON.equals(scoElement.getAttributeValue("icon"))) {
+            throw new IllegalArgumentException();
+        }
+    }
     /**
      * Set parent (meetings) permissions for the recordings.
      *
@@ -495,7 +522,7 @@ public class AdobeConnectRecordingManager
                 if ("host".equals(principal.getAttributeValue("permission-id"))) {
                     userAttributes.add("permission-id", "manage");
                 }
-                else { //TODO: zatim se ale nepropaguji
+                else {
                     userAttributes.add("permisson-id", "publish");
                 }
             }
@@ -521,7 +548,7 @@ public class AdobeConnectRecordingManager
         // Recordings
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", roomId);
-        attributes.add("filter-icon", "archive");
+        attributes.add("filter-icon", RECORDING_ICON);
         List<Element> recordings = connector.execApi("sco-contents", attributes).getChild("scos").getChildren();
 
         if (recordings.size() > 0) {
@@ -723,7 +750,7 @@ public class AdobeConnectRecordingManager
         AdobeConnectConnector.RequestAttributeList recordingsAttributes =
                 new AdobeConnectConnector.RequestAttributeList();
         // choose only recordings
-        recordingsAttributes.add("filter-icon", "archive");
+        recordingsAttributes.add("filter-icon", RECORDING_ICON);
         // filter out all recordings in progress
         recordingsAttributes.add("filter-out-date-end", "null");
 

@@ -26,7 +26,16 @@
             }
 
         };
+
+        $scope.changeRecordingPermissions = function(url) {
+            $.post(url, function(){
+                $timeout(function(){
+                    $scope.$parent.refresh();
+                }, 0);
+            });
+        };
     }
+
 </script>
 
 <%-- Runtime management - Recordings --%>
@@ -103,6 +112,20 @@
                         <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="fa fa-pencil"></i></a>
                     </span>
                     <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
+                        <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_MAKE_PUBLIC %>" var="recordingMakePublicUrl">
+                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                            <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                            <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                        </tag:url>
+                        <spring:message var="recordingMakePublicTitle" code="views.list.action.makePublic.title"/>
+                        <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_MAKE_PRIVATE %>" var="recordingMakePrivateUrl">
+                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                            <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                            <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                        </tag:url>
+                        <spring:message var="recordingMakePrivateTitle" code="views.list.action.makePrivate.title"/>
+                        <a href="" ng-click="changeRecordingPermissions('${recordingMakePublicUrl}')" title="${recordingMakePublicTitle}" ng-hide="roomRecording.isPublic"><i class="fa fa-lock"></i></a>
+                        <a href="" ng-click="changeRecordingPermissions('${recordingMakePrivateUrl}')" title="${recordingMakePrivateTitle}" ng-show="roomRecording.isPublic"><i class="fa fa-unlock"></i></a>
                         <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
                             <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
                             <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>

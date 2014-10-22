@@ -301,7 +301,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Set room access mode (public, protected, private). Mode in AC v8.*, v9.0, v9.1 are "view-hidden" (public), "remove" (protected), "denied" (private)
+     * Set room access mode (public, protected, private).
      * Default access mode (when param mode is null) is AdobeConnectAccessMode.PROTECTED
      *
      * @param roomId
@@ -309,16 +309,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void setRoomAccessMode(String roomId, AdobeConnectAccessMode mode) throws CommandException
     {
-        RequestAttributeList accessModeAttributes = new RequestAttributeList();
-        accessModeAttributes.add("acl-id",roomId);
-        accessModeAttributes.add("principal-id","public-access");
-        if (mode == null) {
-            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionId());
-        } else {
-            accessModeAttributes.add("permission-id",mode.getPermissionId());
-        }
-
-        execApi("permissions-update", accessModeAttributes);
+        setScoPermissions(roomId,mode);
     }
 
     /**
@@ -347,6 +338,27 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public void makeRoomPrivate(String roomId) throws CommandException
     {
         setRoomAccessMode(roomId,AdobeConnectAccessMode.PRIVATE);
+    }
+
+    /**
+     * Set permissions for SCO (public, protected, private). Mode in AC v8+ are "view-hidden" (public), "remove" (protected/none), "denied" (private)
+     * Default access mode (when param permissionId is null) is remove.
+     *
+     * @param scoId
+     * @param permissionId
+     */
+    protected void setScoPermissions(String scoId, AdobeConnectAccessMode permissionId) throws CommandException
+    {
+        RequestAttributeList accessModeAttributes = new RequestAttributeList();
+        accessModeAttributes.add("acl-id",scoId);
+        accessModeAttributes.add("principal-id","public-access");
+        if (permissionId == null) {
+            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionId());
+        } else {
+            accessModeAttributes.add("permission-id",permissionId.getPermissionId());
+        }
+
+        execApi("permissions-update", accessModeAttributes);
     }
 
     @Override
@@ -434,6 +446,16 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public void checkRecordings() throws CommandException
     {
         recordingManager.checkRecordings();
+    }
+
+    @Override
+    public void makeRecordingPublic(String recordingId) throws CommandException {
+        recordingManager.makeRecordingPublic(recordingId);
+    }
+
+    @Override
+    public void makeRecordingPrivate(String recordingId) throws CommandException {
+        recordingManager.makeRecordingPrivate(recordingId);
     }
 
     @Override
@@ -648,14 +670,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     /**
      * Return permissions of the SCO.
      *
-     * @param ScoId identifier of the room
+     * @param scoId identifier of the room
      * @return XML Element from API call "permissions-info"
      * @throws CommandException
      */
-    protected Element getSCOPermissions(String ScoId) throws CommandException
+    protected Element getSCOPermissions(String scoId) throws CommandException
     {
         RequestAttributeList permissionsAttributes = new RequestAttributeList();
-        permissionsAttributes.add("acl-id", ScoId);
+        permissionsAttributes.add("acl-id", scoId);
         permissionsAttributes.add("filter-out-permission-id", "null");
 
         return execApi("permissions-info", permissionsAttributes);
@@ -1528,6 +1550,22 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         catch (ExceptionInInitializerError exception) {
             logger.error("Cannot initialize adobe connect", exception);
         }
+    }
+
+    /**
+     * Returns if permission view or view-hidden is set for public-access.
+     *
+     * @param scoId
+     * @return if SCO is public
+     */
+    public boolean isSCOPublic(String scoId) throws CommandException
+    {
+        RequestAttributeList permissionsAttributes = new RequestAttributeList();
+        permissionsAttributes.add("acl-id", scoId);
+        permissionsAttributes.add("filter-principal-id", "public-access");
+
+        String permissionId = execApi("permissions-info", permissionsAttributes).getChild("permissions").getChild("principal").getAttributeValue("permission-id");
+        return AdobeConnectAccessMode.PUBLIC.getPermissionId().equals(permissionId) || AdobeConnectAccessMode.VIEW.getPermissionId().equals(permissionId);
     }
 
     public static class RequestFailedCommandException extends CommandException

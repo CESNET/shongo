@@ -493,7 +493,7 @@ public abstract class Authorization
     public boolean hasObjectPermission(SecurityToken securityToken,
             AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
     {
-        if (isAdministrator(securityToken)) {
+            if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
             return true;
         }

@@ -84,6 +84,7 @@ public class DetailRecordingsController extends AbstractDetailController
             else {
                 item.put("duration", dateTimeFormatter.formatRoundedDuration(duration.toPeriod()));
             }
+            item.put("isPublic",recording.isPublic());
             item.put("downloadUrl", recording.getDownloadUrl());
             item.put("viewUrl", recording.getViewUrl());
             item.put("editUrl", recording.getEditUrl());
@@ -119,6 +120,30 @@ public class DetailRecordingsController extends AbstractDetailController
             @PathVariable(value = "recordingId") String recordingId)
     {
         handleRecordingDelete(securityToken, objectId, resourceId, recordingId);
+        return null;
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_MAKE_PUBLIC, method = RequestMethod.POST)
+    @ResponseBody
+    public Map handleMakeRecordingPublicPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "resourceId") String resourceId,
+            @PathVariable(value = "recordingId") String recordingId)
+    {
+        resourceControlService.makeRecordingPublic(securityToken, resourceId, recordingId);
+        return null;
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_MAKE_PRIVATE, method = RequestMethod.POST)
+    @ResponseBody
+    public Map handleMakeRecordingPrivatePost(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "resourceId") String resourceId,
+            @PathVariable(value = "recordingId") String recordingId)
+    {
+        resourceControlService.makeRecordingPrivate(securityToken, resourceId, recordingId);
         return null;
     }
 

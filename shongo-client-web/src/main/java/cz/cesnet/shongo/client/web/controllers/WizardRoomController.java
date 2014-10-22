@@ -228,9 +228,6 @@ public class WizardRoomController extends WizardParticipantsController
     public ModelAndView handleRoomAttributes(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        if (reservationRequest.getSpecificationType() == null) {
-            throw new IllegalStateException("Room type is not specified.");
-        }
         return getCreateRoomAttributesView(reservationRequest);
     }
 
@@ -667,6 +664,9 @@ public class WizardRoomController extends WizardParticipantsController
      */
     private WizardView getCreateRoomAttributesView(ReservationRequestModel reservationRequest)
     {
+        if (reservationRequest.getSpecificationType() == null) {
+            throw new IllegalStateException("Room type is not specified.");
+        }
         WizardView wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
