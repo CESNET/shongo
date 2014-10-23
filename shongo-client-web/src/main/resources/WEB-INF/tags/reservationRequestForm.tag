@@ -622,18 +622,20 @@
                 </tag:help>
             </form:label>
             <div class="col-xs-4">
-                <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectAccessMode).values()"/>
+                <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectPermissions).values()"/>
                 <c:forEach var="accessMode" items="${enumAdobeConnectAccessMode}">
-                    <label class="radio-inline" for="${accessMode}">
-                        <c:choose>
-                            <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
-                                <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
-                            </c:when>
-                            <c:otherwise>
-                                <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
-                            </c:otherwise>
-                        </c:choose>
-                        <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                    <c:choose>
+                        <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
+                            <label class="radio-inline" for="${accessMode}">
+                            <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
+                            <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                        </c:when>
+                        <c:when test="${accessMode.isUsableByMeetings() == 'true'}">
+                            <label class="radio-inline" for="${accessMode}">
+                            <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
+                            <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                        </c:when>
+                    </c:choose>
                     </label>
                 </c:forEach>
                 <form:errors path="roomAccessMode" cssClass="error"/>

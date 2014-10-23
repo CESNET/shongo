@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.booking.room.settting;
 
 import cz.cesnet.shongo.api.AbstractComplexType;
-import cz.cesnet.shongo.api.AdobeConnectAccessMode;
+import cz.cesnet.shongo.api.AdobeConnectPermissions;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +23,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     /**
      * Room access mode
      */
-    private AdobeConnectAccessMode accessMode;
+    private AdobeConnectPermissions accessMode;
 
     /**
      * @return {@link #pin}
@@ -42,13 +42,16 @@ public class AdobeConnectRoomSetting extends RoomSetting
         this.pin = pin;
     }
 
-    public AdobeConnectAccessMode getAccessMode()
+    public AdobeConnectPermissions getAccessMode()
     {
         return accessMode;
     }
 
-    public void setAccessMode(AdobeConnectAccessMode accessMode)
+    public void setAccessMode(AdobeConnectPermissions accessMode)
     {
+        if (accessMode != null) {
+            accessMode.checkIfUsableByMeetings();
+        }
         this.accessMode = accessMode;
     }
 

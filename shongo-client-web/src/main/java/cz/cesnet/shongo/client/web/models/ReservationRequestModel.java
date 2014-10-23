@@ -91,7 +91,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String roomRecordingResourceId;
 
-    protected AdobeConnectAccessMode roomAccessMode;
+    protected AdobeConnectPermissions roomAccessMode;
 
     protected List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
@@ -466,13 +466,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomRecordingResourceId = roomRecordingResourceId;
     }
 
-    public AdobeConnectAccessMode getRoomAccessMode()
+    public AdobeConnectPermissions getRoomAccessMode()
     {
         return roomAccessMode;
     }
 
-    public void setRoomAccessMode(AdobeConnectAccessMode roomAccessMode)
+    public void setRoomAccessMode(AdobeConnectPermissions roomAccessMode)
     {
+        if (roomAccessMode != null) {
+            roomAccessMode.checkIfUsableByMeetings();
+        }
         this.roomAccessMode = roomAccessMode;
     }
 

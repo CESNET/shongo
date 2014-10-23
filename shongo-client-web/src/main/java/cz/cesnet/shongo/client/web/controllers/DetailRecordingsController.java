@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.api.jade.RecordingObjectType;
+import cz.cesnet.shongo.api.jade.RecordingPermissionType;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
@@ -9,7 +11,6 @@ import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -38,9 +39,23 @@ public class DetailRecordingsController extends AbstractDetailController
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS_TAB, method = RequestMethod.GET)
     public ModelAndView handleRecordingsTab(
+            SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId)
     {
         ModelAndView modelAndView = new ModelAndView("detailRecordings");
+        Executable executable = getExecutable(securityToken,objectId);
+        if (executable instanceof RoomExecutable) {
+            RoomExecutable roomExecutable = (RoomExecutable) executable;
+            String recordingFolderId = roomExecutable.getRecordingFolderId();
+            modelAndView.addObject("recordingFolderId",recordingFolderId);
+            modelAndView.addObject("resourceId",roomExecutable.getResourceId());
+            String resourceId = roomExecutable.getResourceId();
+            boolean isRecordingFolderPublic = false;
+            if (recordingFolderId != null) {
+                isRecordingFolderPublic = resourceControlService.isRecordingFolderPublic(securityToken, resourceId, recordingFolderId);
+            }
+            modelAndView.addObject("isRecordingFolderPublic",isRecordingFolderPublic);
+        }
         return modelAndView;
     }
 
@@ -97,6 +112,7 @@ public class DetailRecordingsController extends AbstractDetailController
         data.put("sort", sort);
         data.put("sort-desc", sortDescending);
         data.put("items", items);
+
         return data;
     }
 
@@ -123,27 +139,33 @@ public class DetailRecordingsController extends AbstractDetailController
         return null;
     }
 
-    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_MAKE_PUBLIC, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS, method = RequestMethod.POST)
     @ResponseBody
-    public Map handleMakeRecordingPublicPost(
+    public Boolean handleModifyRecordingsPermissions(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "resourceId") String resourceId,
-            @PathVariable(value = "recordingId") String recordingId)
+            @PathVariable(value = "recordingFolderId") String recordingFolderId,
+            @PathVariable(value = "recordingId") String recordingId,
+            @PathVariable(value = "recordingObjectType") RecordingObjectType recordingObjectType,
+            @PathVariable(value = "recordingObjectPermissions") RecordingPermissionType recordingObjectPermissions)
     {
-        resourceControlService.makeRecordingPublic(securityToken, resourceId, recordingId);
-        return null;
+        resourceControlService.modifyRecordingsPermissions(securityToken, resourceId, recordingFolderId, recordingId, recordingObjectType, recordingObjectPermissions);
+        return handleIsRecordingsFolderPublic(securityToken,objectId);
     }
 
-    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_MAKE_PRIVATE, method = RequestMethod.POST)
-    @ResponseBody
-    public Map handleMakeRecordingPrivatePost(
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_FOLDER_STATE, method = RequestMethod.GET)
+    public Boolean handleIsRecordingsFolderPublic(
             SecurityToken securityToken,
-            @PathVariable(value = "objectId") String objectId,
-            @PathVariable(value = "resourceId") String resourceId,
-            @PathVariable(value = "recordingId") String recordingId)
+            @PathVariable(value = "objectId") String objectId)
     {
-        resourceControlService.makeRecordingPrivate(securityToken, resourceId, recordingId);
+        Executable executable = getExecutable(securityToken,objectId);
+        if (executable instanceof RoomExecutable) {
+            RoomExecutable roomExecutable = (RoomExecutable) executable;
+            String recordingFolderId = roomExecutable.getRecordingFolderId();
+            String resourceId = roomExecutable.getResourceId();
+            return resourceControlService.isRecordingFolderPublic(securityToken,resourceId,recordingFolderId);
+        }
         return null;
     }
 

@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.AdobeConnectAccessMode;
+import cz.cesnet.shongo.api.AdobeConnectPermissions;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
@@ -484,7 +484,7 @@ public class ExecutableTest extends AbstractExecutorTest
         RoomSpecification permanentRoomSpecification = new RoomSpecification(Technology.ADOBE_CONNECT);
         AdobeConnectRoomSetting permanentRoomSetting = new AdobeConnectRoomSetting();
         permanentRoomSetting.setPin("1234");
-        permanentRoomSetting.setAccessMode(AdobeConnectAccessMode.PRIVATE);
+        permanentRoomSetting.setAccessMode(AdobeConnectPermissions.PRIVATE);
         permanentRoomSpecification.addRoomSetting(permanentRoomSetting);
         permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
@@ -500,7 +500,7 @@ public class ExecutableTest extends AbstractExecutorTest
         RoomSpecification capacitySpecification = new RoomSpecification(10);
         AdobeConnectRoomSetting capacitySetting = new AdobeConnectRoomSetting();
         capacitySetting.setPin("abcd");
-        capacitySetting.setAccessMode(AdobeConnectAccessMode.PUBLIC);
+        capacitySetting.setAccessMode(AdobeConnectPermissions.PUBLIC);
         capacitySpecification.addRoomSetting(capacitySetting);
         capacityReservationRequest.setSpecification(capacitySpecification);
         String capacityRequestId = allocate(capacityReservationRequest);
@@ -514,7 +514,7 @@ public class ExecutableTest extends AbstractExecutorTest
         Room permanentRoom = getRoom(permanentRoomExecutableId);
         AdobeConnectRoomSetting roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
         Assert.assertEquals("1234", roomSetting.getPin());
-        Assert.assertEquals(AdobeConnectAccessMode.PRIVATE, roomSetting.getAccessMode());
+        Assert.assertEquals(AdobeConnectPermissions.PRIVATE, roomSetting.getAccessMode());
 
         // Start capacity
         connectAgent.setDisabled(true);
@@ -528,7 +528,7 @@ public class ExecutableTest extends AbstractExecutorTest
         permanentRoom = getRoom(permanentRoomExecutableId);
         roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
         Assert.assertEquals("abcd", roomSetting.getPin());
-        Assert.assertEquals(AdobeConnectAccessMode.PUBLIC, roomSetting.getAccessMode());
+        Assert.assertEquals(AdobeConnectPermissions.PUBLIC, roomSetting.getAccessMode());
 
         // Stop capacity
         result = runExecutor(dateTime.plus(capacityDuration));
@@ -538,7 +538,7 @@ public class ExecutableTest extends AbstractExecutorTest
         permanentRoom = getRoom(permanentRoomExecutableId);
         roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
         Assert.assertEquals("1234", roomSetting.getPin());
-        Assert.assertEquals(AdobeConnectAccessMode.PRIVATE, roomSetting.getAccessMode());
+        Assert.assertEquals(AdobeConnectPermissions.PRIVATE, roomSetting.getAccessMode());
 
         // Stop permanent room
         result = runExecutor(dateTime.plusDays(1));

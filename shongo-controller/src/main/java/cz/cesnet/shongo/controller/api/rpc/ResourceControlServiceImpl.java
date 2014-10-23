@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.jade.RecordingObjectType;
+import cz.cesnet.shongo.api.jade.RecordingPermissionType;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
@@ -339,11 +341,23 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void makeRecordingPublic(SecurityToken token, String deviceResourceId, String recordingId)
-    {
+    public void modifyRecordingsPermissions(SecurityToken token, String deviceResourceId, String recordingFolderId,
+                                            String recordingId, RecordingObjectType recordingObjectType, RecordingPermissionType permissions) {
         authorization.validate(token);
         checkNotNull("deviceResourceId", deviceResourceId);
-        checkNotNull("recordingId", recordingId);
+        checkNotNull("recordingFolderId", recordingFolderId);
+        checkNotNull("recordingObjectType", recordingObjectType);
+        checkNotNull("recordingsPermission",permissions);
+        String recordingObjectId = null;
+        switch (recordingObjectType) {
+            case RECORDING:
+                checkNotNull("recordingId",recordingId);
+                recordingObjectId = recordingId;
+                break;
+            case FOLDER:
+                recordingObjectId = recordingFolderId;
+                break;
+        }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -352,17 +366,15 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
-            Recording recording = (Recording) performDeviceCommand(
-                    deviceResourceId, agentName, new GetRecording(recordingId));
-            String recordingFolderId = recording.getRecordingFolderId();
             Executable executable =
                     executableManager.getExecutableByRecordingFolder(deviceResource, recordingFolderId);
             if (executable == null
                     || !authorization.hasObjectPermission(token, executable, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
-                        "make recording public %s in device %s", recordingId, deviceResourceIdentifier);
+                        "make recording folder private %s in device %s", recordingFolderId, deviceResourceIdentifier);
             }
-            performDeviceCommand(deviceResourceId, agentName, new MakeRecordingPublic(recordingId));
+
+            performDeviceCommand(deviceResourceId, agentName, new ModifyRecordingsPermissions(recordingObjectId, recordingObjectType, permissions));
             recordingsCache.removeExecutableRecordings(executable.getId());
         }
         finally {
@@ -371,11 +383,10 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void makeRecordingPrivate(SecurityToken token, String deviceResourceId, String recordingId)
-    {
+    public boolean isRecordingFolderPublic(SecurityToken token, String deviceResourceId, String recordingFolderId) {
         authorization.validate(token);
         checkNotNull("deviceResourceId", deviceResourceId);
-        checkNotNull("recordingId", recordingId);
+        checkNotNull("recordingFolderId", recordingFolderId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -384,18 +395,17 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
-            Recording recording = (Recording) performDeviceCommand(
-                    deviceResourceId, agentName, new GetRecording(recordingId));
-            String recordingFolderId = recording.getRecordingFolderId();
             Executable executable =
                     executableManager.getExecutableByRecordingFolder(deviceResource, recordingFolderId);
             if (executable == null
-                    || !authorization.hasObjectPermission(token, executable, ObjectPermission.WRITE)) {
+                    || !authorization.hasObjectPermission(token, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
-                        "make recording private %s in device %s", recordingId, deviceResourceIdentifier);
+                        "check if recording folder is public %s in device %s", recordingFolderId, deviceResourceIdentifier);
             }
-            performDeviceCommand(deviceResourceId, agentName, new MakeRecordingPrivate(recordingId));
+            Boolean isRecordingFolderPublic = (Boolean) performDeviceCommand(deviceResourceId, agentName, new IsRecordingFolderPublic(recordingFolderId));
             recordingsCache.removeExecutableRecordings(executable.getId());
+
+            return isRecordingFolderPublic;
         }
         finally {
             entityManager.close();

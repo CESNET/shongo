@@ -1,4 +1,6 @@
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ page import="cz.cesnet.shongo.controller.ObjectType" %>
+<%@ page import="cz.cesnet.shongo.api.AdobeConnectPermissions" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -13,6 +15,24 @@
 
 
 <script type="text/javascript">
+    function RecordingFolderController($scope, $timeout) {
+        $scope.changePermissions = function(url) {
+            if ($scope.recordingFolderId == '') {
+                return;
+            };
+            $.post(url, function(data){
+                $timeout(function(){
+                    $scope.isRecordingFolderPublic = data;
+                    $scope.$$childHead.refresh();
+                }, 0);
+            });
+        };
+
+        $scope.resourceId = "${resourceId}";
+        $scope.recordingFolderId = "${recordingFolderId}";
+        $scope.isRecordingFolderPublic ="${isRecordingFolderPublic}";
+    }
+
     function RoomRecordingActionController($scope, $timeout) {
         $scope.deleteRecording = function(filename, url) {
             var question = "<spring:message code="views.room.recording.deleteQuestion" arguments=":filename"/>";
@@ -26,124 +46,159 @@
             }
 
         };
-
-        $scope.changeRecordingPermissions = function(url) {
-            $.post(url, function(){
-                $timeout(function(){
-                    $scope.$parent.refresh();
-                }, 0);
-            });
-        };
     }
-
 </script>
 
-<%-- Runtime management - Recordings --%>
-<div ng-controller="PaginationController"
-     ng-init="init('recordings', '${roomRecordingsUrl}', {id: reservationRequest.recordingsObjectId})">
-    <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
-    <spring:message code="views.button.refresh" var="paginationRefresh"/>
-    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
-        <spring:message code="views.pagination.records"/>
-    </pagination-page-size>
-    <h2><spring:message code="views.room.recordings"/></h2>
-    <div class="spinner" ng-hide="ready || errorContent"></div>
-    <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
-    <table class="table table-striped table-hover" ng-show="ready">
-        <thead>
-        <tr>
-            <%--
-            <th><pagination-sort column="ID">ID</pagination-sort></th>
-            <th><pagination-sort column="NAME">
-                <spring:message code="views.room.recording.name"/></pagination-sort></th>--%>
-            <th><pagination-sort column="START">
-                <spring:message code="views.room.recording.date"/></pagination-sort></th>
-            <th><pagination-sort column="DURATION">
-                <spring:message code="views.room.recording.duration"/></pagination-sort></th>
-            <th>
-                <spring:message code="views.room.recording.url"/>
-            </th>
-            <th>
-                <spring:message code="views.list.action"/>
-                <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="roomRecording in items">
-            <%--
-            <td>
-                {{roomRecording.id}}
-            </td>
-            <td>
-                <span ng-show="roomRecording.description">
-                    <tag:help label="{{roomRecording.name}}">
-                        <strong><spring:message code="views.room.recording.description"/>:</strong>
-                        {{roomRecording.description}}
-                    </tag:help>
-                </span>
-                <span ng-hide="roomRecording.description">
-                    {{roomRecording.name}}
-                </span>
-            </td>--%>
-            <td>
-                {{roomRecording.beginDate}}
-            </td>
-            <td>
-                {{roomRecording.duration}}
-            </td>
-            <td>
-                <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
-                <span ng-show="roomRecording.viewUrl && roomRecording.downloadUrl == null"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
-                <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
-            </td>
-            <td ng-controller="RoomRecordingActionController">
-                <span ng-show="roomRecording.downloadUrl">
-                    <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
-                    <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="fa fa-download"></i></a>
-                </span>
-                <span ng-show="roomRecording.viewUrl">
-                    <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
-                    <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="fa fa-eye"></i></a>
-                </span>
-                <c:if test="${hasWritePermission}">
-                    <span ng-show="roomRecording.editUrl">
-                        <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
-                        <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="fa fa-pencil"></i></a>
+<div ng-controller="RecordingFolderController">
+    <%-- Runtime management - Recordings --%>
+    <div ng-controller="PaginationController"
+         ng-init="init('recordings', '${roomRecordingsUrl}', {id: reservationRequest.recordingsObjectId})">
+        <spring:eval var="permissionPublic" expression="T(cz.cesnet.shongo.api.jade.RecordingPermissionType).PUBLIC"/>
+        <spring:eval var="permissionPrivate" expression="T(cz.cesnet.shongo.api.jade.RecordingPermissionType).PRIVATE"/>
+        <spring:eval var="typeRecording" expression="T(cz.cesnet.shongo.api.jade.RecordingObjectType).RECORDING"/>
+        <spring:eval var="typeRecordingFolder" expression="T(cz.cesnet.shongo.api.jade.RecordingObjectType).FOLDER"/>
+
+        <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+        <spring:message code="views.button.refresh" var="paginationRefresh"/>
+        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+            <spring:message code="views.pagination.records"/>
+        </pagination-page-size>
+        <div class="pull-right" ng-show="reservationRequest.technology == 'ADOBE_CONNECT'">
+            <tag:url value="<%= ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS %>" var="recordingFolderMakePublicUrl">
+                <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                <tag:param name="resourceId" value="' + resourceId + '" escape="false"/>
+                <tag:param name="recordingObjectType" value="${typeRecordingFolder}" escape="false"/>
+                <tag:param name="recordingFolderId" value="' + recordingFolderId + '" escape="false"/>
+                <tag:param name="recordingObjectPermissions" value="${permissionPublic}" escape="false"/>
+            </tag:url>
+            <tag:url value="<%= ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS %>" var="recordingMakeFolderPrivateUrl">
+                <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                <tag:param name="resourceId" value="' + resourceId + '" escape="false"/>
+                <tag:param name="recordingObjectType" value="${typeRecordingFolder}" escape="false"/>
+                <tag:param name="recordingFolderId" value="' + recordingFolderId + '" escape="false"/>
+                <tag:param name="recordingObjectPermissions" value="${permissionPrivate}" escape="false"/>
+            </tag:url>
+            <spring:message var="recordingMakeFolderPublicTitle" code="views.list.action.makeFolderPublic.title"/>
+            <spring:message var="recordingMakeFolderPrivateTitle" code="views.list.action.makeFolderPrivate.title"/>
+            <span ng-show="{{recordingFolderId}}">
+                <a class="btn btn-default" href="" ng-click="changePermissions('${recordingFolderMakePublicUrl}')" title="${recordingMakeFolderPublicTitle}" ng-hide="isRecordingFolderPublic"><i class="fa fa-lock"></i></a>
+                <a class="btn btn-default" href="" ng-click="changePermissions('${recordingMakeFolderPrivateUrl}')" title="${recordingMakeFolderPrivateTitle}" ng-show="isRecordingFolderPublic"><i class="fa fa-unlock"></i></a>
+            </span>
+            <i class="fa fa-lock btn btn-default disabled" ng-hide="{{recordingFolderId}}"></i>
+        </div>
+        <h2><spring:message code="views.room.recordings"/></h2>
+        <div class="spinner" ng-hide="ready || errorContent"></div>
+        <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
+
+        <table class="table table-striped table-hover" ng-show="ready">
+            <thead>
+            <tr>
+                <%--
+                <th><pagination-sort column="ID">ID</pagination-sort></th>
+                <th><pagination-sort column="NAME">
+                    <spring:message code="views.room.recording.name"/></pagination-sort></th>--%>
+                <th><pagination-sort column="START">
+                    <spring:message code="views.room.recording.date"/></pagination-sort></th>
+                <th><pagination-sort column="DURATION">
+                    <spring:message code="views.room.recording.duration"/></pagination-sort></th>
+                <th>
+                    <spring:message code="views.room.recording.url"/>
+                </th>
+                <th>
+                    <spring:message code="views.list.action"/>
+                    <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="roomRecording in items">
+                <%--
+                <td>
+                    {{roomRecording.id}}
+                </td>
+                <td>
+                    <span ng-show="roomRecording.description">
+                        <tag:help label="{{roomRecording.name}}">
+                            <strong><spring:message code="views.room.recording.description"/>:</strong>
+                            {{roomRecording.description}}
+                        </tag:help>
                     </span>
-                    <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
-                        <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_MAKE_PUBLIC %>" var="recordingMakePublicUrl">
-                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
-                            <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
-                            <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
-                        </tag:url>
-                        <spring:message var="recordingMakePublicTitle" code="views.list.action.makePublic.title"/>
-                        <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_MAKE_PRIVATE %>" var="recordingMakePrivateUrl">
-                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
-                            <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
-                            <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
-                        </tag:url>
-                        <spring:message var="recordingMakePrivateTitle" code="views.list.action.makePrivate.title"/>
-                        <a href="" ng-click="changeRecordingPermissions('${recordingMakePublicUrl}')" title="${recordingMakePublicTitle}" ng-hide="roomRecording.isPublic"><i class="fa fa-lock"></i></a>
-                        <a href="" ng-click="changeRecordingPermissions('${recordingMakePrivateUrl}')" title="${recordingMakePrivateTitle}" ng-show="roomRecording.isPublic"><i class="fa fa-unlock"></i></a>
-                        <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
-                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
-                            <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
-                            <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
-                        </tag:url>
-                        <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
-                        <a href="" ng-click="deleteRecording(roomRecording.filename, '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="fa fa-trash-o"></i></a>
+                    <span ng-hide="roomRecording.description">
+                        {{roomRecording.name}}
                     </span>
-                </c:if>
-            </td>
-        </tr>
-        </tbody>
-        <tbody>
-        <tr ng-hide="items.length">
-            <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
-        </tr>
-        </tbody>
-    </table>
-    <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+                </td>--%>
+                <td>
+                    {{roomRecording.beginDate}}
+                </td>
+                <td>
+                    {{roomRecording.duration}}
+                </td>
+                <td>
+                    <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                    <span ng-show="roomRecording.viewUrl && roomRecording.downloadUrl == null"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                    <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
+                </td>
+                <td ng-controller="RoomRecordingActionController">
+                    <span ng-show="roomRecording.downloadUrl">
+                        <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
+                        <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="fa fa-download"></i></a>
+                    </span>
+                    <span ng-show="roomRecording.viewUrl">
+                        <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
+                        <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="fa fa-eye"></i></a>
+                    </span>
+                    <c:if test="${hasWritePermission}">
+                        <span ng-show="roomRecording.editUrl">
+                            <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
+                            <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="fa fa-pencil"></i></a>
+                        </span>
+                        <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
+                            <tag:url value="<%= ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS %>" var="recordingMakePublicUrl">
+                                <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                                <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                                <tag:param name="recordingObjectType" value="${typeRecording}" escape="false"/>
+                                <tag:param name="recordingFolderId" value="' + recordingFolderId + '" escape="false"/>
+                                <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                                <tag:param name="recordingObjectPermissions" value="${permissionPublic}" escape="false"/>
+                            </tag:url>
+                            <tag:url value="<%= ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS %>" var="recordingMakePrivateUrl">
+                                <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                                <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                                <tag:param name="recordingObjectType" value="${typeRecording}" escape="false"/>
+                                <tag:param name="recordingFolderId" value="' + recordingFolderId + '" escape="false"/>
+                                <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                                <tag:param name="recordingObjectPermissions" value="${permissionPrivate}" escape="false"/>
+                            </tag:url>
+                            <spring:message var="recordingMakePublicTitle" code="views.list.action.makePublic.title"/>
+                            <spring:message var="recordingMakePrivateTitle" code="views.list.action.makePrivate.title"/>
+                            <span ng-hide="reservationRequest.technology != 'ADOBE_CONNECT'">
+                                <span ng-hide="isRecordingFolderPublic">
+                                    <a href="" ng-click="changePermissions('${recordingMakePublicUrl}')" title="${recordingMakePublicTitle}" ng-hide="roomRecording.isPublic"><i class="fa fa-lock"></i></a>
+                                    <a href="" ng-click="changePermissions('${recordingMakePrivateUrl}')" title="${recordingMakePrivateTitle}" ng-show="roomRecording.isPublic"><i class="fa fa-unlock"></i></a>
+                                </span>
+                                <spring:message var="recordingFolderIsPublicTitle" code="views.list.action.recordingFolderIsPublic.title"/>
+                                <i class="fa fa-unlock" title="${recordingFolderIsPublicTitle}" ng-show="isRecordingFolderPublic"></i>
+                            </span>
+                            <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
+                                <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
+                                <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                                <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                            </tag:url>
+                            <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
+                            <a href="" ng-click="deleteRecording(roomRecording.filename, '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="fa fa-trash-o"></i></a>
+                        </span>
+                    </c:if>
+                </td>
+            </tr>
+            </tbody>
+            <tbody>
+            <tr ng-hide="items.length">
+                <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
+            </tr>
+            </tbody>
+        </table>
+        <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+    </div>
 </div>
+
 

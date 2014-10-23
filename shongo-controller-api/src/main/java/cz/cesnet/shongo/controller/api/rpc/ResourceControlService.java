@@ -3,7 +3,10 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.RecordingObjectType;
+import cz.cesnet.shongo.api.jade.RecordingPermissionType;
 import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.DeviceResource;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -156,9 +159,24 @@ public interface ResourceControlService extends Service
     @API
     public void deleteRecording(SecurityToken token, String deviceResourceId, String recordingId);
 
+    /**
+     * Make existing {@link RecordingFolder} in {@link DeviceResource} private.
+     *
+     * @param token
+     * @param deviceResourceId
+     * @param recordingFolderId
+     */
     @API
-    public void makeRecordingPublic(SecurityToken token, String deviceResourceId, String recordingId);
+    public void modifyRecordingsPermissions(SecurityToken token, String deviceResourceId, String recordingFolderId,
+                                            String recordingId, RecordingObjectType recordingObjectType, RecordingPermissionType permissions);
 
+    /**
+     * Returns if existing {@link RecordingFolder} in {@link DeviceResource} is Public.
+     *
+     * @param token
+     * @param deviceResourceId
+     * @param recordingFolderId
+     */
     @API
-    public void makeRecordingPrivate(SecurityToken token, String deviceResourceId, String recordingId);
+    public boolean isRecordingFolderPublic(SecurityToken token, String deviceResourceId, String recordingFolderId);
 }

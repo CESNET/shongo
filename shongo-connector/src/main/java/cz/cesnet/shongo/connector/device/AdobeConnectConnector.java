@@ -276,7 +276,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @return
      * @throws CommandException
      */
-    protected AdobeConnectAccessMode getRoomAccessMode(String roomId) throws CommandException
+    protected AdobeConnectPermissions getRoomAccessMode(String roomId) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("acl-id",roomId);
@@ -285,16 +285,18 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         String accessMode = execApi("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue(
                 "permissions-id");
 
-        AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
+        AdobeConnectPermissions adobeConnectAccessMode = AdobeConnectPermissions.PROTECTED;
 
-        if (AdobeConnectAccessMode.PRIVATE.getPermissionId().equals(accessMode)) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
-        }
-        else if (AdobeConnectAccessMode.PROTECTED.getPermissionId().equals(accessMode)) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
-        }
-        else if (AdobeConnectAccessMode.PUBLIC.getPermissionId().equals(accessMode)) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
+        switch (AdobeConnectPermissions.valueByCode(accessMode)) {
+            case PRIVATE:
+                adobeConnectAccessMode = AdobeConnectPermissions.PRIVATE;
+                break;
+            case PROTECTED:
+                adobeConnectAccessMode = AdobeConnectPermissions.PROTECTED;
+                break;
+            case PUBLIC:
+                adobeConnectAccessMode = AdobeConnectPermissions.PUBLIC;
+                break;
         }
 
         return adobeConnectAccessMode;
@@ -305,11 +307,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * Default access mode (when param mode is null) is AdobeConnectAccessMode.PROTECTED
      *
      * @param roomId
-     * @param mode
+     * @param roomAccessMode
      */
-    protected void setRoomAccessMode(String roomId, AdobeConnectAccessMode mode) throws CommandException
+    protected void setRoomAccessMode(String roomId, AdobeConnectPermissions roomAccessMode) throws CommandException
     {
-        setScoPermissions(roomId,mode);
+        if (roomAccessMode != null) {
+            roomAccessMode.checkIfUsableByMeetings();
+        }
+        setScoPermissions(roomId,roomAccessMode);
     }
 
     /**
@@ -319,7 +324,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void makeRoomPublic(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId, AdobeConnectAccessMode.PUBLIC);
+        setRoomAccessMode(roomId, AdobeConnectPermissions.PUBLIC);
     }
 
     /**
@@ -328,7 +333,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void makeRoomProtected(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,AdobeConnectAccessMode.PROTECTED);
+        setRoomAccessMode(roomId,AdobeConnectPermissions.PROTECTED);
     }
 
     /**
@@ -337,7 +342,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void makeRoomPrivate(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,AdobeConnectAccessMode.PRIVATE);
+        setRoomAccessMode(roomId,AdobeConnectPermissions.PRIVATE);
     }
 
     /**
@@ -347,13 +352,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @param scoId
      * @param permissionId
      */
-    protected void setScoPermissions(String scoId, AdobeConnectAccessMode permissionId) throws CommandException
+    protected void setScoPermissions(String scoId, AdobeConnectPermissions permissionId) throws CommandException
     {
         RequestAttributeList accessModeAttributes = new RequestAttributeList();
         accessModeAttributes.add("acl-id",scoId);
         accessModeAttributes.add("principal-id","public-access");
         if (permissionId == null) {
-            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionId());
+            accessModeAttributes.add("permission-id",AdobeConnectPermissions.PROTECTED.getPermissionId());
         } else {
             accessModeAttributes.add("permission-id",permissionId.getPermissionId());
         }
@@ -456,6 +461,21 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void makeRecordingPrivate(String recordingId) throws CommandException {
         recordingManager.makeRecordingPrivate(recordingId);
+    }
+
+    @Override
+    public void makeRecordingFolderPublic(String recordingFolderId) throws CommandException, CommandUnsupportedException {
+        recordingManager.makeRecordingFolderPublic(recordingFolderId);
+    }
+
+    @Override
+    public void makeRecordingFolderPrivate(String recordingFolderId) throws CommandException, CommandUnsupportedException {
+        recordingManager.makeRecordingFolderPrivate(recordingFolderId);
+    }
+
+    @Override
+    public boolean isRecordingFolderPublic(String recordingFolderId) throws CommandException {
+        return recordingManager.isRecordingFolderPublic(recordingFolderId);
     }
 
     @Override
@@ -727,7 +747,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             passcodeAttributes.add("field-id","meeting-passcode");
 
             String pin = "";
-            AdobeConnectAccessMode accessMode = null;
+            AdobeConnectPermissions accessMode = null;
             AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
             if (adobeConnectRoomSetting != null) {
                 pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
@@ -798,7 +818,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         passcodeAttributes.add("field-id","meeting-passcode");
 
         String pin = "";
-        AdobeConnectAccessMode accessMode = null;
+        AdobeConnectPermissions accessMode = null;
         AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
         if (adobeConnectRoomSetting != null) {
             pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
@@ -1565,7 +1585,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         permissionsAttributes.add("filter-principal-id", "public-access");
 
         String permissionId = execApi("permissions-info", permissionsAttributes).getChild("permissions").getChild("principal").getAttributeValue("permission-id");
-        return AdobeConnectAccessMode.PUBLIC.getPermissionId().equals(permissionId) || AdobeConnectAccessMode.VIEW.getPermissionId().equals(permissionId);
+        AdobeConnectPermissions permission = AdobeConnectPermissions.valueByCode(permissionId);
+        return AdobeConnectPermissions.PUBLIC.equals(permission) || AdobeConnectPermissions.VIEW.equals(permission);
     }
 
     public static class RequestFailedCommandException extends CommandException

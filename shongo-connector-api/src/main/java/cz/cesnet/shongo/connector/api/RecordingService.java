@@ -135,4 +135,25 @@ public interface RecordingService
      * @throws CommandException
      */
     public void makeRecordingPrivate(String recordingId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Make Recording public. Accessed by everyone.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingFolderPublic(String recordingFolderId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Make Recording private. Authorized like recorded room.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingFolderPrivate(String recordingFolderId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Returns if existing {@link RecordingFolder} is public.
+     *
+     * @param recordingFolderId
+     */
+    public boolean isRecordingFolderPublic(String recordingFolderId) throws CommandException;
 }

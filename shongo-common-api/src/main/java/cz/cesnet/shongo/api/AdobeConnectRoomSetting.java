@@ -15,7 +15,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     /**
      * Room access mode
      */
-    private AdobeConnectAccessMode accessMode;
+    private AdobeConnectPermissions accessMode;
 
     /**
      * @return {@link #pin}
@@ -33,13 +33,16 @@ public class AdobeConnectRoomSetting extends RoomSetting
         this.pin = pin;
     }
 
-    public AdobeConnectAccessMode getAccessMode()
+    public AdobeConnectPermissions getAccessMode()
     {
         return accessMode;
     }
 
-    public void setAccessMode(AdobeConnectAccessMode accessMode)
+    public void setAccessMode(AdobeConnectPermissions accessMode)
     {
+        if (accessMode != null) {
+            accessMode.checkIfUsableByMeetings();
+        }
         this.accessMode = accessMode;
     }
 
@@ -60,7 +63,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     {
         super.fromData(dataMap);
         pin = dataMap.getString(PIN, DEFAULT_COLUMN_LENGTH);
-        accessMode = dataMap.getEnum(ACCESS_MODE,AdobeConnectAccessMode.class);
+        accessMode = dataMap.getEnum(ACCESS_MODE,AdobeConnectPermissions.class);
     }
 
     @Override

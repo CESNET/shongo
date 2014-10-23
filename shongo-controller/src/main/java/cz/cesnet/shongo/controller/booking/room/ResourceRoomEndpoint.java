@@ -21,9 +21,11 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
@@ -34,6 +36,7 @@ import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint}.
@@ -164,6 +167,18 @@ public class ResourceRoomEndpoint extends RoomEndpoint
                 (RoomExecutable) executableApi;
         roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
         roomExecutableEndpointApi.setResourceId(ObjectIdentifier.formatId(getResource()));
+
+        RecordingCapability resourceRecordingCapability = null;
+        for (ExecutableService service : getServices()) {
+            if (service instanceof RecordingService) {
+                RecordingService recordingService = (RecordingService) service;
+                resourceRecordingCapability = recordingService.getRecordingCapability();
+                break;
+            }
+        }
+        if (resourceRecordingCapability != null) {
+            roomExecutableEndpointApi.setRecordingFolderId(getRecordingFolderId(resourceRecordingCapability));
+        }
         roomExecutableEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
             roomExecutableEndpointApi.addTechnology(technology);

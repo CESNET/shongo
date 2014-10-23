@@ -617,16 +617,62 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         }
     }
 
+    /**
+     * Not supported for Cisco TCS connector.
+     *
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
     @Override
     public void makeRecordingPublic(String recordingId) throws CommandException, CommandUnsupportedException
     {
-
     }
 
+    /**
+     * Not supported for Cisco TCS connector.
+     *
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
     @Override
     public void makeRecordingPrivate(String recordingId) throws CommandException, CommandUnsupportedException
     {
+    }
 
+    /**
+     * Not supported for Cisco TCS connector.
+     *
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    @Override
+    public void makeRecordingFolderPublic(String recordingFolderId) throws CommandException, CommandUnsupportedException {
+    }
+
+    /**
+     * Not supported for Cisco TCS connector.
+     *
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    @Override
+    public void makeRecordingFolderPrivate(String recordingFolderId) throws CommandException, CommandUnsupportedException {
+    }
+
+    /**
+     * Not supported for Cisco TCS connector, returns false every time.
+     *
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    @Override
+    public boolean isRecordingFolderPublic(String recordingFolderId) throws CommandException {
+        return false;
     }
 
     /**

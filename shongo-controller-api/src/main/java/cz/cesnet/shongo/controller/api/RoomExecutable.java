@@ -24,6 +24,11 @@ public class RoomExecutable extends AbstractRoomExecutable
     private String resourceId;
 
     /**
+     *
+     */
+    private String recordingFolderId;
+
+    /**
      * Technology specific room identifier.
      */
     private String roomId;
@@ -60,8 +65,17 @@ public class RoomExecutable extends AbstractRoomExecutable
         this.roomId = roomId;
     }
 
+    public String getRecordingFolderId() {
+        return recordingFolderId;
+    }
+
+    public void setRecordingFolderId(String recordingFolderId) {
+        this.recordingFolderId = recordingFolderId;
+    }
+
     private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_ID = "roomId";
+    private static final String RECORDING_FOLDER_ID = "recordingFolderId";
 
     @Override
     public DataMap toData()
@@ -69,6 +83,7 @@ public class RoomExecutable extends AbstractRoomExecutable
         DataMap dataMap = super.toData();
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_ID, roomId);
+        dataMap.set(RECORDING_FOLDER_ID, recordingFolderId);
         return dataMap;
     }
 
@@ -78,5 +93,6 @@ public class RoomExecutable extends AbstractRoomExecutable
         super.fromData(dataMap);
         resourceId = dataMap.getString(RESOURCE_ID);
         roomId = dataMap.getString(ROOM_ID);
+        recordingFolderId = dataMap.getString(RECORDING_FOLDER_ID);
     }
 }

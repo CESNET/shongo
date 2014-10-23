@@ -481,25 +481,87 @@ public class AdobeConnectRecordingManager
         setRecordingPermissionsAsMeetings(roomId, connector.getSCOPermissions(roomId));
     }
 
+    /**
+     * Make Recording public. Accessed by everyone.
+     *
+     * @throws CommandException
+     */
     public void makeRecordingPublic(String recordingId) throws CommandException
     {
         checkIfRecording(recordingId);
-        connector.setScoPermissions(recordingId, AdobeConnectAccessMode.VIEW);
+        connector.setScoPermissions(recordingId, AdobeConnectPermissions.VIEW);
     }
 
+    /**
+     * Make Recording private. Authorized like recorded room.
+     *
+     * @throws CommandException
+     */
     public void makeRecordingPrivate(String recordingId) throws CommandException
     {
         checkIfRecording(recordingId);
-        connector.setScoPermissions(recordingId, AdobeConnectAccessMode.PROTECTED);
+        connector.setScoPermissions(recordingId, AdobeConnectPermissions.PROTECTED);
     }
 
+    /**
+     * Make Recording public. Accessed by everyone.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingFolderPublic(String recordingId) throws CommandException
+    {
+        checkIfRecordingFolder(recordingId);
+        connector.setScoPermissions(recordingId, AdobeConnectPermissions.VIEW);
+    }
+
+    /**
+     * Make Recording private. Authorized like recorded room.
+     *
+     * @throws CommandException
+     */
+    public void makeRecordingFolderPrivate(String recordingFolderId) throws CommandException
+    {
+        checkIfRecordingFolder(recordingFolderId);
+        connector.setScoPermissions(recordingFolderId, AdobeConnectPermissions.PROTECTED);
+    }
+
+    /**
+     * Returns if existing {@link RecordingFolder} is public.
+     *
+     * @param recordingFolderId
+     */
+    public boolean isRecordingFolderPublic(String recordingFolderId) throws CommandException {
+        checkIfRecordingFolder(recordingFolderId);
+        return connector.isSCOPublic(recordingFolderId);
+    }
+
+    /**
+     * Throws Command exception if SCO is not recording.
+     *
+     * @param scoId
+     * @throws CommandException
+     */
     public void checkIfRecording(String scoId) throws CommandException
     {
         Element scoElement = connector.getScoInfo(scoId);
         if (!RECORDING_ICON.equals(scoElement.getAttributeValue("icon"))) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("SCO for given sco-id is not recording.");
         }
     }
+
+    /**
+     * Throws Command exception if SCO is not recording folder.
+     * @param scoId
+     * @throws CommandException
+     */
+    public void checkIfRecordingFolder(String scoId) throws CommandException
+    {
+        Element scoElement = connector.getScoInfo(scoId);
+        if (!"folder".equals(scoElement.getAttributeValue("icon")) || !getRecordingsFolderId().equals(scoElement.getAttributeValue("folder-id"))) {
+            throw new IllegalArgumentException("SCO for given sco-id is not recording folder.");
+        }
+    }
+
     /**
      * Set parent (meetings) permissions for the recordings.
      *
