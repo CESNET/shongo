@@ -59,9 +59,12 @@ public enum AdobeConnectPermissions
     /**
      * Throws {@link }IllegalArgumentException) if permission is not usable by AC meeting.
      */
-    public void checkIfUsableByMeetings() {
-        if (!isUsableByMeetings()) {
-            throw new IllegalArgumentException("AC permission: " + getPermissionId() + " cannot be used as meeting access mode.");
+    public static void checkIfUsableByMeetings(AdobeConnectPermissions permissions) {
+        if (permissions == null) {
+            return;
+        }
+        if (!permissions.isUsableByMeetings()) {
+            throw new IllegalArgumentException("AC permission: " + permissions.getPermissionId() + " cannot be used as meeting access mode.");
         }
     }
 

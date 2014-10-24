@@ -40,9 +40,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
 
     public void setAccessMode(AdobeConnectPermissions accessMode)
     {
-        if (accessMode != null) {
-            accessMode.checkIfUsableByMeetings();
-        }
+        AdobeConnectPermissions.checkIfUsableByMeetings(accessMode);
         this.accessMode = accessMode;
     }
 

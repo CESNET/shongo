@@ -11,6 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;

@@ -63,7 +63,7 @@
         <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
-        <div class="pull-right" ng-show="reservationRequest.technology == 'ADOBE_CONNECT'">
+        <div class="pull-right pagination-page-size" ng-show="reservationRequest.technology == 'ADOBE_CONNECT'">
             <tag:url value="<%= ClientWebUrl.DETAIL_RECORDINGS_CHANGE_PERMISSIONS %>" var="recordingFolderMakePublicUrl">
                 <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
                 <tag:param name="resourceId" value="' + resourceId + '" escape="false"/>

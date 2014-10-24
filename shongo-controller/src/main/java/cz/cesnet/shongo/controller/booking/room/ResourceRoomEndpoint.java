@@ -2,10 +2,8 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.AbstractComplexType;
-import cz.cesnet.shongo.api.RecordingFolder;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
@@ -168,8 +166,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint
         roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
         roomExecutableEndpointApi.setResourceId(ObjectIdentifier.formatId(getResource()));
 
-        RecordingCapability resourceRecordingCapability = null;
-        for (ExecutableService service : getServices()) {
+        // For Adobe Connect recordings
+        RecordingCapability resourceRecordingCapability = getResource().getCapability(RecordingCapability.class);
+        if (resourceRecordingCapability != null) {
+            roomExecutableEndpointApi.setRecordingFolderId(getRecordingFolderId(resourceRecordingCapability));
+        }
+
+        /*for (ExecutableService service : getServices()) {
             if (service instanceof RecordingService) {
                 RecordingService recordingService = (RecordingService) service;
                 resourceRecordingCapability = recordingService.getRecordingCapability();
@@ -178,7 +181,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint
         }
         if (resourceRecordingCapability != null) {
             roomExecutableEndpointApi.setRecordingFolderId(getRecordingFolderId(resourceRecordingCapability));
-        }
+        } else {
+            //TODO: provizorni reseni
+            for (Map.Entry<RecordingCapability, String> entry: getRecordingFolderIds().entrySet()) {
+                roomExecutableEndpointApi.setRecordingFolderId(entry.getValue());
+                break;
+            }
+        }        */
         roomExecutableEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
             roomExecutableEndpointApi.addTechnology(technology);

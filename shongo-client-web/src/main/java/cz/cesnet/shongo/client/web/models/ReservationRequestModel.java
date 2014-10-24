@@ -473,9 +473,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void setRoomAccessMode(AdobeConnectPermissions roomAccessMode)
     {
-        if (roomAccessMode != null) {
-            roomAccessMode.checkIfUsableByMeetings();
-        }
+        AdobeConnectPermissions.checkIfUsableByMeetings(roomAccessMode);
         this.roomAccessMode = roomAccessMode;
     }
 

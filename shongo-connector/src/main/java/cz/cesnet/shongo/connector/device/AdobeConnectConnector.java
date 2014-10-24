@@ -311,9 +311,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void setRoomAccessMode(String roomId, AdobeConnectPermissions roomAccessMode) throws CommandException
     {
-        if (roomAccessMode != null) {
-            roomAccessMode.checkIfUsableByMeetings();
-        }
+        AdobeConnectPermissions.checkIfUsableByMeetings(roomAccessMode);
         setScoPermissions(roomId,roomAccessMode);
     }
 
