@@ -15,6 +15,11 @@ public enum AdobeConnectPermissions
     VIEW("view", false),
 
     /**
+     * Adobe Connect view permission: anyone who has the URL can access. Used for folders.
+     */
+    VIEW_ONLY("view-only", false),
+
+    /**
      * Adobe Connect meeting access mode: anyone who has the URL for the meeting can enter the room. Used for meetings.
      */
     PUBLIC("view-hidden", true),

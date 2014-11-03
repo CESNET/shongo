@@ -1584,7 +1584,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         String permissionId = execApi("permissions-info", permissionsAttributes).getChild("permissions").getChild("principal").getAttributeValue("permission-id");
         AdobeConnectPermissions permission = AdobeConnectPermissions.valueByCode(permissionId);
-        return AdobeConnectPermissions.PUBLIC.equals(permission) || AdobeConnectPermissions.VIEW.equals(permission);
+        return AdobeConnectPermissions.PUBLIC.equals(permission) || AdobeConnectPermissions.VIEW.equals(permission) || AdobeConnectPermissions.VIEW_ONLY.equals(permission);
     }
 
     public static class RequestFailedCommandException extends CommandException

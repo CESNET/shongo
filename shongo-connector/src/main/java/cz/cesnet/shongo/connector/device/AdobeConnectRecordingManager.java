@@ -511,7 +511,7 @@ public class AdobeConnectRecordingManager
     public void makeRecordingFolderPublic(String recordingId) throws CommandException
     {
         checkIfRecordingFolder(recordingId);
-        connector.setScoPermissions(recordingId, AdobeConnectPermissions.VIEW);
+        connector.setScoPermissions(recordingId, AdobeConnectPermissions.VIEW_ONLY);
     }
 
     /**

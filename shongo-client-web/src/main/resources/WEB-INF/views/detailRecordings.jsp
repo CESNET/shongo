@@ -84,7 +84,7 @@
                 <a class="btn btn-default" href="" ng-click="changePermissions('${recordingFolderMakePublicUrl}')" title="${recordingMakeFolderPublicTitle}" ng-hide="isRecordingFolderPublic"><i class="fa fa-lock"></i></a>
                 <a class="btn btn-default" href="" ng-click="changePermissions('${recordingMakeFolderPrivateUrl}')" title="${recordingMakeFolderPrivateTitle}" ng-show="isRecordingFolderPublic"><i class="fa fa-unlock"></i></a>
             </span>
-            <i class="fa fa-lock btn btn-default disabled" ng-hide="{{recordingFolderId}}"></i>
+            <a class="btn btn-default disabled" ng-hide="{{recordingFolderId}}"><i class="fa fa-lock"></i></a>
         </div>
         <h2><spring:message code="views.room.recordings"/></h2>
         <div class="spinner" ng-hide="ready || errorContent"></div>

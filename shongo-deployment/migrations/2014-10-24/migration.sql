@@ -1,5 +1,5 @@
 /**
- * 2014-10-24: Change Enum AdobeConnectPermissions data type in database
+ * 2014-10-24: Change Enum AdobeConnectPermissions data type in database (check values first!)
  */
 BEGIN TRANSACTION;
 
