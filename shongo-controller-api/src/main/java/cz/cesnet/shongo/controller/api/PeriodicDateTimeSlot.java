@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
@@ -216,5 +217,27 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
         duration = dataMap.getPeriod(DURATION);
         period = dataMap.getPeriodRequired(PERIOD);
         end = dataMap.getReadablePartial(END);
+    }
+
+    /**
+     * Type of periodicity of the reservation request.
+     */
+    public static enum PeriodicityType
+    {
+        NONE,
+        DAILY,
+        WEEKLY;
+
+        public Period toPeriod()
+        {
+            switch (this) {
+                case DAILY:
+                    return Period.days(1);
+                case WEEKLY:
+                    return Period.weeks(1);
+                default:
+                    throw new TodoImplementException(this);
+            }
+        }
     }
 }

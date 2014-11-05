@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -27,8 +28,11 @@ import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
+import jade.content.onto.annotations.Slot;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -171,6 +175,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 // Check specification availability
                 if (specification != null) {
                     if (specification instanceof ReservationTaskProvider) {
+
                         try {
                             entityManager.getTransaction().begin();
                             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
@@ -202,6 +207,134 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public Object checkPeriodicAvailability(AvailabilityCheckRequest request)
+    {
+        checkNotNull("request", request);
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        try {
+            Period duration = request.getSlot().toPeriod();
+            PeriodicDateTime periodicDateTime = new PeriodicDateTime(request.getSlot().getStart(),request.getPeriod(),request.getPeriodEnd());
+            List<Interval> slots = new ArrayList<Interval>();
+            for (DateTime slotStart : periodicDateTime.enumerate()) {
+                slots.add(new Interval(slotStart, duration));
+            }
+
+            Boolean isFirstSlot = null;
+            // For each time slot in periodic reservation request
+            for (Interval slotToTest : slots) {
+                if (isFirstSlot == null) {
+                    isFirstSlot = Boolean.TRUE;
+                } else {
+                    if (isFirstSlot)
+                        isFirstSlot = Boolean.FALSE;
+                }
+
+                // We must check only the future (because scheduler allocates only in future)
+                DateTime minimumDateTime = DateTime.now();
+                //Interval slot = request.getSlot();
+                Interval slot = slotToTest;
+                if (slot.getEnd().isBefore(minimumDateTime)) {
+                    throw new ControllerReportSet.ReservationRequestEmptyDurationException();
+                }
+                if (slot.getStart().isBefore(minimumDateTime)) {
+                    slot = slot.withStart(minimumDateTime);
+                }
+
+                Specification specificationApi = request.getSpecification();
+                cz.cesnet.shongo.controller.booking.specification.Specification specification = null;
+                Interval allocationSlot = slot;
+                if (specificationApi != null) {
+                    specification = cz.cesnet.shongo.controller.booking.specification.Specification.createFromApi(
+                            specificationApi, entityManager);
+                    if (specification instanceof SpecificationIntervalUpdater) {
+                        SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
+                        allocationSlot = intervalUpdater.updateInterval(allocationSlot, minimumDateTime);
+                    }
+                }
+
+                // Create scheduler context
+                SchedulerContext schedulerContext = new SchedulerContext(DateTime.now(), cache, entityManager,
+                        new AuthorizationManager(entityManager, authorization));
+                schedulerContext.setPurpose(request.getPurpose());
+
+
+                // Ignore reservations for already allocated reservation request
+                SchedulerContextState schedulerContextState = schedulerContext.getState();
+                String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
+                if (ignoredReservationRequestId != null) {
+                    ObjectIdentifier objectId = ObjectIdentifier.parse(
+                            ignoredReservationRequestId, ObjectType.RESERVATION_REQUEST);
+                    cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest ignoredReservationRequest =
+                            reservationRequestManager.get(objectId.getPersistenceId());
+                    for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
+                            ignoredReservationRequest.getAllocation().getReservations()) {
+                        if (allocationSlot.overlaps(reservation.getSlot())) {
+                            schedulerContextState.addAvailableReservation(
+                                    reservation, AvailableReservation.Type.REALLOCATABLE);
+                        }
+                    }
+
+                    for (cz.cesnet.shongo.controller.booking.request.ReservationRequest childReservationRequest :
+                            ignoredReservationRequest.getAllocation().getChildReservationRequests()) {
+                        for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
+                                childReservationRequest.getAllocation().getReservations()) {
+                            if (reservation.getSlot().overlaps(slot)) {
+                                schedulerContextState.addAvailableReservation(
+                                        reservation, AvailableReservation.Type.REALLOCATABLE);
+                            }
+                        }
+                    }
+                }
+
+                try {
+                    // Check reservation request reusability (TODO: check if permanent room)
+                    String reservationRequestId = request.getReservationRequestId();
+                    if (reservationRequestId != null) {
+                        ObjectIdentifier objectId = ObjectIdentifier.parse(
+                                reservationRequestId, ObjectType.RESERVATION_REQUEST);
+                        cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
+                                reservationRequestManager.get(objectId.getPersistenceId());
+                        schedulerContext.setReusableAllocation(reservationRequest.getAllocation(), slot);
+                    }
+
+                    // Check specification availability
+                    if (specification != null) {
+                        if (specification instanceof ReservationTaskProvider) {
+                            entityManager.getTransaction().begin();
+                            try {
+                                ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+                                ReservationTask reservationTask =
+                                        reservationTaskProvider.createReservationTask(schedulerContext, slot);
+                                reservationTask.perform();
+                            } finally {
+                                entityManager.getTransaction().rollback();
+                            }
+                        } else {
+                            throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
+                        }
+                    }
+                }
+                catch (SchedulerException exception) {
+                    // Specification cannot be allocated or reservation request cannot be reused in requested time slot
+                    return exception.getReport().toAllocationStateReport(authorization.isAdministrator(securityToken) ?
+                            Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                }
+
+            } //END OF FOR-EACH LOOP
+
+            // Request is available
+            return Boolean.TRUE;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+        @Override
     public String createReservationRequest(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {

@@ -2,10 +2,14 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
-import org.joda.time.Interval;
+import org.joda.time.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@link AbstractRequest} for checking availability of {@link Specification}.
@@ -23,6 +27,16 @@ public class AvailabilityCheckRequest extends AbstractRequest
      * Time slot for which the availability should be checked.
      */
     private Interval slot;
+
+    /**
+     * Period for which the availability should be checked.
+     */
+    private Period period;
+
+    /**
+     * Period end for which the availability should be checked.
+     */
+    private ReadablePartial periodEnd;
 
     /**
      * To be checked if it is available in specified {@link #slot},
@@ -165,11 +179,30 @@ public class AvailabilityCheckRequest extends AbstractRequest
         this.ignoredReservationRequestId = ignoredReservationRequestId;
     }
 
+    public Period getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(Period period) {
+        this.period = period;
+    }
+
+    public ReadablePartial getPeriodEnd() {
+        return periodEnd;
+    }
+
+    public void setPeriodEnd(ReadablePartial periodEnd) {
+        this.periodEnd = periodEnd;
+    }
+
     private static final String PURPOSE = "purpose";
     private static final String SLOT = "slot";
     private static final String SPECIFICATION = "specification";
     private static final String RESERVATION_REQUEST = "reservationRequestId";
     private static final String IGNORED_RESERVATION_REQUEST = "ignoredReservationRequestId";
+    private static final String PERIODICITY_TYPE = "periodicityType";
+    private static final String PERIOD = "period";
+    private static final String PERIOD_END = "periodEnd";
 
     @Override
     public DataMap toData()
@@ -180,6 +213,8 @@ public class AvailabilityCheckRequest extends AbstractRequest
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(RESERVATION_REQUEST, reservationRequestId);
         dataMap.set(IGNORED_RESERVATION_REQUEST, ignoredReservationRequestId);
+        dataMap.set(PERIOD, period);
+        dataMap.set(PERIOD_END, periodEnd);
         return dataMap;
     }
 
@@ -192,5 +227,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         reservationRequestId = dataMap.getString(RESERVATION_REQUEST);
         ignoredReservationRequestId = dataMap.getString(IGNORED_RESERVATION_REQUEST);
+        period = dataMap.getPeriod(PERIOD);
+        periodEnd = dataMap.getReadablePartial(PERIOD_END);
     }
 }

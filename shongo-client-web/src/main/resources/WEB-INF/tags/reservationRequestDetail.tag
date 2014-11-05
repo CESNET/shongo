@@ -57,18 +57,9 @@
     <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
         <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
         <dd>
-            <c:choose>
-                <c:when test="${not empty reservationRequest.purpose}">
-                    <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}" />
-                </c:when>
-                <c:otherwise>
-                    <spring:message code="views.reservationRequest.purpose" />
-                </c:otherwise>
-            </c:choose>
             <span>${reservationRequest.meetingRoomResourceName}</span>
         </dd>
     </c:if>
-    <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}" />
 
     <%-- Meeting room name and description --%>
     <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
@@ -165,6 +156,10 @@
             <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
             <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
                 (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<tag:format value="${reservationRequest.periodicityEnd}" style="date"/>)
+            </c:if>
+            <c:if test="${not reservationRequest.allocatedIntervalCollidingWithSlot}">
+                <p>${reservationRequest.collidingInterval}</p>
+                <p>${reservationRequest.slot}</p>
             </c:if>
         </dd>
     </c:if>

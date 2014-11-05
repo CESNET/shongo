@@ -34,7 +34,6 @@ import java.util.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Controller
-
 public class MeetingRoomController {
     @Resource
     private ReservationService reservationService;

@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.*;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
@@ -166,7 +167,7 @@ public class WizardController
 
         private LocalDateTime start;
 
-        private ReservationRequestModel.PeriodicityType periodicityType;
+        private PeriodicDateTimeSlot.PeriodicityType periodicityType;
 
         private LocalDate periodicityEnd;
 
@@ -201,12 +202,12 @@ public class WizardController
             this.start = start;
         }
 
-        public ReservationRequestModel.PeriodicityType getPeriodicityType()
+        public PeriodicDateTimeSlot.PeriodicityType getPeriodicityType()
         {
             return periodicityType;
         }
 
-        public void setPeriodicityType(ReservationRequestModel.PeriodicityType periodicityType)
+        public void setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType periodicityType)
         {
             this.periodicityType = periodicityType;
         }

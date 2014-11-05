@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
@@ -16,7 +17,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PeriodicDateTime extends SimplePersistentObject implements Cloneable
+public class PeriodicDateTime extends SimplePersistentObject  implements Cloneable
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -318,7 +319,7 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
                 }
                 start = start.plus(period);
 
-                if (dateTimeList.size() >= maxCount) {
+                if (dateTimeList.size() >= maxCount || period == null) {
                     break;
                 }
             }
