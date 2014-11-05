@@ -9,6 +9,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -144,8 +145,8 @@ public class ReservationRequestValidator implements Validator
 
         // Check permanent room capacity periodicity
         if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
-            ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
-            if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
+            PeriodicDateTimeSlot.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
+            if (periodicityType != null && !PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicityType)) {
                 if (StringUtils.isNotEmpty(reservationRequestModel.getPermanentRoomReservationRequestId())) {
                     ReservationRequestSummary permanentRoom =
                             reservationRequestModel.loadPermanentRoom(new CacheProvider(cache, securityToken));
@@ -172,6 +173,11 @@ public class ReservationRequestValidator implements Validator
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
+            if (!PeriodicDateTimeSlot.PeriodicityType.NONE.equals(reservationRequestModel.getPeriodicityType())) {
+                availabilityCheckRequest.setPeriod(reservationRequestModel.getPeriodicityType().toPeriod());
+                availabilityCheckRequest.setPeriodEnd(reservationRequestModel.getPeriodicityEnd());
+            }
+
             availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
             switch (specificationType) {
                 case PERMANENT_ROOM_CAPACITY:
@@ -181,7 +187,7 @@ public class ReservationRequestValidator implements Validator
             }
             // Check availability
             try {
-                Object availabilityCheckResult = reservationService.checkAvailability(availabilityCheckRequest);
+                Object availabilityCheckResult = reservationService.checkPeriodicAvailability(availabilityCheckRequest);
                 if (!Boolean.TRUE.equals(availabilityCheckResult)) {
                     AllocationStateReport allocationStateReport = (AllocationStateReport) availabilityCheckResult;
                     AllocationStateReport.UserError userError = allocationStateReport.toUserError();
@@ -214,7 +220,12 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
                     }
                     else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
+                        AllocationStateReport.ResourceAlreadyAllocated error = (AllocationStateReport.ResourceAlreadyAllocated) userError;
                         errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
+                        // check if colliding interval is not the first one for periodic resevation request
+                        if (!SlotHelper.areIntervalsColliding(error.getInterval(),availabilityCheckRequest.getSlot())) {
+                            errors.rejectValue("collidingInterval", null, error.getInterval().toString());
+                        }
                     }
                     else {
                         logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);

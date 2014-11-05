@@ -13,18 +13,19 @@ import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
+import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 /**
  * Controller for creating a new room.
@@ -281,7 +283,10 @@ public class WizardRoomController extends WizardParticipantsController
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-            return getCreateRoomAttributesView(reservationRequest);
+            // Skip error if colliding interval is for future periodic reservation request
+            if (bindingResult.getFieldError("collidingInterval") == null) {
+                return getCreateRoomAttributesView(reservationRequest);
+            }
         }
         addDefaultParticipant(securityToken, reservationRequest);
         if (finishWithCapacity) {
@@ -555,7 +560,12 @@ public class WizardRoomController extends WizardParticipantsController
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-            return getCreateRoomAttributesView(reservationRequest);
+            List<ObjectError> errors = bindingResult.getAllErrors();
+            reservationRequest.setDescription("debug:" + errors.size()+"-"+bindingResult.getFieldError("collidingInterval"));
+            reservationRequest.setCollidingInterval(new Interval(bindingResult.getFieldError("collidingInterval").getDefaultMessage()));
+            if (bindingResult.getFieldError("collidingInterval") == null) {
+                return getCreateRoomAttributesView(reservationRequest);
+            }
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);

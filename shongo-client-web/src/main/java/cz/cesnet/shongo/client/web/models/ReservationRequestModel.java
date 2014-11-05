@@ -21,11 +21,13 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -69,7 +71,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected int slotAfterMinutes;
 
-    protected PeriodicityType periodicityType;
+    protected PeriodicDateTimeSlot.PeriodicityType periodicityType;
 
     protected LocalDate periodicityEnd;
 
@@ -109,6 +111,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String roomMeetingDescription;
 
+    protected Interval collidingInterval;
+
+    protected boolean collidingWithFirstSlot = false;
+
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
@@ -116,7 +122,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
-        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+        setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
     }
 
     /**
@@ -126,7 +132,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
-        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+        setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
 
         initByUserSettings(userSettingsModel);
     }
@@ -303,6 +309,41 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.meetingRoomResourceId = meetingRoomResourceId;
     }
 
+    public Interval getCollidingInterval() {
+        return collidingInterval;
+    }
+
+    public void setCollidingInterval(Interval collidingInterval) {
+        this.collidingInterval = collidingInterval;
+
+        collidingWithFirstSlot = false;
+        if (this.end == null) {
+            switch (this.durationType) {
+                case MINUTE:
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,this.durationCount,0,0,collidingInterval);
+                    break;
+                case HOUR:
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,0,this.durationCount,0,collidingInterval);
+                    break;
+                case DAY:
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,0,0,this.durationCount,collidingInterval);
+                    break;
+                default:
+                    return;
+            }
+        } else {
+            collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,end,collidingInterval);
+        }
+    }
+
+    public void setAllocatedIntervalCollidingWithSlot(boolean isAllocatedIntervalCollidingWithSlot) {
+        this.collidingWithFirstSlot = isAllocatedIntervalCollidingWithSlot;
+    }
+
+    public boolean isAllocatedIntervalCollidingWithSlot() {
+        return collidingWithFirstSlot;
+    }
+
     public String getMeetingRoomResourceName()
     {
         ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
@@ -356,12 +397,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.slotAfterMinutes = slotAfterMinutes;
     }
 
-    public PeriodicityType getPeriodicityType()
+    public PeriodicDateTimeSlot.PeriodicityType getPeriodicityType()
     {
         return periodicityType;
     }
 
-    public void setPeriodicityType(PeriodicityType periodicityType)
+    public void setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType periodicityType)
     {
         this.periodicityType = periodicityType;
     }
@@ -726,7 +767,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         Period duration;
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            periodicityType = PeriodicityType.NONE;
+            periodicityType = PeriodicDateTimeSlot.PeriodicityType.NONE;
             Interval slot = reservationRequest.getSlot();
             start = slot.getStart();
             end = slot.getEnd();
@@ -751,10 +792,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             Period period = slot.getPeriod();
             if (period.equals(Period.days(1))) {
-                periodicityType = PeriodicityType.DAILY;
+                periodicityType = PeriodicDateTimeSlot.PeriodicityType.DAILY;
             }
             else if (period.equals(Period.weeks(1))) {
-                periodicityType = PeriodicityType.WEEKLY;
+                periodicityType = PeriodicDateTimeSlot.PeriodicityType.WEEKLY;
             }
             else {
                 throw new UnsupportedApiException("Periodicity %s.", period);
@@ -1015,7 +1056,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
-        if (periodicityType == PeriodicityType.NONE) {
+        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
             // Create single reservation request
             ReservationRequest reservationRequest = new ReservationRequest();
             reservationRequest.setSlot(slot.getStart(), slot.getEnd());
@@ -1303,28 +1344,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         MINUTE,
         HOUR,
         DAY
-    }
-
-    /**
-     * Type of periodicity of the reservation request.
-     */
-    public static enum PeriodicityType
-    {
-        NONE,
-        DAILY,
-        WEEKLY;
-
-        public Period toPeriod()
-        {
-            switch (this) {
-                case DAILY:
-                    return Period.days(1);
-                case WEEKLY:
-                    return Period.weeks(1);
-                default:
-                    throw new TodoImplementException(this);
-            }
-        }
     }
 
     /**

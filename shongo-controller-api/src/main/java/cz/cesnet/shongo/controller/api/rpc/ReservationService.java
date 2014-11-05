@@ -26,6 +26,14 @@ public interface ReservationService extends Service
     public Object checkAvailability(AvailabilityCheckRequest request);
 
     /**
+     * @param request {@link AvailabilityCheckRequest}
+     * @return {@link Boolean#TRUE} when given periodic {@code request} is available,
+     * otherwise {@link AllocationStateReport} describing the reason why it is not available
+     */
+    @API
+    public Object checkPeriodicAvailability(AvailabilityCheckRequest request);
+
+    /**
      * Creates a new reservation request.
      * <p/>
      * The user with the given {@code token} will be the request owner.
