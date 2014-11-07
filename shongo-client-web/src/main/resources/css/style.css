@@ -898,10 +898,6 @@ span.error,
      color: #b94a48;
      font-weight: bold;
  }
-dd div.warning {
-    color: #B98146;
-    font-weight: bold;
-}
 .form-inline .input-group {
   display: inline-table;
   vertical-align: middle;
