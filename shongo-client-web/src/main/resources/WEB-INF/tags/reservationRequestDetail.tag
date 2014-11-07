@@ -158,7 +158,7 @@
                 (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<tag:format value="${reservationRequest.periodicityEnd}" style="date"/>)
             </c:if>
             <c:if test="${not reservationRequest.allocatedIntervalCollidingWithSlot && reservationRequest.collidingInterval != null}">
-                <div class="warning">
+                <div class="alert alert-warning">
                     <spring:message code="views.reservationRequest.periodicity.warning.collidingInterval"/>
                     &MediumSpace;
                     <tag:format value="${reservationRequest.collidingInterval}" multiline="false"/>.

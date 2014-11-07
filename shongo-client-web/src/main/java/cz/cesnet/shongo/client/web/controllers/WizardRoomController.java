@@ -294,9 +294,11 @@ public class WizardRoomController extends WizardParticipantsController
             return createPermanentRoomCapacity(securityToken, reservationRequest.getId());
         }
         else if (finish) {
-            return handleConfirmed(securityToken, sessionStatus, reservationRequest);
+            if (bindingResult.getFieldError("collidingInterval") == null) {
+                return handleConfirmed(securityToken, sessionStatus, reservationRequest);
+            }
         }
-        else if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
+        if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
         }
         //TODO MR: temporary until model change
