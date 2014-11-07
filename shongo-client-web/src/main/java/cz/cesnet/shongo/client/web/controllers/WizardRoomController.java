@@ -560,11 +560,11 @@ public class WizardRoomController extends WizardParticipantsController
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-            List<ObjectError> errors = bindingResult.getAllErrors();
-            reservationRequest.setDescription("debug:" + errors.size()+"-"+bindingResult.getFieldError("collidingInterval"));
-            reservationRequest.setCollidingInterval(new Interval(bindingResult.getFieldError("collidingInterval").getDefaultMessage()));
+            // If there is no colliding interval with first slot return error otherwise set collidingInterval to be shown
             if (bindingResult.getFieldError("collidingInterval") == null) {
                 return getCreateRoomAttributesView(reservationRequest);
+            } else {
+                reservationRequest.setCollidingInterval(new Interval(bindingResult.getFieldError("collidingInterval").getDefaultMessage()));
             }
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");

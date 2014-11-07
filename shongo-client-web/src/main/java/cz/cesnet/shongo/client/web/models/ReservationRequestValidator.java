@@ -22,6 +22,8 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -222,7 +224,7 @@ public class ReservationRequestValidator implements Validator
                     else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
                         AllocationStateReport.ResourceAlreadyAllocated error = (AllocationStateReport.ResourceAlreadyAllocated) userError;
                         errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
-                        // check if colliding interval is not the first one for periodic resevation request
+                        // check if colliding interval is not the first one for periodic reservation request
                         if (!SlotHelper.areIntervalsColliding(error.getInterval(),availabilityCheckRequest.getSlot())) {
                             errors.rejectValue("collidingInterval", null, error.getInterval().toString());
                         }
