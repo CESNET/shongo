@@ -239,7 +239,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        String message = "The+room+is+currently+unavailable+for+joining+/+Do+místnosti+se+aktuálně+není+možné+připojit";
+        String message = null; //"The room is currently unavailable for joining / Do místnosti se aktuálně není možné připojit";
 
         endMeeting(roomId, message, false, null);
     }
@@ -797,13 +797,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Add/modify participants
         if (room.getLicenseCount() > 0) {
-            //TODO: set permisions for recordings
+            //TODO: set permisions for recordings - done in controller
             resetPermissions(roomId);
             startMeeting(roomId);
             addRoomParticipants(roomId, room.getParticipantRoles());
         }
         else if (room.getLicenseCount() == 0) {
-            recordingManager.setRecordingPermissionsAsMeetings(roomId);
+            recordingManager.backupRoomRecordings(roomId);
             resetPermissions(roomId);
             endMeeting(roomId);
         }

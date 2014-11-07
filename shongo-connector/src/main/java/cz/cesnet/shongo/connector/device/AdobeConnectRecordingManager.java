@@ -258,6 +258,7 @@ public class AdobeConnectRecordingManager
      */
     public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
+        boolean isRecordingFolderPublic = isRecordingFolderPublic(recordingFolder.getId());
         connector.resetPermissions(recordingFolder.getId());
 
         AdobeConnectConnector.RequestAttributeList userAttributes = new AdobeConnectConnector.RequestAttributeList();
@@ -294,6 +295,10 @@ public class AdobeConnectRecordingManager
 
         }
 
+        if (isRecordingFolderPublic) {
+            userAttributes.add("principal-id", "public-access");
+            userAttributes.add("permission-id", AdobeConnectPermissions.VIEW_ONLY.getPermissionId());
+        }
         connector.execApi("permissions-update", userAttributes);
     }
 
@@ -571,7 +576,10 @@ public class AdobeConnectRecordingManager
      */
     public void setRecordingPermissionsAsMeetings(String roomId, Element permissions) throws CommandException
     {
+        //TODO: remove if not used
         AdobeConnectConnector.RequestAttributeList userAttributes = new AdobeConnectConnector.RequestAttributeList();
+
+        String recordingFolderId = (String) connector.performControllerAction(new GetRecordingFolderId(roomId));
 
         for (Recording recording : listRecordings(roomId)) {
             userAttributes.add("acl-id", recording.getId());
@@ -592,6 +600,11 @@ public class AdobeConnectRecordingManager
             if (userAttributes.getValue("principal-id") == null) {
                 return;
             }
+
+            /*if (isRecordingFolderPublic) {
+                userAttributes.add("principal-id", "public-access");
+                userAttributes.add("permission-id", AdobeConnectPermissions.VIEW_ONLY.getPermissionId());
+            }*/
 
             logger.debug("Setting permissions for recording '{}' (sco ID: '{}').", recording.getName(),
                     recording.getId());

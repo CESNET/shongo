@@ -166,6 +166,11 @@ public class DetailRecordingsController extends AbstractDetailController
             @PathVariable(value = "objectId") String objectId)
     {
         Executable executable = getExecutable(securityToken,objectId);
+        if (executable instanceof UsedRoomExecutable) {
+            UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) executable;
+            String reusedRoomExecutableId = usedRoomExecutable.getReusedRoomExecutableId();
+            executable = getExecutable(securityToken,reusedRoomExecutableId);
+        }
         if (executable instanceof RoomExecutable) {
             RoomExecutable roomExecutable = (RoomExecutable) executable;
             String recordingFolderId = roomExecutable.getRecordingFolderId();
