@@ -66,6 +66,14 @@ public abstract class AbstractObjectReport extends AbstractComplexType
     }
 
     /**
+     * @return {@link #reports}
+     */
+    public List<Map<String, Object>> getReports()
+    {
+        return Collections.unmodifiableList(reports);
+    }
+
+    /**
      * @param locale
      * @param timeZone
      * @return {@link AbstractObjectReport} as string for given {@code locale} and {@code timeZone}

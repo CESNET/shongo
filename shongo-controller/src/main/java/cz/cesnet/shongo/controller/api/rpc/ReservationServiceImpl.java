@@ -29,10 +29,7 @@ import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
 import jade.content.onto.annotations.Slot;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -224,6 +221,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             Boolean isFirstSlot = null;
+            int slotsLeft = slots.size();
             // For each time slot in periodic reservation request
             for (Interval slotToTest : slots) {
                 if (isFirstSlot == null) {
@@ -312,6 +310,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                                 reservationTask.perform();
                             } finally {
                                 entityManager.getTransaction().rollback();
+                                slotsLeft--;
                             }
                         } else {
                             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
@@ -319,10 +318,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     }
                 }
                 catch (SchedulerException exception) {
+                    SchedulerReport schedulerReport = exception.getReport();
+
                     // Specification cannot be allocated or reservation request cannot be reused in requested time slot
-                    return exception.getReport().toAllocationStateReport(authorization.isAdministrator(securityToken) ?
-                            Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
-                }
+                    /* TODO: PREPARED for reporting all errors at once
+                    if (slotsLeft > 0) {
+                        AvailabilityCheckRequest newRequest = request;
+                        newRequest.setSlot(slots.get(slots.size()-slotsLeft));
+                        Object availabilityCheckResult = checkPeriodicAvailability(newRequest);
+                        if (!Boolean.TRUE.equals(availabilityCheckResult)) {
+                            AllocationStateReport report = (AllocationStateReport) availabilityCheckResult;
+                            return schedulerReport.toAllocationStateReport(report);
+                        }
+                    }*/
+                    return schedulerReport.toAllocationStateReport(authorization.isAdministrator(securityToken) ?
+                            Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);                }
 
             } //END OF FOR-EACH LOOP
 

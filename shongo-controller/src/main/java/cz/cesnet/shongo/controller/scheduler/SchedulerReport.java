@@ -196,6 +196,22 @@ public abstract class SchedulerReport extends AbstractReport
     }
 
     /**
+     * @param previousReport
+     * @return this {@link SchedulerReport} as {@link AllocationStateReport} appended for given {@code previousReport}
+     */
+    public AllocationStateReport toAllocationStateReport(AllocationStateReport previousReport)
+    {
+        List<Map<String, Object>> reports = new LinkedList<Map<String, Object>>();
+        toMap(reports, previousReport.getUserType());
+
+        AllocationStateReport allocationStateReport = previousReport;
+        for (Map<String, Object> report : reports) {
+            allocationStateReport.addReport(report);
+        }
+        return allocationStateReport;
+    }
+
+    /**
      * @param reports     to be filled by reports as maps
      * @param userType to be used
      */

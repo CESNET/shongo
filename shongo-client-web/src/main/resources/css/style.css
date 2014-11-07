@@ -894,9 +894,13 @@ textarea.error,
   background-color: #FFF0F0;
 }
 span.error,
-div.error {
-  color: #b94a48;
-  font-weight: bold;
+ div.error {
+     color: #b94a48;
+     font-weight: bold;
+ }
+dd div.warning {
+    color: #B98146;
+    font-weight: bold;
 }
 .form-inline .input-group {
   display: inline-table;
