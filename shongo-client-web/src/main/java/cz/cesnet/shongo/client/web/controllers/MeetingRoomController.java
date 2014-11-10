@@ -162,7 +162,8 @@ public class MeetingRoomController {
             item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
-            item.put("user", user.getFullName());
+            item.put("ownerName", user.getFullName());
+            item.put("ownerEmail",user.getPrimaryEmail());
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
@@ -299,7 +300,8 @@ public class MeetingRoomController {
             item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
             */
             UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
-            item.put("user", user.getFullName());
+            item.put("ownerName", user.getFullName());
+            item.put("ownerEmail",user.getPrimaryEmail());
 
             Interval slot = reservation.getSlot();
             item.put("slot", formatter.formatInterval(slot));

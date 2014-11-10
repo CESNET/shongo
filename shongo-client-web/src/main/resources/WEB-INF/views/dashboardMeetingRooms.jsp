@@ -71,7 +71,13 @@
                 </tag:help>
             </td>
             <td>
-                <span>{{room.user}}</span>
+                <tag:help label="{{room.ownerName}}" selectable="true">
+                    <span>
+                        <strong><spring:message code="views.room.ownerEmail"/></strong>
+                        <br />
+                        <a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>
+                    </span>
+                </tag:help>
             </td>
             <td>
                 <span ng-bind-html="room.earliestSlot"></span>
