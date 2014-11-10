@@ -48,8 +48,15 @@
             resourceId: $scope.resourceIdOptions.data[0].id
         };
 
-        $scope.$watchCollection('[reservationsFilter.intervalFrom, reservationsFilter.intervalTo, reservationsFilter.resourceId]', function(newValues, oldValues, scope) {
-            $scope.$$childHead.refresh();
+        $scope.$watchCollection('[reservationsFilter.intervalFrom, reservationsFilter.intervalTo]', function(newValues, oldValues, scope) {
+            if ($scope.$parent.$tab.active) {
+                $scope.$$childHead.refresh();
+            }
+        });
+        $scope.$watch('reservationsFilter.resourceId', function(newResourceId, oldResourceId, scope) {
+            if ($scope.$parent.$tab.active && typeof newResourceId == "object") {
+                $scope.$$childHead.refresh();
+            }
         });
 
         // URL for listing rooms
@@ -62,14 +69,8 @@
                 url += "&interval-to=" + $scope.reservationsFilter.intervalTo + "T23:59:59";
             }
             if ($scope.reservationsFilter.resourceId != null && $scope.reservationsFilter.resourceId.id != null) {
-                console.debug("url-param:",$scope.reservationsFilter.resourceId.id);
                 url += "&resource-id=" + encodeURIComponent($scope.reservationsFilter.resourceId.id);
-            } else  {
-                //TODO: MR opravit
-                console.trace();
-                return;
             }
-            console.debug("url-",url);
             return url;
         };
     }
