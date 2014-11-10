@@ -128,6 +128,11 @@ public class ErrorModel
 
         content.append("\n\nCONFIGURATION\n\n");
 
+        content.append("  URL: ");
+        content.append(requestUri);
+        content.append("?" + request.getQueryString());
+        content.append("\n");
+
         // User
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof OpenIDConnectAuthenticationToken) {
