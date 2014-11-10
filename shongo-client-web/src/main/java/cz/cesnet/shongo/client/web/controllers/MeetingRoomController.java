@@ -11,9 +11,7 @@ import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -218,8 +216,8 @@ public class MeetingRoomController {
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false,
-                    defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
-            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
+                    defaultValue = "SLOT") ReservationListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "false") boolean sortDescending,
             @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
             @RequestParam(value = "resource-id", required = false) String resourceId,
             @RequestParam(value = "specification-technology", required = false) TechnologyModel specificationTechnology,
@@ -234,7 +232,7 @@ public class MeetingRoomController {
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        //request.setSort(sort);
+        request.setSort(sort);
         request.setSortDescending(sortDescending);
         //request.addSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
 
