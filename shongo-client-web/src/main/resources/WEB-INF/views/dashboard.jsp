@@ -89,16 +89,14 @@
         <tag:expandableBlock name="actions" expandable="false" expandCode="views.select.action" cssClass="actions">
             <span><spring:message code="views.select.action"/></span>
             <ul>
-                <%-- Removed for CEITEC - temporary --%>
-                <%--li>
+                <li>
                     <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
                         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                     </tag:url>
                     <a href="${createRoomUrl}" tabindex="1">
                         <spring:message code="views.index.action.createRoom"/>
                     </a>
-                </li--%>
-                <%-- Removed for CEITEC - temporary --%>
+                </li>
                 <li>
                     <a href="${createMeetingRoomUrl}" tabindex="1">
                         <spring:message code="views.index.action.bookMeetingRoom"/>
@@ -109,19 +107,17 @@
     </security:authorize>
 
     <tabset>
-        <%-- Removed for CEITEC - temporary --%>
-        <%-- Reservations tab -->
+        <%-- Reservations tab --%>
         <spring:message code="views.index.reservations" var="roomsTitle"/>
         <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
             <%@ include file="dashboardReservation.jsp" %>
-        </tab--%>
+        </tab>
 
-        <%-- Participation tab -->
+        <%-- Participation tab --%>
         <spring:message code="views.index.participation" var="participationTitle"/>
         <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
             <%@ include file="dashboardParticipation.jsp" %>
-        </tab--%>
-        <%-- END Removed for CEITEC - temporary --%>
+        </tab>
 
         <%-- Meeting rooms tab --%>
         <spring:message code="views.index.myMeetingRooms" var="myMeetingRoomTitle"/>
