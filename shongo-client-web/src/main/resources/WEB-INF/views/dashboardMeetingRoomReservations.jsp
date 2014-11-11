@@ -49,7 +49,17 @@
         };
 
         $scope.$watchCollection('[reservationsFilter.intervalFrom, reservationsFilter.intervalTo]', function(newValues, oldValues, scope) {
+            var startClass = document.getElementById("start").className;
+            var endClass = document.getElementById("start").className;
+            if (new Date(newValues[0]) > new Date(newValues[1])) {
+                alert("<spring:message code='validation.field.invalidInterval'/>");
+                document.getElementById("start").className += " fa-red";
+                document.getElementById("end").className += " fa-red";
+                return;
+            }
             if ($scope.$parent.$tab.active) {
+                document.getElementById("start").className = startClass.replace(" fa-red","");
+                document.getElementById("end").className = endClass.replace(" fa-red","");
                 $scope.$$childHead.refresh();
             }
         });
