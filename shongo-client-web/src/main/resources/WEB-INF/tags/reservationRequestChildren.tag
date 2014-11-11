@@ -105,7 +105,18 @@
         </tbody>
         <tbody>
         <tr ng-hide="items.length">
-            <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
+            <td colspan="4" class="empty">
+                <c:choose>
+                    <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                        <div class="alert alert-warning">
+                            <spring:message code="views.reservationRequestDetail.waitingForAllocation"/>...
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <spring:message code="views.list.none"/>
+                    </c:otherwise>
+                </c:choose>
+            </td>
         </tr>
         </tbody>
     </table>
