@@ -90,7 +90,7 @@ public class ListRequest extends AbstractRequest
      */
     public int getCount()
     {
-        if (count == null || count == -1) {
+        if (count == null || count < 0) {
             return -1;
         }
         return count;
@@ -102,7 +102,7 @@ public class ListRequest extends AbstractRequest
      */
     public int getCount(int maxCount)
     {
-        if (count == null || count == -1 || (count > maxCount)) {
+        if (count == null || count < 0 || (count > maxCount)) {
             return maxCount;
         }
         return count;
