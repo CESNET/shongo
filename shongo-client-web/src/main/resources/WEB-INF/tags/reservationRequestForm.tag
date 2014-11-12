@@ -730,8 +730,8 @@
         </div>
     </c:if>
 
-
-    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'} && ${reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <%-- TODO: Check if resource has recording capability --%>
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>
