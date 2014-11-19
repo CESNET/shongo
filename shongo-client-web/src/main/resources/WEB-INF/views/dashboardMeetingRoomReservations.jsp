@@ -36,8 +36,8 @@
                 return markup;
             },
             data: [
-                <c:forEach items="${resources}" var="resource">
-                {id: "${resource.key}", text: "${resource.value}"},
+                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                    {id: "${meetingRoomResource.key}", text: "${meetingRoomResource.value}"},
                 </c:forEach>
             ]
         }

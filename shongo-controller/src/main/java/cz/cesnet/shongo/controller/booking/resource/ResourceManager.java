@@ -376,14 +376,7 @@ public class ResourceManager extends AbstractManager
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
-        Root<Tag> from = query.from(Tag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("id").as(Long.class), tagId);
-        query.select(from).where(param1);
-
-        TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
-
-        return typedQuery.getSingleResult();
+        return entityManager.find(Tag.class,tagId);
     }
 
     public Tag findTag(String name)
