@@ -304,7 +304,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             // Filter requested tag-id
             if (request.getTagId() != null) {
-                throw new TodoImplementException("MR");
+                queryFilter.addFilter("resource_summary.id IN ("
+                        + " SELECT resource_id FROM resource_tag "
+                        + " WHERE tag_id = :tagId)", "tagId", request.getTagId());
             }
 
             // Filter requested tag-name

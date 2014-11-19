@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.Design;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
@@ -61,7 +62,9 @@ public class IndexController
             Map<String, String> resources = new LinkedHashMap<String, String>();
 
             OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
-            for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(authenticationToken.getSecurityToken()))) {
+            ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
+            resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
+            for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
                 String resourceId = resourceSummary.getId();
                 StringBuilder resourceTitle = new StringBuilder();
                 resourceTitle.append("<b>");
@@ -77,7 +80,7 @@ public class IndexController
                 }
                 resources.put(resourceId, resourceTitle.toString());
             }
-            modelAndView.addObject("resources", resources);
+            modelAndView.addObject("meetingRoomResources", resources);
         }
 
         return modelAndView;

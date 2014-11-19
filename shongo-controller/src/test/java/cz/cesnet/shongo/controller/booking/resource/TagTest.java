@@ -132,4 +132,24 @@ public class TagTest extends AbstractControllerTest {
         // test if all inherited acls has been deleted
         Assert.assertNull(getAclEntryForGroup(Authorization.EVERYONE_GROUP_ID, resourceId, ObjectRole.READER));
     }
+
+    @Test
+    public void testFindTag() throws Exception
+    {
+        ResourceService resourceService = getResourceService();
+
+        // tag1 init
+        cz.cesnet.shongo.controller.api.Tag tag1 = new cz.cesnet.shongo.controller.api.Tag();
+        tag1.setName("testTag1");
+        String tagId1 = resourceService.createTag(SECURITY_TOKEN_ROOT, tag1);
+
+        cz.cesnet.shongo.controller.api.Tag findResult = resourceService.findTag(SECURITY_TOKEN_ROOT,tag1.getName());
+        cz.cesnet.shongo.controller.api.Tag getResult = resourceService.getTag(SECURITY_TOKEN_ROOT, tagId1);
+
+        Assert.assertNotNull(getResult);
+        Assert.assertNotNull(findResult);
+
+        Assert.assertEquals(getResult.getName(),findResult.getName());
+        Assert.assertEquals(getResult.getId(),findResult.getId());
+    }
 }
