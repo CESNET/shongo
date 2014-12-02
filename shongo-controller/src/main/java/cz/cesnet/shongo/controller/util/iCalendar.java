@@ -77,21 +77,21 @@ public class iCalendar
     public void setMethod(Method method)
     {
         PropertyList properties = this.calendar.getProperties();
-            properties.remove(Property.METHOD);
-            switch (method) {
-                case CREATE:
-                    properties.add(net.fortuna.ical4j.model.property.Method.REQUEST);
-                    break;
-                case UPDATE:
-                    properties.add(net.fortuna.ical4j.model.property.Method.REQUEST);
-                    break;
-                case CANCEL:
-                    properties.add(net.fortuna.ical4j.model.property.Method.CANCEL);
+        removeProperty(properties, Property.METHOD);
+        switch (method) {
+            case CREATE:
+                properties.add(net.fortuna.ical4j.model.property.Method.REQUEST);
+                break;
+            case UPDATE:
+                properties.add(net.fortuna.ical4j.model.property.Method.REQUEST);
+                break;
+            case CANCEL:
+                properties.add(net.fortuna.ical4j.model.property.Method.CANCEL);
 
-                    break;
-                default:
-                    throw new TodoImplementException(method);
-            }
+                break;
+            default:
+                throw new TodoImplementException(method);
+        }
         for (Event event : events) {
             event.updateStatus();
         }
@@ -198,7 +198,7 @@ public class iCalendar
         public void setSequence(int sequenceNo)
         {
             PropertyList properties = event.getProperties();
-            properties.remove(Property.SEQUENCE);
+            removeProperty(properties, Property.SEQUENCE);
             properties.add(new Sequence(sequenceNo));
         }
 
@@ -214,9 +214,9 @@ public class iCalendar
             dtEnd.setTimeZone(new TimeZone(timeZone));
 
             PropertyList properties = event.getProperties();
-            properties.remove(Property.TZID);
-            properties.remove(Property.DTSTART);
-            properties.remove(Property.DTEND);
+            removeProperty(properties, Property.TZID);
+            removeProperty(properties, Property.DTSTART);
+            removeProperty(properties, Property.DTEND);
             properties.add(dtStart);
             properties.add(dtEnd);
         }
@@ -224,14 +224,14 @@ public class iCalendar
         public void setSummary(String summary)
         {
             PropertyList properties = event.getProperties();
-            properties.remove(Property.SUMMARY);
+            removeProperty(properties, Property.SUMMARY);
             properties.add(new Summary(summary));
         }
 
         public void setDescription(String description)
         {
             PropertyList properties = event.getProperties();
-            properties.remove(Property.DESCRIPTION);
+            removeProperty(properties, Property.DESCRIPTION);
             properties.add(new Description(description));
         }
 
@@ -239,7 +239,7 @@ public class iCalendar
         {
             Attendee attendee;
             try {
-                attendee = new Attendee("mailto:" + email);
+                attendee = new Attendee("mailto:" + email.trim());
                 attendee.getParameters().add(Role.REQ_PARTICIPANT);
                 attendee.getParameters().add(new Cn(name));
             }
@@ -252,7 +252,7 @@ public class iCalendar
         private void updateStatus()
         {
             PropertyList properties = event.getProperties();
-            properties.remove(Property.STATUS);
+            removeProperty(properties, Property.STATUS);
             net.fortuna.ical4j.model.property.Method method = (net.fortuna.ical4j.model.property.Method)
                     calendar.getProperties().getProperty(Property.METHOD);
             if (net.fortuna.ical4j.model.property.Method.PUBLISH.equals(method)) {
@@ -267,7 +267,7 @@ public class iCalendar
         {
             try {
                 PropertyList properties = event.getProperties();
-                properties.remove(Property.ORGANIZER);
+                removeProperty(properties, Property.ORGANIZER);
                 properties.add(new Organizer(organizer));
             }
             catch (URISyntaxException exception) {
@@ -278,8 +278,16 @@ public class iCalendar
         public void setLocation(String location)
         {
             PropertyList properties = event.getProperties();
-            properties.remove(Property.LOCATION);
+            removeProperty(properties, Property.LOCATION);
             properties.add(new Location(location));
+        }
+    }
+
+    private static void removeProperty(PropertyList properties, String propertyName)
+    {
+        Property property = properties.getProperty(propertyName);
+        if (property != null) {
+            properties.remove(property);
         }
     }
 
