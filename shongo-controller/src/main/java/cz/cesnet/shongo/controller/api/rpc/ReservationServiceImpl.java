@@ -344,7 +344,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
     }
 
-        @Override
+    @Override
     public String createReservationRequest(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
@@ -914,6 +914,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 switch (sort) {
                     case ALIAS_ROOM_NAME:
                         queryOrderBy = "specification_summary.alias_room_name";
+                        break;
+                    case RESOURCE_ROOM_NAME:
+                        queryOrderBy = "resource_summary.name";
                         break;
                     case DATETIME:
                         queryOrderBy = "reservation_request_summary.created_at";

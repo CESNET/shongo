@@ -38,10 +38,10 @@
         <thead>
         <tr>
             <th>
-                <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.resourceName"/></pagination-sort>
+                <pagination-sort column="RESOURCE_ROOM_NAME"><spring:message code="views.reservationRequestList.resourceName"/></pagination-sort>
             </th>
             <th width="200px">
-                <pagination-sort column="OWNER"><spring:message code="views.room.bookedBy"/></pagination-sort>
+                <pagination-sort column="USER"><spring:message code="views.room.bookedBy"/></pagination-sort>
             </th>
             <th>
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
