@@ -43,7 +43,7 @@
         }
 
         $scope.reservationsFilter = {
-            intervalFrom: dateTime.weekday(0).format("YYYY-MM-DD"),
+            intervalFrom: dateTime.format("YYYY-MM-DD"),
             intervalTo: dateTime.weekday(6).format("YYYY-MM-DD"),
             resourceId: $scope.resourceIdOptions.data[0].id
         };
@@ -123,10 +123,10 @@
         <thead>
         <tr>
             <th>
-                <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.resourceName"/></pagination-sort>
+                <spring:message code="views.reservationRequestList.resourceName"/>
             </th>
             <th width="200px">
-                <pagination-sort column="OWNER"><spring:message code="views.room.bookedBy"/></pagination-sort>
+                <spring:message code="views.room.bookedBy"/>
             </th>
             <th>
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>

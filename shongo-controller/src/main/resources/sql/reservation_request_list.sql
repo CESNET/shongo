@@ -32,12 +32,14 @@ SELECT
     END AS alias_room_name,
     specification_summary.resource_id AS resource_id,
     reservation_request_summary.usage_executable_state AS usage_executable_state,
-    reservation_request_summary.future_child_count
+    reservation_request_summary.future_child_count,
+    resource_summary.name AS resource_name
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
 LEFT JOIN abstract_reservation_request AS reused_reservation_request ON reused_reservation_request.id = reservation_request_summary.reused_reservation_request_id
 LEFT JOIN specification_summary AS reused_specification_summary ON reused_specification_summary.id = reused_reservation_request.specification_id
 LEFT JOIN executable_summary ON executable_summary.id = reservation_request_summary.last_executable_id
+LEFT JOIN resource_summary ON resource_summary.id = specification_summary.resource_id
 WHERE ${filter}
 ORDER BY ${order}

@@ -152,7 +152,7 @@ LEFT JOIN alias_specification_summary ON alias_specification_summary.id = specif
 LEFT JOIN value_specification ON value_specification.id = specification.id
 LEFT JOIN value_provider ON value_provider.id = value_specification.value_provider_id
 LEFT JOIN capability AS value_provider_capability ON value_provider_capability.id = value_provider.capability_id
-GROUP BY 
+GROUP BY
     specification.id,    
     alias_specification_summary.id,
     alias_specification_summary.room_name,

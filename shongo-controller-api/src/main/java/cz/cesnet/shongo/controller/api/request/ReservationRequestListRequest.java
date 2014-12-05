@@ -340,6 +340,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     public static enum Sort
     {
         ALIAS_ROOM_NAME,
+        RESOURCE_ROOM_NAME,
         DATETIME,
         REUSED_RESERVATION_REQUEST,
         ROOM_PARTICIPANT_COUNT,
