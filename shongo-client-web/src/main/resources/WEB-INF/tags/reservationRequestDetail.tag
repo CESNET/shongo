@@ -142,12 +142,10 @@
     </c:if>
 
     <%-- Recorded --%>
-    <%-- TODO:ROOM_RECORDED_HIDDEN
     <c:if test="${reservationRequest.technology != 'ADOBE_CONNECT' && (reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY')}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecorded"/>:</dt>
         <dd><spring:message code="views.button.${reservationRequest.roomRecorded ? 'yes' : 'no'}"/></dd>
     </c:if>
-    --%>
 
     <%-- Recording Resource --%>
     <c:if test="${administrationMode && not empty reservationRequest.roomRecordingResourceId}">

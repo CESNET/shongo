@@ -154,6 +154,14 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         else {
             templateFileName = "reservation.ftl";
         }
+
+        // Add recording to notifications
+        renderContext.addParameter("roomRecorded", "no");
+        for (Target childTarget : childTargetByReservation.values()) {
+            if (childTarget instanceof Target.RecordingService) {
+                renderContext.addParameter("roomRecorded", "yes");
+            }
+        }
         return renderTemplateMessage(renderContext, titleBuilder.toString(), templateFileName);
     }
 
