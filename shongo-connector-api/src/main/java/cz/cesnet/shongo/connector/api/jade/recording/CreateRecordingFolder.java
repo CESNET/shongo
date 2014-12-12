@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
+import java.io.FileNotFoundException;
+
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link cz.cesnet.shongo.connector.api.RecordingService#createRecordingFolder}

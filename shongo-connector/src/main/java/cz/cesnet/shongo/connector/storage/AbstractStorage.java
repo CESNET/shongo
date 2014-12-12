@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 /**
@@ -33,7 +34,7 @@ public abstract class AbstractStorage implements Storage
      * @param url sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    protected AbstractStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider)
+    protected AbstractStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
     {
         this.url = url;
         this.userInformationProvider = userInformationProvider;

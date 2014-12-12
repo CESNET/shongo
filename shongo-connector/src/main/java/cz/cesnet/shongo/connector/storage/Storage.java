@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ public interface Storage
      * @param folder information about the new folder, if parentFolderId is {@coe null}, folder is created in /
      * @return id of the new folder
      */
-    String createFolder(Folder folder);
+    String createFolder(Folder folder) throws FileNotFoundException;
 
     /**
      * Delete existing folder in the storage.

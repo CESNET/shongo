@@ -57,11 +57,13 @@ public class LocalStorageHandler
      *
      * @param url sets the {@link #url}
      */
-    public LocalStorageHandler(String url)
-    {
+    public LocalStorageHandler(String url) throws FileNotFoundException {
+        if (url.endsWith("/")) {
+            url = url.substring(0,url.length() - 1);
+        }
         this.url = url;
         if (!rootFolderExists()) {
-            throw new RuntimeException("Storage directory '" + url  + "' doesn't exist.");
+            throw new FileNotFoundException("Storage directory '" + url  + "' doesn't exist.");
         }
     }
 
@@ -84,16 +86,19 @@ public class LocalStorageHandler
      * @param folder information about the new folder, if parentFolderId is {@coe null}, folder is created in /
      * @return id of the new folder
      */
-    public String createFolder(Folder folder)
-    {
-        String folderName = mangle(folder.getFolderName());
-
-        String folderId = getChildId(folder.getParentFolderId(), folderName);
+    public String createFolder(Folder folder) throws FileNotFoundException {
+        folder.setFolderName(mangle(folder.getFolderName()));
+        String folderId = getChildId(folder.getParentFolderId(), folder.getFolderName());
         String folderUrl = getUrlFromId(folderId);
+
+        if (!rootFolderExists()) {
+            throw new FileNotFoundException("Directory '" + folderUrl + "' can't be created, , because the parent folder is not accessible.");
+        }
+
         java.io.File file = getFileInstance(folderUrl);
         if (!file.exists()) {
             if (!file.mkdirs()) {
-                throw new RuntimeException("Directory '" + file.getAbsolutePath() + "' can't be created.");
+                throw new FileNotFoundException("Directory '" + file.getAbsolutePath() + "' can't be created.");
             }
         }
         return folderId;
@@ -116,23 +121,29 @@ public class LocalStorageHandler
      */
     public void deleteFolder(String folderId)
     {
-        foldersBeingDeleted.add(folderId);
-        while (filesBeingCreated.containsValue(folderId)) {
-            try {
-                Thread.sleep(WAIT_SLEEP);
+        try {
+            foldersBeingDeleted.add(folderId);
+            while (filesBeingCreated.containsValue(folderId)) {
+                try {
+                    Thread.sleep(WAIT_SLEEP);
+                } catch (InterruptedException e) {
+                    continue;
+                }
             }
-            catch (InterruptedException e) {
-                continue;
+
+            String folderUrl = getUrlFromId(folderId);
+            java.io.File ioFolder = getFileInstance(folderUrl);
+            if (rootFolderExists()) {
+                if (ioFolder.exists() && !deleteRecursive(ioFolder)) {
+                    throw new RuntimeException("Directory '" + folderUrl + "' cannot be deleted.");
+                }
+            } else {
+                //TODO: vyresit budouci mazani
+                throw new RuntimeException("Folder \"" + folderId + "\" cannot be deleted, because file system is not accessible.");
             }
+        } finally {
+            foldersBeingDeleted.remove(folderId);
         }
-
-        String folderUrl = getUrlFromId(folderId);
-        java.io.File ioFolder = getFileInstance(folderUrl);
-        if (ioFolder.exists() && !deleteRecursive(ioFolder)) {
-            throw new RuntimeException("Directory '" + folderUrl + "' cannot be deleted.");
-        }
-
-        foldersBeingDeleted.remove(folderId);
     }
 
     /**
@@ -158,11 +169,9 @@ public class LocalStorageHandler
     {
         String folderUrl = getUrlFromId(folderId);
         java.io.File ioParentFolder = getFileInstance(folderUrl);
-        String[] ioFolders = ioParentFolder.list(new FilenameFilter()
-        {
+        String[] ioFolders = ioParentFolder.list(new FilenameFilter() {
             @Override
-            public boolean accept(java.io.File directory, String fileName)
-            {
+            public boolean accept(java.io.File directory, String fileName) {
                 java.io.File file = new java.io.File(directory, fileName);
                 if (!file.isDirectory() || fileName.equals(".") || fileName.equals("..")) {
                     return false;
@@ -194,7 +203,8 @@ public class LocalStorageHandler
     {
         String folderId = file.getFolderId();
         String folderUrl = getUrlFromId(folderId);
-        String fileName = mangle(file.getFileName());
+        file.setFileName(mangle(file.getFileName()));
+        String fileName = file.getFileName();
         String fileUrl = getChildUrl(folderUrl, fileName);
 
         if (getFileInstance(fileUrl).exists()) {
@@ -337,8 +347,10 @@ public class LocalStorageHandler
         String folderUrl = getUrlFromId(folderId);
         String fileUrl = getChildUrl(folderUrl, mangle(fileName));
         java.io.File file = getFileInstance(fileUrl);
-        if (!file.delete()) {
-            throw new RuntimeException("File'" + fileUrl + "' cannot be deleted.");
+        if (file.exists()) {
+            if (!file.delete()) {
+                throw new RuntimeException("File'" + fileUrl + "' cannot be deleted.");
+            }
         }
     }
 

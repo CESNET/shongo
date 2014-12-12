@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class ApacheStorage extends AbstractStorage
 {
-    private static final String PERMISSION_FILE_NAME = ".htaccess";
+    public static final String PERMISSION_FILE_NAME = ".htaccess";
 
     /**
      * @see cz.cesnet.shongo.connector.storage.LocalStorageHandler
@@ -33,7 +33,7 @@ public class ApacheStorage extends AbstractStorage
      * @param url                     sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    public ApacheStorage(String url, String permissionFormat, String downloadableUrlBase, UserInformationProvider userInformationProvider)
+    public ApacheStorage(String url, String permissionFormat, String downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
     {
         super(url, downloadableUrlBase, userInformationProvider);
 
@@ -42,8 +42,7 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public String createFolder(Folder folder)
-    {
+    public String createFolder(Folder folder) throws FileNotFoundException {
         return localStorageHandler.createFolder(folder);
     }
 
@@ -65,6 +64,17 @@ public class ApacheStorage extends AbstractStorage
         return localStorageHandler.listFolders(folderId, folderName);
     }
 
+    public boolean isFolderPermissionsSet(String folderId) throws FileNotFoundException {
+        if (!localStorageHandler.rootFolderExists()) {
+            throw new FileNotFoundException("Storage directory '" + localStorageHandler.getUrl()  + "' doesn't exist.");
+
+        }
+        File permissionsFile = new File();
+        permissionsFile.setFileName(PERMISSION_FILE_NAME);
+        permissionsFile.setFolderId(folderId);
+        return localStorageHandler.fileExists(permissionsFile);
+    }
+
     @Override
     public void setFolderPermissions(String folderId, Map<String, RecordingFolder.UserPermission> userPermissions)
             throws CommandException
@@ -72,6 +82,38 @@ public class ApacheStorage extends AbstractStorage
         String folderUrl = localStorageHandler.getUrlFromId(folderId);
         String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, PERMISSION_FILE_NAME);
 
+        StringBuilder permissionFileContent = preparePermissionFileContent(userPermissions);
+
+        printPermissionsToFile(permissionFileUrl,permissionFileContent);
+    }
+
+    public void setFolderPermissions(String folderId, StringBuilder permissionFileContent)
+            throws CommandException
+    {
+        String folderUrl = localStorageHandler.getUrlFromId(folderId);
+        String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, PERMISSION_FILE_NAME);
+
+        printPermissionsToFile(permissionFileUrl,permissionFileContent);
+    }
+
+    private void printPermissionsToFile(String permissionFileUrl, StringBuilder permissionFileContent)
+    {        PrintStream out = null;
+        try {
+            out = new PrintStream(new FileOutputStream(permissionFileUrl));
+            out.print(permissionFileContent);
+        }
+        catch (FileNotFoundException exception) {
+            throw new RuntimeException("File '" + permissionFileUrl + "' cannot be written.", exception);
+        }
+        finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    public StringBuilder preparePermissionFileContent(Map<String, RecordingFolder.UserPermission> userPermissions) throws CommandException
+    {
         String permissionFormat;
         Set<String> permissionValues = new TreeSet<String>();
         if (this.permissionFormat.contains("${userPrincipalName}")) {
@@ -98,19 +140,7 @@ public class ApacheStorage extends AbstractStorage
             permissionFileContent.append(permissionFormat.replace("${permissionValue}", permissionValue));
             permissionFileContent.append("\n");
         }
-        PrintStream out = null;
-        try {
-            out = new PrintStream(new FileOutputStream(permissionFileUrl));
-            out.print(permissionFileContent);
-        }
-        catch (FileNotFoundException exception) {
-            throw new RuntimeException("File '" + permissionFileUrl + "' cannot be written.", exception);
-        }
-        finally {
-            if (out != null) {
-                out.close();
-            }
-        }
+        return permissionFileContent;
     }
 
     @Override
@@ -147,6 +177,9 @@ public class ApacheStorage extends AbstractStorage
     public String getFileDownloadableUrl(String folderId, String fileName)
     {
         String fileUrl = LocalStorageHandler.getChildUrl(folderId, fileName);
+        if (!folderExists(fileUrl)) {
+            return null;
+        }
         String downloadableUrl = this.getDownloadableUrlBase() + "/" + fileUrl;
         return downloadableUrl;
     }

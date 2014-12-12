@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 
+import java.io.FileNotFoundException;
 import java.util.Collection;
 
 /**

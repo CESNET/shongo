@@ -32,6 +32,7 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.apache.tika.io.IOUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -169,7 +170,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     /**
      * Concurrent map of recordingFolderId by recordingId which are being moved from device to storage.
      */
-    private final Map<String, String> recordingsBeingMoved = new ConcurrentHashMap<String, String>();
+    private final ConcurrentHashMap<String, String> recordingsBeingMoved = new ConcurrentHashMap<String, String>();
 
     private SAXBuilder saxBuilder = new SAXBuilder();
     private XMLOutputter xmlOutputter = new XMLOutputter();
@@ -202,20 +203,27 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         this.recordingAlias = configuration.getOptionStringRequired("alias");
 
         String metadataStorage = configuration.getOptionStringRequired("metadata-storage");
-        this.metadataStorage = new LocalStorageHandler(metadataStorage);
+        try {
+            this.metadataStorage = new LocalStorageHandler(metadataStorage);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Cannot initialized CiscoTCSConnector, because folder for metadata does not exist.",e);
+        }
 
         String storage = configuration.getOptionStringRequired("storage");
         String permission = configuration.getOptionString("storage-permission", "Require user ${userPrincipalName}");
         String downloadableUrlBase = configuration.getOptionStringRequired("downloadable-url-base");
-        this.storage = new ApacheStorage(storage, permission, downloadableUrlBase,
-                new AbstractStorage.UserInformationProvider()
-                {
-                    @Override
-                    public UserInformation getUserInformation(String userId) throws CommandException
-                    {
-                        return getUserInformationById(userId);
-                    }
-                });
+        try {
+            this.storage = new ApacheStorage(storage, permission, downloadableUrlBase,
+                    new AbstractStorage.UserInformationProvider() {
+                        @Override
+                        public UserInformation getUserInformation(String userId) throws CommandException {
+                            return getUserInformationById(userId);
+                        }
+                    });
+        } catch (FileNotFoundException e) {
+            logger.error("Storage folder \"" + storage + "\" does not exist or is not accessible.");
+            throw new RuntimeException("Cannot initialized CiscoTCSConnector, because folder for recordings does not exist.",e);
+        }
 
         // Enable xml output do debug log
         this.debug = configuration.getOptionBool("debug");
@@ -264,6 +272,28 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         }
     }
 
+    private void sendUnavailableNotification(String url) throws CommandException {
+        NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+        notifyTarget.addMessage("en",
+                "TCS storage folder not accessible:" + url,
+                "TCS storage directory \"" + url + "\" does not exist or stale.");
+        notifyTarget.addMessage("cs",
+                "Adresář uložiště pro TCS není dostupný: " + url,
+                "Adresář \"" + url + "\" pro ukládání nahrávek z TCS není dostupný.");
+
+        /*TODO: get connection status
+        Controller action failed: Sender agent tcs1 is not started yet.
+        while (!agent.isStarted()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                continue;
+            }
+        }
+        */
+        performControllerAction(notifyTarget);
+    }
+
     @Override
     public ConnectionState getConnectionState()
     {
@@ -298,26 +328,67 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     }
 
     @Override
-    public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
-    {
-        // Folder for recordings
+    public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException {
         // TODO: return id even if storage not accessible, info saved in alias
         Folder folder = new Folder(null, recordingFolder.getName());
-        String folderId = storage.createFolder(folder);
-        storage.setFolderPermissions(folderId, recordingFolder.getUserPermissions());
 
         // Folder on local storage for metadata
-        if (!metadataStorage.createFolder(folder).equals(folderId)) {
-            throw new TodoImplementException("Fix folderId for metadata's and recording's folders.");
+        String metadataFolderId;
+        try {
+            metadataFolderId = metadataStorage.createFolder(folder);
+        } catch (FileNotFoundException e) {
+            throw new CommandException("Cannot create metadata storage directory \"" + folder.getFolderName() + "\".",e);
+        }
+        recordingFolder.setName(folder.getFolderName());
+
+        // Folder for recordings
+        String folderId = null;
+        try {
+            folderId = storage.createFolder(folder);
+            storage.setFolderPermissions(folderId, recordingFolder.getUserPermissions());
+        } catch (FileNotFoundException e) {
+            logger.warn("Cannot create TCS storage directory \"" + folder.getFolderName() + "\".");
+            sendUnavailableNotification(storage.getUrl() + "/" + recordingFolder.getName());
+            backupPermissions(recordingFolder, metadataFolderId);
         }
 
-        return folderId;
+        if (folderId != null && !folderId.equals(metadataFolderId)) {
+            throw new TodoImplementException("Fix different folderId for metadata's and recording's folders.");
+        }
+
+        return metadataFolderId;
     }
 
     @Override
     public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        storage.setFolderPermissions(recordingFolder.getId(), recordingFolder.getUserPermissions());
+        try {
+            storage.setFolderPermissions(recordingFolder.getId(), recordingFolder.getUserPermissions());
+        } catch (RuntimeException e) {
+            try {
+                if (!((ApacheStorage) storage).isFolderPermissionsSet(recordingFolder.getId())) {
+                    backupPermissions(recordingFolder, recordingFolder.getId());
+                }
+            } catch (FileNotFoundException ex) {
+                logger.warn("Cannot set permissons for TCS storage folder \"" + storage.getUrl() + "/" + recordingFolder.getId() + "\".");
+                sendUnavailableNotification(storage.getUrl() + "/" + recordingFolder.getName());
+                backupPermissions(recordingFolder, recordingFolder.getId());
+                return;
+            }
+            throw e;
+        }
+    }
+
+    private void backupPermissions(RecordingFolder recordingFolder, String folderId) throws CommandException {
+        StringBuilder permissionData =
+            ((ApacheStorage) storage).preparePermissionFileContent(recordingFolder.getUserPermissions());
+        File backupPermissions = new File();
+        backupPermissions.setFileName(ApacheStorage.PERMISSION_FILE_NAME);
+        backupPermissions.setFolderId(folderId);
+        if (metadataStorage.fileExists(backupPermissions)) {
+            metadataStorage.deleteFile(folderId,ApacheStorage.PERMISSION_FILE_NAME);
+        }
+        metadataStorage.createFile(backupPermissions,new ByteArrayInputStream(permissionData.toString().getBytes()));
     }
 
     @Override
@@ -328,29 +399,39 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         }
         synchronized (CiscoTCSConnector.class) {
             logger.debug("Removing recording folder (" + recordingFolderId + ").");
-            storage.deleteFolder(recordingFolderId);
+            // First call delete folder - it will wait till the moving is done there
+            boolean skipWaiting = false;
+            try {
+                storage.deleteFolder(recordingFolderId);
+            } catch (RuntimeException e) {
+                logger.warn(e.getMessage());
+                sendUnavailableNotification(storage.getUrl() + "/" + recordingFolderId);
+                skipWaiting = true;
+            }
             metadataStorage.deleteFolder(recordingFolderId);
 
-            // Wait until moving recordings is done
-            // TODO: Stop the moving (because it can last very long)
-            while (recordingsBeingMoved.containsValue(recordingFolderId)) {
-                try {
-                    StringBuilder recordings = new StringBuilder();
-                    for (Map.Entry<String, String> entry : recordingsBeingMoved.entrySet()) {
-                        if (entry.getValue().equals(recordingFolderId)) {
-                            if (recordings.length() > 0) {
-                                recordings.append(", ");
+            // Skip if the folder is not accessible at the time
+            if (!skipWaiting) {
+                // Wait until moving recordings is done
+                // TODO: Stop the moving (because it can last very long)
+                while (recordingsBeingMoved.containsValue(recordingFolderId)) {
+                    try {
+                        StringBuilder recordings = new StringBuilder();
+                        for (Map.Entry<String, String> entry : recordingsBeingMoved.entrySet()) {
+                            if (entry.getValue().equals(recordingFolderId)) {
+                                if (recordings.length() > 0) {
+                                    recordings.append(", ");
+                                }
+                                recordings.append(entry.getKey());
                             }
-                            recordings.append(entry.getKey());
                         }
+                        logger.debug(
+                                "Waiting with deletion of recording folder {} for recordings [{}] to be moved into it.",
+                                recordingFolderId, recordings);
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        continue;
                     }
-                    logger.debug(
-                            "Waiting with deletion of recording folder {} for recordings [{}] to be moved into it.",
-                            recordingFolderId, recordings);
-                    Thread.sleep(100);
-                }
-                catch (InterruptedException e) {
-                    continue;
                 }
             }
 
@@ -427,7 +508,15 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             }
             if (recording.getDownloadUrl() != null) {
                 recording.setState(Recording.State.AVAILABLE);
-                recording.setDownloadUrl(storage.getFileDownloadableUrl(recordingFolderId, recording.getFileName()));
+                String downloadableUrl = storage.getFileDownloadableUrl(recordingFolderId, recording.getFileName());
+                if (downloadableUrl != null) {
+                    recording.setDownloadUrl(downloadableUrl);
+                } else {
+                    recording.setDownloadUrl(null);
+                    logger.warn("TCS recording \"" + recordingFolderId + "/" + recording.getFileName() + "\" is not available, because the folder is not accessible.");
+                    sendUnavailableNotification(storage.getUrl() + "/" + recordingFolderId);
+                    //TODO: show error to user
+                }
             }
             recording.setRecordingFolderId(getRecordingFolderIdFromRecordingId(recordingId));
             return recording;
@@ -492,6 +581,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     public String startRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {
+        //TODO: check if available slots
+
         if (!alias.getType().equals(AliasType.H323_E164)) {
             throw new TodoImplementException("TODO: implement recording for other aliases than H.323_164.");
         }
@@ -560,7 +651,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         // create metadata file
         String recordingTcsId = getRecordingTcsIdFromRecordingId(recordingId);
         Element originalRecordingElement = getTcsRecordingElementRequired(recordingTcsId);
-        createMetadataFile(recordingId, originalRecordingElement);
+        createMetadataFiles(recordingId, originalRecordingElement);
     }
 
     @Override
@@ -592,6 +683,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     @Override
     public void checkRecording(String recordingId) throws CommandException
     {
+        throw new TodoImplementException("is never used");
+        /*
         String recordingTcsId = getRecordingTcsIdFromRecordingId(recordingId);
         Element recordingTcsElement = getTcsRecordingElement(recordingTcsId);
         if (recordingTcsElement == null) {
@@ -614,7 +707,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             recordingsBeingMoved.put(recordingId, recordingFolderId);
         }
         moveRecordingToAppropriateRecordingFolder(recordingId);
+        */
     }
+
+
 
     @Override
     public void checkRecordings() throws CommandException
@@ -955,7 +1051,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @param recordingTcsElement recording xml metadata
      * @throws CommandException
      */
-    private void createMetadataFile(String recordingId, Element recordingTcsElement) throws CommandException
+    private void createMetadataFiles(String recordingId, Element recordingTcsElement) throws CommandException
     {
         String fileId = getFileIdFromRecordingId(recordingId);
         String folderId = getRecordingFolderIdFromRecordingId(recordingId);
@@ -964,10 +1060,25 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         metadataFile.setFileName(getMetadataFilename(fileId));
         metadataFile.setFolderId(folderId);
 
-        storage.createFile(metadataFile,
-                new ByteArrayInputStream(xmlOutputter.outputString(recordingTcsElement).getBytes()));
         metadataStorage.createFile(metadataFile,
                 new ByteArrayInputStream(xmlOutputter.outputString(recordingTcsElement).getBytes()));
+
+        if (storage.folderExists(folderId)) {
+            storage.createFile(metadataFile,
+                    new ByteArrayInputStream(xmlOutputter.outputString(recordingTcsElement).getBytes()));
+        }
+    }
+
+    private void updateMetadataFiles(String recordingFolderId, String recordingId, Element recordingTcsElement) throws CommandException {
+        try {
+            storage.deleteFile(recordingFolderId, getMetadataFilename(getFileIdFromRecordingId(recordingId)));
+            metadataStorage.deleteFile(recordingFolderId,
+                    getMetadataFilename(getFileIdFromRecordingId(recordingId)));
+        }
+        catch (Exception e) {
+            logger.warn("Deleting of temporary metadata file failed (recording ID: " + recordingId + ").");
+        }
+        createMetadataFiles(recordingId, recordingTcsElement);
     }
 
     /**
@@ -1138,7 +1249,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
     private String maskSeparator(String text)
     {
-        return text.replace(separator,separatorReplacement);
+        return text.replace(separator, separatorReplacement);
     }
 
     private String unmaskSeparator(String text)
@@ -1271,6 +1382,22 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     {
         try {
             String recordingFolderId = getRecordingFolderIdFromRecordingId(recordingId);
+            if (!storage.folderExists(recordingFolderId)) {
+                Folder folder = new Folder(null, recordingFolderId);
+                try {
+                    storage.createFolder(folder);
+                    setFolderPermissionsFromMetadata(recordingFolderId);
+                } catch (FileNotFoundException e) {
+                    logger.warn("Cannot create TCS storage directory \"" + folder.getFolderName() + "\" and move recording. Skipping.");
+                    sendUnavailableNotification(storage.getUrl() + "/" + folder.getFolderName());
+
+                    //Remove recording from #link{recordingsBeingMoved} till storage is accessible
+                    recordingsBeingMoved.remove(recordingId, recordingFolderId);
+                    return;
+                } catch (Exception e) {
+                    throw new CommandException("Recreating of TCS storage folder \"" + recordingFolderId + "\" failed.",e);
+                }
+            }
             String recordingTcsId = getRecordingTcsIdFromRecordingId(recordingId);
             Element recordingTcsElement = getTcsRecordingElementRequired(recordingTcsId);
             Recording recording = parseRecording(recordingTcsElement);
@@ -1298,25 +1425,23 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 }
             });
 
-            // Delete existing and create new metadata file
-            try {
-                storage.deleteFile(recordingFolderId, getMetadataFilename(getFileIdFromRecordingId(recordingId)));
-                metadataStorage.deleteFile(recordingFolderId,
-                        getMetadataFilename(getFileIdFromRecordingId(recordingId)));
-            }
-            catch (Exception e) {
-                logger.warn("Deleting of temporary metadata file failed (recording ID: " + recordingId + ")", e);
-            }
-            createMetadataFile(recordingId, recordingTcsElement);
+            updateMetadataFiles(recordingFolderId, recordingId, recordingTcsElement);
 
             // Delete original recording on TCS
             deleteTcsRecording(recordingTcsId);
-
-            recordingsBeingMoved.remove(recordingId);
         }
         catch (Exception exception) {
             throw new CommandException("Error while moving recording " + recordingId + ".", exception);
         }
+        finally {
+            recordingsBeingMoved.remove(recordingId);
+        }
+    }
+
+    private void setFolderPermissionsFromMetadata(String recordingFolderId) throws IOException, CommandException {
+        InputStream permissionsData =
+                metadataStorage.getFileContent(recordingFolderId, ApacheStorage.PERMISSION_FILE_NAME);
+        ((ApacheStorage) storage).setFolderPermissions(recordingFolderId, new StringBuilder(IOUtils.toString(permissionsData)));
     }
 
     /**
@@ -1358,6 +1483,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                             continue;
                         }
                     }
+                    logger.debug("Number of recordings to move at the time: " + recordingsBeingMoved.size() + "");
                 }
             }
 
