@@ -64,6 +64,16 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     private static Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
 
     /**
+     * Separator for recordings title
+     */
+    private final String separator = "_";
+
+    /**
+     * Separator replacement for #link{separator} in names
+     */
+    private final String separatorReplacement = "__";
+
+    /**
      * This is the user log in name, typically the user email address.
      */
     private String login;
@@ -207,6 +217,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                     }
                 });
 
+        // Enable xml output do debug log
         this.debug = configuration.getOptionBool("debug");
 
         checkServerVitality();
@@ -344,7 +355,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             }
 
             // Delete original recordings
-            for (Recording recording : listTcsRecordings(recordingFolderId + "*")) {
+            for (Recording recording : listTcsRecordings(maskSeparator(recordingFolderId) + "*")) {
                 String recordingTcsId = getRecordingTcsIdFromRecordingId(recording.getId());
                 deleteTcsRecording(recordingTcsId);
             }
@@ -1014,11 +1025,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     private String formatRecordingId(String recordingFolderId, String recordingFileId, String recordingTcsId)
     {
         StringBuilder recordingIdBuilder = new StringBuilder();
-        recordingIdBuilder.append(recordingFolderId.replaceAll("_", "__"));
-        recordingIdBuilder.append("_");
-        recordingIdBuilder.append(recordingFileId.replaceAll("_", "__"));
-        recordingIdBuilder.append("_");
-        recordingIdBuilder.append(recordingTcsId.replaceAll("_", "__"));
+        recordingIdBuilder.append(maskSeparator(recordingFolderId));
+        recordingIdBuilder.append(separator);
+        recordingIdBuilder.append(maskSeparator(recordingFileId));
+        recordingIdBuilder.append(separator);
+        recordingIdBuilder.append(maskSeparator(recordingTcsId));
         return recordingIdBuilder.toString();
     }
 
@@ -1053,11 +1064,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     {
         StringBuilder recordingNameBuilder = new StringBuilder();
         recordingNameBuilder.append(recordingsPrefix);
-        recordingNameBuilder.append(recordingFolderId.replaceAll("_", "__"));
-        recordingNameBuilder.append("_");
-        recordingNameBuilder.append(alias.replaceAll("_", "__"));
-        recordingNameBuilder.append("_");
-        recordingNameBuilder.append(recordingFileId.replaceAll("_", "__"));
+        recordingNameBuilder.append(maskSeparator(recordingFolderId));
+        recordingNameBuilder.append(separator);
+        recordingNameBuilder.append(maskSeparator(alias));
+        recordingNameBuilder.append(separator);
+        recordingNameBuilder.append(maskSeparator(recordingFileId));
         return recordingNameBuilder.toString();
     }
 
@@ -1071,7 +1082,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         if (!matcher.find()) {
             throw new RuntimeException("Invalid format of recording id: " + recordingId);
         }
-        return matcher.group(1).replaceAll("__", "_");
+        return unmaskSeparator(matcher.group(1));
     }
 
     /**
@@ -1084,7 +1095,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         if (!matcher.find()) {
             throw new RuntimeException("Invalid format of recording id: " + recordingId);
         }
-        return matcher.group(2).replaceAll("__", "_");
+        return unmaskSeparator(matcher.group(2));
     }
 
     /**
@@ -1099,7 +1110,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         }
         String result = matcher.group(3);
         if (result != null) {
-            return result.replaceAll("__", "_");
+            return unmaskSeparator(result);
         }
         else {
             return null;
@@ -1122,7 +1133,17 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         if (!matcher.matches()) {
             throw new InvalidFormatException("Invalid format of recording name (" + recordingName + ")");
         }
-        return matcher.group(segment).replaceAll("__", "_");
+        return unmaskSeparator(matcher.group(segment));
+    }
+
+    private String maskSeparator(String text)
+    {
+        return text.replace(separator,separatorReplacement);
+    }
+
+    private String unmaskSeparator(String text)
+    {
+        return text.replace(separatorReplacement,separator);
     }
 
     /**
@@ -1311,6 +1332,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             synchronized (CiscoTCSConnector.class) {
                 logger.debug("Checking recordings to be moved...");
                 List<Recording> recordings = listTcsRecordings("*");
+                logger.debug("Checking " + recordings.size() + " recordings...");
                 if (recordings.size() > 0) {
                     Set<String> recordingFolderIds = getRecordingFolderIds();
                     for (Recording recording : recordings) {

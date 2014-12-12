@@ -6,6 +6,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -22,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import jade.content.onto.annotations.Slot;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -463,9 +465,31 @@ public abstract class Target
 
     public static class RecordingService extends Target
     {
-        public RecordingService(RecordingServiceReservation reservation)
+        private RecordingServiceReservation reservation;
+
+        private ReservationManager reservationManager;
+
+        public RecordingService(final RecordingServiceReservation reservation, EntityManager entityManager)
         {
             super(reservation.getAllocatedResource());
+
+            this.reservation = reservation;
+            reservationManager = new ReservationManager(entityManager);
+        }
+
+        public int getAvailableLicenseCount()
+        {
+            int availableLicenseCount = reservation.getRecordingCapability().getLicenseCount();
+
+            Interval slot = reservation.getSlot();
+            RecordingCapability recordingCapability = reservation.getRecordingCapability();
+
+            List<RecordingServiceReservation> recordingServiceReservations =
+                    reservationManager.getRecordingServiceReservations(recordingCapability,slot);
+            for (RecordingServiceReservation recordingReservation : recordingServiceReservations) {
+                availableLicenseCount -= 1;
+            }
+            return availableLicenseCount;
         }
     }
 
@@ -539,7 +563,7 @@ public abstract class Target
             return new Reused((ExistingReservation) reservation);
         }
         else if (reservation instanceof RecordingServiceReservation) {
-            return new RecordingService((RecordingServiceReservation) reservation);
+            return new RecordingService((RecordingServiceReservation) reservation, entityManager);
         }
         else {
             Executable executable = reservation.getExecutable();

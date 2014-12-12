@@ -76,6 +76,10 @@ ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availa
 </#if>
 <#elseif target.class.simpleName == "Reused">
 ${context.message(indent, "target.reused.reservation")}: ${target.reusedReservationId}
+<#elseif target.type == "recordingservice">
+<#if context.administrator>
+${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
+</#if>
 </#if>
 </#macro>
 <#-------------------------------->

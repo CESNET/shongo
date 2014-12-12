@@ -5,6 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +50,7 @@ public class LocalStorageHandler
      * Map of files to be created or that are being copied now (entry key represents a fileId and entry value
      * represents a recordingFolderId of folder for the file to be created in)
      */
-    private Map<String, String> filesBeingCreated = new ConcurrentHashMap<String, String>();
+    private ConcurrentHashMap<String, String> filesBeingCreated = new ConcurrentHashMap<String, String>();
 
     /**
      * Constructor.
@@ -54,6 +60,9 @@ public class LocalStorageHandler
     public LocalStorageHandler(String url)
     {
         this.url = url;
+        if (!rootFolderExists()) {
+            throw new RuntimeException("Storage directory '" + url  + "' doesn't exist.");
+        }
     }
 
     /**
@@ -64,6 +73,11 @@ public class LocalStorageHandler
         return url;
     }
 
+    public boolean rootFolderExists()
+    {
+        return getFileInstance(url).exists();
+    }
+
     /**
      * Create a new folder.
      *
@@ -72,15 +86,27 @@ public class LocalStorageHandler
      */
     public String createFolder(Folder folder)
     {
-        String folderId = getChildId(folder.getParentFolderId(), folder.getFolderName());
+        String folderName = mangle(folder.getFolderName());
+
+        String folderId = getChildId(folder.getParentFolderId(), folderName);
         String folderUrl = getUrlFromId(folderId);
-        java.io.File file = new java.io.File(folderUrl);
+        java.io.File file = getFileInstance(folderUrl);
         if (!file.exists()) {
             if (!file.mkdirs()) {
-                throw new RuntimeException("Directory '" + folderUrl + "' can't be created.");
+                throw new RuntimeException("Directory '" + file.getAbsolutePath() + "' can't be created.");
             }
         }
         return folderId;
+    }
+
+    /**
+     * Mangle filenames - simple version based on shongo naming convention
+     * TODO: general solution
+     * @param filename
+     * @return
+     */
+    private String mangle(String filename) {
+        return filename.replace(":","_");
     }
 
     /**
@@ -101,7 +127,8 @@ public class LocalStorageHandler
         }
 
         String folderUrl = getUrlFromId(folderId);
-        if (!deleteRecursive(new java.io.File(folderUrl))) {
+        java.io.File ioFolder = getFileInstance(folderUrl);
+        if (ioFolder.exists() && !deleteRecursive(ioFolder)) {
             throw new RuntimeException("Directory '" + folderUrl + "' cannot be deleted.");
         }
 
@@ -117,7 +144,7 @@ public class LocalStorageHandler
     public boolean folderExists(String folderId)
     {
         String folderUrl = getUrlFromId(folderId);
-        return new java.io.File(folderUrl).exists();
+        return getFileInstance(folderUrl).exists();
     }
 
     /**
@@ -130,7 +157,7 @@ public class LocalStorageHandler
     public List<Folder> listFolders(String folderId, final String folderName)
     {
         String folderUrl = getUrlFromId(folderId);
-        java.io.File ioParentFolder = new java.io.File(folderUrl);
+        java.io.File ioParentFolder = getFileInstance(folderUrl);
         String[] ioFolders = ioParentFolder.list(new FilenameFilter()
         {
             @Override
@@ -167,14 +194,15 @@ public class LocalStorageHandler
     {
         String folderId = file.getFolderId();
         String folderUrl = getUrlFromId(folderId);
-        String fileName = file.getFileName();
+        String fileName = mangle(file.getFileName());
         String fileUrl = getChildUrl(folderUrl, fileName);
-        if (new java.io.File(fileUrl).exists()) {
+
+        if (getFileInstance(fileUrl).exists()) {
             throw new RuntimeException("File '" + fileUrl + "' already exists.");
         }
 
         if (folderId != null) {
-            filesBeingCreated.put(fileName, folderId);
+            filesBeingCreated.put(fileName, folderUrl);
         }
         try {
             int fileContentIndex = 0;
@@ -283,7 +311,7 @@ public class LocalStorageHandler
             throw new RuntimeException("File '" + fileUrl + "' cannot be created.", exception);
         }
         finally {
-            filesBeingCreated.remove(file.getFileName());
+            filesBeingCreated.remove(fileName,folderUrl);
         }
     }
 
@@ -307,8 +335,8 @@ public class LocalStorageHandler
     public void deleteFile(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        String fileUrl = getChildUrl(folderUrl, fileName);
-        java.io.File file = new java.io.File(fileUrl);
+        String fileUrl = getChildUrl(folderUrl, mangle(fileName));
+        java.io.File file = getFileInstance(fileUrl);
         if (!file.delete()) {
             throw new RuntimeException("File'" + fileUrl + "' cannot be deleted.");
         }
@@ -323,8 +351,8 @@ public class LocalStorageHandler
     public boolean fileExists(File file)
     {
         String folderUrl = getUrlFromId(file.getFolderId());
-        String fileUrl = getChildUrl(folderUrl, file.getFileName());
-        return new java.io.File(fileUrl).exists();
+        String fileUrl = getChildUrl(folderUrl, mangle(file.getFileName()));
+        return getFileInstance(fileUrl).exists();
     }
 
     /**
@@ -337,7 +365,7 @@ public class LocalStorageHandler
     public List<File> listFiles(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        java.io.File ioFolder = new java.io.File(folderUrl);
+        java.io.File ioFolder = getFileInstance(folderUrl);
         if (!ioFolder.exists()) {
             throw new RuntimeException("Folder '" + folderUrl + "' doesn't exist.");
         }
@@ -373,7 +401,7 @@ public class LocalStorageHandler
     public InputStream getFileContent(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        String fileUrl = getChildUrl(folderUrl, fileName);
+        String fileUrl = getChildUrl(folderUrl, mangle(fileName));
 
         InputStream inputStream = null;
         try {
@@ -461,5 +489,27 @@ public class LocalStorageHandler
             }
         }
         return true;
+    }
+
+    private URI constructURI(String url)
+    {
+        String stringUri = "file://" + url;
+        try {
+            return new URI(stringUri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Syntax error in directory path'" + stringUri + "'.");
+        }
+    }
+
+    /**
+     * Returns new instance of #link(java.io.File) for given url.
+     *
+     * @param url
+     * @return
+     */
+    private java.io.File getFileInstance(String url)
+    {
+        URI uri = constructURI(url);
+        return new java.io.File(uri.getPath());
     }
 }
