@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector.device;
 
 
+import antlr.NameSpace;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -13,6 +14,7 @@ import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.storage.*;
 import cz.cesnet.shongo.connector.storage.File;
+import cz.cesnet.shongo.controller.NotEnoughSpaceException;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -67,12 +69,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     /**
      * Separator for recordings title
      */
-    private final String separator = "_";
+    private final String SEPARATOR = "_";
 
     /**
-     * Separator replacement for #link{separator} in names
+     * Separator replacement for #link{SEPARATOR} in names
      */
-    private final String separatorReplacement = "__";
+    private final String SEPARATOR_REPLACEMENT = "__";
 
     /**
      * This is the user log in name, typically the user email address.
@@ -118,6 +120,16 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     private final int NUM_OF_THREADS = 10;
 
     /**
+     * Path for SOAP request on TCS
+     */
+    private final String SOAP_PATH = "/tcs/SoapServer.php";
+
+    /**
+     * Path for status request.
+     */
+    private final String STATUS_PATH = "/tcs/status.xml";
+
+    /**
      * If recording check is running.
      */
     private volatile boolean recordingChecking = false;
@@ -136,6 +148,16 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * Namespace
      */
     private Namespace ns1;
+
+    /**
+     * Free space limit on TCS to start recording.
+     */
+    private Integer freeSpaceLimit = 1024;
+
+    /**
+     * Drive letter of recordings drive on TCS
+     */
+    private String recordingsTCSDrive;
 
     /**
      * Default bitrate for recordings.
@@ -200,6 +222,9 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         if (recordingDefaultBitrate != null) {
             this.recordingDefaultBitrate = recordingDefaultBitrate;
         }
+        this.freeSpaceLimit = configuration.getOptionInt("tcs-free-space-low-limit", this.freeSpaceLimit);
+        this.recordingsTCSDrive = configuration.getOptionStringRequired("tcs-recordings-drive");
+
         this.recordingAlias = configuration.getOptionStringRequired("alias");
 
         String metadataStorage = configuration.getOptionStringRequired("metadata-storage");
@@ -222,6 +247,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                     });
         } catch (FileNotFoundException e) {
             logger.error("Storage folder \"" + storage + "\" does not exist or is not accessible.");
+            //TODO: agent.getContainerController().isJoined()
             throw new RuntimeException("Cannot initialized CiscoTCSConnector, because folder for recordings does not exist.",e);
         }
 
@@ -298,7 +324,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     public ConnectionState getConnectionState()
     {
         try {
-            execApi(new Command("GetSystemInformation"), CONNECTION_STATE_TIMEOUT);
+            execApi(new Command("GetSystemInformation"), CONNECTION_STATE_TIMEOUT, null);
             return ConnectionState.CONNECTED;
         }
         catch (Exception exception) {
@@ -507,9 +533,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                                 getFileIdFromRecordingId(recordingId)) + ".".replaceAll("//", "/"));
             }
             if (recording.getDownloadUrl() != null) {
-                recording.setState(Recording.State.AVAILABLE);
+                // Set downloadable URL if file is available in storage
                 String downloadableUrl = storage.getFileDownloadableUrl(recordingFolderId, recording.getFileName());
                 if (downloadableUrl != null) {
+                    recording.setState(Recording.State.AVAILABLE);
                     recording.setDownloadUrl(downloadableUrl);
                 } else {
                     recording.setDownloadUrl(null);
@@ -583,6 +610,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     {
         //TODO: check if available slots
 
+        if (!hasEnoughSpaceOnTCS()) {
+            logger.error("Not enough space on TCS server.");
+            throw new NotEnoughSpaceException("Recordings cannot start, because there is no free space on TCS.");
+        }
         if (!alias.getType().equals(AliasType.H323_E164)) {
             throw new TodoImplementException("TODO: implement recording for other aliases than H.323_164.");
         }
@@ -782,6 +813,26 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         return false;
     }
 
+    public boolean hasEnoughSpaceOnTCS() throws CommandException {
+        Command command = new Command("GetSystemStatus");
+        Element systemStatus = execApi(command, this.requestTimeout, STATUS_PATH);
+        Namespace ns = systemStatus.getNamespace();
+        for (Element drive : systemStatus.getChild("DriveInfo",ns).getChildren()) {
+            if (recordingsTCSDrive.equals(drive.getChildText("DriveLetter",ns))) {
+                int freeSpace = Integer.decode(drive.getChildText("Free",ns));
+                if (this.freeSpaceLimit.compareTo(freeSpace) < 0) {
+                    logger.warn("Space left on TCS server \"" + getDeviceAddress().getHost() + "\": " + freeSpace + " kB.");
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        logger.warn("No system information found for drive \"" + this.recordingsTCSDrive + "\" found ");
+        return false;
+    }
+
     /**
      * Exec command with debug output to std if set in option file.
      *
@@ -791,7 +842,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      */
     private Element execApi(Command command) throws CommandException
     {
-        return execApi(command, this.requestTimeout);
+        return execApi(command, this.requestTimeout, this.SOAP_PATH);
     }
 
     /**
@@ -801,8 +852,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @return Document Element
      * @throws CommandException
      */
-    private synchronized Element execApi(Command command, int timeout) throws CommandException
+    private synchronized Element execApi(Command command, int timeout, String requestUrl) throws CommandException
     {
+        if (requestUrl == null) {
+            requestUrl = SOAP_PATH;
+        }
         try {
             HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient(timeout);
             while (true) {
@@ -812,7 +866,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 final ContextAwareAuthScheme md5Auth = new DigestScheme();
 
                 // Setup POST request
-                HttpPost lHttpPost = new HttpPost(deviceAddress.getUrl() + "/tcs/SoapServer.php");
+                HttpPost lHttpPost = new HttpPost(deviceAddress.getUrl() + requestUrl);
 
                 // Set SOAPAction header
                 lHttpPost.addHeader("SOAPAction", "http://www.tandberg.net/XML/Streaming/1.0/GetSystemInformation");
@@ -847,7 +901,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         // Do another POST, but this time include the solution
                         final Header solution = md5Auth.authenticate(
                                 new UsernamePasswordCredentials(this.login, this.password),
-                                new BasicHttpRequest(HttpPost.METHOD_NAME, "/tcs/SoapServer.php"),
+                                new BasicHttpRequest(HttpPost.METHOD_NAME, requestUrl),
                                 new BasicHttpContext());
 
                         // Authentication header as generated by HttpClient.
@@ -874,6 +928,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                             System.out.println("OUTPUT");
                             System.out.println("==========");
                             System.out.println(resultString);
+                        }
+
+                        // For requested status info return whole XML response
+                        if (requestUrl.equals(STATUS_PATH)) {
+                            Document resultDocument = saxBuilder.build(new StringReader(removeNamespace(resultString)));
+                            return resultDocument.getRootElement();
                         }
 
                         // Remove namespace NS_NS1
@@ -1137,9 +1197,9 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     {
         StringBuilder recordingIdBuilder = new StringBuilder();
         recordingIdBuilder.append(maskSeparator(recordingFolderId));
-        recordingIdBuilder.append(separator);
+        recordingIdBuilder.append(SEPARATOR);
         recordingIdBuilder.append(maskSeparator(recordingFileId));
-        recordingIdBuilder.append(separator);
+        recordingIdBuilder.append(SEPARATOR);
         recordingIdBuilder.append(maskSeparator(recordingTcsId));
         return recordingIdBuilder.toString();
     }
@@ -1160,8 +1220,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @param recordingStartedAt
      * @return recording name for given {@code recordingFolderId}, {@code alias} and {@code dateTime}
      */
-    private String formatRecordingName(String recordingFolderId, Alias alias, DateTime recordingStartedAt)
-    {
+    private String formatRecordingName(String recordingFolderId, Alias alias, DateTime recordingStartedAt) {
         return formatRecordingName(recordingFolderId, alias.getValue(), formatRecordingFileId(recordingStartedAt));
     }
 
@@ -1176,9 +1235,9 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         StringBuilder recordingNameBuilder = new StringBuilder();
         recordingNameBuilder.append(recordingsPrefix);
         recordingNameBuilder.append(maskSeparator(recordingFolderId));
-        recordingNameBuilder.append(separator);
+        recordingNameBuilder.append(SEPARATOR);
         recordingNameBuilder.append(maskSeparator(alias));
-        recordingNameBuilder.append(separator);
+        recordingNameBuilder.append(SEPARATOR);
         recordingNameBuilder.append(maskSeparator(recordingFileId));
         return recordingNameBuilder.toString();
     }
@@ -1249,12 +1308,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
     private String maskSeparator(String text)
     {
-        return text.replace(separator, separatorReplacement);
+        return text.replace(SEPARATOR, SEPARATOR_REPLACEMENT);
     }
 
     private String unmaskSeparator(String text)
     {
-        return text.replace(separatorReplacement,separator);
+        return text.replace(SEPARATOR_REPLACEMENT, SEPARATOR);
     }
 
     /**

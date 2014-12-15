@@ -91,6 +91,9 @@
                 <password>(heslo)</password>
             </auth>
             <options>
+                # TCS settings
+                <tcs-recordings-drive>E</tcs-recordings-drive>
+                <tcs-free-space-low-limit>1024</tcs-free-space-low-limit>
                 # Recording settings
                 <default-bitrate>768</default-bitrate>
                 <alias>999</alias>

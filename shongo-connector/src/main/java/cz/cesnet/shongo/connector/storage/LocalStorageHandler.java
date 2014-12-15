@@ -110,7 +110,7 @@ public class LocalStorageHandler
      * @param filename
      * @return
      */
-    private String mangle(String filename) {
+    private static String mangle(String filename) {
         return filename.replace(":","_");
     }
 
@@ -467,7 +467,7 @@ public class LocalStorageHandler
         if (childUrl.charAt(childUrl.length() - 1) != '/') {
             childUrl.append("/");
         }
-        childUrl.append(childName);
+        childUrl.append(mangle(childName));
         return childUrl.toString();
     }
 
