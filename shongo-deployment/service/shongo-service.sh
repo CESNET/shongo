@@ -31,7 +31,7 @@ fi
 DATE=$(date +"%Y-%m-%dT%H:%M")
 VERSION=`cat $DEPLOYMENT_DIR/../pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`
 BIN=$(echo $BIN | sed "s/:VERSION:/$VERSION/g")
-LOG_FILE="$LOG_DIR/${NAME}_$DATE.log"
+LOG_FILE="$LOG_DIR/${NAME}.log"
 PID_FILE="$PID_DIR/$NAME.pid"
 
 if [ ! -d "$LOG_DIR" ]; then
@@ -60,7 +60,7 @@ case "$1" in
             exit 1
         fi
         echo Starting $NAME $VERSION...
-        nohup $BIN > $LOG_FILE 2>&1 &
+        nohup $BIN >> $LOG_FILE 2>&1 &
         # Get pid
         PID="$!"
         # Wait for process to start
