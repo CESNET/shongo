@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.acl.AclIdentity;

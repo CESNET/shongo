@@ -20,6 +20,10 @@ public enum ObjectType
                             ObjectPermission.WRITE,
                             ObjectPermission.CONTROL_RESOURCE,
                     });
+                    put(ObjectRole.RESERVATION, new ObjectPermission[]{
+                            ObjectPermission.READ,
+                            ObjectPermission.RESERVE_RESOURCE
+                    });
                     put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });

@@ -1038,6 +1038,18 @@
           - RESOURCE
           -->
 
+        <report extends="resource">
+            <id>user-not-allowed</id>
+            <classification severity="error"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                User does not have permissions for the resource ${resource.id}.
+            </message>
+            <visible>user</visible>
+        </report>
+
         <report>
             <id>resource-not-found</id>
             <classification severity="error"/>

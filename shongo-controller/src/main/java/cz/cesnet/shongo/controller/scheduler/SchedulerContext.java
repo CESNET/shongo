@@ -70,10 +70,14 @@ public class SchedulerContext
      */
     private int priority;
 
+    public String getUserId() {
+        return userId;
+    }
+
     /**
-     * Set of user-ids for which the reservations are being allocated.
+     * User-id of user who created reservation request.
      */
-    private UserIdSet userIds = new UserIdSet();
+    private String userId;
 
     /**
      * @see SchedulerContextState
@@ -125,11 +129,7 @@ public class SchedulerContext
         this.purpose = reservationRequest.getPurpose();
         this.priority = reservationRequest.getPriority();
 
-        userIds.clear();
-        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER));
-        if (userIds.size() == 0) {
-            userIds.add(reservationRequest.getCreatedBy());
-        }
+        userId = reservationRequest.getCreatedBy();
     }
 
     /**
@@ -245,19 +245,19 @@ public class SchedulerContext
 
     /**
      * @param resource whose owner should be checked
-     * @return true if the {@link #userIds} contains an identifier of an owner
+     * @return true if the {@link #userId} is an identifier of an owner
      * who is owner of given {@code resource}, false otherwise
      */
-    public boolean containsOwnerUserId(Resource resource)
+    public boolean containsCreatedByUserId(Resource resource)
     {
         UserIdSet resourceOwnerIds = authorizationManager.getUserIdsWithRole(resource, ObjectRole.OWNER);
-        if (resourceOwnerIds.isEveryone() || userIds.isEveryone()) {
+        if (resourceOwnerIds.isEveryone()) {
             return true;
         }
         if (resourceOwnerIds.size() == 0) {
             resourceOwnerIds.add(resource.getUserId());
         }
-        return !Collections.disjoint(resourceOwnerIds.getUserIds(), userIds.getUserIds());
+        return resourceOwnerIds.contains(userId);
     }
 
     /**

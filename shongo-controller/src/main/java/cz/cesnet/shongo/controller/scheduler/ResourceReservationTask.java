@@ -1,5 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
@@ -52,6 +57,15 @@ public class ResourceReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation() throws SchedulerException
     {
+        //Check permissions
+        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+        Authorization authorization = authorizationManager.getAuthorization();
+        if (!authorization.hasObjectPermission(schedulerContext.getUserId(),resource, ObjectPermission.RESERVE_RESOURCE)) {
+            if (!authorization.getUsersWithRole(resource,ObjectRole.RESERVATION).isEmpty()) {
+                throw new SchedulerReportSet.UserNotAllowedException(resource);
+            }
+        }
+
         validateReservationSlot(ResourceReservation.class);
 
         Cache cache = getCache();
