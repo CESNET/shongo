@@ -9,6 +9,7 @@ import cz.cesnet.shongo.report.*;
 */
 public class AllocationStateReportMessages
 {
+    public static final String USER_NOT_ALLOWED = "user-not-allowed";
     public static final String RESOURCE_NOT_FOUND = "resource-not-found";
     public static final String RESOURCE = "resource";
     public static final String RESOURCE_NOT_ALLOCATABLE = "resource-not-allocatable";
@@ -59,6 +60,7 @@ public class AllocationStateReportMessages
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage(USER_NOT_ALLOWED, new Report.UserType[]{}, Report.Language.ENGLISH, "User does not have permissions for the resource ${resource.id}.");
         addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No resource was found.");
         addMessage(RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource.id}.");
         addMessage(RESOURCE_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is disabled for allocation.");

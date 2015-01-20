@@ -10,6 +10,98 @@ import cz.cesnet.shongo.report.*;
 public class SchedulerReportSet extends AbstractReportSet
 {
     /**
+     * User does not have permissions for the resource {@link #resource}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("UserNotAllowedReport")
+    public static class UserNotAllowedReport extends ResourceReport
+    {
+        public UserNotAllowedReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "user-not-allowed";
+        }
+
+        public UserNotAllowedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            setResource(resource);
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("user-not-allowed", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link UserNotAllowedReport}.
+     */
+    public static class UserNotAllowedException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public UserNotAllowedException(UserNotAllowedReport report)
+        {
+            this.report = report;
+        }
+
+        public UserNotAllowedException(Throwable throwable, UserNotAllowedReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public UserNotAllowedException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            UserNotAllowedReport report = new UserNotAllowedReport();
+            report.setResource(resource);
+            this.report = report;
+        }
+
+        public UserNotAllowedException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            super(throwable);
+            UserNotAllowedReport report = new UserNotAllowedReport();
+            report.setResource(resource);
+            this.report = report;
+        }
+
+        @Override
+        public UserNotAllowedReport getReport()
+        {
+            return (UserNotAllowedReport) report;
+        }
+    }
+
+    /**
      * No resource was found.
      */
     @javax.persistence.Entity
@@ -4283,6 +4375,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @Override
     protected void fillReportClasses()
     {
+        addReportClass(UserNotAllowedReport.class);
         addReportClass(ResourceNotFoundReport.class);
         addReportClass(ResourceReport.class);
         addReportClass(ResourceNotAllocatableReport.class);

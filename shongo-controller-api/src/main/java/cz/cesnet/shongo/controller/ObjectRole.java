@@ -27,7 +27,15 @@ public enum ObjectRole
      *
      * @see {@link ObjectPermission#READ}
      */
-    READER("3");
+    READER("3"),
+
+    /**
+     * This role allows the user to read/view/reserve entity.
+     *
+     * @see {@link ObjectPermission#RESERVE_RESOURCE}
+     */
+    RESERVATION("4");
+    //TODO: for any new role using permission {@link ObjectPermission#RESERVE_RESOURCE} replace all "getUsersWithRole()" by new  method "getUsersWithPermission()"
 
     /**
      * Role unique identifier.

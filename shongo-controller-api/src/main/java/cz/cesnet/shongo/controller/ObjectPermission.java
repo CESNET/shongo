@@ -27,7 +27,13 @@ public enum ObjectPermission
     /**
      * Control device resource.
      */
-    CONTROL_RESOURCE("control-resource");
+    CONTROL_RESOURCE("control-resource"),
+
+    /**
+     * This permission allows the user to create a reservation request for a resource.
+     */
+    RESERVE_RESOURCE("reserve-resource");
+    //TODO: for any new role using permission {@link ObjectPermission#RESERVE_RESOURCE} replace all "getUsersWithRole()" by new  method "getUsersWithPermission()"
 
     /**
      * Permission unique code.

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -210,7 +209,7 @@ public class ResourceCache extends AbstractCache<Resource>
         // If reservation request purpose implies allocation of only owned resources
         if (schedulerContext.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
-            if (!schedulerContext.containsOwnerUserId(resource)) {
+            if (!schedulerContext.containsCreatedByUserId(resource)) {
                 throw new SchedulerReportSet.UserNotOwnerException();
             }
         }
