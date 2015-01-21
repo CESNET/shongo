@@ -9,6 +9,7 @@
 
 <%@attribute name="submitUrl" required="false"%>
 
+<tag:url var="backUrl" value="${requestScope.backUrl}"/>
 <c:set var="tabIndex" value="1"/>
 
 <script type="text/javascript">
