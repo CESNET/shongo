@@ -137,10 +137,10 @@
             <th>
                 <spring:message code="views.room.description"/>
             </th>
-            <th style="min-width: 95px; width: 95px;">
+            <%--th style="min-width: 95px; width: 95px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
-            </th>
+            </th--%>
         </tr>
         </thead>
         <tbody>
@@ -178,15 +178,15 @@
                 </tag:help>
             </td--%>
             <td>{{room.description}}</td>
-            <td>
-                <%--tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
+            <%--td>
+                <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
                 <span ng-show="room.isWritable">
                     <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
                     | <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>
-                </span--%>
-            </td>
+                </span>
+            </td--%>
         </tr>
         </tbody>
         <tbody>

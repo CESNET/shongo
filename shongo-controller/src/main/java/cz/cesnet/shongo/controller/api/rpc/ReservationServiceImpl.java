@@ -257,6 +257,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 // Create scheduler context
                 SchedulerContext schedulerContext = new SchedulerContext(DateTime.now(), cache, entityManager,
                         new AuthorizationManager(entityManager, authorization));
+                schedulerContext.setUserId(securityToken.getUserId());
                 schedulerContext.setPurpose(request.getPurpose());
 
 
@@ -990,11 +991,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(objectId.getPersistenceId());
             //TODO: MR: CEITEC - uncomment ASAP
-            /*if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
-                if (!authorization.hasObjectPermission(securityToken, , ObjectPermission.READ)) {
-                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
-                }
-            }*/
+            if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
+            }
 
             return reservationRequest.toApi(authorization.isOperator(securityToken));
         }
@@ -1458,6 +1457,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         if (record[10] != null) {
             reservationSummary.setValue(record[10] != null ? record[10].toString() : null);
+        }
+        if (record[11] != null) {
+            reservationSummary.setReservationRequestDescription(record[11] != null ? record[11].toString() : null);
         }
         return reservationSummary;
     }

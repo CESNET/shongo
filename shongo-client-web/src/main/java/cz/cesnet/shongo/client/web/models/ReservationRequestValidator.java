@@ -113,9 +113,9 @@ public class ReservationRequestValidator implements Validator
             }
             switch (specificationType) {
                 case MEETING_ROOM:
-/*                    if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
+                    if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
-                    }*/
+                    }
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");

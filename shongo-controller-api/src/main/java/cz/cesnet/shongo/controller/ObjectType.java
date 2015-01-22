@@ -95,6 +95,10 @@ public enum ObjectType
                     put(ObjectRole.OWNER, new ObjectPermission[]{
                             ObjectPermission.READ, ObjectPermission.WRITE
                     });
+                    put(ObjectRole.RESERVATION, new ObjectPermission[]{
+                            ObjectPermission.READ,
+                            ObjectPermission.RESERVE_RESOURCE
+                    });
                     put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
@@ -102,6 +106,7 @@ public enum ObjectType
             new HashSet<ObjectRole>()
             {{
                     add(ObjectRole.READER);
+                    add(ObjectRole.RESERVATION);
             }});
 
     /**
