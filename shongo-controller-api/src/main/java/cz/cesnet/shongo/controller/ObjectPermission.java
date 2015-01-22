@@ -30,7 +30,7 @@ public enum ObjectPermission
     CONTROL_RESOURCE("control-resource"),
 
     /**
-     * This permission allows the user to create a reservation request for a resource.
+     * This permission allows the user to create a reservation request for a resource. If not set to any group/user, everyone has it.
      */
     RESERVE_RESOURCE("reserve-resource");
     //TODO: for any new role using permission {@link ObjectPermission#RESERVE_RESOURCE} replace all "getUsersWithRole()" by new  method "getUsersWithPermission()"

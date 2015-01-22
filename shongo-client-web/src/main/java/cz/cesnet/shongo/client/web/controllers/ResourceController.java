@@ -12,10 +12,11 @@ import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
+import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.DateTime;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import sun.security.util.ObjectIdentifier;
 
 import java.util.*;
 
@@ -42,6 +44,9 @@ public class ResourceController
 
     @javax.annotation.Resource
     protected ReservationService reservationService;
+
+    @javax.annotation.Resource
+    protected AuthorizationService authorizationService;
 
     @javax.annotation.Resource
     protected Cache cache;
@@ -85,14 +90,33 @@ public class ResourceController
             resourceListRequest.setTagName(tag);
         }
         List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
-        for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
-            Map<String, Object> resource = new HashMap<String, Object>();
-            resource.put("id", resourceSummary.getId());
-            resource.put("name", resourceSummary.getName());
-            resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
-            resource.put("description", (resourceSummary.getDescription()));
-            resources.add(resource);
 
+        ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
+        ObjectPermissionListRequest permissionListRequest = new ObjectPermissionListRequest();
+        for (ResourceSummary resourceSummary : accessibleResources)
+        {
+            permissionListRequest.addObjectId(resourceSummary.getId());
+        }
+        permissionListRequest.setSecurityToken(securityToken);
+        Map<String,ObjectPermissionSet> resourcePermissionsMap = authorizationService.listObjectPermissions(permissionListRequest);
+
+        for (ResourceSummary resourceSummary : accessibleResources) {
+            Set<ObjectPermission> permissions = resourcePermissionsMap.get(resourceSummary.getId()).getObjectPermissions();
+
+            AclEntryListRequest aclEntryListRequest = new AclEntryListRequest();
+            aclEntryListRequest.addObjectId(resourceSummary.getId());
+            aclEntryListRequest.addRole(ObjectRole.RESERVATION);
+            aclEntryListRequest.setSecurityToken(securityToken);
+            ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(aclEntryListRequest);
+
+            if (permissions.contains(ObjectPermission.RESERVE_RESOURCE) || aclEntries.getItems().isEmpty()) {
+                Map<String, Object> resource = new HashMap<String, Object>();
+                resource.put("id", resourceSummary.getId());
+                resource.put("name", resourceSummary.getName());
+                resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
+                resource.put("description", (resourceSummary.getDescription()));
+                resources.add(resource);
+            }
         }
         return resources;
     }

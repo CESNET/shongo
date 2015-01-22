@@ -70,10 +70,6 @@ public class SchedulerContext
      */
     private int priority;
 
-    public String getUserId() {
-        return userId;
-    }
-
     /**
      * User-id of user who created reservation request.
      */
@@ -130,6 +126,15 @@ public class SchedulerContext
         this.priority = reservationRequest.getPriority();
 
         userId = reservationRequest.getCreatedBy();
+    }
+
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     /**

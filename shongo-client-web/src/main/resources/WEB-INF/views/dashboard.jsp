@@ -97,11 +97,13 @@
                         <spring:message code="views.index.action.createRoom"/>
                     </a>
                 </li>
-                <li>
-                    <a href="${createMeetingRoomUrl}" tabindex="1">
-                        <spring:message code="views.index.action.bookMeetingRoom"/>
-                    </a>
-                </li>
+                <c:if test="${meetingRoomResources.size() > 0}">
+                    <li>
+                        <a href="${createMeetingRoomUrl}" tabindex="1">
+                            <spring:message code="views.index.action.bookMeetingRoom"/>
+                        </a>
+                    </li>
+                </c:if>
             </ul>
         </tag:expandableBlock>
     </security:authorize>
@@ -119,17 +121,19 @@
             <%@ include file="dashboardParticipation.jsp" %>
         </tab>
 
-        <%-- Meeting rooms tab --%>
-        <spring:message code="views.index.myMeetingRooms" var="myMeetingRoomTitle"/>
-        <tab id="meetingRooms" heading="${myMeetingRoomTitle}" ng-controller="TabController">
-            <%@ include file="dashboardMeetingRooms.jsp" %>
-        </tab>
+        <c:if test="${meetingRoomResources.size() > 0}">
+            <%-- Meeting rooms tab --%>
+            <spring:message code="views.index.myMeetingRooms" var="myMeetingRoomTitle"/>
+            <tab id="meetingRooms" heading="${myMeetingRoomTitle}" ng-controller="TabController">
+                <%@ include file="dashboardMeetingRooms.jsp" %>
+            </tab>
 
-        <%-- Your meeting rooms reservation request tab --%>
-        <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
-        <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
-            <%@ include file="dashboardMeetingRoomReservations.jsp" %>
-        </tab>
+            <%-- Your meeting rooms reservation request tab --%>
+            <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
+            <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
+                <%@ include file="dashboardMeetingRoomReservations.jsp" %>
+            </tab>
+        </c:if>
     </tabset>
 
 </div>

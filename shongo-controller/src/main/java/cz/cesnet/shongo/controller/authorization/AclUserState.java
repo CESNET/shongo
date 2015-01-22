@@ -36,6 +36,12 @@ public class AclUserState
             new HashMap<AclObjectClass, Set<Long>>();
 
     /**
+     * Map of objects which are reservable to the user (he has {@link ObjectPermission#RESERVE_RESOURCE} for them) by {@link AclObjectClass}.
+     */
+    private Map<AclObjectClass, Set<Long>> reservableObjectsByClass =
+            new HashMap<AclObjectClass, Set<Long>>();
+
+    /**
      * Map of objects which are owned by the user (he has {@link ObjectRole#OWNER} for them) by {@link AclObjectClass}.
      */
     private Map<AclObjectClass, Set<Long>> ownedObjectsByClass =
@@ -84,6 +90,15 @@ public class AclUserState
                 if (entities == null) {
                     entities = new HashSet<Long>();
                     accessibleObjectsByClass.put(objectClass, entities);
+                }
+                entities.add(objectIdentity.getObjectId());
+            }
+            // Update reservable entities
+            if (objectState.permissions.contains(ObjectPermission.RESERVE_RESOURCE)) {
+                Set<Long> entities = reservableObjectsByClass.get(objectClass);
+                if (entities == null) {
+                    entities = new HashSet<Long>();
+                    reservableObjectsByClass.put(objectClass, entities);
                 }
                 entities.add(objectIdentity.getObjectId());
             }
@@ -136,6 +151,16 @@ public class AclUserState
                     entities.remove(objectIdentity.getObjectId());
                     if (entities.size() == 0) {
                         accessibleObjectsByClass.remove(objectClass);
+                    }
+                }
+            }
+            // Update reservable entities
+            if (!objectState.permissions.contains(ObjectPermission.RESERVE_RESOURCE)) {
+                Set<Long> entities = reservableObjectsByClass.get(objectClass);
+                if (entities != null) {
+                    entities.remove(objectIdentity.getObjectId());
+                    if (entities.size() == 0) {
+                        reservableObjectsByClass.remove(objectClass);
                     }
                 }
             }
@@ -232,10 +257,17 @@ public class AclUserState
      */
     public synchronized Set<Long> getObjectsByPermission(AclObjectClass objectClass, ObjectPermission objectPermission)
     {
-        if (!objectPermission.equals(ObjectPermission.READ)) {
-            throw new TodoImplementException(objectPermission);
+        Set<Long> entities = null;
+        switch (objectPermission) {
+            case READ:
+                entities = accessibleObjectsByClass.get(objectClass);
+                break;
+            case RESERVE_RESOURCE:
+                entities = reservableObjectsByClass.get(objectClass);
+                break;
+            default:
+                throw new TodoImplementException(objectPermission);
         }
-        Set<Long> entities = accessibleObjectsByClass.get(objectClass);
         if (entities != null) {
             return Collections.unmodifiableSet(entities);
         }

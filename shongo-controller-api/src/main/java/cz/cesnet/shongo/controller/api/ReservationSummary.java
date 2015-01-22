@@ -62,6 +62,11 @@ public class ReservationSummary extends IdentifiedComplexType
     private String value;
 
     /**
+     * Description of ReservationRequest
+     */
+    private String reservationRequestDescription;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -91,6 +96,14 @@ public class ReservationSummary extends IdentifiedComplexType
     public void setReservationRequestId(String reservationRequestId)
     {
         this.reservationRequestId = reservationRequestId;
+    }
+
+    public String getReservationRequestDescription() {
+        return reservationRequestDescription;
+    }
+
+    public void setReservationRequestDescription(String reservationRequestDescription) {
+        this.reservationRequestDescription = reservationRequestDescription;
     }
 
     /**
@@ -228,6 +241,7 @@ public class ReservationSummary extends IdentifiedComplexType
     private static final String ROOM_NAME = "roomName";
     private static final String ALIAS_TYPES = "aliasTypes";
     private static final String VALUE = "value";
+    private static final String RESERVATION_REQUEST_DESCRIPTION = "reservationRequestDescription";
 
     @Override
     public DataMap toData()
@@ -242,6 +256,7 @@ public class ReservationSummary extends IdentifiedComplexType
         dataMap.set(ROOM_NAME, roomName);
         dataMap.set(ALIAS_TYPES, aliasTypes);
         dataMap.set(VALUE, value);
+        dataMap.set(RESERVATION_REQUEST_DESCRIPTION,reservationRequestDescription);
         return dataMap;
     }
 
@@ -258,6 +273,7 @@ public class ReservationSummary extends IdentifiedComplexType
         roomName = dataMap.getString(ROOM_NAME);
         aliasTypes = dataMap.getString(ALIAS_TYPES);
         value = dataMap.getString(VALUE);
+        reservationRequestDescription = dataMap.getString(RESERVATION_REQUEST_DESCRIPTION);
     }
 
     /**

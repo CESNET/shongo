@@ -270,14 +270,10 @@ public class MeetingRoomController {
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationSummary reservation : response.getItems()) {
-            AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken,reservation.getReservationRequestId());
-            //String reservationRequestId = reservationRequest.getId();
-            //SpecificationType specificationType = SpecificationType.MEETING_ROOM;
-
             Map<String, Object> item = new HashMap<String, Object>();
             String reservationId = reservation.getId();
             item.put("id", reservationId);
-            item.put("description", reservationRequest.getDescription());
+            item.put("description", reservation.getReservationRequestDescription());
             //item.put("dateTime", formatter.formatDate(reservationRequest.getDateTime()));
             items.add(item);
 

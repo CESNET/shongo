@@ -392,7 +392,8 @@ SELECT
     room_reservation.license_count AS room_license_count,
     CAST(NULL AS TEXT) AS room_name,
     STRING_AGG(alias.type, ',') AS alias_types,
-    value_reservation.value AS value
+    value_reservation.value AS value,
+    abstract_reservation_request.description AS reservation_request_description
 FROM reservation
 LEFT JOIN reservation_allocation ON reservation_allocation.id = reservation.id
 LEFT JOIN allocation ON allocation.id = reservation_allocation.allocation_id
@@ -408,6 +409,7 @@ LEFT JOIN value_provider_capability ON value_provider_capability.value_provider_
 LEFT JOIN capability AS value_capability ON value_capability.id = value_provider_capability.id
 LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id
 LEFT JOIN capability AS recording_capability ON recording_capability.id = recording_service_reservation.recording_capability_id
+LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = allocation.abstract_reservation_request_id
 GROUP BY reservation.id,
          allocation.id,
          resource_reservation.id,
@@ -418,7 +420,8 @@ GROUP BY reservation.id,
          value_reservation.id,
          value_capability.id,
          recording_service_reservation.id,
-         recording_capability.id;
+         recording_capability.id,
+         abstract_reservation_request.description;
 
 /**
  * View of id and time slot for the earliest usage for each room endpoint.
