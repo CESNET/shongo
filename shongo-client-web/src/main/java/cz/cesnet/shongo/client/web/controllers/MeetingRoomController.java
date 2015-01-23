@@ -253,19 +253,6 @@ public class MeetingRoomController {
 
         ListResponse<ReservationSummary> response = reservationService.listReservations(request);
 
-        //TODO: MR: get permissions for reservations
-        /*Set<String> userIds = new HashSet<String>();
-        cache.fetchUserInformation(securityToken, userIds);
-        cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
-
-        // Get permissions for reservation requests
-        for (ReservationSummary reservationSummary : response.getItems()) {
-            reservationSummary.getReservationRequestId();
-        }
-        Map<String, Set<ObjectPermission>> permissionsByReservationRequestId =
-                cache.getReservationRequestsPermissions(securityToken, );
-        */
-
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
@@ -281,18 +268,6 @@ public class MeetingRoomController {
                 item.put("reservationId", reservationId);
             }
 
-            /*ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
-            if (state != null) {
-                String lastReservationId = reservationRequest.getLastReservationId();
-                item.put("state", state);
-                item.put("stateMessage", state.getMessage(messageSource, locale, specificationType));
-                item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
-            }*/
-
-            /*Set<ObjectPermission> objectPermissions = permissionsByReservationRequestId.get(reservationRequestId);
-            item.put("isWritable", objectPermissions.contains(ObjectPermission.WRITE));
-            item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
-            */
             UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
             item.put("ownerName", user.getFullName());
             item.put("ownerEmail",user.getPrimaryEmail());
@@ -300,8 +275,6 @@ public class MeetingRoomController {
             Interval slot = reservation.getSlot();
             item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
-            //item.put("type", specificationType);
-            //item.put("typeMessage", messageSource.getMessage("views.reservationRequest.specification." + specificationType, null, locale));
 
             String reservationResourceId = reservation.getResourceId();
             cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
