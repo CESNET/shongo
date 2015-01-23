@@ -89,14 +89,16 @@
         <tag:expandableBlock name="actions" expandable="false" expandCode="views.select.action" cssClass="actions">
             <span><spring:message code="views.select.action"/></span>
             <ul>
-                <li>
-                    <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
-                        <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-                    </tag:url>
-                    <a href="${createRoomUrl}" tabindex="1">
-                        <spring:message code="views.index.action.createRoom"/>
-                    </a>
-                </li>
+                <c:if test="${!showOnlyMeetingRooms}">
+                    <li>
+                        <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
+                            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                        </tag:url>
+                        <a href="${createRoomUrl}" tabindex="1">
+                            <spring:message code="views.index.action.createRoom"/>
+                        </a>
+                    </li>
+                </c:if>
                 <c:if test="${meetingRoomResources.size() > 0}">
                     <li>
                         <a href="${createMeetingRoomUrl}" tabindex="1">
@@ -109,17 +111,19 @@
     </security:authorize>
 
     <tabset>
-        <%-- Reservations tab --%>
-        <spring:message code="views.index.reservations" var="roomsTitle"/>
-        <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
-            <%@ include file="dashboardReservation.jsp" %>
-        </tab>
+        <c:if test="${!showOnlyMeetingRooms}">
+            <%-- Reservations tab --%>
+            <spring:message code="views.index.reservations" var="roomsTitle"/>
+            <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
+                <%@ include file="dashboardReservation.jsp" %>
+            </tab>
 
-        <%-- Participation tab --%>
-        <spring:message code="views.index.participation" var="participationTitle"/>
-        <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
-            <%@ include file="dashboardParticipation.jsp" %>
-        </tab>
+            <%-- Participation tab --%>
+            <spring:message code="views.index.participation" var="participationTitle"/>
+            <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
+                <%@ include file="dashboardParticipation.jsp" %>
+            </tab>
+        </c:if>
 
         <c:if test="${meetingRoomResources.size() > 0}">
             <%-- Meeting rooms tab --%>
