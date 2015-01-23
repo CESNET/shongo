@@ -23,6 +23,7 @@ import org.springframework.validation.Validator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -105,17 +106,13 @@ public class ReservationRequestValidator implements Validator
                     if (roomParticipantCount != null && roomParticipantCount <= 0) {
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
-                    if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
-                    }
+                    validatePeriodicityEnd(reservationRequestModel,errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
             }
             switch (specificationType) {
                 case MEETING_ROOM:
-                    if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
-                    }
+                    validatePeriodicityEnd(reservationRequestModel,errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
@@ -298,6 +295,17 @@ public class ReservationRequestValidator implements Validator
             errors.rejectValue("end", "validation.field.invalidIntervalEnd");
         }
     }
+
+    public static void validatePeriodicityEnd(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
+            DateTime periodicityStart = reservationRequestModel.getStart();
+            LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
+            if (periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate())) {
+                errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");
+            }
+        }    }
 
     /**
      * @param field
