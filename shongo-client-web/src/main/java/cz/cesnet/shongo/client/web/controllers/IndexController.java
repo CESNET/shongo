@@ -58,6 +58,7 @@ public class IndexController
         }
         ModelAndView modelAndView = new ModelAndView((authentication != null ? "indexAuthenticated" : "indexAnonymous"));
         modelAndView.addObject("mainContent", design.renderTemplateMain(request));
+        modelAndView.addObject("showOnlyMeetingRooms", ClientWebConfiguration.getInstance().showOnlyMeetingRooms());
 
         if (authentication != null) {
             Map<String, String> resources = new LinkedHashMap<String, String>();

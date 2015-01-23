@@ -300,6 +300,26 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
+     * @return name of tag for meeting rooms
+     */
+    public String getMeetingRoomTagName()
+    {
+        return getString("tags.meeting-room");
+    }
+
+    /**
+     * @return name of tag for meeting rooms
+     */
+    public Boolean showOnlyMeetingRooms()
+    {
+        try {
+            return getBoolean("design.show-only-meeting-rooms");
+        } catch (NoSuchElementException ex) {
+            return false;
+        }
+    }
+
+    /**
      * @return url to folder with design files (not ending with "/")
      */
     public String getDesignFolder()
@@ -347,13 +367,5 @@ public class ClientWebConfiguration extends CombinedConfiguration
     public boolean isReCaptchaConfigured()
     {
         return !Strings.isNullOrEmpty(getReCaptchaPublicKey()) && !Strings.isNullOrEmpty(getReCaptchaPrivateKey());
-    }
-
-    /**
-     * @return name of tag for meeting rooms
-     */
-    public String getMeetingRoomTagName()
-    {
-        return getString("tags.meeting-room");
     }
 }

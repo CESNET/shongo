@@ -55,6 +55,8 @@
         <folder>(default)</folder>
         <!-- Design parameters -->
         <!--<parameters></parameters>-->
+        <!-- Show only meeting rooms on dashboard -->
+        <!--show-only-meeting-rooms>true</show-only-meeting-rooms-->
     </design>
 
     <!-- ReCaptcha configuration (for reporting problems by unauthenticated users) -->
