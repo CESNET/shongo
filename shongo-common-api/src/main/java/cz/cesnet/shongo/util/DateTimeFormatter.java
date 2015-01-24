@@ -223,6 +223,32 @@ public class DateTimeFormatter
     }
 
     /**
+     *  @param interval
+     * @return formatted given {@code interval}
+     */
+    public String formatIntervalTime(Interval interval)
+    {
+        if (interval == null) {
+            return "";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        DateTime start = interval.getStart().withZone(dateTimeZone);
+        DateTime end = interval.getEnd().withZone(dateTimeZone);
+        if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
+                stringBuilder.append(timeFormatter.print(start));
+                stringBuilder.append(" - ");
+                stringBuilder.append(timeFormatter.print(end));
+            }
+        else {
+                stringBuilder.append(dateTimeFormatter.print(start));
+                stringBuilder.append(" - ");
+                stringBuilder.append(dateTimeFormatter.print(end));
+            }
+        return stringBuilder.toString();
+    }
+
+
+    /**
      * @param interval
      * @return formatted given {@code interval} as date range
      */

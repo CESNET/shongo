@@ -42,7 +42,9 @@
     <%-- JS, CSS and i18n files --%>
     <link rel="stylesheet" type="text/css" href="${contextPath}/css/lib.css"/>
     <link rel="stylesheet" type="text/css" href="${contextPath}/css/style.css"/>
-    <link rel="stylesheet" type="text/css" href="${contextPath}/design/css/design.css"/><%--
+    <link rel="stylesheet" type="text/css" href="${contextPath}/design/css/design.css"/>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/css/fullcalendar.css"/>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/css/calendarDemo.css"/><%--
 --%><c:forEach items="${js}" var="file">
     <script type="text/javascript" src="${contextPath}/js/${file}"></script><%--
 --%></c:forEach>
