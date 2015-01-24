@@ -12,8 +12,8 @@
 <tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
 <script type="text/javascript">
-    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2']);
-    module.controller("TabController", function($scope, $element) {
+    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2', 'mrReservationsCalendar']);
+    module.controller("TabController",function($scope, $element) {
         $scope.$tab = $scope.$$childHead;
         // Broadcast "refresh-<tabId>" event when a tab with <tabId> is activated
         // event will be caught in PaginationController (see PaginationController.init method)
@@ -26,8 +26,8 @@
     });
 </script>
 
-<div ng-app="jsp:indexDashboard" class="jspIndex">
 
+<div ng-app="jsp:indexDashboard" class="jspIndex">
     <%-- Warnings about user settings --%>
     <c:if test="${sessionScope.SHONGO_USER.localeDefaultWarning}">
         <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
@@ -137,7 +137,11 @@
             <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
                 <%@ include file="dashboardMeetingRoomReservations.jsp" %>
             </tab>
+
+            <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
+            <tab id="meetingRoomsReservationsCalendar" heading="${meetingRoomTitle}" ng-controller="TabController">
+                <%@ include file="dashboardMeetingRoomCalendar.jsp" %>
+            </tab>
         </c:if>
     </tabset>
-
 </div>
