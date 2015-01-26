@@ -11,19 +11,6 @@
 <tag:url var="meetingRoomReservationListUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
-<tag:url var="meetingRoomDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
-    <tag:param name="objectId" value="{{room.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-</tag:url>
-<tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
-    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-</tag:url>
-<tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-</tag:url>
-
 <tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -159,7 +146,7 @@
                     <span>
                         <strong><spring:message code="views.room.ownerEmail"/></strong>
                         <br />
-                        <a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>
+                        <a href="mailto: {{room.ownersEmail}}">{{room.ownersEmail}}</a>
                     </span>
                 </tag:help>
             </td>

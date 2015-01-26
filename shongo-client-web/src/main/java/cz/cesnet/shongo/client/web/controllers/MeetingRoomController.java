@@ -260,29 +260,27 @@ public class MeetingRoomController {
             Map<String, Object> item = new HashMap<String, Object>();
             String reservationId = reservation.getId();
             item.put("id", reservationId);
-//            item.put("description", reservation.getReservationRequestDescription());
-            //item.put("dateTime", formatter.formatDate(reservationRequest.getDateTime()));
-
-            if (reservationId != null) {
-//                item.put("reservationId", reservationId);
-            }
+            item.put("description", reservation.getReservationRequestDescription());
 
             UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
-//            item.put("ownerName", user.getFullName());
-//            item.put("ownerEmail",user.getPrimaryEmail());
+            item.put("ownerName", user.getFullName());
+            item.put("ownersEmail",user.getPrimaryEmail());
 
             Interval slot = reservation.getSlot();
+            //CALENDAR
             item.put("start", slot.getStart().toLocalDateTime().toString());
             item.put("end", slot.getEnd().toLocalDateTime().toString());
- //           item.put("slot", formatter.formatInterval(slot));
-            //formatter.formatIntervalTime()
+            //LIST
+            item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
             String reservationResourceId = reservation.getResourceId();
             cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
-//            item.put("resourceName",resource.getName());
-//            item.put("resourceDescription",resource.getDescription());
-            item.put("title", resource.getDescription() + user.getFirstName() + " - " + user.getPrimaryEmail() + "-" + slot.getStart().withZone(timeZone).toLocalDateTime().getHourOfDay() + "+" + timeZone);
+            //CALENDAR
+            item.put("title",resource.getName());
+            //LIST
+            item.put("resourceName",resource.getName());
+            item.put("resourceDescription",resource.getDescription());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
