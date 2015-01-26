@@ -719,6 +719,11 @@ a.bordered:hover {
   padding-top: 10px;
   padding-bottom: 10px;
 }
+/* Calendar */
+.calendar {
+  margin-top: 8px;
+  margin-bottom: 0px;
+}
 /* Tables */
 .table {
   margin-top: 8px;

@@ -138,6 +138,7 @@
                 <%@ include file="dashboardMeetingRoomReservations.jsp" %>
             </tab>
 
+            <%-- Your meeting rooms reservation request tab (calendar view) --%>
             <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
             <tab id="meetingRoomsReservationsCalendar" heading="${meetingRoomTitle}" ng-controller="TabController">
                 <%@ include file="dashboardMeetingRoomCalendar.jsp" %>

@@ -6350,7 +6350,7 @@ $.extend(TimeGrid.prototype, {
 						'<span>' + htmlEscape(fullTimeText) + '</span>'
 						+
 					(event.title ?
-						'<div class="fc-title">' +
+						' <div class="fc-title">' +
 							htmlEscape(event.title) +
 						'</div>' :
 						''
