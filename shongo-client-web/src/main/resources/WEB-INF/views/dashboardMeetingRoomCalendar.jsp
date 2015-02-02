@@ -73,9 +73,8 @@
                     solo: true
                 },
                 hide: {
-                    event: false,
                     fixed: true,
-                    inactive: 1000
+                    delay: 600
                 },
                 style: {
                     classes: 'qtip-app'
