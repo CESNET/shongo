@@ -93,7 +93,15 @@
                 header:{
                     left: 'title',
                     center: '',
-                    right: 'today prev,next'
+                    right: 'prev,today,next agendaDay,agendaWeek,month'
+                },
+                loading: function (bool) {
+                    if (bool) {
+                        $('#loadingImg').show();
+                    } else {
+                        $('#loadingImg').hide();
+                    }
+                    //Possibly call you feed loader to add the next feed in line
                 },
                 eventRender: $scope.eventRender
             }
@@ -127,7 +135,6 @@
             calendar.fullCalendar('rerenderEvents');
         }
         $scope.$on("refresh-meetingRoomsReservationsCalendar", function() {
-            document.getElementById('button-agendaWeek').classList.remove("btn-default");
             $scope.initCalendar();
         });
     });
@@ -136,24 +143,17 @@
 <div ng-controller="CalendarController">
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
     <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
+    <div class="btn-group pull-right">
+        <form class="form-inline">
+            <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
+            <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
+        </form>
+    </div>
+    <div class="spinner centered-in-page" id="loadingImg"></div>
     <div id="directives-calendar" class="calendar">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
             <h4>{{alertMessage}}</h4>
         </div>
-        <div class="btn-toolbar">
-            <div class="pull-right lead btn-group">
-                <button id="button-agendaDay" class="btn btn-default" ng-click="changeView('agendaDay', 'meetingRoomsReservationsCalendar')"><spring:message code="views.dashboard.day"/></button>
-                <button id="button-agendaWeek" class="btn btn-default" ng-click="changeView('agendaWeek', 'meetingRoomsReservationsCalendar')"><spring:message code="views.dashboard.week"/></button>
-                <button id="button-month" class="btn btn-default" ng-click="changeView('month', 'meetingRoomsReservationsCalendar')"><spring:message code="views.dashboard.month"/></button>
-            </div>
-            <div class="btn-group">
-                <form class="form-inline">
-                    <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
-                    <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
-                </form>
-            </div>
-        </div>
-
         <div class="calendar" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar" ui-calendar="uiConfig.calendar"></div>
     </div>
 </div>
