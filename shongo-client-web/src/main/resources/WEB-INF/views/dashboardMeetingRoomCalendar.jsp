@@ -90,6 +90,7 @@
                 loading: function (bool) {
                     if (bool) {
                         $('#directives-calendar').fadeTo(100,0.5);
+                        $('#loadingImg').fadeTo(100,1);
                         $('#loadingImg').show();
                     } else {
                         $('#loadingImg').fadeOut();
