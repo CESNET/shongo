@@ -50,14 +50,6 @@
 
             })
         };
-
-
-        $scope.changeView = function(view,calendar) {
-            var fullcalendar = uiCalendarConfig.calendars[calendar];
-            document.getElementById("button-" + fullcalendar.fullCalendar("getView").name).classList.add("btn-default");
-            fullcalendar.fullCalendar('changeView',view);
-            document.getElementById("button-" + fullcalendar.fullCalendar("getView").name).classList.remove("btn-default");
-        };
         $scope.renderCalender = function(calendar) {
             if(uiCalendarConfig.calendars[calendar]){
                 uiCalendarConfig.calendars[calendar].fullCalendar('render');
@@ -97,11 +89,13 @@
                 },
                 loading: function (bool) {
                     if (bool) {
+                        $('#directives-calendar').fadeTo(100,0.5);
                         $('#loadingImg').show();
                     } else {
+                        $('#loadingImg').fadeOut();
                         $('#loadingImg').hide();
+                        $('#directives-calendar').fadeTo(100,1);
                     }
-                    //Possibly call you feed loader to add the next feed in line
                 },
                 eventRender: $scope.eventRender
             }
@@ -149,11 +143,11 @@
             <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
         </form>
     </div>
-    <div class="spinner centered-in-page" id="loadingImg"></div>
     <div id="directives-calendar" class="calendar">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
             <h4>{{alertMessage}}</h4>
         </div>
+        <div class="spinner centered-in-element" id="loadingImg"></div>
         <div class="calendar" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar" ui-calendar="uiConfig.calendar"></div>
     </div>
 </div>
