@@ -11,9 +11,9 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
-    var calendarModule = angular.module('mrReservationsCalendar', ['ui.calendar', 'ui.bootstrap']);
+    //var calendarModule = angular.module('mrReservationsCalendar', ['ui.calendar', 'ui.bootstrap']);
 
-    calendarModule.controller("CalendarController", function($scope,$compile,uiCalendarConfig) {
+    module.controller("CalendarController", function($scope,$compile,uiCalendarConfig) {
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
