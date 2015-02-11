@@ -133,6 +133,12 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
      */
     private Set<String> hiddenParticipantAddresses = new HashSet<String>();
 
+    //ClearSea connector - temporarily
+    AliasService aliasService;
+    public static final String ALIAS_SERVICE_HOST = "alias-service.host";
+    public static final String ALIAS_SERVICE_PORT = "alias-service.port";
+    public static final String ALIAS_SERVICE_GATEKEEPER = "alias-service.gatekeeper";
+
     /**
      * Cache of results of previous calls to commands supporting revision numbers.
      * Map of cache ID to previous results.
@@ -251,6 +257,15 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         }
         catch (CommandException exception) {
             throw new CommandException("Error setting up connection to the device.", exception);
+        }
+
+        // Alias service: ClearSea
+        if (configuration.getOptionString(ALIAS_SERVICE_HOST) != null) {
+            this.aliasService = null;
+            String host = configuration.getOptionStringRequired(ALIAS_SERVICE_HOST);
+            String port = configuration.getOptionStringRequired(ALIAS_SERVICE_PORT);
+            String gatekeeper = configuration.getOptionStringRequired(ALIAS_SERVICE_GATEKEEPER);
+            //this.aliasService
         }
     }
 
