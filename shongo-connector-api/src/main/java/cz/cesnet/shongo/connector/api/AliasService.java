@@ -12,12 +12,12 @@ public interface AliasService {
     /**
      * Creates alias for H.323/SIP
      *
-     * @param alias
-     * @param roomNumber
+     * @param aliasType
+     * @param e164Number
      * @return
      * @throws CommandException
      */
-    public String createAlias(AliasType alias, String roomNumber, String roomName) throws CommandException;
+    public String createAlias(AliasType aliasType, String e164Number, String roomName) throws CommandException;
 
     /**
      * Returns formatted alias
@@ -35,5 +35,5 @@ public interface AliasService {
      * @return
      * @throws CommandException
      */
-    public String deleteAlias(String aliasId) throws CommandException;
+    public void deleteAlias(String aliasId) throws CommandException;
 }

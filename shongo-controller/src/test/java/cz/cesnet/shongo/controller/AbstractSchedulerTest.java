@@ -75,7 +75,9 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
 
     public SchedulerContext createSchedulerContext()
     {
-        return createSchedulerContext(Temporal.INTERVAL_INFINITE);
+        SchedulerContext schedulerContext = createSchedulerContext(Temporal.INTERVAL_INFINITE);
+        schedulerContext.setUserId("0");
+        return schedulerContext;
     }
 
     protected void createResource(Resource resource)

@@ -76,6 +76,16 @@
                         <hide>true</hide>
                     </participant>
                 </participants>
+                <alias-service>
+                    <name>ClearSea</name>
+                    <host>cs.cesnet.cz</host>
+                    <port>8181</port>
+                    <auth>
+                        <username>admin</username>
+                        <password>(password)</password>
+                    </auth>
+                    <gatekeeper></gatekeeper>
+                </alias-service>
             </options>
         </connector>
         -->
