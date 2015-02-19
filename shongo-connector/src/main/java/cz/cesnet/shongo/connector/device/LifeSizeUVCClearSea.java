@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.AliasService;
 import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
+import org.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -12,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Created on 10/02/15.
@@ -29,14 +28,15 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     /**
      * REST requests
      */
-    private static final String actionAccounts = "/api/v2/rest/service/accounts";
-    private static final String actionEndpoints = "/api/v2/rest/service/endpoints";
-    private static final String actionStatus = "/api/v2/rest/status";
+    private static final String API_V2 = "/api/v2/rest/"; 
+    private static final String ACTION_ACCOUNTS = "service/accounts";
+    private static final String ACTION_ENDPOINTS = "service/endpoints";
+    private static final String ACTION_STATUS = "status";
+    private static final String ACCESS_TOKEN_BASE = "?access_token=";
 
     /**
      * access token for the session
      */
-    private static final String accessTokenBase = "?access_token=";
     private static String accessToken;
 
     /**
@@ -60,18 +60,19 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
     @Override
     public String createAlias(AliasType aliasType, String e164Number, String roomName) throws CommandException {
-        Map<String,String> newUserData = new LinkedHashMap<String, String>();
-        newUserData.put("type", "User");
-        newUserData.put("userID", roomName);
-        newUserData.put("groupName", "Aliases");
-        performRequest(RequestType.POST, baseURL + actionAccounts + accessTokenBase + accessToken, newUserData);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", "User");
+        jsonObject.put("userID", roomName);
+        jsonObject.put("groupName", "Aliases");
+        performRequest(RequestType.POST, ACTION_ACCOUNTS, jsonObject);
+
         assignEndpoint(roomName, aliasType, e164Number);
         return roomName;
     }
 
     @Override
     public String getFullAlias(String aliasId) throws CommandException {
-        performRequest(RequestType.GET, baseURL + actionAccounts + "/" + aliasId + accessTokenBase + accessToken, null);
+        performRequest(RequestType.GET, ACTION_ACCOUNTS + "/" + aliasId, null);
         try {
             return aliasId + "@" + new URL(baseURL).getHost();
         } catch (MalformedURLException e) {
@@ -81,7 +82,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
     @Override
     public void deleteAlias(String aliasId) throws CommandException {
-        performRequest(RequestType.DELETE, baseURL + actionAccounts + "/" + aliasId + accessTokenBase + accessToken, null);
+        performRequest(RequestType.DELETE, ACTION_ACCOUNTS + "/" + aliasId, null);
     }
 
     @Override
@@ -116,8 +117,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * @throws CommandException
      */
     private void login() throws CommandException {
-        accessToken = performRequest(RequestType.GET,
-                baseURL + "/api/v1/access-token/?grant_type=password" +
+        accessToken = (String) performRequest(RequestType.GET, "/api/v1/access-token/?grant_type=password" +
                         "&username=" + serviceUserID + "&password=" + serviceUserPassword, null).get("access_token");
         connectionState = ConnectionState.LOOSELY_CONNECTED;
     }
@@ -128,8 +128,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private void checkTokenValidity() throws CommandException {
         try {
-            HttpsURLConnection connection = (HttpsURLConnection)new URL(
-                    baseURL + actionStatus + accessTokenBase + accessToken).openConnection();
+            HttpsURLConnection connection = (HttpsURLConnection)new URL(ACTION_STATUS).openConnection();
             int errorCode = connection.getResponseCode();
             if (errorCode == 200) {
                 return;
@@ -139,7 +138,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 login();
                 return;
             }
-            isError(connection);
+            checkError(connection);
         } catch (IOException e) {
             throw new CommandException("IO exception");
         }
@@ -150,29 +149,28 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * depending on request converts the attribute map to JSON string and sends the data
      * @param requestType REST request GET, POST or DELETE
      * @param action requested information source -> entire URL
-     * @param attributeMap attribute / value map
-     * @return string in JSON format or action name that has no return
+     * @param jsonObject JSON object
+     * @return JSON object
      * @throws CommandException
      */
-    private Map<String, String> performRequest(RequestType requestType, String action, Map<String, String> attributeMap)
+    private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
         try {
             checkTokenValidity();
-            HttpsURLConnection connection = (HttpsURLConnection)new URL(action).openConnection();
+            HttpsURLConnection connection = (HttpsURLConnection)new URL(buildURLString(action)).openConnection();
             connection.setRequestMethod(requestType.toString());
             if (requestType == RequestType.GET) {
                 connection.setDoInput(true);
                 connection.setRequestProperty("Accept", "application/json");
-                isError(connection);
-                return JSONStringToAttributeMap(
-                        new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
+                checkError(connection);
+                return new JSONObject(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
             } else {
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/json");
-                if (attributeMap != null) {
-                    connection.getOutputStream().write(attributeMapToJSONString(attributeMap).getBytes());
+                if (jsonObject != null) {
+                    connection.getOutputStream().write(jsonObject.toString().getBytes());
                 }
-                isError(connection);
+                checkError(connection);
             }
             connection.disconnect();
         } catch (IOException e) {
@@ -183,9 +181,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
     /**
      * Assigns dial string (endpoint) to a user.
-     * @param userID 
-     * @param aliasType 
-     * @param e164Number
+     * @param userID user id
+     * @param aliasType specifying SIP or H323 protocol
+     * @param e164Number possibly a phone number
      * @throws CommandException
      */
     private void assignEndpoint(String userID, AliasType aliasType, String e164Number) throws CommandException {
@@ -204,18 +202,18 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             }
         }
         dialString += e164Number + "@" + gatekeeperIP;
-        Map<String, String> newEndpointData = new LinkedHashMap<String, String>();
-        newEndpointData.put("userID", userID);
-        newEndpointData.put("dialString", dialString);
-        performRequest(RequestType.POST, baseURL + actionEndpoints + accessTokenBase + accessToken, newEndpointData);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userID", userID);
+        jsonObject.put("dialString", dialString);
+        performRequest(RequestType.POST, ACTION_ENDPOINTS, jsonObject);
     }
 
     /**
      * Function throws exceptions for different HTTP connection error response codes.
-     * @param connection
+     * @param connection https connection
      * @throws CommandException
      */
-    private void isError(HttpsURLConnection connection) throws CommandException {
+    private void checkError(HttpsURLConnection connection) throws CommandException {
         try {
             int errorCode = connection.getResponseCode();
             switch (errorCode) {
@@ -261,44 +259,15 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     }
 
     /**
-     * Converts the attribute, value map to JSON string.
-     * @param attributeMap
-     * @return
+     * Forms a URL request.
+     * @param action either request token action or standard action
+     * @return url string
      */
-    private String attributeMapToJSONString(Map<String, String> attributeMap) {
-        int mapSize = attributeMap.size() - 1;
-        StringBuilder jsonString = new StringBuilder();
-        jsonString.append("{");
-        for (Map.Entry entry : attributeMap.entrySet()) {
-            jsonString.append("\"").append(entry.getKey()).append("\"");
-            jsonString.append(":");
-            jsonString.append("\"").append(entry.getValue()).append("\"");
-            if (mapSize > 0) {
-                jsonString.append(",");
-                mapSize--;
-            }
+    private String buildURLString(String action) {
+        if (connectionState == ConnectionState.DISCONNECTED) {
+            return baseURL + action;
+        } else {
+            return baseURL + API_V2 + action + ACCESS_TOKEN_BASE + accessToken;
         }
-        jsonString.append("}");
-        return jsonString.toString();
-    }
-
-    /**
-     * Parses JSON string to a map of attributes and values.
-     * @param jsonString
-     * @return
-     */
-    private Map<String, String> JSONStringToAttributeMap(String jsonString) {
-        Map<String, String> attributeMap = new LinkedHashMap<>();
-        jsonString = jsonString.replace(" ", "");
-        jsonString = jsonString.replace("{", "");
-        jsonString = jsonString.replace("}", "");
-        String[] jsonSplit = jsonString.split(",");
-        for (String jsonPair : jsonSplit) {
-            String[] attributeSplit = jsonPair.split(":");
-            String key = attributeSplit[0].replace("\"", "");
-            String value = attributeSplit[1].replace("\"", "");
-            attributeMap.put(key, value);
-        }
-        return attributeMap;
     }
 }
