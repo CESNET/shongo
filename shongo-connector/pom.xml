@@ -84,6 +84,13 @@
             <version>3.3</version>
         </dependency>
 
+        <!-- JSON parsing library used by LifeSizeUVCClearSea -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20141113</version>
+        </dependency>
+
     </dependencies>
 
     <build>
