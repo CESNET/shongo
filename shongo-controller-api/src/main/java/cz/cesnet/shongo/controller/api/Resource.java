@@ -71,7 +71,7 @@ public class Resource extends IdentifiedComplexType
     /**
      * Are reservations of this resource public.
      */
-    private boolean calendarPublic;
+    private Boolean calendarPublic;
 
     /**
      * @return {@link #userId}
@@ -254,11 +254,11 @@ public class Resource extends IdentifiedComplexType
         childResourceIds.add(childResourceId);
     }
 
-    public boolean isCalendarPublic() {
-        return calendarPublic;
+    public Boolean getCalendarPublic() {
+        return (calendarPublic != null ? calendarPublic : Boolean.FALSE);
     }
 
-    public void setCalendarPublic(boolean calendarPublic) {
+    public void setCalendarPublic(Boolean calendarPublic) {
         this.calendarPublic = calendarPublic;
     }
 
@@ -316,6 +316,6 @@ public class Resource extends IdentifiedComplexType
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
         administratorEmails = dataMap.getStringList(ADMINISTRATOR_EMAILS, DEFAULT_COLUMN_LENGTH);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
-        calendarPublic = dataMap.getBool(IS_CALENDAR_PUBLIC);
+        calendarPublic = dataMap.getBoolean(IS_CALENDAR_PUBLIC);
     }
 }
