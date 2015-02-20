@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.AliasService;
 import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -19,6 +21,9 @@ import java.net.URL;
  * @author Martin Kocisky
  */
 public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements AliasService {
+
+    private static Logger logger = LoggerFactory.getLogger(LifeSizeUVCClearSea.class);
+
     /**
      * baseURL for the REST requests, and IP
      */
@@ -117,8 +122,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * @throws CommandException
      */
     private void login() throws CommandException {
-        accessToken = (String) performRequest(RequestType.GET, "/api/v1/access-token/?grant_type=password" +
-                        "&username=" + serviceUserID + "&password=" + serviceUserPassword, null).get("access_token");
+        accessToken = (String) performRequest(RequestType.GET, "&username=" + serviceUserID +
+                "&password=" + serviceUserPassword, null).get("access_token");
         connectionState = ConnectionState.LOOSELY_CONNECTED;
     }
 
@@ -156,6 +161,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
         try {
+            logger.info("Performing action: " + action + " ...");
             checkTokenValidity();
             HttpsURLConnection connection = (HttpsURLConnection)new URL(buildURLString(action)).openConnection();
             connection.setRequestMethod(requestType.toString());
@@ -173,6 +179,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 checkError(connection);
             }
             connection.disconnect();
+            logger.info("Action: " + action + " was successful.");
         } catch (IOException e) {
             throw new CommandException("unknown error: " + requestType.toString() + " " + action);
         }
@@ -259,13 +266,14 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     }
 
     /**
-     * Forms a URL request.
+     * Forms a URL request. If the connection is disconnected request for a token is made.
+     * Disconnected state is ensured by connect() and by checkTokenValidity() functions.
      * @param action either request token action or standard action
      * @return url string
      */
     private String buildURLString(String action) {
         if (connectionState == ConnectionState.DISCONNECTED) {
-            return baseURL + action;
+            return baseURL + "/api/v1/access-token/?grant_type=password" + action;
         } else {
             return baseURL + API_V2 + action + ACCESS_TOKEN_BASE + accessToken;
         }
