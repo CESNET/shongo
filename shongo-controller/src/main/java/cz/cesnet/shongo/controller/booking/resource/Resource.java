@@ -94,7 +94,6 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     private boolean calendarPublic;
 
-
     /**
      * Constructor.
      */
@@ -155,7 +154,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     }
 
     /**
-     * @return {@link #isCalendarPublic}
+     * @return {@link #calendarPublic}
      */
     @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean isCalendarPublic() {
