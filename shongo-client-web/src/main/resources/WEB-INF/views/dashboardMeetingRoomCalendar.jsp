@@ -8,6 +8,10 @@
 <tag:url var="meetingRoomReservationsUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>">
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
+<tag:url var="meetingRoomIcsUrl" value="<%= ClientWebUrl.MEETING_ROOM_ICS %>">
+    <tag:param name="objectId" value="{{reservationsFilter.resourceId.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
@@ -137,6 +141,7 @@
 
 <div ng-controller="CalendarController">
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
+    <span><a href="${meetingRoomIcsUrl}">.ics calendarr</a></span>
     <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
     <div class="btn-group pull-right">
         <form class="form-inline">
@@ -144,6 +149,7 @@
             <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
         </form>
     </div>
+
     <div id="directives-calendar" class="calendar">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
             <h4>{{alertMessage}}</h4>

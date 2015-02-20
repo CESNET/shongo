@@ -15,15 +15,25 @@ import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.apache.http.HttpHeaders;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -290,5 +300,27 @@ public class MeetingRoomController {
         data.put("sort-desc", sortDescending);
         data.put("items", items);
         return data;
+    }
+
+    /**
+     * Return ICS calendar for meeting room with all future events.
+     */
+    @RequestMapping(value = ClientWebUrl.MEETING_ROOM_ICS, method = RequestMethod.GET)
+    @ResponseBody
+    public void handleReservationRequestListData(
+            Locale locale,
+            DateTimeZone timeZone,
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            HttpServletResponse response) throws IOException {
+        ReservationListRequest request = new ReservationListRequest();
+        request.addResourceId(objectId);
+        String iCalendarData = reservationService.getResourceReservationsICalendar(request);
+        response.setContentType("text/calendar");
+        response.setHeader("Content-Disposition","attachment;filename=cal.ics");
+        ServletOutputStream out = response.getOutputStream();
+        out.println(iCalendarData);
+        out.flush();
+        out.close();
     }
 }

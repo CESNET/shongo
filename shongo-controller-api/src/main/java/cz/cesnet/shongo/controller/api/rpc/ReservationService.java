@@ -153,4 +153,11 @@ public interface ReservationService extends Service
     @API
     public ListResponse<ReservationSummary> listReservations(ReservationListRequest request);
 
+    /**
+     *
+     * @param request {@link ReservationListRequest}
+     * @return full calendar for specified resource
+     */
+    @API
+    public String getResourceReservationsICalendar(ReservationListRequest request);
 }

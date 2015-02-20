@@ -69,6 +69,11 @@ public class Resource extends IdentifiedComplexType
     private List<String> childResourceIds = new ArrayList<String>();
 
     /**
+     * Are reservations of this resource public.
+     */
+    private boolean isCalendarPublic;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -249,6 +254,14 @@ public class Resource extends IdentifiedComplexType
         childResourceIds.add(childResourceId);
     }
 
+    public boolean isCalendarPublic() {
+        return isCalendarPublic;
+    }
+
+    public void setCalendarPublic(boolean isCalendarPublic) {
+        this.isCalendarPublic = isCalendarPublic;
+    }
+
     public static final String USER_ID = "userId";
     public static final String PARENT_RESOURCE_ID = "parentResourceId";
     public static final String NAME = "name";
@@ -259,6 +272,7 @@ public class Resource extends IdentifiedComplexType
     public static final String MAXIMUM_FUTURE = "maximumFuture";
     public static final String ADMINISTRATOR_EMAILS = "administratorEmails";
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
+    public static final String IS_CALENDAR_PUBLIC = "isCalendarPublic";
 
     @Override
     public DataMap toData()
@@ -273,6 +287,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(ADMINISTRATOR_EMAILS, administratorEmails);
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
+        dataMap.set(IS_CALENDAR_PUBLIC, isCalendarPublic);
 
         if (maximumFuture instanceof DateTime) {
             dataMap.set(MAXIMUM_FUTURE, (DateTime) maximumFuture);
@@ -301,5 +316,6 @@ public class Resource extends IdentifiedComplexType
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
         administratorEmails = dataMap.getStringList(ADMINISTRATOR_EMAILS, DEFAULT_COLUMN_LENGTH);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
+        isCalendarPublic = dataMap.getBool(IS_CALENDAR_PUBLIC);
     }
 }
