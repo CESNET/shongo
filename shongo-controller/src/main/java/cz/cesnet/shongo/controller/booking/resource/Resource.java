@@ -92,7 +92,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     /**
      * Are reservations of this resource public.
      */
-    private boolean isCalendarPublic;
+    private boolean calendarPublic;
 
 
     /**
@@ -159,11 +159,11 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean isCalendarPublic() {
-        return isCalendarPublic;
+        return calendarPublic;
     }
 
-    public void setCalendarPublic(boolean isCalendarPublic) {
-        this.isCalendarPublic = isCalendarPublic;
+    public void setCalendarPublic(boolean calendarPublic) {
+        this.calendarPublic = calendarPublic;
     }
 
     /**

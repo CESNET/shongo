@@ -65,7 +65,7 @@ sub new()
         'title' => 'Maximum Future',
         'type' => 'period'
     });
-    $self->add_attribute('isCalendarPublic', {
+    $self->add_attribute('calendarPublic', {
         'type' => 'bool',
         'required' => 1
     });
