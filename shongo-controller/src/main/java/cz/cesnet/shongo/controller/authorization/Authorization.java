@@ -667,8 +667,10 @@ public abstract class Authorization
             return Collections.emptySet();
         }
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (String userId : userIds.getUserIds()) {
-            users.add(getUserInformation(userId));
+        if (!userIds.isEveryone()) {
+            for (String userId : userIds.getUserIds()) {
+                users.add(getUserInformation(userId));
+            }
         }
         return users;
     }

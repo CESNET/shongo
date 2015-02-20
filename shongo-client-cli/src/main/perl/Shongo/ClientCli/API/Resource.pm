@@ -65,6 +65,10 @@ sub new()
         'title' => 'Maximum Future',
         'type' => 'period'
     });
+    $self->add_attribute('isCalendarPublic', {
+        'type' => 'bool',
+        'required' => 1
+    });
     $self->add_attribute('childResourceIds', {
         'title' => 'Children',
         'format' => sub {

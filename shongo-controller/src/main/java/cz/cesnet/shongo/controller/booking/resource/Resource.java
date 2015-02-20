@@ -90,6 +90,12 @@ public class Resource extends PersistentObject implements ReportableComplex
     private Integer allocationOrder;
 
     /**
+     * Are reservations of this resource public.
+     */
+    private boolean isCalendarPublic;
+
+
+    /**
      * Constructor.
      */
     public Resource()
@@ -146,6 +152,18 @@ public class Resource extends PersistentObject implements ReportableComplex
     public String getDescription()
     {
         return description;
+    }
+
+    /**
+     * @return {@link #isCalendarPublic}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isCalendarPublic() {
+        return isCalendarPublic;
+    }
+
+    public void setCalendarPublic(boolean isCalendarPublic) {
+        this.isCalendarPublic = isCalendarPublic;
     }
 
     /**
