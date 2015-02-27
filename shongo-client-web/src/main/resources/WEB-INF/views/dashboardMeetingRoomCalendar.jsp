@@ -9,19 +9,26 @@
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
 <tag:url var="meetingRoomIcsUrl" value="<%= ClientWebUrl.MEETING_ROOM_ICS %>">
-    <tag:param name="objectId" value="{{reservationsFilter.resourceId.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+    <tag:param name="objectUriKey" value="" escape="false" />
 </tag:url>
+
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
     //var calendarModule = angular.module('mrReservationsCalendar', ['ui.calendar', 'ui.bootstrap']);
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+    var hostUrl = host.concat(":" + location.port);
+    var calendarUrlBase =  hostUrl + "${meetingRoomIcsUrl}";
+    var exportCalendarMessage = "<strong><spring:message code='views.index.meetingRooms.calendarExport.message'/></strong><br />";
 
     module.controller("CalendarController", function($scope,$compile,uiCalendarConfig) {
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
         var y = date.getFullYear();
+
 
         $scope.initCalendar = function() {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
@@ -65,6 +72,10 @@
             element.qtip({
                 content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
                 "<strong>" + createdBy + ":</strong><br /><span>" + event.createdBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)</span>",
+                position: {
+                    my: 'left top',
+                    at: 'top right'
+                },
                 show: {
                     solo: true
                 },
@@ -114,10 +125,24 @@
             },
             data: [
                 <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                {id: "${meetingRoomResource.key}", text: "${meetingRoomResource.value}"},
+                {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
                 </c:forEach>
             ]
-        }
+        };
+
+        $scope.resourceUriKeys = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data:
+                {
+                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                    <c:if test="${meetingRoomResource.isCalendarPublic()}">
+                        "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
+                    </c:if>
+                </c:forEach>
+                }
+        };
 
         $scope.reservationsFilter = {
             resourceId: $scope.resourceIdOptions.data[0].id
@@ -126,6 +151,16 @@
         $scope.$watch('reservationsFilter.resourceId', function(newResourceId, oldResourceId, scope) {
             if ($scope.$parent.$tab.active && typeof newResourceId == "object") {
                 $scope.refreshCalendar();
+                if ($scope.resourceUriKeys.data[newResourceId.id]) {
+                    var resourceCalendarUrl = calendarUrlBase + $scope.resourceUriKeys.data[newResourceId.id]
+                    $('[qtip-init]').show();
+                    $('[qtip-init]').each(function() {
+                        $(this).qtip('option', 'content.text', exportCalendarMessage + "<a>" +resourceCalendarUrl +"</a>");
+                    });
+                }
+                else {
+                    $('[qtip-init]').hide();
+                }
             }
         });
         $scope.refreshCalendar = function() {
@@ -135,13 +170,46 @@
         }
         $scope.$on("refresh-meetingRoomsReservationsCalendar", function() {
             $scope.initCalendar();
+            if (!$scope.resourceUriKeys.data[$scope.resourceIdOptions.data[0].id]) {
+                $('[qtip-init]').hide();
+            }
         });
+    });
+
+    // Init qtip for ics export
+    module.directive('qtipInit', function(){
+        return {
+            restrict: 'A',
+            link: function(scope, element, attrs)
+            {
+                var resourceCalendarUrl = calendarUrlBase + scope.resourceUriKeys.data[scope.resourceIdOptions.data[0].id]
+                $(element).qtip({
+                    content: {
+                        text: exportCalendarMessage + "<a>" +resourceCalendarUrl +"</a>"
+                    },
+                    position: {
+                        my: 'left top',
+                        at: 'top right'
+                    },
+                    show: {
+                        solo: true
+                    },
+                    hide: {
+                        fixed: true,
+                        delay: 600
+                    },
+                    style: {
+                        classes: 'qtip-app'
+                    }
+                });
+            }
+        }
     });
 </script>
 
 <div ng-controller="CalendarController">
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
-    <span><a href="${meetingRoomIcsUrl}">.ics calendarr</a></span>
+
     <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
     <div class="btn-group pull-right">
         <form class="form-inline">
@@ -149,6 +217,8 @@
             <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
         </form>
     </div>
+
+    <div class="calendar"><span class="fa fa-calendar"  qtip-init /> <spring:message code="views.index.meetingRooms.calendarExport"/></div>
 
     <div id="directives-calendar" class="calendar">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">

@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.report.ReportableComplex;
+import org.hibernate.annotations.GenericGenerator;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -95,6 +96,11 @@ public class Resource extends PersistentObject implements ReportableComplex
     private boolean calendarPublic;
 
     /**
+     * Hash key used for public calendar URL
+     */
+    private String calendarUriKey;
+
+    /**
      * Constructor.
      */
     public Resource()
@@ -163,6 +169,15 @@ public class Resource extends PersistentObject implements ReportableComplex
 
     public void setCalendarPublic(boolean calendarPublic) {
         this.calendarPublic = calendarPublic;
+    }
+
+    @Column(columnDefinition = "varchar(8)", unique = true)
+    public String getCalendarUriKey() {
+        return calendarUriKey;
+    }
+
+    public void setCalendarUriKey(String calendarUriKey) {
+        this.calendarUriKey = calendarUriKey;
     }
 
     /**
@@ -482,6 +497,8 @@ public class Resource extends PersistentObject implements ReportableComplex
         resourceApi.setAllocatable(isAllocatable());
         resourceApi.setAllocationOrder(getAllocationOrder());
         resourceApi.setDescription(getDescription());
+        resourceApi.setCalendarPublic(isCalendarPublic());
+        resourceApi.setCalendarUriKey(getCalendarUriKey());
 
         if (maximumFuture != null) {
             resourceApi.setMaximumFuture(maximumFuture.toApi());
@@ -536,6 +553,8 @@ public class Resource extends PersistentObject implements ReportableComplex
         setDescription(resourceApi.getDescription());
         setAllocatable(resourceApi.getAllocatable());
         setAllocationOrder(resourceApi.getAllocationOrder());
+        setCalendarPublic(resourceApi.isCalendarPublic());
+        setCalendarUriKey(resourceApi.getCalendarUriKey());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
             newParentResourceId = ObjectIdentifier.parseId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);

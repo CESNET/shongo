@@ -33,9 +33,11 @@ import cz.cesnet.shongo.controller.util.iCalendar;
 import cz.cesnet.shongo.report.Report;
 import jade.content.onto.annotations.Slot;
 import org.joda.time.*;
+import org.joda.time.tz.UTCProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.sql.Time;
 import java.util.*;
 
 /**
@@ -1256,46 +1258,29 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ListResponse<ReservationSummary> reservationSummaries = new ListResponse<ReservationSummary>();
+        String resourceName;
 
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_summary");
 
-            // Show reservations
+            // Check if reservation has set calendar as public and if there is only one resource requested
             if (request.getResourceIds().size() == 1) {
                 String resourceId = request.getResourceIds().iterator().next();
                 Long persistentResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
 
                 cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(persistentResourceId);
-                resource.isCalendarPublic();
+                if (!resource.isCalendarPublic()) {
+                    throw new ControllerReportSet.SecurityNotAuthorizedException("Not authorized");
+                }
+                resourceName = resource.getName();
             } else {
                 throw new TodoImplementException("ReservationService.getResourceReservationsICalendar() support just one resource ID.");
             }
-            // List only reservations which is current user permitted to read or which allocates resource owned by the user
-            /*Set<Long> readableReservationIds = null;
-            if (!hasReadForAll) {
-                readableReservationIds = authorization.getEntitiesWithPermission(securityToken,
-                        cz.cesnet.shongo.controller.booking.reservation.Reservation.class, ObjectPermission.READ);
-            }
-            if (readableReservationIds != null) {
-                Set<Long> ownedResourceIds = authorization.getEntitiesWithRole(securityToken,
-                        cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectRole.OWNER);
-                StringBuilder filterBuilder = new StringBuilder();
-                filterBuilder.append("1=0");
-                if (!readableReservationIds.isEmpty()) {
-                    filterBuilder.append(" OR reservation_summary.id IN(:readableReservationIds)");
-                    queryFilter.addFilterParameter("readableReservationIds", readableReservationIds);
-                }
-                if (!ownedResourceIds.isEmpty()) {
-                    filterBuilder.append(" OR reservation_summary.resource_id IN(:ownedResourceIds)");
-                    queryFilter.addFilterParameter("ownedResourceIds", ownedResourceIds);
-
-                }
-                queryFilter.addFilter(filterBuilder.toString());
-            }
 
             // List only reservations of requested types
-            if (request.getReservationTypes().size() > 0) {
+            // NOT NEEDED WHEN JUST ONE RESOURCE IS WANTED
+            /*if (request.getReservationTypes().size() > 0) {
                 StringBuilder reservationTypes = new StringBuilder();
                 for (ReservationSummary.Type reservationType : request.getReservationTypes()) {
                     if (reservationTypes.length() > 0) {
@@ -1306,9 +1291,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     reservationTypes.append("'");
                 }
                 queryFilter.addFilter("reservation_summary.type IN(" + reservationTypes.toString() + ")");
-            }
+            }*/
 
             // List only reservations which allocates requested resource
+            // ONLY ONE IS ALLOWED, BUT MAY BE USED IN FUTURE
             if (!request.getResourceIds().isEmpty()) {
                 queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
                 Set<Long> resourceIds = new HashSet<Long>();
@@ -1324,8 +1310,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("reservation_summary.slot_end > :slotStart");
                 if (interval.getStart() != null) {
                     queryFilter.addFilterParameter("slotStart", interval.getStart().toDate());
-                } else {
-                    queryFilter.addFilterParameter("slotStart", DateTime.now());
+                }
+                else {
+                    queryFilter.addFilterParameter("slotStart", DateTime.now().minusMonths(1).toDate());
                 }
 
                 if (interval.getEnd() != null) {
@@ -1333,22 +1320,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     queryFilter.addFilterParameter("slotEnd", interval.getEnd().toDate());
                 }
             }
-
-            // Sort query part
-            String queryOrderBy;
-            ReservationListRequest.Sort sort = request.getSort();
-            if (sort != null) {
-                switch (sort) {
-                    case SLOT:
-                        queryOrderBy = "reservation_summary.slot_start";
-                        break;
-                    default:
-                        throw new TodoImplementException(sort);
-                }
-            }
             else {
-                queryOrderBy = "reservation_summary.id";
+                queryFilter.addFilter("reservation_summary.slot_end > :slotStart");
+                queryFilter.addFilterParameter("slotStart", DateTime.now().minusMonths(1).toDate());
             }
+
+            String queryOrderBy = "reservation_summary.id";
             Boolean sortDescending = request.getSortDescending();
             sortDescending = (sortDescending != null ? sortDescending : false);
             if (sortDescending) {
@@ -1364,15 +1341,17 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             for (Object[] record : records) {
                 ReservationSummary reservationSummary = getReservationSummary(record);
                 reservationSummaries.addItem(reservationSummary);
-            }*/
+            }
         }
         finally {
             entityManager.close();
         }
 
-        iCalendar iCalendar = new iCalendar();
+        iCalendar iCalendar = new iCalendar(getConfiguration().getString("domain.name"),resourceName);
         for (ReservationSummary reservation : reservationSummaries) {
+            //TODO: consolidate periodic reservations
             cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
+            event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
             iCalendar.addEvent(event);
         }
         return iCalendar.toString();

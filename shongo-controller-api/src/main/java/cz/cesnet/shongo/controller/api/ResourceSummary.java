@@ -50,6 +50,16 @@ public class ResourceSummary extends IdentifiedComplexType
     private String description;
 
     /**
+     * Are reservations of this resource public.
+     */
+    private boolean calendarPublic;
+
+    /**
+     * Hash key used for public calendar URL
+     */
+    private String calendarUriKey;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -154,6 +164,22 @@ public class ResourceSummary extends IdentifiedComplexType
         this.description = description;
     }
 
+    public boolean isCalendarPublic() {
+        return calendarPublic;
+    }
+
+    public void setCalendarPublic(boolean calendarPublic) {
+        this.calendarPublic = calendarPublic;
+    }
+
+    public String getCalendarUriKey() {
+        return calendarUriKey;
+    }
+
+    public void setCalendarUriKey(String calendarUriKey) {
+        this.calendarUriKey = calendarUriKey;
+    }
+
     /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
@@ -169,6 +195,8 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String ALLOCATABLE = "allocatable";
     private static final String ALLOCATION_ORDER = "allocationOrder";
     private static final String DESCRIPTION = "description";
+    private static final String CALENDAR_PUBLIC = "calendarPublic";
+    private static final String CALENDAR_URI_KEY = "calendarUriKey";
 
     @Override
     public DataMap toData()
@@ -181,6 +209,8 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
         dataMap.set(DESCRIPTION,description);
+        dataMap.set(CALENDAR_PUBLIC,calendarPublic);
+        dataMap.set(CALENDAR_URI_KEY,calendarUriKey);
         return dataMap;
     }
 
@@ -195,5 +225,7 @@ public class ResourceSummary extends IdentifiedComplexType
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
         description = dataMap.getString(DESCRIPTION);
+        calendarPublic = dataMap.getBool(CALENDAR_PUBLIC);
+        calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
     }
 }

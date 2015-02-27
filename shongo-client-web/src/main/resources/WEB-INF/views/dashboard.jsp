@@ -99,7 +99,7 @@
                         </a>
                     </li>
                 </c:if>
-                <c:if test="${meetingRoomResources.size() > 0}">
+                <c:if test="${!meetingRoomResources.isEmpty()}">
                     <li>
                         <a href="${createMeetingRoomUrl}" tabindex="1">
                             <spring:message code="views.index.action.bookMeetingRoom"/>
@@ -125,7 +125,7 @@
             </tab>
         </c:if>
 
-        <c:if test="${meetingRoomResources.size() > 0}">
+        <c:if test="${!meetingRoomResources.isEmpty()}">
             <%-- Meeting rooms tab --%>
             <spring:message code="views.index.myMeetingRooms" var="myMeetingRoomTitle"/>
             <tab id="meetingRooms" heading="${myMeetingRoomTitle}" ng-controller="TabController">

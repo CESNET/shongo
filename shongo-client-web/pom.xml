@@ -156,7 +156,6 @@
             <artifactId>recaptcha4j</artifactId>
             <version>0.0.7</version>
         </dependency>
-
     </dependencies>
 
     <build>

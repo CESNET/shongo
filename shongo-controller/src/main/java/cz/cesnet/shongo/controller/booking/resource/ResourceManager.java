@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import antlr.StringUtils;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.Converter;
@@ -12,9 +13,11 @@ import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.FilteredValueProvider;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
+import org.apache.commons.lang.RandomStringUtils;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.util.Length;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -70,6 +73,14 @@ public class ResourceManager extends AbstractManager
     public void create(Resource resource)
     {
         resource.validate();
+        // Set calendar URI key if calendar is public
+        if (resource.isCalendarPublic()) {
+            String calendarUriKey = generateUniqueKey(8);
+            resource.setCalendarUriKey(calendarUriKey);
+        }
+        else {
+            resource.setCalendarUriKey(null);
+        }
         super.create(resource);
     }
 
@@ -81,7 +92,41 @@ public class ResourceManager extends AbstractManager
     public void update(Resource resource)
     {
         resource.validate();
+        if (resource.isCalendarPublic()) {
+            if (resource.getCalendarUriKey() == null || resource.getCalendarUriKey().length() != 8) {
+                String calendarUriKey = generateUniqueKey(8);
+                resource.setCalendarUriKey(calendarUriKey);
+            }
+        }
+        else {
+            resource.setCalendarUriKey(null);
+        }
         super.update(resource);
+    }
+
+    /**
+     * Returns new unique random calendarUriKey for {@link cz.cesnet.shongo.controller.booking.resource.Resource}
+     * @param length of the key
+     * @return
+     */
+    private String generateUniqueKey(int length) {
+        // Get all existing resource's calendarUriKeys
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<String> query = criteriaBuilder.createQuery(String.class);
+        Root<Resource> resourceRoot = query.from(Resource.class);
+        query.select(resourceRoot.get("calendarUriKey").as(String.class));
+        query.where(criteriaBuilder.equal(resourceRoot.get("calendarPublic").as(boolean.class), true));
+
+        List<String> calendarUriKeys = entityManager.createQuery(query).getResultList();
+
+        String calendarUriKey = null;
+        while (calendarUriKey == null) {
+            String generatedUriKey = RandomStringUtils.random(length, true, true);
+            if (!calendarUriKeys.contains(generatedUriKey)) {
+                calendarUriKey = generatedUriKey;
+            }
+        }
+        return calendarUriKey;
     }
 
     /**
@@ -364,8 +409,8 @@ public class ResourceManager extends AbstractManager
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
-        Root<Tag> c = query.from(Tag.class);
-        query.select(c);
+        Root<Tag> tagRoot = query.from(Tag.class);
+        query.select(tagRoot);
 
         TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
 
@@ -384,9 +429,9 @@ public class ResourceManager extends AbstractManager
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Tag> query = criteriaBuilder.createQuery(Tag.class);
-        Root<Tag> from = query.from(Tag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("name").as(String.class), name);
-        query.select(from).where(param1);
+        Root<Tag> tagRoot = query.from(Tag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("name").as(String.class), name);
+        query.select(tagRoot).where(param1);
 
         TypedQuery<Tag> typedQuery = entityManager.createQuery(query);
 
@@ -399,10 +444,10 @@ public class ResourceManager extends AbstractManager
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
             CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
-            Root<ResourceTag> from = query.from(ResourceTag.class);
-            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), resourceId);
-            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(from.get("tag"), tagId);
-            query.select(from);
+            Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource"), resourceId);
+            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
+            query.select(resourceTagRoot);
             query.where(param1,param2);
 
             TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
@@ -419,9 +464,9 @@ public class ResourceManager extends AbstractManager
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
-        Root<ResourceTag> from = query.from(ResourceTag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("resource"), resourceId);
-        query.select(from).where(param1);
+        Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource"), resourceId);
+        query.select(resourceTagRoot).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
 
@@ -433,9 +478,9 @@ public class ResourceManager extends AbstractManager
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
-        Root<ResourceTag> from = query.from(ResourceTag.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(from.get("tag"), tagId);
-        query.select(from).where(param1);
+        Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
+        query.select(resourceTagRoot).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
 

@@ -288,12 +288,15 @@
         }).done(function (data) {
             var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.choose"/>"}];
 
-
             for (var index = 0; index < data.length; index++) {
                 var resource = data[index];
+                var description = "";
+                if (resource.description) {
+                    description = " (" + resource.description + ")";
+                }
                 resources.push({
                     id: resource.id,
-                    text: "<strong>" + resource.name + "</strong> (" + resource.description + ")"
+                    text: "<strong>" + resource.name + "</strong>" + description
                 });
             }
             callback(resources);

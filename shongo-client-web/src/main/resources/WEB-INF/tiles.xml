@@ -192,7 +192,4 @@
         <put-attribute name="title" value="views.resourceCapacityUtilizationDescription.title"/>
         <put-attribute name="content" value="/WEB-INF/views/resourceCapacityUtilizationDescription.jsp" type="template"/>
     </definition>
-
-
-
 </tiles-definitions>

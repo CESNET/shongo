@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
@@ -9,21 +10,18 @@ import cz.cesnet.shongo.client.web.models.ReservationRequestState;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
-import org.apache.http.HttpHeaders;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +30,6 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -305,19 +301,23 @@ public class MeetingRoomController {
     /**
      * Return ICS calendar for meeting room with all future events.
      */
-    @RequestMapping(value = ClientWebUrl.MEETING_ROOM_ICS, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.MEETING_ROOM_ICS, method = RequestMethod.GET, produces="text/calendar")
     @ResponseBody
-    public void handleReservationRequestListData(
-            Locale locale,
-            DateTimeZone timeZone,
-            SecurityToken securityToken,
-            @PathVariable(value = "objectId") String objectId,
+    @IgnoreDateTimeZone
+    public  void handleReservationRequestListData(
+//            SecurityToken securityToken,
+            @PathVariable(value = "objectUriKey") String objectUriKey,
             HttpServletResponse response) throws IOException {
-        ReservationListRequest request = new ReservationListRequest();
+        /*ReservationListRequest request = new ReservationListRequest();
         request.addResourceId(objectId);
-        String iCalendarData = reservationService.getResourceReservationsICalendar(request);
+*/
+        String iCalendarData = cache.getICalReservations(objectUriKey);
+        if (Strings.isNullOrEmpty(iCalendarData)) {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return;
+        }
         response.setContentType("text/calendar");
-        response.setHeader("Content-Disposition","attachment;filename=cal.ics");
+        response.setHeader("Content-Disposition", "inline;filename=calendar.ics");
         ServletOutputStream out = response.getOutputStream();
         out.println(iCalendarData);
         out.flush();

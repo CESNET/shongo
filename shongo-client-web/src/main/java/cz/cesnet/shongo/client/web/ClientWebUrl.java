@@ -191,7 +191,7 @@ public class ClientWebUrl
     public static final String MEETING_ROOM_RESERVATION_LIST_DATA =
             "/meeting-room/reservation/list/data";
     public static final String MEETING_ROOM_ICS =
-            "/meeting-room-ics/{objectId:.+}";
+            "/meeting-room-ics/{objectUriKey:.+}";
 
     public static final String USER_SETTINGS =
             "/user/settings";
