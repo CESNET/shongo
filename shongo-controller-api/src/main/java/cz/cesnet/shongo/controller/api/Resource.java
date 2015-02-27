@@ -71,7 +71,12 @@ public class Resource extends IdentifiedComplexType
     /**
      * Are reservations of this resource public.
      */
-    private Boolean calendarPublic;
+    private boolean calendarPublic;
+
+    /**
+     * Hash key used for public calendar URL
+     */
+    private String calendarUriKey;
 
     /**
      * @return {@link #userId}
@@ -254,12 +259,20 @@ public class Resource extends IdentifiedComplexType
         childResourceIds.add(childResourceId);
     }
 
-    public Boolean getCalendarPublic() {
-        return (calendarPublic != null ? calendarPublic : Boolean.FALSE);
+    public boolean isCalendarPublic() {
+        return calendarPublic;
     }
 
-    public void setCalendarPublic(Boolean calendarPublic) {
+    public void setCalendarPublic(boolean calendarPublic) {
         this.calendarPublic = calendarPublic;
+    }
+
+    public String getCalendarUriKey() {
+        return calendarUriKey;
+    }
+
+    public void setCalendarUriKey(String calendarUriKey) {
+        this.calendarUriKey = calendarUriKey;
     }
 
     public static final String USER_ID = "userId";
@@ -273,6 +286,7 @@ public class Resource extends IdentifiedComplexType
     public static final String ADMINISTRATOR_EMAILS = "administratorEmails";
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
     public static final String IS_CALENDAR_PUBLIC = "calendarPublic";
+    public static final String CALENDAR_URI_KEY = "calendarUriKey";
 
     @Override
     public DataMap toData()
@@ -288,6 +302,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(ADMINISTRATOR_EMAILS, administratorEmails);
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
         dataMap.set(IS_CALENDAR_PUBLIC, calendarPublic);
+        dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
 
         if (maximumFuture instanceof DateTime) {
             dataMap.set(MAXIMUM_FUTURE, (DateTime) maximumFuture);
@@ -316,6 +331,7 @@ public class Resource extends IdentifiedComplexType
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
         administratorEmails = dataMap.getStringList(ADMINISTRATOR_EMAILS, DEFAULT_COLUMN_LENGTH);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
-        calendarPublic = dataMap.getBoolean(IS_CALENDAR_PUBLIC);
+        calendarPublic = dataMap.getBool(IS_CALENDAR_PUBLIC);
+        calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
     }
 }

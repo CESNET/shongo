@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import org.joda.time.Interval;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to the service handling operations on resources.
@@ -106,4 +107,14 @@ public interface ResourceService extends Service {
     @API
     public void removeResourceTag(SecurityToken token, String resourceId, String tagId);
 
+    /**
+     * TODO:MR Create ACL for public access
+     * Just temporarily without {@link cz.cesnet.shongo.controller.api.SecurityToken}
+     *
+     * Returns resources IDs with public calendar.
+     *
+     * @return list of resources with public calendar access
+     */
+    @API
+    public ListResponse<ResourceSummary> getResourceIdsWithPublicCalendar();
 }

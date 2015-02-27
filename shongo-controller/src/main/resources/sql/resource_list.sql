@@ -11,7 +11,9 @@ SELECT
     resource_summary.allocatable AS allocatable,
     resource_summary.allocation_order AS allocation_order,
     resource_summary.technologies AS technologies,
-    resource_summary.description AS description
+    resource_summary.description AS description,
+    resource_summary.calendar_public AS calendar_public,
+    resource_summary.calendar_uri_key AS calendar_uri_key
 FROM resource_summary
 WHERE ${filter}
 ORDER BY ${order}

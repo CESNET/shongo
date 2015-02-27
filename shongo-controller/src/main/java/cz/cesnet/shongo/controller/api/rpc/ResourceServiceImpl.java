@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.Tag;
+import cz.cesnet.shongo.controller.api.request.ListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.TagListRequest;
@@ -22,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
+import cz.cesnet.shongo.controller.notification.Target;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -399,6 +401,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                         }
                     }
                 }
+                resourceSummary.setCalendarPublic((Boolean)record[8]);
+                if (resourceSummary.isCalendarPublic()) {
+                    resourceSummary.setCalendarUriKey(record[9].toString());
+                }
                 response.addItem(resourceSummary);
             }
             return response;
@@ -743,4 +749,39 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.close();
         }
     }
+
+    @Override
+    public ListResponse<ResourceSummary> getResourceIdsWithPublicCalendar()
+    {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            QueryFilter queryFilter = new QueryFilter("resource_summary", true);
+            // List only resources with public calendar
+            queryFilter.addFilter("resource_summary.calendar_public  = TRUE");
+
+            // Query order by
+            String queryOrderBy = "resource_summary.id";
+
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put("filter", queryFilter.toQueryWhere());
+            parameters.put("order", queryOrderBy);
+            String query = NativeQuery.getNativeQuery(NativeQuery.RESOURCE_LIST, parameters);
+
+            ListResponse<ResourceSummary> response = new ListResponse<ResourceSummary>();
+            ListRequest request = new ListRequest(0,-1);
+            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            for (Object[] record : records) {
+                ResourceSummary resourceSummary = new ResourceSummary();
+                resourceSummary.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
+                resourceSummary.setCalendarUriKey(record[9].toString());
+                response.addItem(resourceSummary);
+            }
+            return response;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
 }

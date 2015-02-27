@@ -178,7 +178,9 @@ public class iCalendar
     public String toString()
     {
         try {
-            calendar.validate();
+            if (!calendar.getComponents().isEmpty()) {
+                calendar.validate();
+            }
         }
         catch (ValidationException exception) {
             System.err.println(calendar.toString());

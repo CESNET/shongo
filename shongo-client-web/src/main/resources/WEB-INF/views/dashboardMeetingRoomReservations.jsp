@@ -24,10 +24,10 @@
             },
             data: [
                 <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                    {id: "${meetingRoomResource.key}", text: "${meetingRoomResource.value}"},
+                    {id: "${meetingRoomResource.key}", text: "<b>${meetingRoomResource.value.name}</b>"},
                 </c:forEach>
             ]
-        }
+        };
 
         $scope.reservationsFilter = {
             intervalFrom: dateTime.format("YYYY-MM-DD"),

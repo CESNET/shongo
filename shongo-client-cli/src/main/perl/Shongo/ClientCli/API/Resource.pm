@@ -66,6 +66,7 @@ sub new()
         'type' => 'period'
     });
     $self->add_attribute('calendarPublic', {
+        'title' => 'Calendar Public',
         'type' => 'bool',
         'required' => 1
     });
