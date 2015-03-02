@@ -70,6 +70,10 @@ sub new()
         'type' => 'bool',
         'required' => 1
     });
+    $self->add_attribute('calendarUriKey', {
+        'title' => 'Calendar URI key',
+        'editable' => 0
+    });
     $self->add_attribute('childResourceIds', {
         'title' => 'Children',
         'format' => sub {

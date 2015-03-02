@@ -328,6 +328,7 @@ sub list_resources()
             {'field' => 'user',         'title' => 'User'},
             {'field' => 'name',         'title' => 'Name'},
             {'field' => 'allocatable',  'title' => 'Allocatable'},
+            {'field' => 'calendarPublic','title' => 'Calendar Public'},
             {'field' => 'order',        'title' => 'Order'},
             {'field' => 'technologies', 'title' => 'Technologies'},
             {'field' => 'parent',       'title' => 'Parent Resource'},
@@ -349,6 +350,7 @@ sub list_resources()
             'user' => [$resource->{'userId'}, $application->format_user($resource->{'userId'})],
             'name' => $resource->{'name'},
             'allocatable' => $resource->{'allocatable'} ? 'yes' : 'no',
+            'calendarPublic' => $resource->{'calendarPublic'} ? 'yes' : 'no',
             'order' => $resource->{'allocationOrder'},
             'technologies' => [$resource->{'technologies'}, $technologies],
             'parent' => $resource->{'parentResourceId'},
@@ -440,11 +442,11 @@ sub create_tag()
     my ($attributes, $options) = @_;
 
     $options->{'on_confirm'} = sub {
-        my ($resource) = @_;
+        my ($tag) = @_;
         console_print_info("Creating tag...");
         my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.createTag',
-            $resource->to_xml()
+            $tag->to_xml()
         );
         if ( defined($response) ) {
             return $response;
