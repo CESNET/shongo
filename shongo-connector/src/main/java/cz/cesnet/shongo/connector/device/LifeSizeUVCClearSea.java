@@ -160,16 +160,36 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
+        String actionUrl = buildURLString(action);
+        logger.info("Performing action: " + actionUrl + " ...");
+
+        HttpsURLConnection connection;
         try {
-            logger.info("Performing action: " + action + " ...");
-            checkTokenValidity();
-            HttpsURLConnection connection = (HttpsURLConnection)new URL(buildURLString(action)).openConnection();
+            connection = (HttpsURLConnection) new URL(actionUrl).openConnection();
+        }
+        catch (MalformedURLException e) {
+            String message = "Malformed URL \"" + actionUrl + "\".";
+            logger.error(message);
+            throw new CommandException(message,e);
+        }
+        catch (IOException e) {
+            String message = "Failed to initialized connection for action: " + actionUrl;
+            logger.error(message);
+            throw new CommandException(message,e);
+        }
+
+        try {
+            //TODO: kde se rozlisuje jestli se jedna o login, nebo jiny request?
+            //checkTokenValidity();
             connection.setRequestMethod(requestType.toString());
             if (requestType == RequestType.GET) {
                 connection.setDoInput(true);
                 connection.setRequestProperty("Accept", "application/json");
+                //TODO: libovolny stream se cte cely, ne jen jeden radek, ackoliv se ti vraci JSON
+                //TODO: ale i tak se ti obecne nemusi vracet json, ale napr nejaka chyba
+                JSONObject jsonResponse = new JSONObject(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
                 checkError(connection);
-                return new JSONObject(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
+                return jsonResponse;
             } else {
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/json");
@@ -181,7 +201,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             connection.disconnect();
             logger.info("Action: " + action + " was successful.");
         } catch (IOException e) {
-            throw new CommandException("unknown error: " + requestType.toString() + " " + action);
+            //TODO: vracet chybu, kterou vraci connection a i puvodni vyjimku, a zalogovat chybu
+            throw new CommandException("EXECUTION ERROR: " + e + " ON ACTION: " + actionUrl);
         }
         return null;
     }
@@ -196,12 +217,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private void assignEndpoint(String userID, AliasType aliasType, String e164Number) throws CommandException {
         String dialString;
         switch (aliasType) {
-            case H323_URI: {
+            case H323_E164: {
                 dialString = "h323:";
-                break;
-            }
-            case SIP_URI: {
-                dialString = "sip:";
                 break;
             }
             default: {

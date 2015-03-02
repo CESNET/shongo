@@ -12,9 +12,10 @@ import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
 import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.support.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
+import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.MathHelper;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -22,7 +23,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -134,9 +134,11 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private Set<String> hiddenParticipantAddresses = new HashSet<String>();
 
     //ClearSea connector - temporarily
-    AliasService aliasService;
+    LifeSizeUVCClearSea lifeSizeUVCClearSea;
     public static final String ALIAS_SERVICE_HOST = "alias-service.host";
     public static final String ALIAS_SERVICE_PORT = "alias-service.port";
+    public static final String ALIAS_SERVICE_USERNAME = "alias-service.auth.username";
+    public static final String ALIAS_SERVICE_PASSWORD = "alias-service.auth.password";
     public static final String ALIAS_SERVICE_GATEKEEPER = "alias-service.gatekeeper";
 
     /**
@@ -261,11 +263,15 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 
         // Alias service: ClearSea
         if (configuration.getOptionString(ALIAS_SERVICE_HOST) != null) {
-            this.aliasService = null;
-            String host = configuration.getOptionStringRequired(ALIAS_SERVICE_HOST);
-            String port = configuration.getOptionStringRequired(ALIAS_SERVICE_PORT);
-            String gatekeeper = configuration.getOptionStringRequired(ALIAS_SERVICE_GATEKEEPER);
-            //this.aliasService
+            String csHost = configuration.getOptionStringRequired(ALIAS_SERVICE_HOST);
+            int csPort = configuration.getOptionIntRequired(ALIAS_SERVICE_PORT);
+            String csUsername = configuration.getOptionStringRequired(ALIAS_SERVICE_USERNAME);
+            String csPassword = configuration.getOptionStringRequired(ALIAS_SERVICE_PASSWORD);
+            String csGatekeeper = configuration.getOptionStringRequired(ALIAS_SERVICE_GATEKEEPER);
+            DeviceAddress clearSeaAddress = new DeviceAddress(csHost, csPort);
+
+            this.lifeSizeUVCClearSea = new LifeSizeUVCClearSea(csGatekeeper);
+            this.lifeSizeUVCClearSea.connect(clearSeaAddress, csUsername, csPassword);
         }
     }
 
@@ -293,6 +299,9 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
         xmlRpcClient = null; // just for sure the attributes are not used anymore
+
+        //Disconnect Alias service
+        this.lifeSizeUVCClearSea.disconnect();
     }
 
     //</editor-fold>
@@ -408,6 +417,30 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         }
 
         execApi(cmd);
+
+        try {
+            // Allocate alias in ClearSea
+            Alias alias = room.getAlias(AliasType.H323_E164);
+            if (alias == null) {
+                throw new CommandException("H323_E164 must be set for ClearSea alias.");
+            }
+            this.lifeSizeUVCClearSea.createAlias(alias.getType(), alias.getValue(), (String) cmd.getParameterValue("conferenceName"));
+        }
+        catch (CommandException ex) {
+            logger.error("Failed to create ClearSea alias: " + ex.getMessage());
+
+            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+            notifyTarget.addMessage("en",
+                    "Failed to create ClearSea alias pro místnost: " + room.getName(),
+                    "Creation of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                            + "Thrown exception:" + ex.getMessage());
+            notifyTarget.addMessage("cs",
+                    "Selhalo vytvoření ClearSea aliasu pro místnost: " + room.getName(),
+                    "Pro místnost \"" + room.getName() + "\" nebylo možné vytvořit alias pro ClearSea." + "\n"
+                            + "Nastala následující chyba:" + ex.getMessage());
+
+            performControllerAction(notifyTarget);
+        }
 
         return (String) cmd.getParameterValue("conferenceName");
     }
@@ -601,9 +634,13 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     @Override
     public void deleteRoom(String roomId) throws CommandException
     {
+        Room room = getRoom(roomId);
+        this.lifeSizeUVCClearSea.deleteAlias(room.getName());
+
         Command cmd = new Command("conference.destroy");
         cmd.setParameter("conferenceName", truncateString(roomId));
         execApi(cmd);
+
     }
 
     @Override
