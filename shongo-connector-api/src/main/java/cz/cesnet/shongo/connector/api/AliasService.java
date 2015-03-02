@@ -8,7 +8,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public interface AliasService {
+public interface AliasService extends CommonService {
     /**
      * Creates alias for H.323/SIP
      *
