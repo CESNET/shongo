@@ -4,6 +4,7 @@ import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -73,6 +74,19 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
     }
 
     /**
+     * Conbstructor
+     *
+     * @param slot interval
+     * @param period period of slot
+     * @param end end of interval period
+     */
+    public PeriodicDateTimeSlot(Interval slot, Period period, ReadablePartial end)
+    {
+        this.periodicDateTime = new PeriodicDateTime(slot.getStart(),period,end);
+        this.duration = slot.toPeriod();
+    }
+
+    /**
      * @return {@link #periodicDateTime}
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -120,6 +134,18 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
             return null;
         }
         return new Interval(dateTime, duration);
+    }
+
+    @Override
+    public boolean contains(Interval slot) {
+        List<Interval> slots = enumerate(slot.getStart(), slot.getEnd(), 1);
+
+        if (slots.size() == 1 &&
+            slots.get(0).getStartMillis() == slot.getStartMillis() && slots.get(0).getEndMillis() == slot.getEndMillis()) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

@@ -6,8 +6,14 @@ import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.datetime.AbsoluteDateTimeSlot;
+import cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot;
+import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
+import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
@@ -26,6 +32,18 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     private Long reusedReservationRequestId;
 
     /**
+     * True if no notifications has been sent yet for given {@link ReservationRequest}
+     */
+    private boolean first = true;
+
+    /**
+     * Map of periodic slots of {@link ReservationRequest}
+     */
+    //private Map<Interval, DateTime> periodicSlots = new HashMap<Interval, DateTime>();
+
+    private List<DateTimeSlot> periodicSlots = new ArrayList<DateTimeSlot>();;
+
+    /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
      */
     private List<AbstractReservationRequestNotification> notifications =
@@ -41,6 +59,37 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             AuthorizationManager authorizationManager)
     {
         super(reservationRequest);
+
+        Allocation allocation = reservationRequest.getAllocation();
+        if (allocation.isNotified()) {
+            this.first = false;
+        }
+        else {
+            allocation.setNotified(true);
+        }
+
+        if (reservationRequest instanceof ReservationRequest) {
+            Interval originSlot = ((ReservationRequest) reservationRequest).getSlot();
+            AbsoluteDateTimeSlot slot = new AbsoluteDateTimeSlot(originSlot.getStart(),originSlot.getEnd());
+            periodicSlots.add(slot);
+        }
+        else if (reservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) reservationRequest;
+            for (DateTimeSlot slot : reservationRequestSet.getSlots()) {
+                if (slot instanceof AbsoluteDateTimeSlot) {
+                    periodicSlots.add((AbsoluteDateTimeSlot) slot);
+                }
+                else if (slot instanceof PeriodicDateTimeSlot) {
+                    periodicSlots.add((PeriodicDateTimeSlot) slot);
+                }
+                else {
+                    throw new TodoImplementException("Missing DateTimeSlot type");
+                }
+            }
+        }
+        else {
+            throw new TodoImplementException("Missing AbstractReservationRequest type");
+        }
 
         EntityManager entityManager = authorizationManager.getEntityManager();
         this.target = Target.createInstance(reservationRequest, entityManager);
@@ -184,17 +233,81 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
 
         NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
+
+        Map<DateTimeSlot,ReservationNotification> firstNotifications = new LinkedHashMap<DateTimeSlot, ReservationNotification>();
         for (AbstractNotification notification : notifications) {
-            NotificationMessage childMessage;
+            for (DateTimeSlot slot : periodicSlots) {
+                if (notification instanceof ReservationNotification
+                        || (totalNotifications == allocationFailedNotifications && notification instanceof AllocationFailedNotification)
+                        || (totalNotifications == deletedReservationNotifications && notification instanceof AllocationFailedNotification)) {
+                    ReservationNotification reservationNotification = (ReservationNotification) notification;
+                    Interval notificationSlot = reservationNotification.getSlot();
+
+                    if (slot.contains(notificationSlot)) {
+                        ReservationNotification firstNotification = firstNotifications.get(slot);
+                        if (firstNotification == null || notificationSlot.getStart().isBefore(firstNotification.getSlotStart())) {
+                            firstNotifications.put(slot, reservationNotification);
+                        }
+                    }
+                }
+                else {
+                    throw new TodoImplementException(notification.getClass());
+                }
+            }
+
+            /*NotificationMessage childMessage;
             if (notification instanceof ConfigurableNotification) {
                 ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
                 childMessage = configurableEvent.renderMessage(configuration, manager);
-            }
-            else {
+            } else {
                 throw new TodoImplementException(notification.getClass());
             }
+            message.appendChildMessage(childMessage);*/
+        }
+
+        if (totalNotifications == newReservationNotifications) {
+            for (DateTimeSlot slot : periodicSlots) {
+                //String msg = "vse uspesne, zacatek request" + renderContext.formatPeriodicSlot(slot);
+                message.appendLine("NEW");
+            }
+        }
+        else if (totalNotifications == deletedReservationNotifications) {
+            //TODO: vypsat to stejne jen s jinym titulkem o uspesnem smazanim
+            for (DateTimeSlot slot : periodicSlots) {
+                //String msg = "vse NE, zacatek request" + slot.getStart();
+                message.appendLine("DELETED");
+            }
+        }
+        else if (totalNotifications == allocationFailedNotifications) {
+            //TODO: stejne s fail hlaskou
+        } else {
+            //TODO: vypsat uspesne stejne jako v prvnim krkoku
+            //TODO: explicitne vypsat nepovedene
+
+            //TODO: v jinem pripade nechat!!!DOCASNE!!!
+            for (AbstractNotification notification : notifications) {
+                NotificationMessage childMessage;
+                if (notification instanceof ConfigurableNotification) {
+                    ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
+                    childMessage = configurableEvent.renderMessage(configuration, manager);
+                } else {
+                    throw new TodoImplementException(notification.getClass());
+                }
+                //TODO: message.appendChildMessage(childMessage);
+            }
+        }
+
+        for (Map.Entry<DateTimeSlot,ReservationNotification> entry : firstNotifications.entrySet()) {
+            ReservationNotification reservationNotification = entry.getValue();
+            if (entry.getKey() instanceof PeriodicDateTimeSlot) {
+                PeriodicDateTime periodicDateTime = ((PeriodicDateTimeSlot) entry.getKey()).getPeriodicDateTime();
+                reservationNotification.setPeriod(periodicDateTime.getPeriod());
+                reservationNotification.setEnd(periodicDateTime.getEnd());
+            }
+            NotificationMessage childMessage = reservationNotification.renderMessage(configuration, manager);
             message.appendChildMessage(childMessage);
         }
+
         return message;
     }
 
@@ -221,6 +334,17 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         if (notifications.size() == 0) {
             return true;
+        }
+        if (!first) {
+            boolean skip = false;
+            for (AbstractNotification notification : notifications) {
+                if (!(notification instanceof ReservationNotification.New)) {
+                    skip = true;
+                }
+            }
+            if (!skip) {
+                return true;
+            }
         }
         if (reusedReservationRequestId != null && notifications.size() == 1) {
             AbstractReservationRequestNotification notification = notifications.get(0);

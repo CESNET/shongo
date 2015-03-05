@@ -30,6 +30,11 @@ public class Allocation extends SimplePersistentObject
     private State state;
 
     /**
+     * Has notifications been sent
+     */
+    private boolean notified;
+
+    /**
      * Latest {@link AbstractReservationRequest} for which the {@link Allocation} exists.
      */
     private AbstractReservationRequest reservationRequest;
@@ -60,6 +65,15 @@ public class Allocation extends SimplePersistentObject
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public void setNotified(boolean notified) {
+        this.notified = notified;
     }
 
     /**

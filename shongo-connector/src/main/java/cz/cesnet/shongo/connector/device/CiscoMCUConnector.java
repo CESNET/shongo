@@ -418,6 +418,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 
         execApi(cmd);
 
+        //TODO if CS alias
         try {
             // Allocate alias in ClearSea
             Alias alias = room.getAlias(AliasType.H323_E164);

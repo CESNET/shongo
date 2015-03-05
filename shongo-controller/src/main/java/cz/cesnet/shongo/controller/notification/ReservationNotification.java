@@ -19,6 +19,8 @@ import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
@@ -40,6 +42,16 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private Set<String> owners = new HashSet<String>();
 
     private Interval slot;
+
+    /**
+     * Period of periodic events.
+     */
+    private Period period;
+
+    /**
+     * Ending date and/or time after which the periodic events are not considered.
+     */
+    private ReadablePartial end;
 
     private Target target;
 
@@ -98,6 +110,22 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
     public abstract String getType();
 
+    public Period getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(Period period) {
+        this.period = period;
+    }
+
+    public ReadablePartial getEnd() {
+        return end;
+    }
+
+    public void setEnd(ReadablePartial end) {
+        this.end = end;
+    }
+
     @Override
     protected NotificationMessage renderMessage(Configuration configuration,
             NotificationManager manager)
@@ -149,6 +177,15 @@ public abstract class ReservationNotification extends AbstractReservationRequest
                 slot = RoomEndpoint.getOriginalSlot(slot, room.getSlotBefore(), room.getSlotAfter());
             }
             renderContext.addParameter("slot", slot);
+
+            if (period != null) {
+                /*if (period.equals(Period.days(1)) {
+
+                } else if*/
+
+                renderContext.addParameter("period", period);
+                renderContext.addParameter("end", end);
+            }
             templateFileName = "reservation-request-reservation.ftl";
         }
         else {

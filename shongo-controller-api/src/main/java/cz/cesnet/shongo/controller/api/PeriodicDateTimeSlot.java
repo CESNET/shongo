@@ -4,10 +4,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 /**
  * Represents a definition for periodic date/time slots.

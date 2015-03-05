@@ -177,6 +177,13 @@ public abstract class DateTimeSlot extends SimplePersistentObject implements Clo
     }
 
     /**
+     * Checks if given slots is exactly within this.
+     * @param slot slot to compare
+     * @return true if the given slot is within this, else otherwise
+     */
+    public abstract boolean contains(Interval slot);
+
+    /**
      * @return converted {@link DateTimeSlot} to API
      */
     public abstract Object toApi();
