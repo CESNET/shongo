@@ -5,17 +5,18 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.PeriodFormat;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -531,6 +532,17 @@ public abstract class AbstractNotification
             }
         }
 
+        public String formatDate(ReadablePartial date)
+        {
+            return DateTimeFormat.mediumDate().withLocale(getLocale()).print(date);
+        }
+
+        public String formatPeriod(Period period)
+        {
+
+            return PeriodFormat.getDefault().withLocale(getLocale()).print(period);
+        }
+
         /**
          * @param interval   to be formatted
          * @param timeZoneId to be used
@@ -548,6 +560,18 @@ public abstract class AbstractNotification
          */
         public String formatInterval(Interval interval)
         {
+            return formatInterval(interval, getTimeZone());
+        }
+
+        /**
+         * @param slot to be formatted
+         * @return {@code interval} formatted to string
+         */
+        public String formatPeriodicSlot(PeriodicDateTimeSlot slot)
+        {
+            DateTime start = slot.getStart();
+            DateTime end = start.plus(slot.getDuration());
+            Interval interval = new Interval(start,end);
             return formatInterval(interval, getTimeZone());
         }
 

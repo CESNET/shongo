@@ -21,6 +21,7 @@ our $Type = ordered_hash(
     'H323_IP' => 'H.323 IP',
     'SIP_URI' => 'SIP URI',
     'SIP_IP' => 'SIP IP',
+    'CS_DIAL_STRING' => 'ClearSea Dial String',
     'ADOBE_CONNECT_URI' => 'Adobe Connect URI'
 );
 
@@ -32,6 +33,7 @@ our $TypePattern = {
     'H323_IP' => '.*',
     'SIP_URI' => '.+@.+',
     'SIP_IP' => '.*',
+    'CS_DIAL_STRING' => '.+@.+',
     'ADOBE_CONNECT_URI' => '.+'
 };
 

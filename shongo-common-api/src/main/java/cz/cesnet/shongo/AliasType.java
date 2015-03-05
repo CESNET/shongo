@@ -41,6 +41,11 @@ public enum AliasType
     SIP_IP(Technology.H323, AliasValueType.IP),
 
     /**
+     * Represents guest dial string for SW client LifeSize ClearSea
+     */
+    CS_DIAL_STRING(Technology.H323, AliasValueType.STRING),
+
+    /**
      * Represents room URL for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
      */
     ADOBE_CONNECT_URI(Technology.ADOBE_CONNECT, AliasValueType.URI);

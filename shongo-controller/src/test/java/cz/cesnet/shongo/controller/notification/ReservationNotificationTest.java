@@ -8,9 +8,14 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.DeviceResource;
+import cz.cesnet.shongo.controller.api.ManagedMode;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
@@ -20,10 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
@@ -1006,6 +1008,49 @@ public class ReservationNotificationTest extends AbstractExecutorTest
             Assert.assertEquals(message + " - Recipient", requiredRecipient, recipient);
         }
         return notificationRecord;
+    }
+
+    /**
+     * Test periodic request for users.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRequestWithPeriod() throws Exception
+    {
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(Locale.ENGLISH);
+        userSettings.setUseWebService(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
+        ReservationService reservationService = getReservationService();
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
+        aliasProvider.setAllocatable(true);
+        aliasProvider.setMaximumFuture("P1M");
+        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("Alias Reservation Request");
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-03-01T12:00", "PT1H", "P1W", "2013-03-01"));
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:00", "PT1H","P1W", "2013-03-01"));
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
+
+/*        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
+        reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
+        reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));*/
+
     }
 
     /**
