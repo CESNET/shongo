@@ -37,12 +37,14 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     private boolean first = true;
 
     /**
-     * Map of periodic slots of {@link ReservationRequest}
+     * List of periodic slots of {@link ReservationRequest}
      */
-    //private Map<Interval, DateTime> periodicSlots = new HashMap<Interval, DateTime>();
-
     private List<DateTimeSlot> periodicSlots = new LinkedList<DateTimeSlot>();
 
+    /**
+     * List of periodic slots of modified {@link ReservationRequest}
+     */
+    private List<DateTimeSlot> previousPeriodicSlots = new LinkedList<DateTimeSlot>();
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
      */
@@ -102,6 +104,28 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         }
         else {
             throw new TodoImplementException("Missing AbstractReservationRequest type");
+        }
+
+        AbstractReservationRequest previousReservationRequest = reservationRequest.getModifiedReservationRequest();
+        if (previousReservationRequest != null) {
+            previousReservationRequest = PersistentObject.getLazyImplementation(previousReservationRequest);
+            if (previousReservationRequest instanceof ReservationRequest) {
+                Interval originSlot = ((ReservationRequest) previousReservationRequest).getSlot();
+                previousPeriodicSlots.add(new AbsoluteDateTimeSlot(originSlot.getStart(), originSlot.getEnd()));
+            } else if (previousReservationRequest instanceof ReservationRequestSet) {
+                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) previousReservationRequest;
+                for (DateTimeSlot slot : reservationRequestSet.getSlots()) {
+                    if (slot instanceof AbsoluteDateTimeSlot) {
+                        previousPeriodicSlots.add((AbsoluteDateTimeSlot) slot);
+                    } else if (slot instanceof PeriodicDateTimeSlot) {
+                        previousPeriodicSlots.add((PeriodicDateTimeSlot) slot);
+                    } else {
+                        throw new TodoImplementException("Missing DateTimeSlot type");
+                    }
+                }
+            } else {
+                throw new TodoImplementException("Missing AbstractReservationRequest type");
+            }
         }
 
         EntityManager entityManager = authorizationManager.getEntityManager();
@@ -174,24 +198,26 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         for (AbstractReservationRequestNotification notification : notifications) {
             Interval notificationSlot = notification.getSlot();
             DateTimeSlot slot;
-            try {
+            // Get suitable time slot from reservationRequest for this notification
+            if (!(notification instanceof ReservationNotification.Deleted)) {
                 slot = getAbsolutePeriodicSlot(notificationSlot);
             }
-            catch (IllegalArgumentException ex) {
-                if (notification instanceof ReservationNotification.Deleted) {
+            else {
+                // Try to get suitable time slot from modifiedReservationRequest for Deleted notifications,
+                // or just render it one by one
+                try {
+                    slot = getPreviousAbsolutePeriodicSlot(notificationSlot);
+                } catch (IllegalArgumentException ex) {
                     deletedReservationNotifications++;
 
                     List<ReservationNotification.Deleted> slotsDeletedNotifications = deletedNotifications.get(null);
                     if (slotsDeletedNotifications == null) {
                         slotsDeletedNotifications = new LinkedList<ReservationNotification.Deleted>();
-                        deletedNotifications.put(null,slotsDeletedNotifications);
+                        deletedNotifications.put(null, slotsDeletedNotifications);
                     }
                     slotsDeletedNotifications.add((ReservationNotification.Deleted) notification);
+                    continue;
                 }
-                else {
-                    throw new TodoImplementException(notification.getClass());
-                }
-                continue;
             }
             setFirstSlotNotification(slot,notification);
 
@@ -314,18 +340,18 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
                 failedNotifications.remove(slot);
             }
 
-            // Render deleted notifications in total if not all requests have been deleted
-            if (!(firstReservationNotification instanceof ReservationNotification.Deleted) || failedNotifications.get(slot) != null) {
+            // Render deleted notifications in total if not all requests in time slot have been deleted
+            /*if (!(firstReservationNotification instanceof ReservationNotification.Deleted) || failedNotifications.get(slot) != null) {
                 List<ReservationNotification.Deleted> deletedNotificationsList = deletedNotifications.get(slot);
                 if (deletedNotificationsList != null) {
                     for (ReservationNotification.Deleted deletedNotification : deletedNotificationsList) {
-                        if (!firstReservationNotification.equals(deletedNotification)) {
+                        if (!firstReservationNotification.equals(deletedNotification) || !(firstReservationNotification instanceof ReservationNotification.Deleted)) {
                             firstReservationNotification.addAdditionalDeletedSlot(deletedNotification.getSlot());
                         }
                     }
                     deletedNotifications.remove(slot);
                 }
-            }
+            }*/
 
             NotificationMessage childMessage = firstReservationNotification.renderMessage(configuration, manager);
             message.appendChildMessage(childMessage);
@@ -413,6 +439,23 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         if (this.periodicSlots != null) {
             for (DateTimeSlot slot : this.periodicSlots) {
+                if (slot.contains(interval)) {
+                    return slot;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Given time slot is not contained by any of the requested time slots.");
+    }
+
+    /**
+     *
+     * @param interval
+     * @return {@link cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot) which contains given interval
+     */
+    private DateTimeSlot getPreviousAbsolutePeriodicSlot(Interval interval)
+    {
+        if (this.previousPeriodicSlots != null) {
+            for (DateTimeSlot slot : this.previousPeriodicSlots) {
                 if (slot.contains(interval)) {
                     return slot;
                 }
