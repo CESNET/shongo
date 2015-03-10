@@ -293,35 +293,6 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
 
-/*        for (AbstractReservationRequestNotification notification : notifications) {
-                //TODO:rozlisit totalNotifications pro jednotlive sloty
-                if (notification instanceof ReservationNotification.New
-                        || (totalNotifications == allocationFailedNotifications && notification instanceof AllocationFailedNotification)
-                        || (totalNotifications == deletedReservationNotifications && notification instanceof ReservationNotification.Deleted)) {
-                    Interval notificationSlot = notification.getSlot();
-
-                    DateTimeSlot slot = getAbsolutePeriodicSlot(notificationSlot);
-                    if (slot != null) {
-                        AbstractReservationRequestNotification firstNotification = firstNotifications.get(slot);
-                        if (firstNotification == null || notificationSlot.getStart().isBefore(firstNotification.getSlotStart())) {
-                            firstNotifications.put(slot, notification);
-                        }
-                    }
-                }
-                else {
-                    throw new TodoImplementException(notification.getClass());
-                }
-
-            /*NotificationMessage childMessage;
-            if (notification instanceof ConfigurableNotification) {
-                ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
-                childMessage = configurableEvent.renderMessage(configuration, manager);
-            } else {
-                throw new TodoImplementException(notification.getClass());
-            }
-            message.appendChildMessage(childMessage);*
-        }*/
-
         for (Map.Entry<DateTimeSlot, AbstractReservationRequestNotification> entry : firstNotifications.entrySet()) {
             DateTimeSlot slot = entry.getKey();
             AbstractReservationRequestNotification firstReservationNotification = entry.getValue();
@@ -361,17 +332,25 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         }
 
         /*
-            for (AbstractNotification notification : notifications) {
-                NotificationMessage childMessage;
-                if (notification instanceof ConfigurableNotification) {
-                    ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
-                    childMessage = configurableEvent.renderMessage(configuration, manager);
-                } else {
-                    throw new TodoImplementException(notification.getClass());
-                }
+        for (AbstractNotification notification : notifications) {
+            NotificationMessage childMessage;
+            if (notification instanceof ConfigurableNotification) {
+                ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
+                childMessage = configurableEvent.renderMessage(configuration, manager);
+            } else {
+                throw new TodoImplementException(notification.getClass());
+            }
+            message.appendChildMessage(childMessage);
+        }
+        */
+
+        List<ReservationNotification.Deleted>  deletedWithoutSlot = deletedNotifications.get(null);
+        if (deletedWithoutSlot != null) {
+            for (ReservationNotification.Deleted deletedNotification : deletedWithoutSlot) {
+                NotificationMessage childMessage = deletedNotification.renderMessage(configuration, manager);
                 message.appendChildMessage(childMessage);
             }
-        */
+        }
 
         return message;
     }
