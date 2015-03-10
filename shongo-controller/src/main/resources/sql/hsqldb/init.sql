@@ -18,6 +18,8 @@ SELECT
     resource.allocatable AS allocatable,
     resource.allocation_order AS allocation_order,
     resource.description AS description,
+    resource.calendar_public AS calendar_public,
+    resource.calendar_uri_key AS calendar_uri_key,
     GROUP_CONCAT(device_resource_technologies.technologies SEPARATOR ',') AS technologies
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id

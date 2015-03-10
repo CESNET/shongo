@@ -12,10 +12,13 @@ import cz.cesnet.shongo.controller.api.DeviceResource;
 import cz.cesnet.shongo.controller.api.ManagedMode;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
+import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
@@ -857,13 +860,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(RoomAvailableNotification.class);
                 add(RoomAvailableNotification.class);
                 // Modify
-                add(ReservationRequestNotification.class);
+                //add(ReservationRequestNotification.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 // Modify
-                add(ReservationRequestNotification.class);
+                //add(ReservationRequestNotification.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomGroupNotification.class);
@@ -1035,15 +1038,24 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("Alias Reservation Request");
-        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-03-01T12:00", "PT1H", "P1W", "2013-03-01"));
-        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:00", "PT1H","P1W", "2013-03-01"));
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:00", "PT1H","P2D", "2012-03-13"));
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
-        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
 
-        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setDescription("Alias Reservation Request");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-04T12:00", "PT1H", "P1D", "2012-03-13"));
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:00", "PT1H", "P1D", "2013-03-05"));
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
+
+        //runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-04-23T00:00"));
 
 /*        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));

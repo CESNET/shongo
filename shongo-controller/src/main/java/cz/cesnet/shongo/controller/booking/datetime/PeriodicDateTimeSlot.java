@@ -140,8 +140,7 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
     public boolean contains(Interval slot) {
         List<Interval> slots = enumerate(slot.getStart(), slot.getEnd(), 1);
 
-        if (slots.size() == 1 &&
-            slots.get(0).getStartMillis() == slot.getStartMillis() && slots.get(0).getEndMillis() == slot.getEndMillis()) {
+        if (slots.size() == 1) {
             return true;
         }
 

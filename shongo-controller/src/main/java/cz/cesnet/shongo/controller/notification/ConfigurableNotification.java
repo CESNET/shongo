@@ -7,6 +7,9 @@ import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.EntityManager;
 import java.util.*;

@@ -539,7 +539,6 @@ public abstract class AbstractNotification
 
         public String formatPeriod(Period period)
         {
-
             return PeriodFormat.getDefault().withLocale(getLocale()).print(period);
         }
 

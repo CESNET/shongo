@@ -12,8 +12,11 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -64,14 +67,21 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         return requestedSlot;
     }
 
+    public AllocationStateReport.UserError getUserError() {
+        return userError;
+    }
+
+    public void setUserError(AllocationStateReport.UserError userError) {
+        this.userError = userError;
+    }
+
     public Target getTarget()
     {
         return target;
     }
 
     @Override
-    protected NotificationMessage renderMessage(Configuration configuration,
-            NotificationManager manager)
+    protected NotificationMessage renderMessage(Configuration configuration, NotificationManager manager)
     {
         Locale locale = configuration.getLocale();
         DateTimeZone timeZone = configuration.getTimeZone();
@@ -99,7 +109,31 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
             titleBuilder.append(")");
         }
 
-        NotificationMessage message = renderTemplateMessage(
+        if (this.getPeriod() != null) {
+            if (this.getPeriod().equals(Period.days(1))) {
+                //TODO:hezci
+            }
+
+            renderContext.addParameter("period", this.getPeriod());
+            renderContext.addParameter("end", this.getEnd());
+
+            List<String> errors = new LinkedList<String>();
+            for (AllocationFailedNotification notification : getAdditionalFailedRequestNotifications()) {
+                errors.add(notification.getUserError().getMessage(locale, timeZone));
+            }
+            if (!errors.isEmpty()) {
+                renderContext.addParameter("errorList", errors);
+            }
+
+            List<Interval> deleted = new LinkedList<Interval>();
+            for (Interval slot : getAdditionalDeletedSlots()) {
+                deleted.add(slot);
+            }
+            if (!deleted.isEmpty()) {
+                renderContext.addParameter("deletedList", deleted);
+            }
+        }
+            NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "allocation-failed.ftl");
         return message;
     }
