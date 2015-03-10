@@ -29,6 +29,6 @@ ${context.width(indent)}${errors[formatedSlot]}
 <#if (deletedList??) >
 ${context.message(indent, "reservationRequest.deleted.for.someSlots")}:
     <#list deletedList as deleted>
-    ${context.width(indent)}  ${deleted}
+    ${context.width(indent)}  ${context.formatInterval(deleted)}
     </#list>
 </#if>

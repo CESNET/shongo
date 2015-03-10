@@ -1047,21 +1047,20 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.setDescription("Alias Reservation Request");
-        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-04T12:00", "PT1H", "P1D", "2012-03-13"));
-        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:00", "PT1H", "P1D", "2013-03-05"));
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-04T12:00", "PT30M", "P1D", "2012-03-15"));
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-03T12:30", "PT30M", "P1D", "2012-03-07"));
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(new AliasSpecification(AliasType.H323_E164));
         String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
 
-        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-20T00:00"));
 
-        //runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-04-23T00:00"));
 
-/*        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
-        reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
-        reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        ReservationRequestSet reservationRequestModification = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
+        reservationRequestModification.removeSlot(reservationRequestModification.getSlots().get(1));
+        reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequestModification);
 
-        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));*/
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
 
     }
 
