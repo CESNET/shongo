@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectType;
@@ -13,9 +14,8 @@ import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
+import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
+import org.joda.time.*;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -41,13 +41,20 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
      */
     //private Map<Interval, DateTime> periodicSlots = new HashMap<Interval, DateTime>();
 
-    private List<DateTimeSlot> periodicSlots = new ArrayList<DateTimeSlot>();;
+    private List<DateTimeSlot> periodicSlots = new LinkedList<DateTimeSlot>();
 
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
      */
     private List<AbstractReservationRequestNotification> notifications =
             new LinkedList<AbstractReservationRequestNotification>();
+
+    /**
+     * First notification of the slot (mapped by it), used in renderMessage().
+     *
+     * @see cz.cesnet.shongo.controller.notification.ReservationRequestNotification method setFirstSlotNotification()
+     */
+    Map<DateTimeSlot,AbstractReservationRequestNotification> firstNotifications;
 
     /**
      * Constructor.
@@ -68,10 +75,16 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             allocation.setNotified(true);
         }
 
+        int slotMinutesBefore = 0;
+        int slotMinutesAfter = 0;
+        if (reservationRequest.getSpecification() instanceof RoomSpecification) {
+            slotMinutesBefore = ((RoomSpecification) reservationRequest.getSpecification()).getSlotMinutesBefore();
+            slotMinutesAfter = ((RoomSpecification) reservationRequest.getSpecification()).getSlotMinutesAfter();
+        }
+        reservationRequest = PersistentObject.getLazyImplementation(reservationRequest);
         if (reservationRequest instanceof ReservationRequest) {
             Interval originSlot = ((ReservationRequest) reservationRequest).getSlot();
-            AbsoluteDateTimeSlot slot = new AbsoluteDateTimeSlot(originSlot.getStart(),originSlot.getEnd());
-            periodicSlots.add(slot);
+            periodicSlots.add(new AbsoluteDateTimeSlot(originSlot.getStart(), originSlot.getEnd()));
         }
         else if (reservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) reservationRequest;
@@ -145,19 +158,65 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
 
+        // First successful notifications mapped by it's slot
+        this.firstNotifications = new LinkedHashMap<DateTimeSlot, AbstractReservationRequestNotification>();
+        // All allocation failed notifications mapped by it's slot
+        Map<DateTimeSlot,List<AllocationFailedNotification>> failedNotifications = new LinkedHashMap<DateTimeSlot, List<AllocationFailedNotification>>();
+        // All deleted notifications mapped by it's slot
+        Map<DateTimeSlot,List<ReservationNotification.Deleted>> deletedNotifications = new LinkedHashMap<DateTimeSlot, List<ReservationNotification.Deleted>>();
+
         // Number of child events of each type
+        // Map all failed/deleted notification to their slots
+        // Assign first New notification or if there is none failed/deleted to it's slot
         int allocationFailedNotifications = 0;
         int newReservationNotifications = 0;
         int deletedReservationNotifications = 0;
-        for (AbstractNotification notification : notifications) {
+        for (AbstractReservationRequestNotification notification : notifications) {
+            Interval notificationSlot = notification.getSlot();
+            DateTimeSlot slot;
+            try {
+                slot = getAbsolutePeriodicSlot(notificationSlot);
+            }
+            catch (IllegalArgumentException ex) {
+                if (notification instanceof ReservationNotification.Deleted) {
+                    deletedReservationNotifications++;
+
+                    List<ReservationNotification.Deleted> slotsDeletedNotifications = deletedNotifications.get(null);
+                    if (slotsDeletedNotifications == null) {
+                        slotsDeletedNotifications = new LinkedList<ReservationNotification.Deleted>();
+                        deletedNotifications.put(null,slotsDeletedNotifications);
+                    }
+                    slotsDeletedNotifications.add((ReservationNotification.Deleted) notification);
+                }
+                else {
+                    throw new TodoImplementException(notification.getClass());
+                }
+                continue;
+            }
+            setFirstSlotNotification(slot,notification);
+
             if (notification instanceof AllocationFailedNotification) {
                 allocationFailedNotifications++;
+
+                List<AllocationFailedNotification> slotsFailedNotifications = failedNotifications.get(slot);
+                if (slotsFailedNotifications == null) {
+                    slotsFailedNotifications = new LinkedList<AllocationFailedNotification>();
+                    failedNotifications.put(slot,slotsFailedNotifications);
+                }
+                slotsFailedNotifications.add((AllocationFailedNotification) notification);
             }
             else if (notification instanceof ReservationNotification.New) {
                 newReservationNotifications++;
             }
             else if (notification instanceof ReservationNotification.Deleted) {
                 deletedReservationNotifications++;
+
+                List<ReservationNotification.Deleted> slotsDeletedNotifications = deletedNotifications.get(slot);
+                if (slotsDeletedNotifications == null) {
+                    slotsDeletedNotifications = new LinkedList<ReservationNotification.Deleted>();
+                    deletedNotifications.put(slot,slotsDeletedNotifications);
+                }
+                slotsDeletedNotifications.add((ReservationNotification.Deleted) notification);
             }
             else {
                 throw new TodoImplementException(notification.getClass());
@@ -234,26 +293,24 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
 
-        Map<DateTimeSlot,ReservationNotification> firstNotifications = new LinkedHashMap<DateTimeSlot, ReservationNotification>();
-        for (AbstractNotification notification : notifications) {
-            for (DateTimeSlot slot : periodicSlots) {
-                if (notification instanceof ReservationNotification
+/*        for (AbstractReservationRequestNotification notification : notifications) {
+                //TODO:rozlisit totalNotifications pro jednotlive sloty
+                if (notification instanceof ReservationNotification.New
                         || (totalNotifications == allocationFailedNotifications && notification instanceof AllocationFailedNotification)
-                        || (totalNotifications == deletedReservationNotifications && notification instanceof AllocationFailedNotification)) {
-                    ReservationNotification reservationNotification = (ReservationNotification) notification;
-                    Interval notificationSlot = reservationNotification.getSlot();
+                        || (totalNotifications == deletedReservationNotifications && notification instanceof ReservationNotification.Deleted)) {
+                    Interval notificationSlot = notification.getSlot();
 
-                    if (slot.contains(notificationSlot)) {
-                        ReservationNotification firstNotification = firstNotifications.get(slot);
+                    DateTimeSlot slot = getAbsolutePeriodicSlot(notificationSlot);
+                    if (slot != null) {
+                        AbstractReservationRequestNotification firstNotification = firstNotifications.get(slot);
                         if (firstNotification == null || notificationSlot.getStart().isBefore(firstNotification.getSlotStart())) {
-                            firstNotifications.put(slot, reservationNotification);
+                            firstNotifications.put(slot, notification);
                         }
                     }
                 }
                 else {
                     throw new TodoImplementException(notification.getClass());
                 }
-            }
 
             /*NotificationMessage childMessage;
             if (notification instanceof ConfigurableNotification) {
@@ -262,29 +319,48 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             } else {
                 throw new TodoImplementException(notification.getClass());
             }
-            message.appendChildMessage(childMessage);*/
+            message.appendChildMessage(childMessage);*
+        }*/
+
+        for (Map.Entry<DateTimeSlot, AbstractReservationRequestNotification> entry : firstNotifications.entrySet()) {
+            DateTimeSlot slot = entry.getKey();
+            AbstractReservationRequestNotification firstReservationNotification = entry.getValue();
+
+            // Add periodicity to render message
+            if (slot instanceof PeriodicDateTimeSlot) {
+                PeriodicDateTime periodicDateTimeSlot = ((PeriodicDateTimeSlot) slot).getPeriodicDateTime();
+                firstReservationNotification.setPeriod(periodicDateTimeSlot.getPeriod());
+                firstReservationNotification.setEnd(periodicDateTimeSlot.getEnd());
+            }
+
+            // Add error messages to time slot notification
+            if (failedNotifications.get(slot) != null) {
+                for (AllocationFailedNotification failedNotification : failedNotifications.get(slot)) {
+                    if (!firstReservationNotification.equals(failedNotification)) {
+                        firstReservationNotification.addFailedRequestNotification(failedNotification);
+                    }
+                }
+                failedNotifications.remove(slot);
+            }
+
+            // Render deleted notifications in total if not all requests have been deleted
+            if (!(firstReservationNotification instanceof ReservationNotification.Deleted) || failedNotifications.get(slot) != null) {
+                List<ReservationNotification.Deleted> deletedNotificationsList = deletedNotifications.get(slot);
+                if (deletedNotificationsList != null) {
+                    for (ReservationNotification.Deleted deletedNotification : deletedNotificationsList) {
+                        if (!firstReservationNotification.equals(deletedNotification)) {
+                            firstReservationNotification.addAdditionalDeletedSlot(deletedNotification.getSlot());
+                        }
+                    }
+                    deletedNotifications.remove(slot);
+                }
+            }
+
+            NotificationMessage childMessage = firstReservationNotification.renderMessage(configuration, manager);
+            message.appendChildMessage(childMessage);
         }
 
-        if (totalNotifications == newReservationNotifications) {
-            for (DateTimeSlot slot : periodicSlots) {
-                //String msg = "vse uspesne, zacatek request" + renderContext.formatPeriodicSlot(slot);
-                message.appendLine("NEW");
-            }
-        }
-        else if (totalNotifications == deletedReservationNotifications) {
-            //TODO: vypsat to stejne jen s jinym titulkem o uspesnem smazanim
-            for (DateTimeSlot slot : periodicSlots) {
-                //String msg = "vse NE, zacatek request" + slot.getStart();
-                message.appendLine("DELETED");
-            }
-        }
-        else if (totalNotifications == allocationFailedNotifications) {
-            //TODO: stejne s fail hlaskou
-        } else {
-            //TODO: vypsat uspesne stejne jako v prvnim krkoku
-            //TODO: explicitne vypsat nepovedene
-
-            //TODO: v jinem pripade nechat!!!DOCASNE!!!
+        /*
             for (AbstractNotification notification : notifications) {
                 NotificationMessage childMessage;
                 if (notification instanceof ConfigurableNotification) {
@@ -293,20 +369,9 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
                 } else {
                     throw new TodoImplementException(notification.getClass());
                 }
-                //TODO: message.appendChildMessage(childMessage);
+                message.appendChildMessage(childMessage);
             }
-        }
-
-        for (Map.Entry<DateTimeSlot,ReservationNotification> entry : firstNotifications.entrySet()) {
-            ReservationNotification reservationNotification = entry.getValue();
-            if (entry.getKey() instanceof PeriodicDateTimeSlot) {
-                PeriodicDateTime periodicDateTime = ((PeriodicDateTimeSlot) entry.getKey()).getPeriodicDateTime();
-                reservationNotification.setPeriod(periodicDateTime.getPeriod());
-                reservationNotification.setEnd(periodicDateTime.getEnd());
-            }
-            NotificationMessage childMessage = reservationNotification.renderMessage(configuration, manager);
-            message.appendChildMessage(childMessage);
-        }
+        */
 
         return message;
     }
@@ -358,5 +423,50 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             }
         }
         return false;
+    }
+
+    /**
+     *
+     * @param interval
+     * @return {@link cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot) which contains given interval
+     */
+    private DateTimeSlot getAbsolutePeriodicSlot(Interval interval)
+    {
+        if (this.periodicSlots != null) {
+            for (DateTimeSlot slot : this.periodicSlots) {
+                if (slot.contains(interval)) {
+                    return slot;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Given time slot is not contained by any of the requested time slots.");
+    }
+
+    /**
+     * Sets first notification for given time slot. First notification is always instance of
+     * {@link cz.cesnet.shongo.controller.notification.ReservationNotification.New} if it exists.
+     * Otherwise it will be {@link cz.cesnet.shongo.controller.notification.ReservationNotification.Deleted}
+     * or {@link cz.cesnet.shongo.controller.notification.AllocationFailedNotification}
+     *
+     * @param slot slot to be assigned
+     * @param notification to add
+     */
+    private void setFirstSlotNotification(DateTimeSlot slot, AbstractReservationRequestNotification notification)
+    {
+        AbstractReservationRequestNotification firstNotification = firstNotifications.get(slot);
+        if (firstNotification == null) {
+            firstNotifications.put(slot, notification);
+            return;
+        }
+        if (notification instanceof ReservationNotification.New) {
+            if (notification.getSlotStart().isBefore(firstNotification.getSlotStart())) {
+                firstNotifications.put(slot, notification);
+            }
+        }
+        else if (!(firstNotification instanceof ReservationNotification.New)) {
+            if (notification.getSlotStart().isBefore(firstNotification.getSlotStart())) {
+                firstNotifications.put(slot, notification);
+            }
+        }
     }
 }

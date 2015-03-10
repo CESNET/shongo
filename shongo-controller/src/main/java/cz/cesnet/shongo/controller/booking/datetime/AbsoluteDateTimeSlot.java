@@ -156,7 +156,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
 
     @Override
     public boolean contains(Interval slot) {
-        if (this.getSlot().getStartMillis() == slot.getStartMillis() && this.getSlot().getEndMillis() == slot.getEndMillis()) {
+        if (this.getSlot().overlaps(slot)) {
             return true;
         }
         return false;

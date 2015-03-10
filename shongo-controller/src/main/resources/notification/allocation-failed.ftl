@@ -17,10 +17,22 @@ ${context.message(indent, "reservationRequest.description")}: ${context.indentNe
 </#if>
 </#if>
 ${context.message(indent, 'allocationFailed.requestedSlot')}: ${context.formatInterval(notification.requestedSlot)}
+<#if context.timeZone != "UTC">
+${context.width(indent)}  ${context.formatInterval(notification.requestedSlot, "UTC")}
+</#if>
+<#if (period??) >
+${context.message(indent, "reservation.slot.periodicity")}: ${context.message("reservation.slot.periodicity.period")} ${context.formatPeriod(period)} (${context.message("reservation.slot.periodicity.until")}: ${context.formatDate(end)})
+</#if>
 <#include "target.ftl">
 <#if adminReport??>
 ${context.message(indent, 'allocationFailed.userError')}: ${context.indentNextLines(indent + 2, userError)}
 ${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, adminReport)}
 <#else>
 ${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, userError)}
+<#if (errorList??) >
+<#list errorList as error>
+${context.width(indent)}  ${error}
+</#list>
+</#if>
+${context.width(indent)}
 </#if>

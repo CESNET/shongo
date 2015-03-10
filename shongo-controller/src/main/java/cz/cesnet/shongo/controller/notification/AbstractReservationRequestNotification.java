@@ -10,9 +10,13 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -29,6 +33,26 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     private DateTime reservationRequestUpdatedAt;
 
     private String reservationRequestUpdatedBy;
+
+    /**
+     * Period of periodic events.
+     */
+    private Period period;
+
+    /**
+     * Ending date and/or time after which the periodic events are not considered.
+     */
+    private ReadablePartial end;
+
+    /**
+     * List of failed additional requests to be rendered in notification message.
+     */
+    private List<AllocationFailedNotification> additionalFailedRequestNotifications = new LinkedList<AllocationFailedNotification>();
+
+    /**
+     * List of deleted additional requests to be rendered in notification message.
+     */
+    private List<Interval> additionalDeletedSlots = new LinkedList<Interval>();
 
     /**
      * Constructor.
@@ -63,6 +87,48 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     public String getReservationRequestUpdatedBy()
     {
         return reservationRequestUpdatedBy;
+    }
+
+    public Period getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(Period period) {
+        this.period = period;
+    }
+
+    public ReadablePartial getEnd() {
+        return end;
+    }
+
+    public void setEnd(ReadablePartial end) {
+        this.end = end;
+    }
+
+    public List<AllocationFailedNotification> getAdditionalFailedRequestNotifications() {
+        return additionalFailedRequestNotifications;
+    }
+
+    public void addFailedRequestNotification(AllocationFailedNotification failedRequestNotification)
+    {
+        additionalFailedRequestNotifications.add(failedRequestNotification);
+    }
+
+    public void setAdditionalFailedRequestNotifications(List<AllocationFailedNotification> additionalFailedRequestNotifications) {
+        this.additionalFailedRequestNotifications = additionalFailedRequestNotifications;
+    }
+
+    public List<Interval> getAdditionalDeletedSlots() {
+        return additionalDeletedSlots;
+    }
+
+    public void addAdditionalDeletedSlot(Interval deletedSlot)
+    {
+        additionalDeletedSlots.add(deletedSlot);
+    }
+
+    public void setAdditionalDeletedSlots(List<Interval> additionalDeletedSlots) {
+        this.additionalDeletedSlots = additionalDeletedSlots;
     }
 
     @Override

@@ -4,29 +4,19 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
-import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
-import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
 
 import javax.persistence.EntityManager;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link ConfigurableNotification} for a {@link Reservation}.
@@ -42,16 +32,6 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private Set<String> owners = new HashSet<String>();
 
     private Interval slot;
-
-    /**
-     * Period of periodic events.
-     */
-    private Period period;
-
-    /**
-     * Ending date and/or time after which the periodic events are not considered.
-     */
-    private ReadablePartial end;
 
     private Target target;
 
@@ -110,26 +90,12 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
     public abstract String getType();
 
-    public Period getPeriod() {
-        return period;
-    }
-
-    public void setPeriod(Period period) {
-        this.period = period;
-    }
-
-    public ReadablePartial getEnd() {
-        return end;
-    }
-
-    public void setEnd(ReadablePartial end) {
-        this.end = end;
-    }
-
     @Override
-    protected NotificationMessage renderMessage(Configuration configuration,
-            NotificationManager manager)
+    protected NotificationMessage renderMessage(Configuration configuration, NotificationManager manager)
     {
+        Locale locale = configuration.getLocale();
+        DateTimeZone timeZone = configuration.getTimeZone();
+
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
         renderContext.addParameter("target", target);
 
@@ -178,13 +144,30 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             }
             renderContext.addParameter("slot", slot);
 
-            if (period != null) {
-                /*if (period.equals(Period.days(1)) {
+            if (this.getPeriod() != null) {
+                if (this.getPeriod().equals(Period.days(1))) {
+                    //TODO:hezci
+                }
 
-                } else if*/
+                renderContext.addParameter("period", this.getPeriod());
+                renderContext.addParameter("end", this.getEnd());
 
-                renderContext.addParameter("period", period);
-                renderContext.addParameter("end", end);
+                HashMap<String, String> errorsBySlot = new LinkedHashMap<String, String>();
+                for (AllocationFailedNotification notification : getAdditionalFailedRequestNotifications()) {
+                    String stringSlot = renderContext.formatInterval(notification.getSlot());
+                    errorsBySlot.put(stringSlot, notification.getUserError().getMessage(locale, timeZone));
+                }
+                if (!errorsBySlot.isEmpty()) {
+                    renderContext.addParameter("errors", errorsBySlot);
+                }
+
+                List<Interval> deleted = new LinkedList<Interval>();
+                for (Interval deletedSlot : getAdditionalDeletedSlots()) {
+                    deleted.add(deletedSlot);
+                }
+                if (!deleted.isEmpty()) {
+                    renderContext.addParameter("deletedList", deleted);
+                }
             }
             templateFileName = "reservation-request-reservation.ftl";
         }

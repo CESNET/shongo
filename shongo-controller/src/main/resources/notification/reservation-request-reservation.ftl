@@ -7,7 +7,7 @@ ${context.message(indent, "reservation.slot")}: ${context.formatInterval(slot)}
 ${context.width(indent)}  ${context.formatInterval(slot, "UTC")}
 </#if>
 <#if (period??) >
-${context.message(indent, "reservation.slot.periodicity")}: ${context.formatPeriod(period)} (${context.message("reservation.slot.periodicity.until")}: ${context.formatDate(end)})
+${context.message(indent, "reservation.slot.periodicity")}: ${context.message("reservation.slot.periodicity.period")} ${context.formatPeriod(period)} (${context.message("reservation.slot.periodicity.until")}: ${context.formatDate(end)})
 </#if>
 <#if target.class.simpleName == "Room" && (target.slotBefore?? || target.slotAfter??)>
 ${context.width(indent)}  (${context.message("target.room.available")}<#rt>
@@ -17,3 +17,18 @@ ${context.width(indent)}  (${context.message("target.room.available")}<#rt>
 )
 </#if>
 <#include "target.ftl">
+
+<#if (errors??) >
+${context.message(indent, "reservationRequest.allocationFailed.for.someSlots")}:
+<#list errors?keys as formatedSlot>
+    ${context.width(indent, formatedSlot)}
+${context.width(indent)}${errors[formatedSlot]}
+</#list>
+</#if>
+
+<#if (deletedList??) >
+${context.message(indent, "reservationRequest.deleted.for.someSlots")}:
+    <#list deletedList as deleted>
+    ${context.width(indent)}  ${deleted}
+    </#list>
+</#if>
