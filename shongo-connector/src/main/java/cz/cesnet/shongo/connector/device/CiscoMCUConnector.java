@@ -514,6 +514,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                     case H323_URI:
                     case H323_IP:
                     case SIP_IP:
+                    case CS_DIAL_STRING:
                         // TODO: Check the alias value
                         break;
                     default:
