@@ -54,6 +54,9 @@ tooltipModule.directive('tooltip', function($compile) {
                     my: 'top left',
                     at: 'bottom right'
                 },
+                show: {
+                    solo: true
+                },
                 style: {
                     classes: 'qtip-app'
                 }

@@ -92,6 +92,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
     @Override
     public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException {
+        this.requestTimeout = (int) configuration.getOptionDuration(OPTION_TIMEOUT, OPTION_TIMEOUT_DEFAULT).getMillis();
+
         baseURL = deviceAddress.getUrl() + ":" + deviceAddress.getPort();
         serviceUserID = username;
         serviceUserPassword = password;
@@ -166,6 +168,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         HttpsURLConnection connection;
         try {
             connection = (HttpsURLConnection) new URL(actionUrl).openConnection();
+            connection.setConnectTimeout(this.requestTimeout);
         }
         catch (MalformedURLException e) {
             String message = "Malformed URL \"" + actionUrl + "\".";
