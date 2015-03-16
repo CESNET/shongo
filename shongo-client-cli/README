@@ -36,6 +36,20 @@ can be installed by the following command:
         libjson-perl liblwp-protocol-https-perl
 
 
+On OSX (Yosemite), you should first install Xcode, Perl is part of
+the Command Line Tools. Install CPAN in Terminal to add modules:
+
+    cpan App::cpanminus
+
+Install all the Perl modules above except number 3) and instead install Term::ReadLine::Perl.
+(causes SetHistory method not found) find replacement
+You should use 'sudo' to avoid errors due to Library folder being locked.
+
+    sudo cpan -i Term::ReadKey File::Which Term::ReadLine::Perl \
+        RPC::XML XML::Twig Text::Table DateTime::Format::ISO8601 \
+	JSON IO::Socket::SSL LWP::Protocol::https
+	 
+
 On other platforms the modules can be installed by CPAN utility:
 
     cpan -i Term::ReadKey
