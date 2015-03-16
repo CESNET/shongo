@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 
 /**
@@ -81,7 +82,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         try {
             return aliasId + "@" + new URL(baseURL).getHost();
         } catch (MalformedURLException e) {
-            throw new CommandException("incorrect baseURL");
+            String message = "Incorrect base URL.";
+            logger.error(message);
+            throw new CommandException(message, e);
         }
     }
 
@@ -135,7 +138,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private void checkTokenValidity() throws CommandException {
         try {
-            HttpsURLConnection connection = (HttpsURLConnection)new URL(ACTION_STATUS).openConnection();
+            String actionUrl = buildURLString(ACTION_STATUS);
+            HttpsURLConnection connection = (HttpsURLConnection)new URL(actionUrl).openConnection();
             int errorCode = connection.getResponseCode();
             if (errorCode == 200) {
                 return;
@@ -147,7 +151,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             }
             checkError(connection);
         } catch (IOException e) {
-            throw new CommandException("IO exception");
+            String message = "Failed to initialize connection.";
+            logger.error(message);
+            throw new CommandException(message, e);
         }
     }
 
@@ -176,22 +182,26 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             throw new CommandException(message,e);
         }
         catch (IOException e) {
-            String message = "Failed to initialized connection for action: " + actionUrl;
+            String message = "Failed to initializ connection for action: " + actionUrl;
             logger.error(message);
             throw new CommandException(message,e);
         }
 
         try {
-            //TODO: kde se rozlisuje jestli se jedna o login, nebo jiny request?
-            //checkTokenValidity();
+            if (connectionState != ConnectionState.DISCONNECTED) {
+                checkTokenValidity();
+            }
             connection.setRequestMethod(requestType.toString());
             if (requestType == RequestType.GET) {
                 connection.setDoInput(true);
                 connection.setRequestProperty("Accept", "application/json");
-                //TODO: libovolny stream se cte cely, ne jen jeden radek, ackoliv se ti vraci JSON
-                //TODO: ale i tak se ti obecne nemusi vracet json, ale napr nejaka chyba
-                JSONObject jsonResponse = new JSONObject(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
                 checkError(connection);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                while (bufferedReader.ready()) {
+                    stringBuilder.append(bufferedReader.readLine());
+                }
+                JSONObject jsonResponse = new JSONObject(stringBuilder.toString());
                 return jsonResponse;
             } else {
                 connection.setDoOutput(true);
@@ -204,8 +214,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             connection.disconnect();
             logger.info("Action: " + action + " was successful.");
         } catch (IOException e) {
-            //TODO: vracet chybu, kterou vraci connection a i puvodni vyjimku, a zalogovat chybu
-            throw new CommandException("EXECUTION ERROR: " + e + " ON ACTION: " + actionUrl);
+            String message = "EXECUTION ERROR: " + e + " ON ACTION: " + actionUrl;
+            logger.error(message);
+            throw new CommandException(message, e);
         }
         return null;
     }
@@ -225,7 +236,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 break;
             }
             default: {
-                throw new CommandException("alias type must be H323_URI or SIP_URI");
+                String message = "Alias type must be H323_URI (SIP_URI)";
+                logger.error(message);
+                throw new CommandException(message);
             }
         }
         dialString += e164Number + "@" + gatekeeperIP;
@@ -274,7 +287,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 }
             }
         } catch (IOException e) {
-            throw new CommandException("error code could not be read from the connection");
+            String message = "Error code could not be read from the connection.";
+            logger.error(message);
+            throw new CommandException(message, e);
         }
     }
 
