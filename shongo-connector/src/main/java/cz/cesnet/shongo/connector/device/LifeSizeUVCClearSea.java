@@ -95,8 +95,11 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
     @Override
     public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException {
-        this.requestTimeout = (int) configuration.getOptionDuration(OPTION_TIMEOUT, OPTION_TIMEOUT_DEFAULT).getMillis();
-
+        if (configuration != null) {
+            this.requestTimeout = (int) configuration.getOptionDuration(OPTION_TIMEOUT, OPTION_TIMEOUT_DEFAULT).getMillis();
+        } else {
+            this.requestTimeout = (int) OPTION_TIMEOUT_DEFAULT.getMillis();
+        }
         baseURL = deviceAddress.getUrl() + ":" + deviceAddress.getPort();
         serviceUserID = username;
         serviceUserPassword = password;
@@ -140,6 +143,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         try {
             String actionUrl = buildURLString(ACTION_STATUS);
             HttpsURLConnection connection = (HttpsURLConnection)new URL(actionUrl).openConnection();
+            connection.setConnectTimeout(this.requestTimeout);
             int errorCode = connection.getResponseCode();
             if (errorCode == 200) {
                 return;

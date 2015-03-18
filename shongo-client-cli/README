@@ -34,6 +34,8 @@ can be installed by the following command:
         libterm-readline-gnu-perl librpc-xml-perl libxml-twig-perl \
         libtext-table-perl libdatetime-format-iso8601-perl \
         libjson-perl liblwp-protocol-https-perl
+    cpan -i RPC::XML
+RPC::XML has to be version 1.70+, maybe use cpan instead of apt-get.
 
 
 On OSX (Yosemite), you should first install Xcode, Perl is part of
@@ -42,13 +44,15 @@ the Command Line Tools. Install CPAN in Terminal to add modules:
     cpan App::cpanminus
 
 Install all the Perl modules above except number 3) and instead install Term::ReadLine::Perl.
-(causes SetHistory method not found) find replacement
 You should use 'sudo' to avoid errors due to Library folder being locked.
 
     sudo cpan -i Term::ReadKey File::Which Term::ReadLine::Perl \
         RPC::XML XML::Twig Text::Table DateTime::Format::ISO8601 \
 	JSON IO::Socket::SSL LWP::Protocol::https
-	 
+
+Refer to this link to fix Term::ReadLine::Gnu: 
+https://coderwall.com/p/kk0hqw/perl-install-term-readline-gnu-on-osx
+
 
 On other platforms the modules can be installed by CPAN utility:
 
