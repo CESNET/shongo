@@ -8,6 +8,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 
 <%@attribute name="reservationRequest" required="false"
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
@@ -153,8 +154,37 @@
     <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
-            <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
-            <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
+            <c:choose>
+                <c:when test="${reservationRequest.periodicityType == 'DAILY' || reservationRequest.periodicityType == 'NONE'}">
+                    <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
+                </c:when>
+                <c:when test="${reservationRequest.periodicityType == 'WEEKLY'}">
+                    <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
+                    <span>
+                        (<c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day" varStatus="recipeCounter">
+                            <spring:message code="views.reservationRequest.periodicity.day.${day}" />
+                            <c:if test="${!recipeCounter.last}">,</c:if>
+                        </c:forEach>) <spring:message code="views.period.onceIn" />
+                    </span>
+                    <span><tag:format value="${reservationRequest.period}" multiline="false"/></span>
+                </c:when>
+                <c:when test="${reservationRequest.periodicityType == 'MONTHLY'}">
+                    <c:if test="${ reservationRequest.monthPeriodicityType == 'SPECIFIC_DAY'}">
+                        <c:choose>
+                            <c:when test="${reservationRequest.periodicityDayOrder == -1}">
+                                <c:set var="order"><spring:message code="views.reservationRequest.periodicity.recureEvery.last" /></c:set>
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="order" value="${reservationRequest.periodicityDayOrder}." />
+                            </c:otherwise>
+                        </c:choose>
+                        <span><spring:message code="views.reservationRequest.periodicity.every.${reservationRequest.periodicityDayInMonth}" arguments="${order}"/></span>
+                    </c:if>
+                    <span><spring:message code="views.period.onceIn" /></span>
+                    <span><tag:format value="${reservationRequest.period}" multiline="false"/></span>
+                </c:when>
+            </c:choose>
+            <c:if test="${reservationRequest.periodicityEnd != null && reservationRequest.periodicityType != 'NONE'}">
                 (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<tag:format value="${reservationRequest.periodicityEnd}" style="date"/>)
             </c:if>
             <c:if test="${not reservationRequest.allocatedIntervalCollidingWithSlot && reservationRequest.collidingInterval != null}">

@@ -8,13 +8,17 @@ import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.booking.datetime.AbsoluteDateTimeSlot;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Tests for reallocation of reservations.
@@ -741,4 +745,48 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals("Room should be migrated to another device.",
                 multipoint2Id, roomReservation.getResourceId());
     }*/
+
+    /**
+     * Test periodic request for users.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testDeletePeriodicity() throws Exception
+    {
+        /*UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(Locale.ENGLISH);
+        userSettings.setUseWebService(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);*/
+
+        ReservationService reservationService = getReservationService();
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
+        aliasProvider.setAllocatable(true);
+        aliasProvider.setMaximumFuture("P1M");
+        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
+
+        cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSet = new cz.cesnet.shongo.controller.api.ReservationRequestSet();
+        reservationRequestSet.setDescription("Alias Reservation Request");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-03-04T12:00", "PT30M", "P1D", "2012-03-15"));
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-20T00:00"));
+
+
+        //AbstractReservationRequest reservationRequestModification = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
+        ReservationRequest reservationRequestModification = new ReservationRequest();
+        reservationRequestModification.setId(reservationRequestId);
+        reservationRequestModification.setPurpose(reservationRequestSet.getPurpose());
+        reservationRequestModification.setSpecification(reservationRequestSet.getSpecification());
+        reservationRequestModification.setSlot("2012-03-04T12:00", "2012-03-04T13:00");
+        reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequestModification);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
+    }
 }

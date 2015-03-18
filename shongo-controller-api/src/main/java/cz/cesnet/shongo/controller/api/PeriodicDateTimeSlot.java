@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.*;
 
+import java.util.Calendar;
+
 /**
  * Represents a definition for periodic date/time slots.
  *
@@ -32,6 +34,15 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
      * Period for multiple date/time slots.
      */
     private Period period;
+
+    /**
+     * Type of periodicity with {@link cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType#MONTHLY} period
+     */
+    private PeriodicityType.MonthPeriodicityType monthPeriodicityType;
+
+    protected Integer periodicityDayOrder;
+
+    protected PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth;
 
     /**
      * Ending date and/or time after which the periodic events are not considered.
@@ -154,6 +165,29 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
         this.duration = duration;
     }
 
+    public PeriodicityType.MonthPeriodicityType getMonthPeriodicityType() {
+        return monthPeriodicityType;
+    }
+
+    public void setMonthPeriodicityType(PeriodicityType.MonthPeriodicityType monthPeriodicityType) {
+        this.monthPeriodicityType = monthPeriodicityType;
+    }
+
+    public Integer getPeriodicityDayOrder() {
+        return periodicityDayOrder;
+    }
+
+    public void setPeriodicityDayOrder(Integer periodicityDayOrder) {
+        this.periodicityDayOrder = periodicityDayOrder;
+    }
+
+    public DayOfWeek getPeriodicityDayInMonth() {
+        return periodicityDayInMonth;
+    }
+
+    public void setPeriodicityDayInMonth(DayOfWeek periodicityDayInMonth) {
+        this.periodicityDayInMonth = periodicityDayInMonth;
+    }
 
     /**
      * @return {@link #period}
@@ -192,6 +226,10 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     public static final String DURATION = "duration";
     public static final String PERIOD = "period";
     public static final String END = "end";
+    public static final String MONTH_PERIODICITY_TYPE = "monthPeriodicityType";
+    public static final String PERIODICITY_DAY_ORDER = "periodicityDayOrder";
+    public static final String PERIODICITY_DAY_IN_MONTH = "periodicityDayInMonth";
+
 
     @Override
     public DataMap toData()
@@ -202,6 +240,9 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
         dataMap.set(DURATION, duration);
         dataMap.set(PERIOD, period);
         dataMap.set(END, end);
+        dataMap.set(MONTH_PERIODICITY_TYPE, monthPeriodicityType);
+        dataMap.set(PERIODICITY_DAY_ORDER, periodicityDayOrder);
+        dataMap.set(PERIODICITY_DAY_IN_MONTH, periodicityDayInMonth);
         return dataMap;
     }
 
@@ -214,6 +255,9 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
         duration = dataMap.getPeriod(DURATION);
         period = dataMap.getPeriodRequired(PERIOD);
         end = dataMap.getReadablePartial(END);
+        monthPeriodicityType = dataMap.getEnum(MONTH_PERIODICITY_TYPE, PeriodicityType.MonthPeriodicityType.class);
+        periodicityDayOrder = dataMap.getInteger(PERIODICITY_DAY_ORDER);
+        periodicityDayInMonth = dataMap.getEnum(PERIODICITY_DAY_IN_MONTH, DayOfWeek.class);
     }
 
     /**
@@ -223,17 +267,120 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     {
         NONE,
         DAILY,
-        WEEKLY;
+        WEEKLY,
+        MONTHLY;
 
         public Period toPeriod()
         {
+            return toPeriod(1);
+        }
+
+        public Period toPeriod(int cycle)
+        {
+            if (cycle < 1) {
+                throw new IllegalArgumentException("Cycle of the period must be positive.");
+            }
+
             switch (this) {
                 case DAILY:
-                    return Period.days(1);
+                    return Period.days(cycle);
                 case WEEKLY:
-                    return Period.weeks(1);
+                    return Period.weeks(cycle);
+                case MONTHLY:
+                    return Period.months(cycle);
                 default:
                     throw new TodoImplementException(this);
+            }
+        }
+
+        public static PeriodicityType fromPeriod(Period period)
+        {
+            if (period == null) {
+                throw new IllegalArgumentException("Period cannot be null");
+            }
+            if (period.getMillis() != 0  || period.getSeconds() != 0 || period.getMinutes() != 0
+                    || period.getHours() != 0 || period.getYears() != 0) {
+                throw new IllegalArgumentException("Period does not support millis, seconds, minutes, hours or years.");
+            }
+            int days = period.getDays();
+            int weeks = period.getWeeks();
+            int months = period.getMonths();
+            if (days != 0 && weeks == 0 && months == 0) {
+                return DAILY;
+            }
+            else if (days == 0 && weeks != 0 && months == 0) {
+                return WEEKLY;
+            }
+            else if (days == 0 && weeks == 0 && months != 0) {
+                return MONTHLY;
+            }
+            else {
+                throw new IllegalArgumentException("Period must have set just one type of periodicity.");
+            }
+        }
+
+        public static int getPeriodCycle(Period period)
+        {
+            PeriodicityType type = fromPeriod(period);
+            switch (type) {
+                case DAILY:
+                    return period.getDays();
+                case WEEKLY:
+                    return period.getWeeks();
+                case MONTHLY:
+                    return period.getMonths();
+                default:
+                    throw new TodoImplementException(type);
+            }
+        }
+        public static enum MonthPeriodicityType
+        {
+            STANDARD, SPECIFIC_DAY;
+        }
+    }
+
+    public enum DayOfWeek
+    {
+        MONDAY(Calendar.MONDAY),
+        TUESDAY(Calendar.TUESDAY),
+        WEDNESDAY(Calendar.WEDNESDAY),
+        THURSDAY(Calendar.THURSDAY),
+        FRIDAY(Calendar.FRIDAY),
+        SATURDAY(Calendar.SATURDAY),
+        SUNDAY(Calendar.SUNDAY);
+
+        private int dayIndex;
+        DayOfWeek(int dayIndex) {
+            this.dayIndex = dayIndex;
+        }
+
+        public int getDayIndex() {
+            return dayIndex;
+        }
+
+        public void setDayIndex(int dayIndex) {
+            this.dayIndex = dayIndex;
+        }
+
+        public static DayOfWeek fromDayIndex(int dayIndex)
+        {
+            switch (dayIndex) {
+                case Calendar.SUNDAY:
+                    return SUNDAY;
+                case Calendar.MONDAY:
+                    return MONDAY;
+                case Calendar.TUESDAY:
+                    return TUESDAY;
+                case Calendar.WEDNESDAY:
+                    return WEDNESDAY;
+                case Calendar.THURSDAY:
+                    return THURSDAY;
+                case Calendar.FRIDAY:
+                    return FRIDAY;
+                case Calendar.SATURDAY:
+                    return SATURDAY;
+                default:
+                    throw new IllegalArgumentException("Illegal day index.");
             }
         }
     }

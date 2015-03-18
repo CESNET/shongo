@@ -1061,7 +1061,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequestModification);
 
         runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
-
     }
 
     /**

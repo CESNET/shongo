@@ -80,11 +80,11 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
      * @param period period of slot
      * @param end end of interval period
      */
-    public PeriodicDateTimeSlot(Interval slot, Period period, ReadablePartial end)
-    {
-        this.periodicDateTime = new PeriodicDateTime(slot.getStart(),period,end);
-        this.duration = slot.toPeriod();
-    }
+//    public PeriodicDateTimeSlot(Interval slot, Period period, ReadablePartial end)
+//    {
+//        this.periodicDateTime = new PeriodicDateTime(slot.getStart(),period,end);
+//        this.duration = slot.toPeriod();
+//    }
 
     /**
      * @return {@link #periodicDateTime}
@@ -199,6 +199,14 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         periodicDateTimeSlotApi.setDuration(getDuration());
         periodicDateTimeSlotApi.setPeriod(periodicDateTime.getPeriod());
         periodicDateTimeSlotApi.setEnd(periodicDateTime.getEnd());
+        periodicDateTimeSlotApi.setPeriodicityDayOrder(periodicDateTime.getPeriodicityDayOrder());
+        periodicDateTimeSlotApi.setPeriodicityDayInMonth(periodicDateTime.getPeriodicityDayInMonth());
+        if (periodicDateTime.getPeriodicityDayOrder() != null && periodicDateTime.getPeriodicityDayInMonth() != null) {
+            periodicDateTimeSlotApi.setMonthPeriodicityType(cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY);
+        }
+        else {
+            periodicDateTimeSlotApi.setMonthPeriodicityType(cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.STANDARD);
+        }
         return periodicDateTimeSlotApi;
     }
 
@@ -212,6 +220,13 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         periodicDateTime.setTimeZone(periodicDateTimeSlotApi.getTimeZone());
         periodicDateTime.setPeriod(periodicDateTimeSlotApi.getPeriod());
         periodicDateTime.setEnd(periodicDateTimeSlotApi.getEnd());
+        if (cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicDateTimeSlotApi.getMonthPeriodicityType())) {
+            periodicDateTime.setPeriodicityDayOrder(periodicDateTimeSlotApi.getPeriodicityDayOrder());
+            periodicDateTime.setPeriodicityDayInMonth(periodicDateTimeSlotApi.getPeriodicityDayInMonth());
+        } else {
+            periodicDateTime.setPeriodicityDayOrder(null);
+            periodicDateTime.setPeriodicityDayInMonth(null);
+        }
         setPeriodicDateTime(periodicDateTime);
         setDuration(periodicDateTimeSlotApi.getDuration());
     }

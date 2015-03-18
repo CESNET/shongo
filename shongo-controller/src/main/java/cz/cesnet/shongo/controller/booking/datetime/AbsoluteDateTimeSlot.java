@@ -46,6 +46,19 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
         setSlotEnd(slotEnd);
     }
 
+
+    /**
+     * Constructor.
+     *
+     * @param slotStart sets the {@link #slotStart}
+     * @param slotEnd   sets the {@link #slotEnd}
+     */
+    public AbsoluteDateTimeSlot(String slotStart, String slotEnd)
+    {
+        setSlotStart(DateTime.parse(slotStart));
+        setSlotEnd(DateTime.parse(slotEnd));
+    }
+
     /**
      * Constructor.
      *
