@@ -13,7 +13,10 @@
 <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 <tag:url var="webServiceDataUrl" value="<%= ClientWebUrl.USER_SETTINGS_WEB_SERVICE_DATA %>"/>
 
-<c:url var="webServiceUrl" value="https://einfra.cesnet.cz/perun-gui/#usr/info?active=1"/>
+<%--
+Alternative: https://einfra.cesnet.cz/perun-gui/#usr/info?active=1
+--%>
+<c:url var="webServiceUrl" value="https://perun.metacentrum.cz/apps/user-profile/"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:userSettings', ['ngApplication', 'ngTooltip']);

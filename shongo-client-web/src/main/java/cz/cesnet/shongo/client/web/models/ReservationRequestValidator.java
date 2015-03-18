@@ -21,10 +21,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,13 +102,13 @@ public class ReservationRequestValidator implements Validator
                     if (roomParticipantCount != null && roomParticipantCount <= 0) {
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
-                    validatePeriodicityEnd(reservationRequestModel,errors);
+                    validatePeriodicity(reservationRequestModel, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
             }
             switch (specificationType) {
                 case MEETING_ROOM:
-                    validatePeriodicityEnd(reservationRequestModel,errors);
+                    validatePeriodicity(reservationRequestModel, errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
@@ -127,6 +123,7 @@ public class ReservationRequestValidator implements Validator
                     validateIdentifier("roomName", errors);
                     break;
                 case PERMANENT_ROOM_CAPACITY:
+                    validatePeriodicity(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(
                             errors, "permanentRoomReservationRequestId", "validation.field.required");
                     break;
@@ -181,6 +178,10 @@ public class ReservationRequestValidator implements Validator
             if (!PeriodicDateTimeSlot.PeriodicityType.NONE.equals(reservationRequestModel.getPeriodicityType())) {
                 availabilityCheckRequest.setPeriod(reservationRequestModel.getPeriodicityType().toPeriod());
                 availabilityCheckRequest.setPeriodEnd(reservationRequestModel.getPeriodicityEnd());
+                if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(reservationRequestModel.getMonthPeriodicityType())) {
+                    availabilityCheckRequest.setPeriodicityDayOrder(reservationRequestModel.periodicityDayOrder);
+                    availabilityCheckRequest.setPeriodicityDayInMonth(reservationRequestModel.periodicityDayInMonth);
+                }
             }
 
             availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
@@ -296,6 +297,20 @@ public class ReservationRequestValidator implements Validator
         }
     }
 
+    public static void validatePeriodicity(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        validatePeriodicityEnd(reservationRequestModel, errors);
+        switch (reservationRequestModel.getPeriodicityType()) {
+            case WEEKLY:
+                if (reservationRequestModel.getPeriodicDaysInWeek().length == 0) {
+                    errors.rejectValue("periodicDaysInWeek","validation.field.noCheckboxChecked");
+                }
+            case MONTHLY:
+                validateNum("periodicityCycle", errors);
+                break;
+        }
+    }
+
     public static void validatePeriodicityEnd(ReservationRequestModel reservationRequestModel, Errors errors)
     {
         if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
@@ -305,8 +320,8 @@ public class ReservationRequestValidator implements Validator
             if (periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate())) {
                 errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");
             }
-        }    }
-
+        }
+    }
     /**
      * @param field
      * @param errors

@@ -2,6 +2,7 @@
 <%@ tag import="org.joda.time.*" %>
 <%@ tag import="cz.cesnet.shongo.util.DateTimeFormatter" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.UserSession" %>
+<%@ tag import="org.joda.time.format.PeriodFormat" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%@ attribute name="value" required="true" type="java.lang.Object" %>

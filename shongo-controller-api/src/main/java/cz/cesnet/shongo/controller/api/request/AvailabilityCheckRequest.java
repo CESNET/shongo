@@ -38,6 +38,17 @@ public class AvailabilityCheckRequest extends AbstractRequest
      */
     private ReadablePartial periodEnd;
 
+
+    /**
+     * Order of periodicity day when {@link cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType#SPECIFIC_DAY} period is set
+     */
+    protected Integer periodicityDayOrder;
+
+    /**
+     * Day of periodicity day when {@link cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType#SPECIFIC_DAY} period is set
+     */
+    protected PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth;
+
     /**
      * To be checked if it is available in specified {@link #slot},
      */
@@ -203,6 +214,24 @@ public class AvailabilityCheckRequest extends AbstractRequest
     private static final String PERIODICITY_TYPE = "periodicityType";
     private static final String PERIOD = "period";
     private static final String PERIOD_END = "periodEnd";
+    public static final String PERIODICITY_DAY_ORDER = "periodicityDayOrder";
+    public static final String PERIODICITY_DAY_IN_MONTH = "periodicityDayInMonth";
+
+    public Integer getPeriodicityDayOrder() {
+        return periodicityDayOrder;
+    }
+
+    public void setPeriodicityDayOrder(Integer periodicityDayOrder) {
+        this.periodicityDayOrder = periodicityDayOrder;
+    }
+
+    public PeriodicDateTimeSlot.DayOfWeek getPeriodicityDayInMonth() {
+        return periodicityDayInMonth;
+    }
+
+    public void setPeriodicityDayInMonth(PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth) {
+        this.periodicityDayInMonth = periodicityDayInMonth;
+    }
 
     @Override
     public DataMap toData()
@@ -215,6 +244,8 @@ public class AvailabilityCheckRequest extends AbstractRequest
         dataMap.set(IGNORED_RESERVATION_REQUEST, ignoredReservationRequestId);
         dataMap.set(PERIOD, period);
         dataMap.set(PERIOD_END, periodEnd);
+        dataMap.set(PERIODICITY_DAY_ORDER, periodicityDayOrder);
+        dataMap.set(PERIODICITY_DAY_IN_MONTH, periodicityDayInMonth);
         return dataMap;
     }
 
@@ -229,5 +260,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
         ignoredReservationRequestId = dataMap.getString(IGNORED_RESERVATION_REQUEST);
         period = dataMap.getPeriod(PERIOD);
         periodEnd = dataMap.getReadablePartial(PERIOD_END);
+        periodicityDayOrder = dataMap.getInteger(PERIODICITY_DAY_ORDER);
+        periodicityDayInMonth = dataMap.getEnum(PERIODICITY_DAY_IN_MONTH, PeriodicDateTimeSlot.DayOfWeek.class);
     }
 }

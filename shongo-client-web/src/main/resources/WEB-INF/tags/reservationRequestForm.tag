@@ -3,6 +3,7 @@
   --%>
 <%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 <%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ tag import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -18,6 +19,7 @@
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <c:set var="reservationRequestModification" value="${reservationRequest.modification}"/>
 <c:set var="tabIndex" value="1"/>
+<spring:eval var="weekDays" expression="T(cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot$DayOfWeek).values()"/>
 
 <tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
 
@@ -26,17 +28,25 @@
     module.controller("ReservationRequestFormController", function($scope, $application) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
-            return ((value == null || value == '') ? defaultValue : value);
+            return ((value == null || value == '' || value == 0) ? defaultValue : value);
         };
 
         // Get dynamic reservation request attributes
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
         $scope.periodicityType = $scope.value('${reservationRequest.periodicityType}', 'NONE');
+        $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
+        $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
 
-        // Update end when start is changed
+        // Update end and periodicity parameters when start is changed
         $("#start").change(function () {
+            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                document.getElementById("periodicityDayOrder").value = $scope.getStartDayOrderNo();
+                document.getElementById("periodicityDayInMonth").value = $scope.days[$scope.getStartDayNo()];
+                document.getElementById("periodic-day-" + $scope.getStartDay()).checked = true;
+            </c:if>
+
             var startPicker = $("#start");
             var endPicker = $("#end");
             if ( endPicker.length == 0 ) {
@@ -48,6 +58,98 @@
                 endPicker.val(start.format("YYYY-MM-DD"));
             }
         });
+
+        // Periodicity full options init
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            $scope.days = [];
+            <c:forEach items="${weekDays}" var="day">
+                $scope.days[${day.dayIndex} - 1] = '${day}';
+            </c:forEach>
+
+            $scope.getLastDateOfMonth = function(date) {
+                var year = date.getFullYear(), month = date.getMonth();
+                return new Date(year, month + 1, 0);
+            };
+
+            $scope.getStartDayNo = function() {
+                var startDate = new Date($("#start").val().split(" ")[0]);
+
+                return startDate.getDay();
+            };
+
+            $scope.getStartDay = function() {
+                return $scope.days[$scope.getStartDayNo()];
+            };
+
+            $scope.getStartDayOrderNo = function() {
+                var startDate = new Date($("#start").val().split(" ")[0]);
+                var dayOrderNo = startDate.getDate()/7;
+                if (startDate.getDate() % 7 != 0) {
+                    dayOrderNo =  Math.floor(dayOrderNo) + 1;
+                } else {
+                    dayOrderNo = Math.floor(dayOrderNo);
+                }
+                if (startDate.getDate() + 7 > $scope.getLastDateOfMonth(startDate).getDate()) {
+                    dayOrderNo = -1;
+                }
+                return dayOrderNo;
+            };
+
+            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
+                if (dayOrder > 0) {
+                    date.setDate(1);
+
+                    while (date.getDay() != dayInMonth) {
+                        date.setDate(date.getDate()+1);
+                    }
+                    for (i = 1; i < dayOrder; i++) {
+                        if (date.getDate()+7 < $scope.getLastDateOfMonth(date).getDate() + 1) {
+                            date.setDate(date.getDate() + 7);
+                        }
+                    }
+
+                } else if (dayOrder == -1) {
+                    date = $scope.getLastDateOfMonth(date);
+                    while (date.getDay() != dayInMonth - 1) {
+                        date.setDate(date.getDate()-1);
+                    }
+                }
+                return date;
+            };
+
+            // Set init monthly (specific-day) periodicity
+            $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
+            $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.days[$scope.getStartDayNo()]);
+            // Set init weekly periodicity
+            var selectedDays = [];
+            <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
+            selectedDays[${day.ordinal()}] = '${day}';
+            </c:forEach>
+
+            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "MONDAY");
+            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "TUESDAY");
+            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "WEDNESDAY");
+            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "THURSDAY");
+            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "FRIDAY");
+            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SATURDAY");
+            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SUNDAY");
+
+            // Update start date when month periodicity has changed
+            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
+                var dateTime = $("#start").val().split(" ");
+
+                var date = $scope.getDayInMonthDate(new Date(dateTime[0]), newValues[0], $.inArray(newValues[1],$scope.days));
+                if (date < new Date(dateTime[0])) {
+                    var startDate = new Date(dateTime[0]);
+                    var nextMonthDate = startDate.setMonth(startDate.getMonth() + 1);
+                    date = $scope.getDayInMonthDate(new Date(nextMonthDate), newValues[0], $.inArray(newValues[1],$scope.days));
+                }
+                var y = date.getFullYear();
+                var m = date.getMonth() + 1;
+                var d = date.getDate();
+                document.getElementById("start").value = y + "-" + m  + "-" + d + " " + dateTime[1];
+            });
+        </c:if>
 
         $scope.getTimeZone = function() {
             var timeZone = $("#timeZone").val();
@@ -664,23 +766,90 @@
             <form:label class="col-xs-3 control-label" path="periodicityType">
                 <spring:message code="views.reservationRequest.periodicity"/>:
             </form:label>
-            <div class="col-xs-9 space-padding">
-                <div class="col-xs-4">
-                    <label class="radio-inline" for="periodicity-none">
-                        <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                        <spring:message code="views.reservationRequest.periodicity.NONE"/>
-                    </label>
-                    <label class="radio-inline" for="periodicity-daily">
-                        <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                        <spring:message code="views.reservationRequest.periodicity.DAILY"/>
-                    </label>
-                    <label class="radio-inline" for="periodicity-weekly">
-                        <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                        <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
-                    </label>
+            <div class="col-xs-9 space-padding row">
+                <div class="col-xs-1">
+                    <div class="radio">
+                        <label for="periodicity-none">
+                            <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                            <spring:message code="views.reservationRequest.periodicity.NONE"/>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label for="periodicity-daily">
+                            <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                            <spring:message code="views.reservationRequest.periodicity.DAILY"/>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label for="periodicity-weekly">
+                            <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                            <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label for="periodicity-monthly">
+                            <form:radiobutton id="periodicity-monthly" path="periodicityType" value="MONTHLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                            <span><spring:message code="views.reservationRequest.periodicity.MONTHLY"/></span>
+                        </label>
+                    </div>
                 </div>
-                <div class="col-xs-8 space-padding">
-                    <div class="col-xs-6">
+
+                <div class="vdivider" ></div>
+
+                <div class="col-xs-7" ng-show="periodicityType == 'WEEKLY'">
+                    <div class="row">
+                        <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'" />
+                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.weeks"/>:</span>
+                        <form:errors path="periodicityCycle" cssClass="error"/>
+                    </div>
+                    <div class="row">
+                        <c:forEach items="${weekDays}" var="day">
+                            <span class="checkbox col-xs-3">
+                                <label for="periodic-day-${day}">
+                                    <form:checkbox cssErrorClass="error" path="periodicDaysInWeek" id="periodic-day-${day}" ng-model="periodicDay${day}" tabindex="${tabIndex}" value="${day}"/>
+                                    <spring:message code="views.reservationRequest.periodicity.day.${day}"/>
+                                </label>
+                            </span>
+                        </c:forEach>
+                    </div>
+                    <form:errors path="periodicDaysInWeek" cssClass="error row"/>
+                </div>
+
+                <div class="col-xs-7" ng-show="periodicityType == 'MONTHLY'">
+                    <div class="radio">
+                        <label for="month-periodicity-standard">
+                            <form:radiobutton id="month-periodicity-standard" cssErrorClass="form-control error" path="monthPeriodicityType" value="STANDARD" tabindex="${tabIndex}" ng-model="monthPeriodicityType" />
+                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                            <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'" />
+                            <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
+                        </label>
+                    </div>
+                    <div class="radio form-inline">
+                        <label for="month-periodicity-specific-day">
+                            <form:radiobutton id="month-periodicity-specific-day" path="monthPeriodicityType" value="SPECIFIC_DAY" tabindex="${tabIndex}" ng-model="monthPeriodicityType"/>
+                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                        </label>
+                        <form:select id="periodicityDayOrder" path="periodicityDayOrder" cssErrorClass="form-control error" size="1" ng-model="periodicityDayOrder" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
+                            <form:option value="1">1</form:option>
+                            <form:option value="2">2</form:option>
+                            <form:option value="3">3</form:option>
+                            <form:option value="4">4</form:option>
+                            <form:option value="-1"><spring:message code="views.reservationRequest.periodicity.recureEvery.last"/></form:option>
+                        </form:select>.
+                        <form:select id="periodicityDayInMonth" path="periodicityDayInMonth" cssErrorClass="error" ng-model="periodicityDayInMonth" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
+                            <c:forEach items="${weekDays}" var="day">
+                                <form:option cssErrorClass="error" value="${day}"><spring:message code="views.reservationRequest.periodicity.day.${day}" /></form:option>
+                            </c:forEach>
+                        </form:select>
+                        <span><spring:message code="views.reservationRequest.periodicity.recureEvery.inEvery"/></span>
+                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" />
+                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
+                    </div>
+                </div>
+
+                <div class="col-xs-3"  ng-show="periodicityType != 'NONE'">
+                    <div>
                         <span class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.reservationRequest.periodicity.until"/>
@@ -688,16 +857,17 @@
                             <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                         </span>
                     </div>
-                    <div class="col-xs-6" ng-show="periodicityType != 'NONE'">
-                        <label class="control-label">
-                            <c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>
-                            <tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true" position="bottom-left"/>
-                        </label>
-                    </div>
+                    <%--<div ng-show="periodicityType != 'NONE'">--%>
+                        <%--<label class="control-label">--%>
+                            <%--<c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>--%>
+                            <%--<tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true" position="bottom-left"/>--%>
+                        <%--</label>--%>
+                    <%--</div>--%>
                     <div class="col-xs-12" >
                         <form:errors path="periodicityEnd" cssClass="error"/>
                     </div>
                 </div>
+
             </div>
         </div>
     </c:if>

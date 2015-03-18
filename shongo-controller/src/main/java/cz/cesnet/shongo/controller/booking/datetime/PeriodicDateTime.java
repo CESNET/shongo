@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.SimplePersistentObject;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
@@ -46,6 +47,16 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
     private Period period;
 
     /**
+     * Order of periodicity day when {@link cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType#SPECIFIC_DAY} period is set
+     */
+    protected Integer periodicityDayOrder;
+
+    /**
+     * Day of periodicity day when {@link cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType#SPECIFIC_DAY} period is set
+     */
+    protected PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth;
+
+    /**
      * Ending date and/or time after which the periodic events are not considered.
      */
     private ReadablePartial end;
@@ -60,7 +71,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      */
     public PeriodicDateTime()
     {
-        this(null, null, null);
+        this(null, null, null, null, null);
     }
 
     /**
@@ -72,7 +83,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      */
     public PeriodicDateTime(DateTime start, Period period)
     {
-        this(start, period, null);
+        this(start, period, null, null, null);
     }
 
     /**
@@ -86,6 +97,26 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      */
     public PeriodicDateTime(DateTime start, Period period, ReadablePartial end)
     {
+        this(start, period, end, null, null);
+    }
+
+    /**
+     * Constructs periodical date/time events. The first event takes place at start
+     * and each other take places in given period. The last event takes place before
+     * or equals to end.
+     *
+     * @param start
+     * @param period
+     * @param end
+     * @param periodicityDayOrder
+     * @param periodicityDayInMonth
+     */
+    public PeriodicDateTime(DateTime start, Period period, ReadablePartial end, Integer periodicityDayOrder, PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth)
+    {
+        if (period != null && PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(PeriodicDateTimeSlot.PeriodicityType.fromPeriod(period))) {
+            setPeriodicityDayOrder(periodicityDayOrder);
+            setPeriodicityDayInMonth(periodicityDayInMonth);
+        }
         setStart(start);
         setPeriod(period);
         setEnd(end);
@@ -165,6 +196,24 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
     public void setEnd(ReadablePartial end)
     {
         this.end = end;
+    }
+
+    @Column(nullable = true)
+    public Integer getPeriodicityDayOrder() {
+        return periodicityDayOrder;
+    }
+
+    public void setPeriodicityDayOrder(Integer periodicityDayOrder) {
+        this.periodicityDayOrder = periodicityDayOrder;
+    }
+
+    @Column(nullable = true)
+    public PeriodicDateTimeSlot.DayOfWeek getPeriodicityDayInMonth() {
+        return periodicityDayInMonth;
+    }
+
+    public void setPeriodicityDayInMonth(PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth) {
+        this.periodicityDayInMonth = periodicityDayInMonth;
     }
 
     /**
@@ -317,7 +366,34 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
                 if (intervalStart == null || !intervalStart.isAfter(start)) {
                     dateTimeList.add(start);
                 }
-                start = start.plus(period);
+                if (periodicityDayOrder != null && periodicityDayInMonth != null) {
+                    DateTime newStart = start.plusMonths(1).minusDays(start.getDayOfMonth() - 1);
+                    DateTime monthEnd = newStart.plusMonths(1).minusDays(1);;
+                    if (0 < periodicityDayOrder && periodicityDayOrder < 5) {
+                        while (newStart.getDayOfWeek() != (periodicityDayInMonth.getDayIndex() == 1 ? 7 : periodicityDayInMonth.getDayIndex() - 1)) {
+                            newStart = newStart.plusDays(1);
+                        }
+                        for (int i = 1; i < periodicityDayOrder; i++) {
+                            if (!newStart.plusDays(7).isAfter(monthEnd)) {
+                                newStart = newStart.plusDays(7);
+                            }
+                        }
+                    }
+                    else if (periodicityDayOrder == -1) {
+                        newStart = monthEnd;
+                        while (newStart.getDayOfWeek() != (periodicityDayInMonth.getDayIndex() == 1 ? 7 : periodicityDayInMonth.getDayIndex() - 1)) {
+                            newStart = newStart.minusDays(1);
+                        }
+                    }
+                    else {
+                        throw new TodoImplementException();
+                    }
+
+                    start = newStart;
+                }
+                else {
+                    start = start.plus(period);
+                }
 
                 if (dateTimeList.size() >= maxCount || period == null) {
                     break;

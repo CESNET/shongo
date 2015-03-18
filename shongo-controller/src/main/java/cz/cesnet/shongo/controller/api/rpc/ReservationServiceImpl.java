@@ -219,7 +219,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             Period duration = request.getSlot().toPeriod();
-            PeriodicDateTime periodicDateTime = new PeriodicDateTime(request.getSlot().getStart(),request.getPeriod(),request.getPeriodEnd());
+            Integer periodicityDayOrder = request.getPeriodicityDayOrder();
+            PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth = request.getPeriodicityDayInMonth();
+            PeriodicDateTime periodicDateTime = new PeriodicDateTime(request.getSlot().getStart(),request.getPeriod(),request.getPeriodEnd(), periodicityDayOrder, periodicityDayInMonth);
             List<Interval> slots = new ArrayList<Interval>();
             for (DateTime slotStart : periodicDateTime.enumerate()) {
                 slots.add(new Interval(slotStart, duration));

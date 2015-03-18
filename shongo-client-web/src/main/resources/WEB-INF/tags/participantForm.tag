@@ -107,15 +107,28 @@
         <form:label class="col-xs-2 control-label" path="type">
             <spring:message code="views.participant.type"/>:
         </form:label>
-        <div class="col-xs-4">
+        <div class="col-xs-5">
             <label class="radio inline" for="typeUser">
                 <form:radiobutton id="typeUser" path="type" value="USER" ng-model="type"/>
                 <span><spring:message code="views.participant.type.USER"/></span>
             </label>
-            <label class="radio inline" for="typeAnonymous">
-                <form:radiobutton id="typeAnonymous" path="type" value="ANONYMOUS" ng-model="type"/>
-                <span><spring:message code="views.participant.type.ANONYMOUS"/></span>
-            </label>
+            <c:choose>
+                <c:when test="${reservationRequest.technology == 'ADOBE_CONNECT' && reservationRequest.roomAccessMode == 'PRIVATE'}">
+                    <div class="radio inline text-muted">
+                        <form:radiobutton id="typeAnonymous" path="type" disabled="true"/>
+                        <span><spring:message code="views.participant.type.ANONYMOUS" /></span>
+                        <tag:help><spring:message code="views.participant.roleHelp.PARTICIPANT.disabled"/></tag:help>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <label class="radio inline" for="typeAnonymous">
+                        <form:radiobutton id="typeAnonymous" path="type" value="ANONYMOUS" ng-model="type"/>
+                        <span><spring:message code="views.participant.type.ANONYMOUS"/></span>
+                    </label>
+                </c:otherwise>
+            </c:choose>
+            <br />
+            <div class="alert alert-warning" ng-show="type == 'ANONYMOUS' && ${reservationRequest.technology == 'ADOBE_CONNECT'}"><spring:message code="views.participant.roleHelp.PARTICIPANT.enabled"/></div>
             <form:errors path="type" cssClass="error"/>
         </div>
     </div>
@@ -151,7 +164,7 @@
     </div>
 
     <c:choose>
-        <c:when test="${hideRole}S'">
+        <c:when test="${hideRole}">
             <form:hidden path="role" value="PARTICIPANT"/>
         </c:when>
         <c:otherwise>
@@ -176,10 +189,10 @@
                     <form:errors path="role" cssClass="error"/>
                 </div>
                 <div class="col-xs-4" ng-show="type == 'ANONYMOUS'">
-                    <form:select cssClass="form-control" path="role" tabindex="${tabIndex}">
+                    <form:select cssClass="form-control" path="role" readonly="true" tabindex="${tabIndex}">
                         <spring:eval var="participant" expression="T(cz.cesnet.shongo.ParticipantRole).PARTICIPANT"/>
                         <form:option value="${participant}"><spring:message
-                                code="views.participant.role.${participant}"/></form:option>
+                                code="views.participant.role.GUEST"/></form:option>
                     </form:select>
                     <form:errors path="role" cssClass="error"/>
                 </div>
