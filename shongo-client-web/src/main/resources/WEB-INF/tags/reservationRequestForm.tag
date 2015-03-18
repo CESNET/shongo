@@ -43,7 +43,7 @@
         $("#start").change(function () {
             <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
                 document.getElementById("periodicityDayOrder").value = $scope.getStartDayOrderNo();
-                document.getElementById("periodicityDayInMonth").value = $scope.days[$scope.getStartDayNo()];
+                document.getElementById("periodicityDayInMonth").value = $scope.getStartDay();
                 document.getElementById("periodic-day-" + $scope.getStartDay()).checked = true;
             </c:if>
 
@@ -58,98 +58,6 @@
                 endPicker.val(start.format("YYYY-MM-DD"));
             }
         });
-
-        // Periodicity full options init
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            $scope.days = [];
-            <c:forEach items="${weekDays}" var="day">
-                $scope.days[${day.dayIndex} - 1] = '${day}';
-            </c:forEach>
-
-            $scope.getLastDateOfMonth = function(date) {
-                var year = date.getFullYear(), month = date.getMonth();
-                return new Date(year, month + 1, 0);
-            };
-
-            $scope.getStartDayNo = function() {
-                var startDate = new Date($("#start").val().split(" ")[0]);
-
-                return startDate.getDay();
-            };
-
-            $scope.getStartDay = function() {
-                return $scope.days[$scope.getStartDayNo()];
-            };
-
-            $scope.getStartDayOrderNo = function() {
-                var startDate = new Date($("#start").val().split(" ")[0]);
-                var dayOrderNo = startDate.getDate()/7;
-                if (startDate.getDate() % 7 != 0) {
-                    dayOrderNo =  Math.floor(dayOrderNo) + 1;
-                } else {
-                    dayOrderNo = Math.floor(dayOrderNo);
-                }
-                if (startDate.getDate() + 7 > $scope.getLastDateOfMonth(startDate).getDate()) {
-                    dayOrderNo = -1;
-                }
-                return dayOrderNo;
-            };
-
-            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
-                if (dayOrder > 0) {
-                    date.setDate(1);
-
-                    while (date.getDay() != dayInMonth) {
-                        date.setDate(date.getDate()+1);
-                    }
-                    for (i = 1; i < dayOrder; i++) {
-                        if (date.getDate()+7 < $scope.getLastDateOfMonth(date).getDate() + 1) {
-                            date.setDate(date.getDate() + 7);
-                        }
-                    }
-
-                } else if (dayOrder == -1) {
-                    date = $scope.getLastDateOfMonth(date);
-                    while (date.getDay() != dayInMonth - 1) {
-                        date.setDate(date.getDate()-1);
-                    }
-                }
-                return date;
-            };
-
-            // Set init monthly (specific-day) periodicity
-            $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
-            $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.days[$scope.getStartDayNo()]);
-            // Set init weekly periodicity
-            var selectedDays = [];
-            <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
-            selectedDays[${day.ordinal()}] = '${day}';
-            </c:forEach>
-
-            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "MONDAY");
-            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "TUESDAY");
-            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "WEDNESDAY");
-            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "THURSDAY");
-            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "FRIDAY");
-            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SATURDAY");
-            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SUNDAY");
-
-            // Update start date when month periodicity has changed
-            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
-                var dateTime = $("#start").val().split(" ");
-
-                var date = $scope.getDayInMonthDate(new Date(dateTime[0]), newValues[0], $.inArray(newValues[1],$scope.days));
-                if (date < new Date(dateTime[0])) {
-                    var startDate = new Date(dateTime[0]);
-                    var nextMonthDate = startDate.setMonth(startDate.getMonth() + 1);
-                    date = $scope.getDayInMonthDate(new Date(nextMonthDate), newValues[0], $.inArray(newValues[1],$scope.days));
-                }
-                var y = date.getFullYear();
-                var m = date.getMonth() + 1;
-                var d = date.getDate();
-                document.getElementById("start").value = y + "-" + m  + "-" + d + " " + dateTime[1];
-            });
-        </c:if>
 
         $scope.getTimeZone = function() {
             var timeZone = $("#timeZone").val();
@@ -199,6 +107,109 @@
                 return null;
             }
         };
+
+        // Periodicity full options init
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            $scope.days = [];
+            <c:forEach items="${weekDays}" var="day">
+                $scope.days[${day.dayIndex} - 1] = '${day}';
+            </c:forEach>
+
+            $scope.getLastDateOfMonth = function(date) {
+                if (isNaN(date)) {
+                    return null;
+                }
+                var year = date.getFullYear(), month = date.getMonth();
+                return new Date(year, month + 1, 0);
+            };
+
+            $scope.getStartDay = function() {
+                var start = $scope.getStart();
+                if (start == null) {
+                    return null;
+                }
+                var startDayIndex = new Date(start).getDay();
+                return $scope.days[startDayIndex];
+            };
+
+            $scope.getStartDayOrderNo = function() {
+                var start = $scope.getStart();
+                if (start == null) {
+                    return null;
+                }
+                var startDate = new Date(start);
+                var dayOrderNo = startDate.getDate()/7;
+                if (startDate.getDate() % 7 != 0) {
+                    dayOrderNo =  Math.floor(dayOrderNo) + 1;
+                } else {
+                    dayOrderNo = Math.floor(dayOrderNo);
+                }
+                if (startDate.getDate() + 7 > $scope.getLastDateOfMonth(startDate).getDate()) {
+                    dayOrderNo = -1;
+                }
+                return dayOrderNo;
+            };
+
+            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
+                if (isNaN(date) || (dayOrder != -1 && (dayOrder < 0 || dayOrder > 4)) || dayInMonth == -1) {
+                    return null;
+                }
+                if (dayOrder > 0) {
+                    date.setDate(1);
+
+                    while (date.getDay() != dayInMonth) {
+                        date.setDate(date.getDate()+1);
+                    }
+                    for (i = 1; i < dayOrder; i++) {
+                        if (date.getDate()+7 < $scope.getLastDateOfMonth(date).getDate() + 1) {
+                            date.setDate(date.getDate() + 7);
+                        }
+                    }
+
+                } else if (dayOrder == -1) {
+                    date = $scope.getLastDateOfMonth(date);
+                    while (date.getDay() != dayInMonth - 1) {
+                        date.setDate(date.getDate()-1);
+                    }
+                }
+                return date;
+            };
+
+            // Set init monthly (specific-day) periodicity
+            $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
+            $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.getStartDay());
+            // Set init weekly periodicity
+            var selectedDays = [];
+            <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
+                selectedDays[${day.ordinal()}] = '${day}';
+            </c:forEach>
+
+            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "MONDAY");
+            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "TUESDAY");
+            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "WEDNESDAY");
+            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "THURSDAY");
+            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "FRIDAY");
+            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SATURDAY");
+            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SUNDAY");
+
+            // Update start date when month periodicity has changed
+            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
+                var startDate = $("#start").data("datetimepicker").getDate();
+                var dateTime = new Date(startDate.getFullYear(),startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0);
+
+                var date = $scope.getDayInMonthDate(new Date(dateTime.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
+                if (date < dateTime) {
+                    var nextMonthDate = new Date(dateTime.valueOf()).setMonth(dateTime.getMonth() + 1);
+                    date = $scope.getDayInMonthDate(new Date(nextMonthDate.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
+                }
+                var y = date.getFullYear();
+                var m = date.getMonth();
+                var d = date.getDate();
+                var h = startDate.getHours();
+                var min = startDate.getMinutes();
+                $("#start").data("datetimepicker").setDate(new Date(y, m, d, h, min, 0, 0));
+            });
+        </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
@@ -801,7 +812,6 @@
                         <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
                         <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'" />
                         <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.weeks"/>:</span>
-                        <form:errors path="periodicityCycle" cssClass="error"/>
                     </div>
                     <div class="row">
                         <c:forEach items="${weekDays}" var="day">
@@ -821,9 +831,9 @@
                         <label for="month-periodicity-standard">
                             <form:radiobutton id="month-periodicity-standard" cssErrorClass="form-control error" path="monthPeriodicityType" value="STANDARD" tabindex="${tabIndex}" ng-model="monthPeriodicityType" />
                             <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
-                            <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'" />
-                            <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
                         </label>
+                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'" />
+                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
                     </div>
                     <div class="radio form-inline">
                         <label for="month-periodicity-specific-day">
