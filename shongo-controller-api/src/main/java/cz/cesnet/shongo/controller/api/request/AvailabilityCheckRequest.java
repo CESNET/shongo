@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.Specification;
 import org.joda.time.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -26,7 +27,9 @@ public class AvailabilityCheckRequest extends AbstractRequest
     /**
      * Time slot for which the availability should be checked.
      */
-    private Interval slot;
+    //TODO zmenit
+    //private Interval slot;
+    private List<PeriodicDateTimeSlot> slots;
 
     /**
      * Period for which the availability should be checked.
@@ -50,12 +53,12 @@ public class AvailabilityCheckRequest extends AbstractRequest
     protected PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth;
 
     /**
-     * To be checked if it is available in specified {@link #slot},
+     * To be checked if it is available in specified {@link #slots},
      */
     private Specification specification;
 
     /**
-     * To be checked if it is available to be reused in specified {@link #slot},
+     * To be checked if it is available to be reused in specified {@link #slots},
      */
     private String reservationRequestId;
 
@@ -85,15 +88,16 @@ public class AvailabilityCheckRequest extends AbstractRequest
      * Constructor.
      *
      * @param securityToken        sets the {@link #securityToken}
-     * @param slot                 sets the {@link #slot}
+     * @param slots                 sets the {@link #slots}
      * @param specification        sets the {@link #specification}
      * @param reservationRequestId sets the {@link #reservationRequestId}
      */
-    public AvailabilityCheckRequest(SecurityToken securityToken, Interval slot,
+    public AvailabilityCheckRequest(SecurityToken securityToken, List<PeriodicDateTimeSlot> slots,
             Specification specification, String reservationRequestId)
     {
         super(securityToken);
-        this.slot = slot;
+        this.slots = new LinkedList<PeriodicDateTimeSlot>();
+        addAllSlots(slots);
         this.specification = specification;
         this.reservationRequestId = reservationRequestId;
     }
@@ -103,12 +107,11 @@ public class AvailabilityCheckRequest extends AbstractRequest
      *
      * @param securityToken sets the {@link #securityToken}
      * @param reservationRequest to be initialized from
-     */
+     *
     public AvailabilityCheckRequest(SecurityToken securityToken, ReservationRequest reservationRequest)
     {
-        this(securityToken, reservationRequest.getSlot(), reservationRequest.getSpecification(),
-                reservationRequest.getReusedReservationRequestId());
-    }
+        this(securityToken, slots, reservationRequest.getSpecification(), reservationRequest.getReusedReservationRequestId());
+    }/*
 
     /**
      * @return {@link #purpose}
@@ -128,7 +131,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
 
     /**
      * @return {@link #slot}
-     */
+     *
     public Interval getSlot()
     {
         return slot;
@@ -136,10 +139,31 @@ public class AvailabilityCheckRequest extends AbstractRequest
 
     /**
      * @param slot sets the {@link #slot}
-     */
+     *
     public void setSlot(Interval slot)
     {
         this.slot = slot;
+    }*/
+
+    public List<PeriodicDateTimeSlot> getSlots() {
+        return slots;
+    }
+
+    public void setSlots(List<PeriodicDateTimeSlot> slots) {
+        this.slots = slots;
+    }
+
+    public void addSlot(PeriodicDateTimeSlot slot) {
+        this.slots.add(slot);
+    }
+
+    public void addSlot(Interval interval) {
+        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot(interval.getStart(), interval.toPeriod(), null);
+        this.slots.add(slot);
+    }
+
+    public void addAllSlots(List<PeriodicDateTimeSlot> slots) {
+        slots.addAll(slots);
     }
 
     /**
@@ -207,7 +231,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     }
 
     private static final String PURPOSE = "purpose";
-    private static final String SLOT = "slot";
+    private static final String SLOTS = "slots";
     private static final String SPECIFICATION = "specification";
     private static final String RESERVATION_REQUEST = "reservationRequestId";
     private static final String IGNORED_RESERVATION_REQUEST = "ignoredReservationRequestId";
@@ -238,7 +262,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     {
         DataMap dataMap = super.toData();
         dataMap.set(PURPOSE, purpose);
-        dataMap.set(SLOT, slot);
+        dataMap.set(SLOTS, slots);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(RESERVATION_REQUEST, reservationRequestId);
         dataMap.set(IGNORED_RESERVATION_REQUEST, ignoredReservationRequestId);
@@ -254,7 +278,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     {
         super.fromData(dataMap);
         purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
-        slot = dataMap.getInterval(SLOT);
+        slots = dataMap.getList(SLOTS, PeriodicDateTimeSlot.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         reservationRequestId = dataMap.getString(RESERVATION_REQUEST);
         ignoredReservationRequestId = dataMap.getString(IGNORED_RESERVATION_REQUEST);

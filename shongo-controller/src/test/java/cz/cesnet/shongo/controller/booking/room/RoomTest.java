@@ -367,8 +367,12 @@ public class RoomTest extends AbstractControllerTest
         RoomAvailability roomAvailability = roomSpecification.getAvailability();
         roomAvailability.setSlotMinutesBefore(10);
         capacityReservationRequest.setSpecification(roomSpecification);
-        Assert.assertEquals(Boolean.TRUE, getReservationService().checkAvailability(
-                new AvailabilityCheckRequest(SECURITY_TOKEN, capacityReservationRequest)));
+        AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest();
+        availabilityCheckRequest.setSecurityToken(SECURITY_TOKEN);
+        availabilityCheckRequest.setSpecification(capacityReservationRequest.getSpecification());
+        availabilityCheckRequest.setReservationRequestId(capacityReservationRequest.getReusedReservationRequestId());
+        availabilityCheckRequest.addSlot(capacityReservationRequest.getSlot());
+        Assert.assertEquals(Boolean.TRUE, getReservationService().checkPeriodicAvailability(availabilityCheckRequest));
         String capacityReservationRequestId = allocate(capacityReservationRequest, dateTime);
         checkAllocated(capacityReservationRequestId);
 

@@ -146,7 +146,7 @@
         </c:when>
         <c:otherwise>
             <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
-            <dd><tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
+            <dd><tag:format value="${reservationRequest.firstSlot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
         </c:otherwise>
     </c:choose>
 
@@ -187,7 +187,7 @@
             <c:if test="${reservationRequest.periodicityEnd != null && reservationRequest.periodicityType != 'NONE'}">
                 (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<tag:format value="${reservationRequest.periodicityEnd}" style="date"/>)
             </c:if>
-            <c:if test="${not reservationRequest.allocatedIntervalCollidingWithSlot && reservationRequest.collidingInterval != null}">
+            <c:if test="${not reservationRequest.collidingWithFirstSlot && reservationRequest.collidingInterval != null}">
                 <div class="alert alert-warning">
                     <spring:message code="views.reservationRequest.periodicity.warning.collidingInterval"/>
                     &MediumSpace;
@@ -344,8 +344,8 @@
                         <dd><tag:format value="${reservationRequest.detail.room.slot}" multiline="true" pre="${reservationRequest.detail.room.slotBefore}" post="${reservationRequest.detail.room.slotAfter}"/></dd>
                     </c:when>
                     <c:when test="${reservationRequest.detail.allocationState == 'ALLOCATED' && reservationRequest.detail.room != null}">
-                        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
-                        <dd><tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
+                        <dt><spring:message code="views.reservationRequest.firstSlot"/>:</dt>
+                        <dd><tag:format value="${reservationRequest.firstSlot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
                     </c:when>
 
                 </c:choose>

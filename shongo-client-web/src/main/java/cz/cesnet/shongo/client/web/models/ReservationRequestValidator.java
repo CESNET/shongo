@@ -133,7 +133,7 @@ public class ReservationRequestValidator implements Validator
         String slotField = (reservationRequestModel.getEnd() != null ? "end" : "start");
         String slotFieldDuration = (reservationRequestModel.getEnd() != null ? "end" : "durationCount");
         try {
-            Interval interval = reservationRequestModel.getSlot();
+            Interval interval = reservationRequestModel.getFirstSlot();
             if (interval.getEnd().isBefore(DateTime.now())) {
                 errors.rejectValue(slotField, "validation.field.invalidFutureSlot");
             }
@@ -171,7 +171,7 @@ public class ReservationRequestValidator implements Validator
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
-            availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
+            availabilityCheckRequest.setSlots(reservationRequestModel.getSlots(timeZone));
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
@@ -229,7 +229,7 @@ public class ReservationRequestValidator implements Validator
                         AllocationStateReport.ResourceAlreadyAllocated error = (AllocationStateReport.ResourceAlreadyAllocated) userError;
                         errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
                         // check if colliding interval is not the first one for periodic reservation request
-                        if (!SlotHelper.areIntervalsColliding(error.getInterval(),availabilityCheckRequest.getSlot())) {
+                        if (!SlotHelper.areIntervalsColliding(error.getInterval(),reservationRequestModel.getFirstSlot())) {
                             errors.rejectValue("collidingInterval", null, error.getInterval().toString());
                         }
                     }

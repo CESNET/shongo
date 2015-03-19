@@ -403,11 +403,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
     }
 
-    public void setAllocatedIntervalCollidingWithSlot(boolean isAllocatedIntervalCollidingWithSlot) {
-        this.collidingWithFirstSlot = isAllocatedIntervalCollidingWithSlot;
+    public void resetCollidingInterval() {
+        collidingInterval = null;
+        collidingWithFirstSlot = false;
     }
 
-    public boolean isAllocatedIntervalCollidingWithSlot() {
+    public void setCollidingWithFirstSlot(boolean collidingWithFirstSlot) {
+        this.collidingWithFirstSlot = collidingWithFirstSlot;
+    }
+
+    public boolean isCollidingWithFirstSlot() {
         return collidingWithFirstSlot;
     }
 
@@ -1132,7 +1137,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * @return requested reservation date/time slot as {@link Interval}
      */
-    public Interval getSlot()
+    public Interval getFirstSlot()
     {
         DateTime start = this.start;
         if (timeZone != null) {
@@ -1166,58 +1171,49 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * Store all attributes to {@link AbstractReservationRequest}.
      *
-     * @return {@link AbstractReservationRequest} with stored attributes
+     * @return all calculated slots
      */
-    public AbstractReservationRequest toApi(HttpServletRequest request)
-    {
-        // Determine slot
-        Interval slot = getSlot();
-
-        // Create reservation request
-        AbstractReservationRequest abstractReservationRequest;
-        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
-            // Create single reservation request
-            ReservationRequest reservationRequest = new ReservationRequest();
-            reservationRequest.setSlot(slot.getStart(), slot.getEnd());
-            abstractReservationRequest = reservationRequest;
-        }
-        else {
+    public List<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone) {
+        List<PeriodicDateTimeSlot> slots = new LinkedList<PeriodicDateTimeSlot>();
+        if (PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicityType)) {
+            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(getStart(), getDuration(), Period.ZERO);
+            periodicDateTimeSlot.setEnd(getStart().toLocalDate());
+            slots.add(periodicDateTimeSlot);
+        } else {
             // Determine period
             Period period = periodicityType.toPeriod(periodicityCycle);
 
-            // Create set of reservation requests
-            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-
             if (PeriodicDateTimeSlot.PeriodicityType.WEEKLY.equals(periodicityType)) {
-                for(PeriodicDateTimeSlot.DayOfWeek day : periodicDaysInWeek) {
-                    DateTime nextSlotStart = slot.getStart();
+                for (PeriodicDateTimeSlot.DayOfWeek day : periodicDaysInWeek) {
+                    DateTime nextSlotStart = getStart();//slot.getStart();
                     int dayIndex = (day.getDayIndex() == 1 ? 7 : day.getDayIndex() - 1);
                     while (nextSlotStart.getDayOfWeek() != dayIndex) {
                         nextSlotStart = nextSlotStart.plusDays(1);
                     }
                     PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
                     periodicDateTimeSlot.setStart(nextSlotStart);
-                    if (timeZone != null) {
-                        periodicDateTimeSlot.setTimeZone(timeZone);
-                    } else {
-                        periodicDateTimeSlot.setTimeZone(UserSession.getInstance(request).getTimeZone());
+                    if (this.timeZone != null) {
+                        periodicDateTimeSlot.setTimeZone(this.timeZone);
                     }
-                    periodicDateTimeSlot.setDuration(slot.toPeriod());
+                    else if (timeZone != null) {
+                        periodicDateTimeSlot.setTimeZone(timeZone);
+                    }
+                    periodicDateTimeSlot.setDuration(getDuration());
                     periodicDateTimeSlot.setPeriod(period);
                     periodicDateTimeSlot.setEnd(periodicityEnd);
-                    reservationRequestSet.addSlot(periodicDateTimeSlot);
+                    slots.add(periodicDateTimeSlot);
                 }
             } else {
                 PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
-                periodicDateTimeSlot.setStart(slot.getStart());
-                if (timeZone != null) {
-                    periodicDateTimeSlot.setTimeZone(timeZone);
-                } else {
-                    periodicDateTimeSlot.setTimeZone(UserSession.getInstance(request).getTimeZone());
+                periodicDateTimeSlot.setStart(getStart());
+                if (this.timeZone != null) {
+                    periodicDateTimeSlot.setTimeZone(this.timeZone);
                 }
-                periodicDateTimeSlot.setDuration(slot.toPeriod());
+                else if (timeZone != null) {
+                    periodicDateTimeSlot.setTimeZone(timeZone);
+                }
+                periodicDateTimeSlot.setDuration(getDuration());
                 periodicDateTimeSlot.setPeriod(period);
                 periodicDateTimeSlot.setEnd(periodicityEnd);
                 if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicityType)) {
@@ -1229,8 +1225,37 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                         periodicDateTimeSlot.setMonthPeriodicityType(monthPeriodicityType);
                     }
                 }
-                reservationRequestSet.addSlot(periodicDateTimeSlot);
+                slots.add(periodicDateTimeSlot);
             }
+        }
+
+        return slots;
+    }
+
+    /**
+     * Store all attributes to {@link AbstractReservationRequest}.
+     *
+     * @return {@link AbstractReservationRequest} with stored attributes
+     */
+    public AbstractReservationRequest toApi(HttpServletRequest request)
+    {
+        List<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
+        // Create reservation request
+        AbstractReservationRequest abstractReservationRequest;
+        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
+            // Create single reservation request
+            ReservationRequest reservationRequest = new ReservationRequest();
+            PeriodicDateTimeSlot slot = slots.get(0);
+            reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(slot.getDuration()));
+            abstractReservationRequest = reservationRequest;
+        }
+        else {
+            // Determine period
+            Period period = periodicityType.toPeriod(periodicityCycle);
+
+            // Create set of reservation requests
+            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.addAllSlots(slots);
             abstractReservationRequest = reservationRequestSet;
         }
         if (!Strings.isNullOrEmpty(id)) {

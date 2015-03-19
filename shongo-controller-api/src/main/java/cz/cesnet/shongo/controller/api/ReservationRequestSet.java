@@ -44,6 +44,9 @@ public class ReservationRequestSet extends AbstractReservationRequest
         this.slots = slots;
     }
 
+    public void addAllSlots(List<PeriodicDateTimeSlot> slots) {
+        this.slots.addAll(slots);
+    }
     /**
      * Add new slot to the {@link #SLOTS}.
      *

@@ -22,8 +22,8 @@ public interface ReservationService extends Service
      * @return {@link Boolean#TRUE} when given {@code request} is available,
      * otherwise {@link AllocationStateReport} describing the reason why it is not available
      */
-    @API
-    public Object checkAvailability(AvailabilityCheckRequest request);
+    //@API
+    //public Object checkAvailability(AvailabilityCheckRequest request);
 
     /**
      * @param request {@link AvailabilityCheckRequest}

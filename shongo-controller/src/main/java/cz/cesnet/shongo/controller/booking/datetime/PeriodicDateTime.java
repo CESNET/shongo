@@ -358,7 +358,10 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
 
         // Find all events in range from-to
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
-        if (start != null) {
+        if (start != null && !start.toLocalDate().isBefore(this.end)) {
+            dateTimeList.add(start);
+        }
+        else if (start != null) {
             while (end == null || !start.isAfter(this.end.toDateTime(start))) {
                 if (intervalTo != null && start.isAfter(intervalTo)) {
                     break;
