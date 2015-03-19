@@ -277,13 +277,13 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
 
         public Period toPeriod(int cycle)
         {
-            if (cycle < 1) {
+            if (!DAILY.equals(this) && cycle < 1) {
                 throw new IllegalArgumentException("Cycle of the period must be positive.");
             }
 
             switch (this) {
                 case DAILY:
-                    return Period.days(cycle);
+                    return Period.days(1);
                 case WEEKLY:
                     return Period.weeks(cycle);
                 case MONTHLY:
@@ -314,6 +314,9 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
             else if (days == 0 && weeks == 0 && months != 0) {
                 return MONTHLY;
             }
+            else if (days == 0 && weeks == 0 && months == 0) {
+                return NONE;
+            }
             else {
                 throw new IllegalArgumentException("Period must have set just one type of periodicity.");
             }
@@ -329,6 +332,8 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
                     return period.getWeeks();
                 case MONTHLY:
                     return period.getMonths();
+                case NONE:
+                    return 0;
                 default:
                     throw new TodoImplementException(type);
             }

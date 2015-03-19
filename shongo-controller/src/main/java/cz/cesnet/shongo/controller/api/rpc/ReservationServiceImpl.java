@@ -98,7 +98,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         return "Reservation";
     }
 
-    @Override
+/*    @Override
     public Object checkAvailability(AvailabilityCheckRequest request)
     {
         checkNotNull("request", request);
@@ -206,7 +206,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
-    }
+    }*/
 
     @Override
     public Object checkPeriodicAvailability(AvailabilityCheckRequest request)
@@ -218,13 +218,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
-            Period duration = request.getSlot().toPeriod();
-            Integer periodicityDayOrder = request.getPeriodicityDayOrder();
-            PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth = request.getPeriodicityDayInMonth();
-            PeriodicDateTime periodicDateTime = new PeriodicDateTime(request.getSlot().getStart(),request.getPeriod(),request.getPeriodEnd(), periodicityDayOrder, periodicityDayInMonth);
+            //Period duration = request.getSlot().toPeriod();
             List<Interval> slots = new ArrayList<Interval>();
-            for (DateTime slotStart : periodicDateTime.enumerate()) {
-                slots.add(new Interval(slotStart, duration));
+            for (PeriodicDateTimeSlot slot : request.getSlots()) {
+                Integer periodicityDayOrder = request.getPeriodicityDayOrder();
+                PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth = request.getPeriodicityDayInMonth();
+                PeriodicDateTime periodicDateTime = new PeriodicDateTime(slot.getStart(), slot.getPeriod(), slot.getEnd(), slot.getPeriodicityDayOrder(), slot.getPeriodicityDayInMonth());
+                periodicDateTime.setTimeZone(slot.getTimeZone());
+                //if (Period.ZERO.equals(request.getPeriod())) {
+                    for (DateTime slotStart : periodicDateTime.enumerate()) {
+                        slots.add(new Interval(slotStart, slot.getDuration()));
+                    }
+//                }
+//                else {
+//                    slots.add(new Interval(slot.getStart().withZone(slot.getTimeZone()), slot.getDuration()));
+//                }
             }
 
             Boolean isFirstSlot = null;

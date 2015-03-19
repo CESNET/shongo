@@ -601,10 +601,10 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         aliasSpecification.setValue("test");
 
         AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(SECURITY_TOKEN);
-        availabilityCheckRequest.setSlot(interval);
+        availabilityCheckRequest.addSlot(interval);
         availabilityCheckRequest.setSpecification(aliasSpecification);
 
-        result = getReservationService().checkAvailability(availabilityCheckRequest);
+        result = getReservationService().checkPeriodicAvailability(availabilityCheckRequest);
         Assert.assertEquals(Boolean.TRUE, result);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -613,7 +613,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest.setSpecification(aliasSpecification);
         allocateAndCheck(reservationRequest);
 
-        result = getReservationService().checkAvailability(availabilityCheckRequest);
+        result = getReservationService().checkPeriodicAvailability(availabilityCheckRequest);
         Assert.assertEquals(AllocationStateReport.class, result.getClass());
     }
 

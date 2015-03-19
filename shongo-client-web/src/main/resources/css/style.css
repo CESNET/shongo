@@ -730,7 +730,7 @@ a.bordered:hover {
   padding-bottom: 10px;
 }
 /* Calendar */
-.calendar {
+.top-margin {
   margin-top: 8px;
   margin-bottom: 0px;
 }

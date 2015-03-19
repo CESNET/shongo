@@ -218,13 +218,13 @@
         </form>
     </div>
 
-    <div class="calendar"><span class="fa fa-calendar"  qtip-init /> <spring:message code="views.index.meetingRooms.calendarExport"/></div>
+    <div class="top-margin"><span class="fa fa-calendar"  qtip-init /> <spring:message code="views.index.meetingRooms.calendarExport"/></div>
 
-    <div id="directives-calendar" class="calendar">
+    <div id="directives-calendar" class="top-margin">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
             <h4>{{alertMessage}}</h4>
         </div>
         <div class="spinner centered-in-element" id="loadingImg"></div>
-        <div class="calendar" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar" ui-calendar="uiConfig.calendar"></div>
+        <div class="top-margin" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar" ui-calendar="uiConfig.calendar"></div>
     </div>
 </div>

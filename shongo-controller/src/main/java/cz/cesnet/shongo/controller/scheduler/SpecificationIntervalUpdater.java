@@ -7,7 +7,7 @@ import org.joda.time.Interval;
 
 /**
  * Interface which can be implemented by a {@link Specification} to update {@link Interval}
- * for {@link ReservationService#checkAvailability} and {@link Scheduler}.
+ * for {@link ReservationService#checkPeriodicAvailability} and {@link Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

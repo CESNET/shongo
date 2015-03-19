@@ -569,6 +569,9 @@ public class WizardRoomController extends WizardParticipantsController
                 reservationRequest.setCollidingInterval(new Interval(bindingResult.getFieldError("collidingInterval").getDefaultMessage()));
             }
         }
+        else {
+            reservationRequest.resetCollidingInterval();
+        }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);
         if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType()) &&

@@ -154,7 +154,7 @@
                 if (isNaN(date) || (dayOrder != -1 && (dayOrder < 0 || dayOrder > 4)) || dayInMonth == -1) {
                     return null;
                 }
-                if (dayOrder > 0) {
+                if (0 < dayOrder < 10) {
                     date.setDate(1);
 
                     while (date.getDay() != dayInMonth) {
@@ -166,11 +166,14 @@
                         }
                     }
 
-                } else if (dayOrder == -1) {
+                } else if (dayOrder == -1 && (-1 < dayInMonth < 7)) {
                     date = $scope.getLastDateOfMonth(date);
-                    while (date.getDay() != dayInMonth - 1) {
+                    while (date.getDay() != dayInMonth) {
                         date.setDate(date.getDate()-1);
                     }
+                }
+                else {
+                    return null
                 }
                 return date;
             };
@@ -810,7 +813,13 @@
                 <div class="col-xs-7" ng-show="periodicityType == 'WEEKLY'">
                     <div class="row">
                         <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
-                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'" />
+                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'">
+                            <form:option value="1" />
+                            <form:option value="2" />
+                            <form:option value="3" />
+                            <form:option value="4" />
+                            <form:option value="5" />
+                        </form:select>
                         <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.weeks"/>:</span>
                     </div>
                     <div class="row">
@@ -832,7 +841,13 @@
                             <form:radiobutton id="month-periodicity-standard" cssErrorClass="form-control error" path="monthPeriodicityType" value="STANDARD" tabindex="${tabIndex}" ng-model="monthPeriodicityType" />
                             <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
                         </label>
-                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'" />
+                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'">
+                            <form:option value="1" />
+                            <form:option value="2" />
+                            <form:option value="3" />
+                            <form:option value="4" />
+                            <form:option value="5" />
+                        </form:select>
                         <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
                     </div>
                     <div class="radio form-inline">
@@ -841,25 +856,39 @@
                             <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
                         </label>
                         <form:select id="periodicityDayOrder" path="periodicityDayOrder" cssErrorClass="form-control error" size="1" ng-model="periodicityDayOrder" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
-                            <form:option value="1">1</form:option>
-                            <form:option value="2">2</form:option>
-                            <form:option value="3">3</form:option>
-                            <form:option value="4">4</form:option>
+                            <form:option value="1">1.</form:option>
+                            <form:option value="2">2.</form:option>
+                            <form:option value="3">3.</form:option>
+                            <form:option value="4">4.</form:option>
                             <form:option value="-1"><spring:message code="views.reservationRequest.periodicity.recureEvery.last"/></form:option>
-                        </form:select>.
+                        </form:select>
                         <form:select id="periodicityDayInMonth" path="periodicityDayInMonth" cssErrorClass="error" ng-model="periodicityDayInMonth" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
                             <c:forEach items="${weekDays}" var="day">
                                 <form:option cssErrorClass="error" value="${day}"><spring:message code="views.reservationRequest.periodicity.day.${day}" /></form:option>
                             </c:forEach>
                         </form:select>
                         <span><spring:message code="views.reservationRequest.periodicity.recureEvery.inEvery"/></span>
-                        <form:input path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" />
+                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'">
+                            <form:option value="1" />
+                            <form:option value="2" />
+                            <form:option value="3" />
+                            <form:option value="4" />
+                            <form:option value="5" />
+                        </form:select>
                         <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
                     </div>
                 </div>
 
-                <div class="col-xs-3"  ng-show="periodicityType != 'NONE'">
-                    <div>
+                <div class="col-xs-3">
+                    <%--<div class="top-margin">--%>
+                        <%--<span class="input-group">--%>
+                            <%--<span class="input-group-addon">--%>
+                                <%--<spring:message code="views.reservationRequest.periodicity.from"/>--%>
+                            <%--</span>--%>
+                            <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}"/>--%>
+                        <%--</span>--%>
+                    <%--</div>--%>
+                    <div class="top-margin" ng-show="periodicityType != 'NONE'">
                         <span class="input-group">
                             <span class="input-group-addon">
                                 <spring:message code="views.reservationRequest.periodicity.until"/>
