@@ -79,6 +79,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * End of the period
      */
+    protected LocalDate periodicityStart;
+
+    /**
+     * End of the period
+     */
     protected LocalDate periodicityEnd;
 
     /**
@@ -487,6 +492,14 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setPeriodicityEnd(LocalDate periodicityEnd)
     {
         this.periodicityEnd = periodicityEnd;
+    }
+
+    public LocalDate getPeriodicityStart() {
+        return periodicityStart;
+    }
+
+    public void setPeriodicityStart(LocalDate periodicityStart) {
+        this.periodicityStart = periodicityStart;
     }
 
     public SpecificationType getSpecificationType()

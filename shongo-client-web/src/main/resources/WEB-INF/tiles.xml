@@ -36,12 +36,14 @@
     <definition name="layoutAngularForm" extends="layoutAngular">
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
+            <add-attribute value="bootstrap2-timepicker.min.js"/>
             <add-attribute value="moment.min.js"/>
             <add-attribute value="jquery-select2.min.js"/>
             <add-attribute value="angular-ui-select2.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
             <add-attribute value="bootstrap-datetimepicker"/>
+            <add-attribute value="bootstrap-timepicker"/>
             <add-attribute value="jquery-select2"/>
         </put-list-attribute>
     </definition>

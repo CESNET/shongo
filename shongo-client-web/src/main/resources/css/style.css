@@ -163,7 +163,6 @@ table.aliases td.title {
   z-index: 9999;
   text-align: center;
 }
-
 /* Not available block for views/errorRoomNotAvailable.jsp and views/errorControllerNotAvailable.jsp */
 div.not-available {
   margin: 20px 20px;
@@ -977,6 +976,14 @@ div.error {
   border-left: 1px solid #e2e2e2;
   border-right: 1px solid #fff;
 }
+.vdivider{
+    border-left:1px solid #eee;
+    height:85px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 15px;
+    float: left;
+}
 .wizard {
   margin-bottom: 15px;
   margin-top: 15px;
@@ -1063,12 +1070,4 @@ div.error {
 }
 .wizard a.active:hover:after {
   border-left-color: #008AEC;
-}
-.vdivider{
-    border-left:1px solid #eee;
-    height:85px;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-top: 15px;
-    float: left;
 }
