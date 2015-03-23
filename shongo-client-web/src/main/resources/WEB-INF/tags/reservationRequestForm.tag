@@ -689,7 +689,10 @@
                         <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" date-picker="true" tabindex="${tabIndex}"/>
                     </c:when>
                     <c:otherwise>
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" date-time-picker="true" tabindex="${tabIndex}"/>
+                        <span class="input-group date">
+                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityStart" time-picker="true" tabindex="${tabIndex}"/>
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
+                        </span>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -880,14 +883,14 @@
                 </div>
 
                 <div class="col-xs-3">
-                    <%--<div class="top-margin">--%>
-                        <%--<span class="input-group">--%>
-                            <%--<span class="input-group-addon">--%>
-                                <%--<spring:message code="views.reservationRequest.periodicity.from"/>--%>
-                            <%--</span>--%>
-                            <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}"/>--%>
-                        <%--</span>--%>
-                    <%--</div>--%>
+                    <div class="top-margin">
+                        <span class="input-group">
+                            <span class="input-group-addon">
+                                <spring:message code="views.reservationRequest.periodicity.from"/>
+                            </span>
+                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityStart" date-picker="true" tabindex="${tabIndex}"/>
+                        </span>
+                    </div>
                     <div class="top-margin" ng-show="periodicityType != 'NONE'">
                         <span class="input-group">
                             <span class="input-group-addon">
@@ -903,6 +906,7 @@
                         <%--</label>--%>
                     <%--</div>--%>
                     <div class="col-xs-12" >
+                        <form:errors path="periodicityStart" cssClass="error"/>
                         <form:errors path="periodicityEnd" cssClass="error"/>
                     </div>
                 </div>

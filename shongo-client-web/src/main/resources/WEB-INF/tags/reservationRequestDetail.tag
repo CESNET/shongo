@@ -229,7 +229,7 @@
             <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}" selectable="true">
                 ${reservationRequest.detail.stateHelp}
             </tag:help>
-            <c:if test="${reservationRequest.detail.state == 'NOT_ALLOCATED' && reservationRequest.slot.end.afterNow}">
+            <c:if test="${reservationRequest.detail.state == 'NOT_ALLOCATED' && reservationRequest.firstSlot.end.afterNow}">
                 <div class="alert alert-warning">
                     <spring:message code="views.reservationRequestDetail.waitingForAllocation"/>...
                 </div>
@@ -344,10 +344,9 @@
                         <dd><tag:format value="${reservationRequest.detail.room.slot}" multiline="true" pre="${reservationRequest.detail.room.slotBefore}" post="${reservationRequest.detail.room.slotAfter}"/></dd>
                     </c:when>
                     <c:when test="${reservationRequest.detail.allocationState == 'ALLOCATED' && reservationRequest.detail.room != null}">
-                        <dt><spring:message code="views.reservationRequest.firstSlot"/>:</dt>
+                        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
                         <dd><tag:format value="${reservationRequest.firstSlot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
                     </c:when>
-
                 </c:choose>
 
                 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.detail.room != null}">

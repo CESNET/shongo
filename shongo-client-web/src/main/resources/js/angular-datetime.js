@@ -88,3 +88,46 @@ dateTimeModule.directive('datePicker', function() {
         }
     }
 });
+
+/**
+ * Time picker
+ */
+dateTimeModule.directive('timePicker', function() {
+    return {
+        restrict: 'A',
+        link: function postLink(scope, element, attrs, controller) {
+            // Create date/time picker
+            element.timepicker({
+                //pickerPosition: "bottom-left",
+                //format: "HH:ii p",
+                //weekStart: 1,
+                //minuteStep: 2,
+                //autoclose: true,
+                //todayBtn: true,
+                ////todayHighlight: true
+                //minuteStep: 5
+                //showInputs: false,
+                //disableFocus: true
+                //minuteStep: 1,
+                //template: 'modal',
+                //appendWidgetTo: 'body',
+                //showMeridian: false
+                //defaultTime: false
+                format: 'LT'
+            });
+
+            // Create method for initializing "date" format
+            //var dateTimePicker = element.data("datetimepicker");
+            //dateTimePicker.setFormatDate = function() {
+            //    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('hour');
+            //    console.debug(dateTimePicker.minView);
+            //    dateTimePicker.viewSelect = element.data("datetimepicker").minView;
+            //    dateTimePicker.setFormat("hh:ii");
+            //    if (element.val() != "") {
+            //        dateTimePicker.setValue();
+            //    }
+            //};
+            //dateTimePicker.setFormatDate();
+        }
+    }
+});

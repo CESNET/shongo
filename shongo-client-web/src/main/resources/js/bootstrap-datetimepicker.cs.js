@@ -8,7 +8,7 @@
 		today: "Nyní",
 		suffix: [],
 		meridiem: []
-	};
+    };
     $.fn.datetimepicker.defaults = {
         language: 'cs'
     };
