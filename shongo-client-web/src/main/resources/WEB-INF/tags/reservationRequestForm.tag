@@ -689,9 +689,10 @@
                         <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" date-picker="true" tabindex="${tabIndex}"/>
                     </c:when>
                     <c:otherwise>
-                        <span class="input-group date">
+                        <%--<span class="input-group">--%>
+                        <span>
                             <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityStart" time-picker="true" tabindex="${tabIndex}"/>
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
+                            <%--<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>--%>
                         </span>
                     </c:otherwise>
                 </c:choose>
