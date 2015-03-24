@@ -150,6 +150,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
+        setPeriodicityStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
         setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
         setPeriodicityCycle(1);
     }
@@ -161,6 +162,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
+        setPeriodicityStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
         setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
         setPeriodicityCycle(1);
         initByUserSettings(userSettingsModel);
