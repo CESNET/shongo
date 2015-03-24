@@ -38,14 +38,16 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
+        $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.start}'), new Date()));
 
         // Update end and periodicity parameters when start is changed
         $("#start").change(function () {
-            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-                document.getElementById("periodicityDayOrder").value = $scope.getStartDayOrderNo();
-                document.getElementById("periodicityDayInMonth").value = $scope.getStartDay();
-                document.getElementById("periodic-day-" + $scope.getStartDay()).checked = true;
-            </c:if>
+            //TODO: DELETE
+            <%--<c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">--%>
+                <%--document.getElementById("periodicityDayOrder").value = $scope.getStartDayOrderNo();--%>
+                <%--document.getElementById("periodicityDayInMonth").value = $scope.getStartDay();--%>
+                <%--document.getElementById("periodic-day-" + $scope.getStartDay()).checked = true;--%>
+            <%--</c:if>--%>
 
             var startPicker = $("#start");
             var endPicker = $("#end");
@@ -71,7 +73,11 @@
 
         $scope.getStart = function() {
             var start = $("#start").val();
+            var startDate = $("#periodicityStart").val();
+            startDate = moment(startDate);
             start = moment(start);
+            console.debug(($("#start").data("timepicker").meridian == "PM" ? $("#start").data("timepicker").hour + 12 : $("#start").data("timepicker").hour));
+            console.debug(startDate.format() + " - " +$("#start").data("timepicker") + start.minute());
             if (start.isValid()) {
                 return start;
             }
@@ -683,17 +689,13 @@
             <spring:message code="views.reservationRequest.start"/>:
         </form:label>
         <div class="col-xs-9 space-padding">
-            <div class="col-xs-4">
+            <div class="col-xs-2">
                 <c:choose>
                     <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
                         <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" date-picker="true" tabindex="${tabIndex}"/>
                     </c:when>
                     <c:otherwise>
-                        <%--<span class="input-group">--%>
-                        <span>
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityStart" time-picker="true" tabindex="${tabIndex}"/>
-                            <%--<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>--%>
-                        </span>
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" tabindex="${tabIndex}"/>
                     </c:otherwise>
                 </c:choose>
             </div>

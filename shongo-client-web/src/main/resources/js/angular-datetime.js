@@ -74,7 +74,7 @@ dateTimeModule.directive('datePicker', function() {
                 todayHighlight: true
             });
 
-            // Create method for initializing "date" format
+            //Create method for initializing "date" format
             var dateTimePicker = element.data("datetimepicker");
             dateTimePicker.setFormatDate = function() {
                 dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('month');
@@ -99,22 +99,16 @@ dateTimeModule.directive('timePicker', function() {
             // Create date/time picker
             element.timepicker({
                 secondStep: 60,
-                minuteStep: 5
+                minuteStep: 5,
+                defaultTime: false
             });
 
-            //console.log(element);
-            // Create method for initializing "date" format
-            //var dateTimePicker = element.data("datetimepicker");
-            //dateTimePicker.setFormatDate = function() {
-            //    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('hour');
-            //    console.debug(dateTimePicker.minView);
-            //    dateTimePicker.viewSelect = element.data("datetimepicker").minView;
-            //    dateTimePicker.setFormat("hh:ii");
-            //    if (element.val() != "") {
-            //        dateTimePicker.setValue();
-            //    }
-            //};
-            //dateTimePicker.setFormatDate();
+            //Create method for initializing "date" format
+
+            //var timePicker = element.data("timepicker");
+            //if (element.val() != "") {
+            //    timePicker.setValue();
+            //}
         }
     }
 });
