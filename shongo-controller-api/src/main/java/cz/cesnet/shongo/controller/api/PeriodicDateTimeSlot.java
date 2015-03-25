@@ -13,7 +13,7 @@ import java.util.Calendar;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PeriodicDateTimeSlot extends IdentifiedComplexType
+public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Comparable<PeriodicDateTimeSlot>
 {
     /**
      * Starting date/time for the first date/time slot.
@@ -210,7 +210,10 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
      */
     public ReadablePartial getEnd()
     {
-        return end;
+        if (end != null) {
+            return end;
+        }
+        return start.toLocalDate();
     }
 
     /**
@@ -253,11 +256,16 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
         start = dataMap.getDateTimeRequired(START);
         timeZone = dataMap.getDateTimeZone(TIME_ZONE);
         duration = dataMap.getPeriod(DURATION);
-        period = dataMap.getPeriodRequired(PERIOD);
+        period = dataMap.getPeriod(PERIOD);
         end = dataMap.getReadablePartial(END);
         monthPeriodicityType = dataMap.getEnum(MONTH_PERIODICITY_TYPE, PeriodicityType.MonthPeriodicityType.class);
         periodicityDayOrder = dataMap.getInteger(PERIODICITY_DAY_ORDER);
         periodicityDayInMonth = dataMap.getEnum(PERIODICITY_DAY_IN_MONTH, DayOfWeek.class);
+    }
+
+    @Override
+    public int compareTo(PeriodicDateTimeSlot o) {
+        return getStart().compareTo(o.getStart());
     }
 
     /**
@@ -282,6 +290,8 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
             }
 
             switch (this) {
+                case NONE:
+                    return Period.ZERO;
                 case DAILY:
                     return Period.days(1);
                 case WEEKLY:

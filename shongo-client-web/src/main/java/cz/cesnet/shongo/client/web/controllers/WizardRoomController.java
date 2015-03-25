@@ -6,10 +6,7 @@ import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
-import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
-import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
-import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
-import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
+import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
@@ -122,6 +119,7 @@ public class WizardRoomController extends WizardParticipantsController
         binder.registerCustomEditor(DateTimeZone.class, new DateTimeZoneEditor());
         binder.registerCustomEditor(Period.class, new PeriodEditor());
         binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
+        binder.registerCustomEditor(LocalTime.class, new LocalTimeEditor());
     }
 
     /**
@@ -226,7 +224,8 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequestModel =
                 new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         reservationRequestModel.setId(null);
-        reservationRequestModel.setStart(DateTime.now());
+        reservationRequestModel.setStart(LocalTime.now());
+        reservationRequestModel.setStartDate(LocalDate.now());
         synchronized (request) {
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         }

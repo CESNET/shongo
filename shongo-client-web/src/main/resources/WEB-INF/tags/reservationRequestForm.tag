@@ -38,18 +38,13 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
-        $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.start}'), new Date()));
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
+        </c:if>
 
-        // Update end and periodicity parameters when start is changed
-        $("#start").change(function () {
-            //TODO: DELETE
-            <%--<c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">--%>
-                <%--document.getElementById("periodicityDayOrder").value = $scope.getStartDayOrderNo();--%>
-                <%--document.getElementById("periodicityDayInMonth").value = $scope.getStartDay();--%>
-                <%--document.getElementById("periodic-day-" + $scope.getStartDay()).checked = true;--%>
-            <%--</c:if>--%>
-
-            var startPicker = $("#start");
+        // Update end when start is changed
+        $("#startDate").change(function () {
+            var startPicker = $("#startDate");
             var endPicker = $("#end");
             if ( endPicker.length == 0 ) {
                 return;
@@ -72,12 +67,17 @@
         };
 
         $scope.getStart = function() {
-            var start = $("#start").val();
-            var startDate = $("#periodicityStart").val();
-            startDate = moment(startDate);
-            start = moment(start);
-            console.debug(($("#start").data("timepicker").meridian == "PM" ? $("#start").data("timepicker").hour + 12 : $("#start").data("timepicker").hour));
-            console.debug(startDate.format() + " - " +$("#start").data("timepicker") + start.minute());
+            <c:choose>
+                <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                    var startTimePicker = $("#start").data("timepicker");
+                    var start = $("#startDate").val();
+                    var hours = (startTimePicker.meridian == "PM" ? startTimePicker.hour + 12 : startTimePicker.hour);
+                    start = moment(start).minutes(startTimePicker.minute).hours(hours);
+                </c:when>
+                <c:otherwise>
+                    var start = $("#startDate").val();
+                </c:otherwise>
+            </c:choose>
             if (start.isValid()) {
                 return start;
             }
@@ -156,33 +156,33 @@
                 return dayOrderNo;
             };
 
-            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
-                if (isNaN(date) || (dayOrder != -1 && (dayOrder < 0 || dayOrder > 4)) || dayInMonth == -1) {
-                    return null;
-                }
-                if (0 < dayOrder < 10) {
-                    date.setDate(1);
-
-                    while (date.getDay() != dayInMonth) {
-                        date.setDate(date.getDate()+1);
-                    }
-                    for (i = 1; i < dayOrder; i++) {
-                        if (date.getDate()+7 < $scope.getLastDateOfMonth(date).getDate() + 1) {
-                            date.setDate(date.getDate() + 7);
-                        }
-                    }
-
-                } else if (dayOrder == -1 && (-1 < dayInMonth < 7)) {
-                    date = $scope.getLastDateOfMonth(date);
-                    while (date.getDay() != dayInMonth) {
-                        date.setDate(date.getDate()-1);
-                    }
-                }
-                else {
-                    return null
-                }
-                return date;
-            };
+//            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
+//                if (isNaN(date) || (dayOrder != -1 && (dayOrder < 0 || dayOrder > 4)) || dayInMonth == -1) {
+//                    return null;
+//                }
+//                if (0 < dayOrder < 10) {
+//                    date.setDate(1);
+//
+//                    while (date.getDay() != dayInMonth) {
+//                        date.setDate(date.getDate()+1);
+//                    }
+//                    for (i = 1; i < dayOrder; i++) {
+//                        if (date.getDate()+7 < $scope.getLastDateOfMonth(date).getDate() + 1) {
+//                            date.setDate(date.getDate() + 7);
+//                        }
+//                    }
+//
+//                } else if (dayOrder == -1 && (-1 < dayInMonth < 7)) {
+//                    date = $scope.getLastDateOfMonth(date);
+//                    while (date.getDay() != dayInMonth) {
+//                        date.setDate(date.getDate()-1);
+//                    }
+//                }
+//                else {
+//                    return null
+//                }
+//                return date;
+//            };
 
             // Set init monthly (specific-day) periodicity
             $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
@@ -202,22 +202,22 @@
             $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SUNDAY");
 
             // Update start date when month periodicity has changed
-            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
-                var startDate = $("#start").data("datetimepicker").getDate();
-                var dateTime = new Date(startDate.getFullYear(),startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0);
-
-                var date = $scope.getDayInMonthDate(new Date(dateTime.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
-                if (date < dateTime) {
-                    var nextMonthDate = new Date(dateTime.valueOf()).setMonth(dateTime.getMonth() + 1);
-                    date = $scope.getDayInMonthDate(new Date(nextMonthDate.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
-                }
-                var y = date.getFullYear();
-                var m = date.getMonth();
-                var d = date.getDate();
-                var h = startDate.getHours();
-                var min = startDate.getMinutes();
-                $("#start").data("datetimepicker").setDate(new Date(y, m, d, h, min, 0, 0));
-            });
+//            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
+//                var startDate = $("#start").data("datetimepicker").getDate();
+//                var dateTime = new Date(startDate.getFullYear(),startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0);
+//
+//                var date = $scope.getDayInMonthDate(new Date(dateTime.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
+//                if (date < dateTime) {
+//                    var nextMonthDate = new Date(dateTime.valueOf()).setMonth(dateTime.getMonth() + 1);
+//                    date = $scope.getDayInMonthDate(new Date(nextMonthDate.valueOf()), newValues[0], $.inArray(newValues[1],$scope.days));
+//                }
+//                var y = date.getFullYear();
+//                var m = date.getMonth();
+//                var d = date.getDate();
+//                var h = startDate.getHours();
+//                var min = startDate.getMinutes();
+//                $("#start").data("timepicker").setDate(new Date(y, m, d, h, min, 0, 0));
+//            });
         </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
@@ -298,7 +298,7 @@
             }
         });
         // Update permanent rooms model when start or duration changes
-        $("#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
+        $("#startDate,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
         });
         // Set proper technology for selected permanent room
@@ -692,10 +692,10 @@
             <div class="col-xs-2">
                 <c:choose>
                     <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" date-picker="true" tabindex="${tabIndex}"/>
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
                     </c:when>
                     <c:otherwise>
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" tabindex="${tabIndex}"/>
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -720,6 +720,7 @@
             </c:if>
         </div>
         <div class="col-xs-offset-3 col-xs-9">
+            <form:errors path="startDate" cssClass="error"/>
             <form:errors path="start" cssClass="error"/>
             <form:errors path="slotBeforeMinutes" cssClass="error"/>
         </div>
@@ -891,7 +892,7 @@
                             <span class="input-group-addon">
                                 <spring:message code="views.reservationRequest.periodicity.from"/>
                             </span>
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityStart" date-picker="true" tabindex="${tabIndex}"/>
+                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
                         </span>
                     </div>
                     <div class="top-margin" ng-show="periodicityType != 'NONE'">
@@ -909,7 +910,7 @@
                         <%--</label>--%>
                     <%--</div>--%>
                     <div class="col-xs-12" >
-                        <form:errors path="periodicityStart" cssClass="error"/>
+                        <form:errors path="startDate" cssClass="error"/>
                         <form:errors path="periodicityEnd" cssClass="error"/>
                     </div>
                 </div>

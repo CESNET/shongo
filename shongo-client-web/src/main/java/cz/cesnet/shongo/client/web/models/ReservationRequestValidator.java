@@ -21,7 +21,9 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
+import java.util.LinkedList;
 import java.util.Locale;
+import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,8 +89,10 @@ public class ReservationRequestValidator implements Validator
 
         if (specificationType != null) {
             switch (specificationType) {
-                case ADHOC_ROOM:
                 case PERMANENT_ROOM_CAPACITY:
+                    ValidationUtils.rejectIfEmptyOrWhitespace(
+                            errors, "permanentRoomReservationRequestId", "validation.field.required");
+                case ADHOC_ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotBeforeMinutes", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotAfterMinutes", "validation.field.required");
                     if (reservationRequestModel.getDurationType() != null) {
@@ -105,8 +109,6 @@ public class ReservationRequestValidator implements Validator
                     validatePeriodicity(reservationRequestModel, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
-            }
-            switch (specificationType) {
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
                     if (reservationRequestModel.getDurationType() != null) {
@@ -121,11 +123,6 @@ public class ReservationRequestValidator implements Validator
                     validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     validateIdentifier("roomName", errors);
-                    break;
-                case PERMANENT_ROOM_CAPACITY:
-                    validatePeriodicity(reservationRequestModel, errors);
-                    ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "permanentRoomReservationRequestId", "validation.field.required");
                     break;
             }
         }
@@ -171,7 +168,8 @@ public class ReservationRequestValidator implements Validator
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
-            availabilityCheckRequest.setSlots(reservationRequestModel.getSlots(timeZone));
+            SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(timeZone);
+            availabilityCheckRequest.addAllSlots(new LinkedList<PeriodicDateTimeSlot>(slots));
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
@@ -287,7 +285,7 @@ public class ReservationRequestValidator implements Validator
     public static void validateInterval(ReservationRequestModel reservationRequestModel, Errors errors)
     {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
-        DateTime start = reservationRequestModel.getStart();
+        DateTime start = reservationRequestModel.getRequestStart();
         DateTime end = reservationRequestModel.getEnd();
         if (end != null && end.getMillisOfDay() == 0) {
             end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
@@ -315,7 +313,7 @@ public class ReservationRequestValidator implements Validator
     {
         if (!reservationRequestModel.getPeriodicityType().equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
-            DateTime periodicityStart = reservationRequestModel.getStart();
+            DateTime periodicityStart = reservationRequestModel.getRequestStart();
             LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
             if (periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate())) {
                 errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");

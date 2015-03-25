@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -116,7 +117,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         ReservationRequestModel reservationRequestModel =
                 new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         reservationRequestModel.setId(null);
-        reservationRequestModel.setStart(DateTime.now());
+        reservationRequestModel.setStartDate(LocalDate.now());
         synchronized (request) {
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
             WebUtils.setSessionAttribute(request, "permanentRooms",

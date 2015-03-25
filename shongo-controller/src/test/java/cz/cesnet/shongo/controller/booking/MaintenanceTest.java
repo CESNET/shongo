@@ -56,7 +56,8 @@ public class MaintenanceTest extends AbstractControllerTest
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
-        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "PT2H", "2012-01-01"));
+        PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "PT2H", "2012-01-01");
+        reservationRequest.addSlot(periodicDateTimeSlot);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 

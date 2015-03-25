@@ -68,7 +68,6 @@ dateTimeModule.directive('datePicker', function() {
             element.datetimepicker({
                 pickerPosition: "bottom-left",
                 weekStart: 1,
-                minuteStep: 2,
                 autoclose: true,
                 todayBtn: true,
                 todayHighlight: true
@@ -98,17 +97,8 @@ dateTimeModule.directive('timePicker', function() {
         link: function postLink(scope, element, attrs, controller) {
             // Create date/time picker
             element.timepicker({
-                secondStep: 60,
-                minuteStep: 5,
-                defaultTime: false
+                //minuteStep: 1
             });
-
-            //Create method for initializing "date" format
-
-            //var timePicker = element.data("timepicker");
-            //if (element.val() != "") {
-            //    timePicker.setValue();
-            //}
         }
     }
 });

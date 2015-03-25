@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.Specification;
 import org.joda.time.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,10 +26,8 @@ public class AvailabilityCheckRequest extends AbstractRequest
     private ReservationRequestPurpose purpose;
 
     /**
-     * Time slot for which the availability should be checked.
+     * Time slots for which the availability should be checked.
      */
-    //TODO zmenit
-    //private Interval slot;
     private List<PeriodicDateTimeSlot> slots;
 
     /**
@@ -72,6 +71,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
      */
     public AvailabilityCheckRequest()
     {
+        this.slots = new LinkedList<PeriodicDateTimeSlot>();
     }
 
     /**
@@ -82,6 +82,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     public AvailabilityCheckRequest(SecurityToken securityToken)
     {
         super(securityToken);
+        this.slots = new LinkedList<PeriodicDateTimeSlot>();
     }
 
     /**
@@ -129,22 +130,6 @@ public class AvailabilityCheckRequest extends AbstractRequest
         this.purpose = purpose;
     }
 
-    /**
-     * @return {@link #slot}
-     *
-    public Interval getSlot()
-    {
-        return slot;
-    }
-
-    /**
-     * @param slot sets the {@link #slot}
-     *
-    public void setSlot(Interval slot)
-    {
-        this.slot = slot;
-    }*/
-
     public List<PeriodicDateTimeSlot> getSlots() {
         return slots;
     }
@@ -163,7 +148,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     }
 
     public void addAllSlots(List<PeriodicDateTimeSlot> slots) {
-        slots.addAll(slots);
+        this.slots.addAll(slots);
     }
 
     /**

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -10,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import cz.cesnet.shongo.api.Converter;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -150,7 +153,17 @@ public class PeriodicDateTimeTest
         PeriodicDateTime periodicDateTime = new PeriodicDateTime();
         periodicDateTime.setStart(DateTime.parse("2012-03-01T12:00"));
         periodicDateTime.setPeriod(Period.parse("P1W"));
-        periodicDateTime.setEnd(Converter.convertStringToReadablePartial("2012-03"));
+        periodicDateTime.setEnd(Converter.convertStringToReadablePartial("2012-03-29"));
         Assert.assertEquals(5, periodicDateTime.enumerate().size());
     }
+
+    @Test
+    public void testEnumerateWithoutPeriod() throws Exception
+    {
+        Assert.assertEquals(5, this.periodicDateTime.enumerate().size());
+        this.periodicDateTime.setPeriod(Period.ZERO);
+        this.periodicDateTime.enumerate();
+        Assert.assertEquals(2, this.periodicDateTime.enumerate().size());
+    }
+
 }
