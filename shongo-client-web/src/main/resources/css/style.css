@@ -976,13 +976,13 @@ div.error {
   border-left: 1px solid #e2e2e2;
   border-right: 1px solid #fff;
 }
-.vdivider{
-    border-left:1px solid #eee;
-    height:85px;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-top: 15px;
-    float: left;
+.vdivider {
+  border-left: 1px solid #eee;
+  height: 85px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 15px;
+  float: left;
 }
 .wizard {
   margin-bottom: 15px;
