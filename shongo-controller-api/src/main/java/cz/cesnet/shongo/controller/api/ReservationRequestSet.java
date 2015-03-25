@@ -5,9 +5,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Request for reservation of resources.
@@ -44,7 +42,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
         this.slots = slots;
     }
 
-    public void addAllSlots(List<PeriodicDateTimeSlot> slots) {
+    public void addAllSlots(Collection<PeriodicDateTimeSlot> slots) {
         this.slots.addAll(slots);
     }
     /**

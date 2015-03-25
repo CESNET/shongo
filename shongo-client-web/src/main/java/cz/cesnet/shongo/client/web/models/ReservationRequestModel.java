@@ -59,7 +59,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected DateTimeZone timeZone;
 
-    protected DateTime start;
+    protected LocalTime start;
 
     protected DateTime end;
 
@@ -79,7 +79,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * End of the period
      */
-    protected LocalDate periodicityStart;
+    protected LocalDate startDate;
 
     /**
      * End of the period
@@ -149,8 +149,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public ReservationRequestModel(CacheProvider cacheProvider)
     {
         this.cacheProvider = cacheProvider;
-        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
-        setPeriodicityStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
+        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalTime());
+        setStartDate(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
         setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
         setPeriodicityCycle(1);
     }
@@ -161,8 +161,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public ReservationRequestModel(CacheProvider cacheProvider, UserSettingsModel userSettingsModel)
     {
         this.cacheProvider = cacheProvider;
-        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
-        setPeriodicityStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
+        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalTime());
+        setStartDate(Temporal.roundDateTimeToMinutes(DateTime.now(), 1).toLocalDate());
         setPeriodicityType(PeriodicDateTimeSlot.PeriodicityType.NONE);
         setPeriodicityCycle(1);
         initByUserSettings(userSettingsModel);
@@ -287,12 +287,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.timeZone = timeZone;
     }
 
-    public DateTime getStart()
+    public LocalTime getStart()
     {
         return start;
     }
 
-    public void setStart(DateTime start)
+    public DateTime getRequestStart() {
+        return getStartDate().toDateTime(getStart(), getTimeZone());
+    }
+
+    public void setStart(LocalTime start)
     {
         this.start = start;
     }
@@ -391,6 +395,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.collidingInterval = collidingInterval;
 
         collidingWithFirstSlot = false;
+        DateTime start = getRequestStart();
         if (this.end == null) {
             switch (this.durationType) {
                 case MINUTE:
@@ -496,12 +501,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.periodicityEnd = periodicityEnd;
     }
 
-    public LocalDate getPeriodicityStart() {
-        return periodicityStart;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setPeriodicityStart(LocalDate periodicityStart) {
-        this.periodicityStart = periodicityStart;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
     public SpecificationType getSpecificationType()
@@ -550,8 +555,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     Interval permanentRoomSlot = reservation.getSlot();
                     DateTime permanentRoomStart = permanentRoomSlot.getStart().plus(getSlotBefore());
                     permanentRoomStart = Temporal.roundDateTimeToMinutes(permanentRoomStart, 1);
-                    if (permanentRoomStart.isAfter(start)) {
-                        setStart(permanentRoomStart);
+                    if (start.isBefore(permanentRoomStart.toLocalDate())) {
+                        setStartDate(permanentRoomStart.toLocalDate());
                     }
                     break;
                 }
@@ -856,7 +861,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             periodicityType = PeriodicDateTimeSlot.PeriodicityType.NONE;
             Interval slot = reservationRequest.getSlot();
-            start = slot.getStart();
+            start = slot.getStart().toLocalTime();
+            startDate = slot.getStart().toLocalDate();
             end = slot.getEnd();
             duration = slot.toPeriod();
 
@@ -899,9 +905,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
 
                 int dayIndex = (periodicSlot.getStart().getDayOfWeek() == 7 ? 1  : periodicSlot.getStart().getDayOfWeek() + 1);
-                if (start == null || start.isAfter(periodicSlot.getStart())) {
-                    start = periodicSlot.getStart();
-                    end = start.plus(duration);
+                if (startDate == null || startDate.isAfter(periodicSlot.getStart().toLocalDate())) {
+                    start = periodicSlot.getStart().toLocalTime();
+                    startDate = periodicSlot.getStart().toLocalDate();
+                    end = periodicSlot.getStart().plus(duration);
                 }
                 periodicDaysInWeek[index] = PeriodicDateTimeSlot.DayOfWeek.fromDayIndex(dayIndex);
                 index++;
@@ -1088,13 +1095,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
                 }
-                return new Period(start.withTime(0, 0, 0, 0), end.withTime(23,59,59,0));
+                return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withTime(23, 59, 59, 0));
             case MEETING_ROOM:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
                     if (end != null) {
-                        return new Period(start, end);
+                        return new Period(startDate.toDateTime(start,timeZone), end);
                     }
                     else {
                         throw new IllegalStateException("Slot duration should be not empty.");
@@ -1154,7 +1161,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public Interval getFirstSlot()
     {
-        DateTime start = this.start;
+        PeriodicDateTimeSlot first = getSlots(timeZone).first();
+        DateTime start = first.getStart();
+//        DateTime start = this.start;
         if (timeZone != null) {
             // Use specified time zone
             LocalDateTime localDateTime = start.toLocalDateTime();
@@ -1189,11 +1198,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @return all calculated slots
      */
-    public List<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone) {
-        List<PeriodicDateTimeSlot> slots = new LinkedList<PeriodicDateTimeSlot>();
+    public SortedSet<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone) {
+        SortedSet<PeriodicDateTimeSlot> slots = new TreeSet<PeriodicDateTimeSlot>();
         if (PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicityType)) {
-            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(getStart(), getDuration(), Period.ZERO);
-            periodicDateTimeSlot.setEnd(getStart().toLocalDate());
+            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(getRequestStart(), getDuration(), Period.ZERO);
+            periodicDateTimeSlot.setEnd(getStartDate());
+            periodicDateTimeSlot.setTimeZone(getTimeZone());
             slots.add(periodicDateTimeSlot);
         } else {
             // Determine period
@@ -1201,7 +1211,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             if (PeriodicDateTimeSlot.PeriodicityType.WEEKLY.equals(periodicityType)) {
                 for (PeriodicDateTimeSlot.DayOfWeek day : periodicDaysInWeek) {
-                    DateTime nextSlotStart = getStart();//slot.getStart();
+                    DateTime nextSlotStart = getRequestStart();
                     int dayIndex = (day.getDayIndex() == 1 ? 7 : day.getDayIndex() - 1);
                     while (nextSlotStart.getDayOfWeek() != dayIndex) {
                         nextSlotStart = nextSlotStart.plusDays(1);
@@ -1221,7 +1231,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
             } else {
                 PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
-                periodicDateTimeSlot.setStart(getStart());
+                periodicDateTimeSlot.setStart(getRequestStart());
                 if (this.timeZone != null) {
                     periodicDateTimeSlot.setTimeZone(this.timeZone);
                 }
@@ -1244,7 +1254,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
         }
 
-        return slots;
+        return Collections.unmodifiableSortedSet(slots);
     }
 
     /**
@@ -1254,13 +1264,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public AbstractReservationRequest toApi(HttpServletRequest request)
     {
-        List<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
+        SortedSet<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
         if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
             // Create single reservation request
             ReservationRequest reservationRequest = new ReservationRequest();
-            PeriodicDateTimeSlot slot = slots.get(0);
+            PeriodicDateTimeSlot slot = slots.first();
             reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(slot.getDuration()));
             abstractReservationRequest = reservationRequest;
         }
