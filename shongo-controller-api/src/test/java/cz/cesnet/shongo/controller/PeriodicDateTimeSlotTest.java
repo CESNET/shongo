@@ -1,15 +1,12 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,18 +24,18 @@ public class PeriodicDateTimeSlotTest {
         PeriodicDateTimeSlot periodicDateTime1 = new PeriodicDateTimeSlot();
         periodicDateTime1.setStart(DateTime.parse("2012-03-01T12:00"));
         periodicDateTime1.setPeriod(Period.parse("P1W"));
-        periodicDateTime1.setEnd(Converter.convertStringToReadablePartial("2012-03"));
+        periodicDateTime1.setEnd(new LocalDate("2012-03"));
 
 
         PeriodicDateTimeSlot periodicDateTime2 = new PeriodicDateTimeSlot();
         periodicDateTime2.setStart(DateTime.parse("2012-03-02T12:00"));
         periodicDateTime2.setPeriod(Period.parse("P1W"));
-        periodicDateTime2.setEnd(Converter.convertStringToReadablePartial("2012-03"));
+        periodicDateTime2.setEnd(new LocalDate("2012-03"));
 
         PeriodicDateTimeSlot periodicDateTime3 = new PeriodicDateTimeSlot();
         periodicDateTime3.setStart(DateTime.parse("2012-03-03T12:00"));
         periodicDateTime3.setPeriod(Period.parse("P1W"));
-        periodicDateTime3.setEnd(Converter.convertStringToReadablePartial("2012-04"));
+        periodicDateTime3.setEnd(new LocalDate("2012-04"));
 
         slots.add(periodicDateTime1);
         slots.add(periodicDateTime2);
