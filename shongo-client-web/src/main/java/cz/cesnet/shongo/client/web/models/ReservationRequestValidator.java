@@ -315,7 +315,15 @@ public class ReservationRequestValidator implements Validator
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
             DateTime periodicityStart = reservationRequestModel.getRequestStart();
             LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
-            if (periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate())) {
+            SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(null);
+            int invalidSlots = 0;
+            for (PeriodicDateTimeSlot slot : slots) {
+                if (slot.getStart().toLocalDate().isAfter(periodicityEnd)) {
+                    invalidSlots++;
+                }
+            }
+            if ((periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate()))
+                    || slots.size()-invalidSlots == 0) {
                 errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");
             }
         }

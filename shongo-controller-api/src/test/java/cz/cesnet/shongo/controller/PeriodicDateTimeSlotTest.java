@@ -15,7 +15,8 @@ import java.util.TreeSet;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class PeriodicDateTimeSlotTest {
+public class PeriodicDateTimeSlotTest
+{
     @Test
     public void testSortedSlots()
     {

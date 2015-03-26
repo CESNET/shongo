@@ -1231,7 +1231,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
             } else {
                 PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
-                periodicDateTimeSlot.setStart(getRequestStart());
+                periodicDateTimeSlot.setStart(getFirstSlotStart());
                 if (this.timeZone != null) {
                     periodicDateTimeSlot.setTimeZone(this.timeZone);
                 }
@@ -1255,6 +1255,42 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         return Collections.unmodifiableSortedSet(slots);
+    }
+
+    public DateTime getFirstSlotStart()
+    {
+        DateTime slotStart = getRequestStart();
+        if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicityType)
+                && PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(monthPeriodicityType)) {
+            if (periodicityDayInMonth == null || (periodicityDayOrder != -1 && (periodicityDayOrder < 1 || periodicityDayOrder > 4)) || periodicityEnd == null) {
+                throw new IllegalStateException("For periodicity type MONTHLY must be set day of month.");
+            }
+            while (slotStart.getDayOfWeek() != (periodicityDayInMonth.getDayIndex() == 1 ? 7 : periodicityDayInMonth.getDayIndex() - 1)) {
+                slotStart = slotStart.plusDays(1);
+            }
+            DateTime monthEnd = slotStart.plusMonths(1).minusDays(slotStart.getDayOfMonth() - 1);;
+            if (0 < periodicityDayOrder && periodicityDayOrder < 5) {
+                while ((slotStart.getDayOfMonth() % 7 == 0 ? slotStart.getDayOfMonth() / 7 : slotStart.getDayOfMonth() / 7 + 1) != periodicityDayOrder) {
+                    if (slotStart.plusDays(7).isBefore(monthEnd.plusMonths(1))) {
+                        slotStart = slotStart.plusDays(7);
+                    }
+                }
+            }
+            else if (periodicityDayOrder == -1) {
+                while (true) {
+                    if (!slotStart.plusDays(7).isAfter(monthEnd.minusDays(1))) {
+                        slotStart = slotStart.plusDays(7);
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            else {
+                throw new TodoImplementException();
+            }
+        }
+        return slotStart;
     }
 
     /**
