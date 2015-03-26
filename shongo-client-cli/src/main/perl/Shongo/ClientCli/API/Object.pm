@@ -375,6 +375,9 @@ sub set
     if ( !defined($attribute) ) {
         return;
     }
+    if ($attribute_value) {
+	$attribute_value =~ s/\n/\\n/g;
+    }
     $self->{$attribute_name} = $attribute_value;
     $self->{'__attributes_filled'}->{$attribute_name} = 1;
 }
@@ -1108,6 +1111,7 @@ sub format_attributes
             if ( !defined($attribute_value) ) {
                 $attribute_value = '';
             }
+	    $attribute_value =~ s/\\n/\n/g;
             if ( $single_line ) {
                 if ( length($string) > 0 ) {
                     $string .= ", ";
