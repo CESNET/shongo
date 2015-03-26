@@ -235,32 +235,42 @@ public class RoomGroupNotification extends ConfigurableNotification
 
         // Add attachments
         DateTimeFormatter dateTimeFormatter = ATTACHMENT_FILENAME_FORMATTER.withZone(context.getTimeZone());
+        iCalendar calendar = new iCalendar();
+        NotificationState notificationState = null;
+        //TODO: slouzi k pridavani priloh do mailu, presunout groupovani iCalu do vytvareni samotnych notifikaci
         for (RoomNotification roomNotification : roomNotifications) {
-            String fileName = dateTimeFormatter.print(roomNotification.getStart()) + ".ics";
-            iCalendar calendar = createCalendar(roomNotification, context);
+//            String fileName = dateTimeFormatter.print(roomNotification.getStart()) + ".ics";
+//            iCalendar calendar = createCalendar(roomNotification, context);
+
+//            for (ReservationSummary reservation : reservationSummaries) {
+//                cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
+//                event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
+//                iCalendar.addEvent(event);
+//            }
+            iCalendar.Method method = null;
             if (roomNotification instanceof RoomNotification.RoomCreated) {
-                calendar.setMethod(iCalendar.Method.CREATE);
-                fileName = "invite_" + fileName;
+                method = iCalendar.Method.CREATE;
             }
             else if (roomNotification instanceof RoomNotification.RoomModified) {
-                calendar.setMethod(iCalendar.Method.UPDATE);
-                fileName = "update_" + fileName;
+                method = iCalendar.Method.UPDATE;
             }
             else if (roomNotification instanceof RoomNotification.RoomDeleted) {
-                calendar.setMethod(iCalendar.Method.CANCEL);
-                fileName = "cancel_" + fileName;
+                method = iCalendar.Method.CANCEL;
             }
             else {
                 throw new TodoImplementException(roomNotification.getClass());
             }
-            message.addAttachment(new iCalendarNotificationAttachment(
-                    fileName, calendar, roomNotification.getNotificationState()));
+            addEvent(calendar, roomNotification, context, method);
+            notificationState = roomNotification.getNotificationState();
         }
+        message.addAttachment(new iCalendarNotificationAttachment(
+                roomName + ".ics", calendar, notificationState));
+
 
         return message;
     }
 
-    private iCalendar createCalendar(RoomNotification roomNotification, RenderContext context)
+    private iCalendar addEvent(iCalendar iCalendar, RoomNotification roomNotification, RenderContext context, iCalendar.Method method)
     {
         RoomEndpoint roomEndpoint = roomNotification.getRoomEndpoint();
         Interval interval = roomNotification.getInterval();
@@ -271,7 +281,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         String meetingDescription = roomEndpoint.getMeetingDescription();
         String eventId = roomNotification.getNotificationState().getId().toString();
 
-        iCalendar iCalendar = new iCalendar();
+        //iCalendar iCalendar = new iCalendar();
         iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
         event.setInterval(interval, context.getTimeZone());
         if (meetingDescription != null) {
@@ -307,6 +317,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         for (PersonInformation attendee : attendees) {
             event.addAttendee(attendee.getFullName(), attendee.getPrimaryEmail());
         }
+        event.setMethod(method);
         return iCalendar;
     }
 

@@ -555,7 +555,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     Interval permanentRoomSlot = reservation.getSlot();
                     DateTime permanentRoomStart = permanentRoomSlot.getStart().plus(getSlotBefore());
                     permanentRoomStart = Temporal.roundDateTimeToMinutes(permanentRoomStart, 1);
-                    if (start.isBefore(permanentRoomStart.toLocalDate())) {
+                    if (getRequestStart().isBefore(permanentRoomStart)) {
                         setStartDate(permanentRoomStart.toLocalDate());
                     }
                     break;
@@ -1171,7 +1171,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         switch (specificationType) {
             case PERMANENT_ROOM:
-                return new Interval(start.withTime(0, 0, 0, 0), getDuration());
+                return new Interval(getRequestStart().withTime(0, 0, 0, 0), getDuration());
             default:
                 return new Interval(start, getDuration());
         }
