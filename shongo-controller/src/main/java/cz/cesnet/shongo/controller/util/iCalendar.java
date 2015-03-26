@@ -87,7 +87,6 @@ public class iCalendar
                 break;
             case CANCEL:
                 properties.add(net.fortuna.ical4j.model.property.Method.CANCEL);
-
                 break;
             default:
                 throw new TodoImplementException(method);
@@ -266,6 +265,29 @@ public class iCalendar
             else if (net.fortuna.ical4j.model.property.Method.CANCEL.equals(method)) {
                 properties.add(Status.VEVENT_CANCELLED);
             }
+        }
+
+        public void setMethod(Method method)
+        {
+            PropertyList properties = event.getProperties();
+            removeProperty(properties, Property.STATUS);
+//            net.fortuna.ical4j.model.property.Method method = (net.fortuna.ical4j.model.property.Method)
+//                    calendar.getProperties().getProperty(Property.METHOD);
+            switch (method) {
+                case CREATE:
+                case UPDATE:
+                    properties.add(Status.VEVENT_CONFIRMED);
+                    break;
+                case CANCEL:
+                    properties.add(Status.VEVENT_CANCELLED);
+                    break;
+            }
+            /*if (net.fortuna.ical4j.model.property.Method.PUBLISH.equals(method)) {
+                properties.add(Status.VEVENT_CONFIRMED);
+            }
+            else if (net.fortuna.ical4j.model.property.Method.CANCEL.equals(method)) {
+                properties.add(Status.VEVENT_CANCELLED);
+            }*/
         }
 
         public void setOrganizer(String organizer)

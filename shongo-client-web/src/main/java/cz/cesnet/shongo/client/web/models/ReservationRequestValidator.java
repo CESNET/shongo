@@ -107,10 +107,12 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
                     validatePeriodicity(reservationRequestModel, errors);
+                    validateSlotsStart(reservationRequestModel, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
+                    validateSlotsStart(reservationRequestModel, errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
@@ -315,19 +317,31 @@ public class ReservationRequestValidator implements Validator
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "periodicityEnd", "validation.field.required");
             DateTime periodicityStart = reservationRequestModel.getRequestStart();
             LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
-            SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(null);
-            int invalidSlots = 0;
-            for (PeriodicDateTimeSlot slot : slots) {
-                if (slot.getStart().toLocalDate().isAfter(periodicityEnd)) {
-                    invalidSlots++;
-                }
-            }
-            if ((periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate()))
-                    || slots.size()-invalidSlots == 0) {
+            if ((periodicityStart != null && periodicityEnd != null && periodicityEnd.isBefore(periodicityStart.toLocalDate()))) {
                 errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");
             }
         }
     }
+
+    public static void validateSlotsStart(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        try {
+            SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(null);
+            int invalidSlots = 0;
+            for (PeriodicDateTimeSlot slot : slots) {
+                if (slot.getStart().toLocalDate().isAfter(reservationRequestModel.getPeriodicityEnd())) {
+                    invalidSlots++;
+                }
+            }
+            if (slots.size() - invalidSlots == 0) {
+                errors.rejectValue("periodicityEnd", "validation.field.invalidIntervalEnd");
+            }
+        }
+        catch (IllegalStateException ex) {
+            //Skip this test
+        }
+    }
+
     /**
      * @param field
      * @param errors
