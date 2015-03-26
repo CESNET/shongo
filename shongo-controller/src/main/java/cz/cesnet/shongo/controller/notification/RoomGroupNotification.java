@@ -233,20 +233,12 @@ public class RoomGroupNotification extends ConfigurableNotification
         // Render notification message
         NotificationMessage message = renderTemplateMessage(context, titleBuilder.toString(), "room-group.ftl");
 
-        // Add attachments
+        // Add iCal to attachments
         DateTimeFormatter dateTimeFormatter = ATTACHMENT_FILENAME_FORMATTER.withZone(context.getTimeZone());
         iCalendar calendar = new iCalendar();
         NotificationState notificationState = null;
         //TODO: slouzi k pridavani priloh do mailu, presunout groupovani iCalu do vytvareni samotnych notifikaci
         for (RoomNotification roomNotification : roomNotifications) {
-//            String fileName = dateTimeFormatter.print(roomNotification.getStart()) + ".ics";
-//            iCalendar calendar = createCalendar(roomNotification, context);
-
-//            for (ReservationSummary reservation : reservationSummaries) {
-//                cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
-//                event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
-//                iCalendar.addEvent(event);
-//            }
             iCalendar.Method method = null;
             if (roomNotification instanceof RoomNotification.RoomCreated) {
                 method = iCalendar.Method.CREATE;
@@ -266,6 +258,29 @@ public class RoomGroupNotification extends ConfigurableNotification
         message.addAttachment(new iCalendarNotificationAttachment(
                 roomName + ".ics", calendar, notificationState));
 
+//        // Add attachments
+//        DateTimeFormatter dateTimeFormatter = ATTACHMENT_FILENAME_FORMATTER.withZone(context.getTimeZone());
+//        for (RoomNotification roomNotification : roomNotifications) {
+//            String fileName = dateTimeFormatter.print(roomNotification.getStart()) + ".ics";
+//            iCalendar calendar = createCalendar(roomNotification, context);
+//            if (roomNotification instanceof RoomNotification.RoomCreated) {
+//                calendar.setMethod(iCalendar.Method.CREATE);
+//                fileName = "invite_" + fileName;
+//            }
+//            else if (roomNotification instanceof RoomNotification.RoomModified) {
+//                calendar.setMethod(iCalendar.Method.UPDATE);
+//                fileName = "update_" + fileName;
+//            }
+//            else if (roomNotification instanceof RoomNotification.RoomDeleted) {
+//                calendar.setMethod(iCalendar.Method.CANCEL);
+//                fileName = "cancel_" + fileName;
+//            }
+//            else {
+//                throw new TodoImplementException(roomNotification.getClass());
+//            }
+//            message.addAttachment(new iCalendarNotificationAttachment(
+//                    fileName, calendar, roomNotification.getNotificationState()));
+//        }
 
         return message;
     }
