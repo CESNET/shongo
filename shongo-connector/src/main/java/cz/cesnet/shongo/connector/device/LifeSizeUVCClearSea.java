@@ -204,8 +204,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 checkError(connection);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder stringBuilder = new StringBuilder();
-                while (bufferedReader.ready()) {
-                    stringBuilder.append(bufferedReader.readLine());
+                String responseLine;
+                while ((responseLine = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(responseLine);
                 }
                 JSONObject jsonResponse = new JSONObject(stringBuilder.toString());
                 return jsonResponse;
