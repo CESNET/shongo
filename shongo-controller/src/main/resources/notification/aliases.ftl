@@ -29,5 +29,7 @@ ${context.message(indent, "alias.SIP_URI")}: ${('sip:' + alias.value)!aliasValue
 ${context.message(indent, "alias.SIP_IP")}: ${alias.value!aliasValueAny}
 <#elseif alias.type == "ADOBE_CONNECT_URI">
 ${context.message(indent, "alias.ADOBE_CONNECT_URI")}: ${alias.value!aliasValueAny}
+<#elseif alias.type == "CS_DIAL_STRING">
+${context.message(indent, "alias.CS_DIAL_STRING")}: ${alias.value}
 </#if>
 </#macro>
