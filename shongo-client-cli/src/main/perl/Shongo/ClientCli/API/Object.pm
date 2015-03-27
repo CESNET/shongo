@@ -375,9 +375,9 @@ sub set
     if ( !defined($attribute) ) {
         return;
     }
-    if ($attribute_value) {
-	$attribute_value =~ s/\\n/\n/g;
-    }
+    #if ($attribute_value) {
+	#$attribute_value =~ s/\\n/\n/g;
+    #}
     $self->{$attribute_name} = $attribute_value;
     $self->{'__attributes_filled'}->{$attribute_name} = 1;
 }
@@ -395,11 +395,11 @@ sub get
     if ( !defined($attribute) ) {
         return undef;
     }
-    if ($self->{$attribute_name}) {
-        my $attribute_value = $self->{$attribute_name};
-        $attribute_value =~ s/\n/\\n/g;
-        return $attribute_value;
-    }
+    #if ($self->{$attribute_name}) {
+    #    my $attribute_value = $self->{$attribute_name};
+    #    $attribute_value =~ s/\n/\\n/g;
+    #    return $attribute_value;
+    #}
     return $self->{$attribute_name};
 }
 
@@ -1116,7 +1116,7 @@ sub format_attributes
             if ( !defined($attribute_value) ) {
                 $attribute_value = '';
             }
-	    $attribute_value =~ s/\\n/\n/g;
+	    #$attribute_value =~ s/\\n/\n/g;
             if ( $single_line ) {
                 if ( length($string) > 0 ) {
                     $string .= ", ";
