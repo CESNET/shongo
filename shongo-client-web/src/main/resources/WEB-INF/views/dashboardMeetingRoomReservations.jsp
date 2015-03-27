@@ -24,7 +24,7 @@
             },
             data: [
                 <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                    {id: "${meetingRoomResource.key}", text: "<b>${meetingRoomResource.value.name}</b>"},
+                    {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
                 </c:forEach>
             ]
         };
