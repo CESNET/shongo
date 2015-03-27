@@ -189,17 +189,23 @@
             $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.getStartDay());
             // Set init weekly periodicity
             var selectedDays = [];
+            var noDaySelected = true;
             <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
                 selectedDays[${day.ordinal()}] = '${day}';
+                if (selectedDays[${day.ordinal()}]) {
+                    console.debug('T ${day} =' + selectedDays[${day.ordinal()}]);
+                    noDaySelected = false;
+                } else {
+                    console.debug('F ${day} =' + selectedDays[${day.ordinal()}]);
+                }
             </c:forEach>
-
-            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "MONDAY");
-            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "TUESDAY");
-            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "WEDNESDAY");
-            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "THURSDAY");
-            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "FRIDAY");
-            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SATURDAY");
-            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : $scope.getStartDay() == "SUNDAY");
+            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "MONDAY" : false));
+            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "TUESDAY" : false));
+            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "WEDNESDAY" : false));
+            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "THURSDAY" : false));
+            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "FRIDAY" : false));
+            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SATURDAY" : false));
+            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SUNDAY" : false));
 
             // Update start date when month periodicity has changed
 //            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
