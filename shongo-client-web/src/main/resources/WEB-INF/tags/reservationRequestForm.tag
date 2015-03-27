@@ -193,10 +193,7 @@
             <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
                 selectedDays[${day.ordinal()}] = '${day}';
                 if (selectedDays[${day.ordinal()}]) {
-                    console.debug('T ${day} =' + selectedDays[${day.ordinal()}]);
                     noDaySelected = false;
-                } else {
-                    console.debug('F ${day} =' + selectedDays[${day.ordinal()}]);
                 }
             </c:forEach>
             $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "MONDAY" : false));
