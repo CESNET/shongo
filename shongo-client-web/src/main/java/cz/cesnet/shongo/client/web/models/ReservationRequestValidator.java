@@ -107,12 +107,12 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
                     validatePeriodicity(reservationRequestModel, errors);
-                    validateSlotsStart(reservationRequestModel, errors);
+                    validatePeriodicSlotsStart(reservationRequestModel, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
-                    validateSlotsStart(reservationRequestModel, errors);
+                    validatePeriodicSlotsStart(reservationRequestModel, errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
@@ -323,13 +323,14 @@ public class ReservationRequestValidator implements Validator
         }
     }
 
-    public static void validateSlotsStart(ReservationRequestModel reservationRequestModel, Errors errors)
+    public static void validatePeriodicSlotsStart(ReservationRequestModel reservationRequestModel, Errors errors)
     {
         try {
             SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(null);
             int invalidSlots = 0;
             for (PeriodicDateTimeSlot slot : slots) {
-                if (slot.getStart().toLocalDate().isAfter(reservationRequestModel.getPeriodicityEnd())) {
+                if (!PeriodicDateTimeSlot.PeriodicityType.NONE.equals(reservationRequestModel.getPeriodicityType())
+                && slot.getStart().toLocalDate().isAfter(reservationRequestModel.getPeriodicityEnd())) {
                     invalidSlots++;
                 }
             }
