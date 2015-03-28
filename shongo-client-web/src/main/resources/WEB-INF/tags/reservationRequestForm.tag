@@ -688,19 +688,17 @@
     </c:if>
 
     <div class="form-group">
-        <form:label class="col-xs-3 control-label" path="start">
+        <label class="col-xs-3 control-label" path="start">
             <spring:message code="views.reservationRequest.start"/>:
-        </form:label>
+        </label>
         <div class="col-xs-9 space-padding">
             <div class="col-xs-2">
-                <c:choose>
-                    <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
-                    </c:when>
-                    <c:otherwise>
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
-                    </c:otherwise>
-                </c:choose>
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-2">
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
+                </c:if>
             </div>
             <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
                 <div class="col-xs-4">
@@ -734,9 +732,11 @@
             <form:label class="col-xs-3 control-label" path="end">
                 <spring:message code="views.reservationRequest.end"/>:
             </form:label>
-            <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
-            </div>
+            <div class="col-xs-9 space-padding">
+                    <div class="col-xs-2">
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
+                    </div>
+                </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="end" cssClass="error"/>
             </div>
@@ -889,37 +889,42 @@
                     </div>
                 </div>
 
-                <div class="col-xs-3">
-                    <div class="top-margin">
-                        <span class="input-group">
-                            <span class="input-group-addon">
-                                <spring:message code="views.reservationRequest.periodicity.from"/>
-                            </span>
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
-                        </span>
-                    </div>
-                    <div class="top-margin" ng-show="periodicityType != 'NONE'">
-                        <span class="input-group">
-                            <span class="input-group-addon">
-                                <spring:message code="views.reservationRequest.periodicity.until"/>
-                            </span>
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
-                        </span>
-                    </div>
+                <%--<div class="col-xs-3">--%>
+                    <%--<div class="top-margin" ng-show="periodicityType != 'NONE'">--%>
+                        <%--<span class="input-group">--%>
+                            <%--<span class="input-group-addon">--%>
+                                <%--<spring:message code="views.reservationRequest.periodicity.until"/>--%>
+                            <%--</span>--%>
+                            <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>--%>
+                        <%--</span>--%>
+                    <%--</div>--%>
                     <%--<div ng-show="periodicityType != 'NONE'">--%>
                         <%--<label class="control-label">--%>
                             <%--<c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>--%>
                             <%--<tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true" position="bottom-left"/>--%>
                         <%--</label>--%>
                     <%--</div>--%>
-                    <div class="col-xs-12" >
-                        <form:errors path="startDate" cssClass="error"/>
-                        <form:errors path="periodicityEnd" cssClass="error"/>
-                    </div>
-                </div>
+                    <%--<div class="col-xs-12" >--%>
+                        <%--<form:errors path="periodicityEnd" cssClass="error"/>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
 
             </div>
         </div>
+
+         <div class="form-group">
+                <label class="col-xs-3 control-label" path="start">
+                    <spring:message code="views.reservationRequest.end"/>:
+                </label>
+                <div class="col-xs-9 space-padding">
+                    <div class="col-xs-2">
+                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                    </div>
+                </div>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="periodicityEnd" cssClass="error"/>
+                </div>
+            </div>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
