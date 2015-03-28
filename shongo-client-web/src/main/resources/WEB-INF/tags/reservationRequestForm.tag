@@ -650,8 +650,10 @@
                 <form:label class="col-xs-3 control-label" path="roomParticipantCount">
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
                 </form:label>
-                <div class="col-xs-2">
-                    <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+                <div class="col-xs-9 space-padding">
+                    <div class="col-xs-2">
+                        <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+                    </div>
                 </div>
                 <div class="col-xs-offset-3 col-xs-9">
                     <form:errors path="roomParticipantCount" cssClass="error"/>
@@ -790,7 +792,7 @@
             <form:label class="col-xs-3 control-label" path="periodicityType">
                 <spring:message code="views.reservationRequest.periodicity"/>:
             </form:label>
-            <div class="col-xs-9 space-padding row">
+            <div class="col-xs-9 row">
                 <div class="col-xs-1">
                     <div class="radio">
                         <label for="periodicity-none">
@@ -913,18 +915,18 @@
         </div>
 
          <div class="form-group">
-                <label class="col-xs-3 control-label" path="start">
-                    <spring:message code="views.reservationRequest.end"/>:
-                </label>
-                <div class="col-xs-9 space-padding">
-                    <div class="col-xs-2">
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
-                    </div>
-                </div>
-                <div class="col-xs-offset-3 col-xs-9">
-                    <form:errors path="periodicityEnd" cssClass="error"/>
+            <label class="col-xs-3 control-label" path="periodicityEnd">
+                <spring:message code="views.reservationRequest.periodicity.end"/>:
+            </label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2 bg-danger">
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                 </div>
             </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="periodicityEnd" cssClass="error"/>
+            </div>
+        </div>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
@@ -964,10 +966,11 @@
                 <tag:help label="${pinLabel}:">
                     <spring:message code="views.reservationRequest.specification.roomPin.help"/>
                 </tag:help>
-
             </form:label>
-            <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+                </div>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="roomPin" cssClass="error"/>

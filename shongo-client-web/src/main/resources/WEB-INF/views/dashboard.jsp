@@ -12,7 +12,7 @@
 <tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
 <script type="text/javascript">
-    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2','ui.calendar']);
+    var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2', 'ui.calendar']);
     module.controller("TabController",function($scope, $element) {
         $scope.$tab = $scope.$$childHead;
         // Broadcast "refresh-<tabId>" event when a tab with <tabId> is activated
