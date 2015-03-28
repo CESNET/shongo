@@ -155,7 +155,7 @@
                     var resourceCalendarUrl = calendarUrlBase + $scope.resourceUriKeys.data[newResourceId.id]
                     $('[qtip-init]').show();
                     $('[qtip-init]').each(function() {
-                        $(this).qtip('option', 'content.text', exportCalendarMessage + "<a>" +resourceCalendarUrl +"</a>");
+                        $(this).qtip('option', 'content.text', exportCalendarMessage + "<input id='input' onClick='this.setSelectionRange(0, this.value.length)' readonly value='" + resourceCalendarUrl + "' />");
                     });
                 }
                 else {
@@ -185,7 +185,7 @@
                 var resourceCalendarUrl = calendarUrlBase + scope.resourceUriKeys.data[scope.resourceIdOptions.data[0].id]
                 $(element).qtip({
                     content: {
-                        text: exportCalendarMessage + "<a>" +resourceCalendarUrl +"</a>"
+                        text: exportCalendarMessage + "<input id='input' onClick='this.setSelectionRange(0, this.value.length)' readonly value='" + resourceCalendarUrl + "' />"
                     },
                     position: {
                         my: 'left top',

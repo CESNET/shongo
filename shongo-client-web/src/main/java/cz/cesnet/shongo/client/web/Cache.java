@@ -728,6 +728,7 @@ public class Cache
             } catch (Exception ex) {
                 // If there is an error while getting iCalendar, store empty {@link String} to prevent DoS
                 iCalReservationsByResourceId.put(resourceId, "");
+                logger.warn("Error while getting iCal for resource: " + ex);
                 return "";
             }
         }
