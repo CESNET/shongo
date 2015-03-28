@@ -1311,9 +1311,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             abstractReservationRequest = reservationRequest;
         }
         else {
-            // Determine period
-            Period period = periodicityType.toPeriod(periodicityCycle);
-
             // Create set of reservation requests
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             reservationRequestSet.addAllSlots(slots);

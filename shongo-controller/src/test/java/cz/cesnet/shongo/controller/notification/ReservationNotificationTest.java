@@ -5,6 +5,7 @@ import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
@@ -24,6 +25,7 @@ import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -60,35 +62,29 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         getController().addNotificationExecutor(notificationExecutor);
 
-        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>()
-        {{
-                add(new PersonInformation()
-                {
-                    @Override
-                    public String getFullName()
-                    {
-                        return "admin";
-                    }
+        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>() {{
+            add(new PersonInformation() {
+                @Override
+                public String getFullName() {
+                    return "admin";
+                }
 
-                    @Override
-                    public String getRootOrganization()
-                    {
-                        return null;
-                    }
+                @Override
+                public String getRootOrganization() {
+                    return null;
+                }
 
-                    @Override
-                    public String getPrimaryEmail()
-                    {
-                        return "martin.srom@cesnet.cz";
-                    }
+                @Override
+                public String getPrimaryEmail() {
+                    return "martin.srom@cesnet.cz";
+                }
 
-                    @Override
-                    public String toString()
-                    {
-                        return getFullName();
-                    }
-                });
-            }});
+                @Override
+                public String toString() {
+                    return getFullName();
+                }
+            });
+        }});
     }
 
     /**
@@ -237,10 +233,9 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
         RoomSpecification roomSpecification =
                 (RoomSpecification) permanentRoomReservationRequest.getSpecification();
-        roomSpecification.getEstablishment().getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
-        {{
-                add(AliasType.SIP_URI);
-            }});
+        roomSpecification.getEstablishment().getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>() {{
+            add(AliasType.SIP_URI);
+        }});
         permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
@@ -1061,6 +1056,39 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequestId = reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequestModification);
 
         runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-23T00:00"));
+    }
+
+    /**
+     * Test periodic request for users.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRequestWithoutPeriod() throws Exception
+    {
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(Locale.ENGLISH);
+        userSettings.setUseWebService(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
+        ReservationService reservationService = getReservationService();
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
+        aliasProvider.setAllocatable(true);
+        aliasProvider.setMaximumFuture("P1M");
+        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("Alias Reservation Request");
+        reservationRequest.addSlot(new PeriodicDateTimeSlot(DateTime.parse("2012-03-03T12:00"), Period.parse("PT1H"), Period.ZERO, null));
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
     }
 
     /**
