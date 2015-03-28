@@ -629,5 +629,13 @@ public abstract class AbstractNotification
                 return "<not-exist> (" + userId + ")";
             }
         }
+
+        public boolean isPeriodic(Period period)
+        {
+            if (period == null || Period.ZERO.equals(period)) {
+                return false;
+            }
+            return true;
+        }
     }
 }

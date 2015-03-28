@@ -523,6 +523,9 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
         periodicDateTime.setStart(start);
         periodicDateTime.setPeriod(period);
         periodicDateTime.setEnd(end);
+        periodicDateTime.setTimeZone(timeZone);
+        periodicDateTime.setPeriodicityDayInMonth(periodicityDayInMonth);
+        periodicDateTime.setPeriodicityDayOrder(periodicityDayOrder);
         rules = new ArrayList<Rule>();
         for (Rule rule : rules) {
             periodicDateTime.addRule(rule.clone());

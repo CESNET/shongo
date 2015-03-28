@@ -210,10 +210,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
      */
     public ReadablePartial getEnd()
     {
-        if (end != null) {
             return end;
-        }
-        return start.toLocalDate();
     }
 
     /**

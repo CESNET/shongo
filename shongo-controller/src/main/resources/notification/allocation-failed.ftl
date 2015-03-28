@@ -20,7 +20,7 @@ ${context.message(indent, 'allocationFailed.requestedSlot')}: ${context.formatIn
 <#if context.timeZone != "UTC">
 ${context.width(indent)}  ${context.formatInterval(notification.requestedSlot, "UTC")}
 </#if>
-<#if (period??) >
+<#if context.isPeriodic(period) >
 ${context.message(indent, "reservation.slot.periodicity")}: ${context.message("reservation.slot.periodicity.period")} ${context.formatPeriod(period)} (${context.message("reservation.slot.periodicity.until")}: ${context.formatDate(end)})
 </#if>
 <#include "target.ftl">
