@@ -326,11 +326,15 @@ public class ReservationRequestValidator implements Validator
     public static void validatePeriodicSlotsStart(ReservationRequestModel reservationRequestModel, Errors errors)
     {
         try {
+            LocalDate end = reservationRequestModel.getPeriodicityEnd();
+            if (end == null) {
+                return;
+            }
             SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(null);
             int invalidSlots = 0;
             for (PeriodicDateTimeSlot slot : slots) {
                 if (!PeriodicDateTimeSlot.PeriodicityType.NONE.equals(reservationRequestModel.getPeriodicityType())
-                && slot.getStart().toLocalDate().isAfter(reservationRequestModel.getPeriodicityEnd())) {
+                && (end != null && slot.getStart().toLocalDate().isAfter(end))) {
                     invalidSlots++;
                 }
             }
