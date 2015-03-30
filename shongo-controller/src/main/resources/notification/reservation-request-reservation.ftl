@@ -6,7 +6,7 @@ ${context.message(indent, "reservation.slot")}: ${context.formatInterval(slot)}
 <#if context.timeZone != "UTC">
 ${context.width(indent)}  ${context.formatInterval(slot, "UTC")}
 </#if>
-<#if context.isPeriodic(period) >
+<#if context.isPeriodic(period) && end?? >
 ${context.message(indent, "reservation.slot.periodicity")}: ${context.message("reservation.slot.periodicity.period")} ${context.formatPeriod(period)} (${context.message("reservation.slot.periodicity.until")}: ${context.formatDate(end)})
 </#if>
 <#if target.class.simpleName == "Room" && (target.slotBefore?? || target.slotAfter??)>
