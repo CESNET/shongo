@@ -175,6 +175,13 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
+        if (connectionState != ConnectionState.DISCONNECTED) {
+            checkTokenValidity();
+            logger.info("Performing action: " + action + " ...");
+        }
+        else {
+            logger.info("Performing action: login on server " + this.deviceAddress.getHost() + " ...");
+        }
         String actionUrl = buildURLString(action);
 
         HttpsURLConnection connection;
@@ -192,15 +199,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             logger.error(message);
             throw new CommandException(message,e);
         }
-
         try {
-            if (connectionState != ConnectionState.DISCONNECTED) {
-                checkTokenValidity();
-                logger.info("Performing action: " + actionUrl + " ...");
-            }
-            else {
-                logger.info("Performing action: login on server " + this.deviceAddress.getHost() + " ...");
-            }
             connection.setRequestMethod(requestType.toString());
             if (requestType == RequestType.GET) {
                 connection.setDoInput(true);
