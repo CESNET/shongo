@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -46,7 +47,8 @@ public class IndexController
     public ModelAndView handleIndexView(
             Authentication authentication,
             HttpServletRequest request,
-            RedirectAttributes redirectAttributes)
+            RedirectAttributes redirectAttributes,
+            SessionStatus sessionStatus)
     {
         // Redirect authentication requests until the "redirect_uri" is fixed
         if (request.getParameter("code") != null || request.getParameter("error") != null) {
@@ -71,6 +73,8 @@ public class IndexController
             }
             modelAndView.addObject("meetingRoomResources", resourceSummaries);
         }
+
+        sessionStatus.setComplete();
 
         return modelAndView;
     }
