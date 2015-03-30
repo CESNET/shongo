@@ -102,10 +102,11 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             this.requestTimeout = (int) OPTION_TIMEOUT_DEFAULT.getMillis();
         }
 
-        baseURL = deviceAddress.getUrl() + ":" + deviceAddress.getPort();
-        serviceUserID = username;
-        serviceUserPassword = password;
-        connectionState = ConnectionState.DISCONNECTED;
+        this.deviceAddress = deviceAddress;
+        this.baseURL = deviceAddress.getUrl() + ":" + deviceAddress.getPort();
+        this.serviceUserID = username;
+        this.serviceUserPassword = password;
+        this.connectionState = ConnectionState.DISCONNECTED;
         login();
     }
 
@@ -175,7 +176,6 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
         String actionUrl = buildURLString(action);
-        logger.info("Performing action: " + actionUrl + " ...");
 
         HttpsURLConnection connection;
         try {
@@ -188,7 +188,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             throw new CommandException(message,e);
         }
         catch (IOException e) {
-            String message = "Failed to initializ connection for action: " + actionUrl;
+            String message = "Failed to initialize connection for action: " + actionUrl;
             logger.error(message);
             throw new CommandException(message,e);
         }
@@ -196,6 +196,10 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         try {
             if (connectionState != ConnectionState.DISCONNECTED) {
                 checkTokenValidity();
+                logger.info("Performing action: " + actionUrl + " ...");
+            }
+            else {
+                logger.info("Performing action: login on server " + this.deviceAddress.getHost() + " ...");
             }
             connection.setRequestMethod(requestType.toString());
             if (requestType == RequestType.GET) {
