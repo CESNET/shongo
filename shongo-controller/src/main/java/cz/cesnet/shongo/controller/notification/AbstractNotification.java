@@ -15,8 +15,6 @@ import freemarker.template.Template;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.PeriodFormat;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -539,7 +537,8 @@ public abstract class AbstractNotification
 
         public String formatPeriod(Period period)
         {
-            return PeriodFormat.getDefault().withLocale(getLocale()).print(period);
+            DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG, getLocale(), null);
+            return formatter.formatDuration(period);
         }
 
         /**

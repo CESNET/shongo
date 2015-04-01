@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -1010,7 +1011,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     public void testRequestWithPeriod() throws Exception
     {
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
-        userSettings.setLocale(Locale.ENGLISH);
+        //userSettings.setLocale(Locale.ENGLISH);
         userSettings.setUseWebService(false);
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
