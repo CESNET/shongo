@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.UserSession;
@@ -79,10 +80,10 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException
     {
-        // FAKE root authentication.
-        /*if (true) {
+        // FAKE root authentication for offline use.
+        if (configuration.isOffline()) {
             OpenIDConnectAuthenticationToken authenticationToken =
-                    new OpenIDConnectAuthenticationToken("<root-access-token>");
+                    new OpenIDConnectAuthenticationToken(configuration.getOfflineRootAccessToken());
             SecurityToken securityToken = authenticationToken.getSecurityToken();
             UserInformation userInformation = new UserInformation();
             userInformation.setUserId("0");
@@ -101,7 +102,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             UserSession userSession = UserSession.getInstance(request);
             userSession.loadUserSettings(userSettings, request, securityToken);
             return authentication;
-        }*/
+        }
         if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
             String error = request.getParameter("error");
             String errorDescription = request.getParameter("error_description");

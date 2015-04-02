@@ -67,6 +67,12 @@
             <!-- Expression for decision whether user can create a new reservation request -->
             <reservation>loa >= 2 || group("reservation").contains(id)</reservation>
         </authorization>
+        <!-- For offline purposes - will not fetch user grups -->
+        <!--<authorization>-->
+            <!--<administrator>false</administrator>-->
+            <!--<operator>false</operator>-->
+            <!--<reservation>true</reservation>-->
+        <!--</authorization>-->
     </security>
 
     <!-- Worker periodically starts preprocessor and scheduler -->
