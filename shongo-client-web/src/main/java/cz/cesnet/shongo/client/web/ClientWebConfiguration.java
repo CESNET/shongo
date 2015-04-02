@@ -16,8 +16,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ClientWebConfiguration extends CombinedConfiguration
-{
+public class ClientWebConfiguration extends CombinedConfiguration {
     /**
      * Single instance of {@link ClientWebConfiguration}.
      */
@@ -36,8 +35,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return {@link #clientWebConfiguration}
      */
-    public static ClientWebConfiguration getInstance()
-    {
+    public static ClientWebConfiguration getInstance() {
         if (clientWebConfiguration == null) {
             clientWebConfiguration = new ClientWebConfiguration("shongo-client-web.cfg.xml");
         }
@@ -49,8 +47,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
      *
      * @param adminConfigFileName filename of administrator configuration file
      */
-    private ClientWebConfiguration(String adminConfigFileName)
-    {
+    private ClientWebConfiguration(String adminConfigFileName) {
         // System properties has the highest priority
         addConfiguration(new SystemConfiguration());
         // Administrator configuration has lower priority
@@ -62,15 +59,13 @@ public class ClientWebConfiguration extends CombinedConfiguration
                 xmlConfiguration.load(adminConfigFile);
                 addConfiguration(xmlConfiguration);
             }
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new RuntimeException("Failed to load administrator configuration.", exception);
         }
         // Default configuration has the lowest priority
         try {
             addConfiguration(new XMLConfiguration("client-web-default.cfg.xml"));
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new RuntimeException("Failed to load default configuration.", exception);
         }
     }
@@ -78,32 +73,28 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @param defaultDesignFolderBasePath sets the {@link #defaultDesignFolderBasePath}
      */
-    public void setDefaultDesignFolderBasePath(String defaultDesignFolderBasePath)
-    {
+    public void setDefaultDesignFolderBasePath(String defaultDesignFolderBasePath) {
         this.defaultDesignFolderBasePath = defaultDesignFolderBasePath;
     }
 
     /**
      * @return server port
      */
-    public int getServerPort()
-    {
+    public int getServerPort() {
         return getInt("server.port");
     }
 
     /**
      * @return server port
      */
-    public int getServerSslPort()
-    {
+    public int getServerSslPort() {
         return getInt("server.ssl-port");
     }
 
     /**
      * @return ssl key store
      */
-    public String getServerSslKeyStore()
-    {
+    public String getServerSslKeyStore() {
         String sslKeyStore = getString("server.ssl-key-store");
         if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
             return null;
@@ -114,40 +105,35 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return password for ssl key store
      */
-    public String getServerSslKeyStorePassword()
-    {
+    public String getServerSslKeyStorePassword() {
         return getString("server.ssl-key-store-password");
     }
 
     /**
      * @return server context path
      */
-    public String getServerPath()
-    {
+    public String getServerPath() {
         return getString("server.path");
     }
 
     /**
      * @return true whether requests should be redirected to HTTPS
      */
-    public boolean isServerForceHttps()
-    {
+    public boolean isServerForceHttps() {
         return getBoolean("server.force-https");
     }
 
     /**
      * @return true whether requests are forwarded
      */
-    public boolean isServerForwarded()
-    {
+    public boolean isServerForwarded() {
         return getBoolean("server.forwarded");
     }
 
     /**
      * @return forwarded host
      */
-    public String getServerForwardedHost()
-    {
+    public String getServerForwardedHost() {
         String forwardedHost = getString("server.forwarded-host");
         if (forwardedHost == null || forwardedHost.trim().isEmpty()) {
             return null;
@@ -158,8 +144,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return {@link #controllerUrl}
      */
-    public URL getControllerUrl()
-    {
+    public URL getControllerUrl() {
         if (controllerUrl == null) {
             String controllerUrl = getString("controller");
             if (!controllerUrl.startsWith("http")) {
@@ -173,8 +158,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
                 }
                 this.controllerUrl = new URL(
                         this.controllerUrl.getProtocol(), this.controllerUrl.getHost(), port, "");
-            }
-            catch (MalformedURLException exception) {
+            } catch (MalformedURLException exception) {
                 throw new RuntimeException(exception);
             }
         }
@@ -184,8 +168,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return administrator emails
      */
-    public Collection<String> getAdministratorEmails()
-    {
+    public Collection<String> getAdministratorEmails() {
         Collection<String> administrators = new HashSet<String>();
         for (Object administratorValue : getList("administrator")) {
             if (administratorValue instanceof String) {
@@ -203,8 +186,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return administrator emails
      */
-    public Collection<String> getHotlines()
-    {
+    public Collection<String> getHotlines() {
         Collection<String> administrators = new HashSet<String>();
         for (Object administratorValue : getList("hotline")) {
             if (administratorValue instanceof String) {
@@ -222,96 +204,84 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return url of authentication server
      */
-    public String getAuthenticationServerUrl()
-    {
+    public String getAuthenticationServerUrl() {
         return getString("security.server") + "/authn/oic";
     }
 
     /**
      * @return authentication client id
      */
-    public String getAuthenticationClientId()
-    {
+    public String getAuthenticationClientId() {
         return getString("security.client-id");
     }
 
     /**
      * @return authentication client redirect url
      */
-    public String getAuthenticationRedirectUri()
-    {
+    public String getAuthenticationRedirectUri() {
         return getString("security.redirect-uri");
     }
 
     /**
      * @return authentication client secret
      */
-    public String getAuthenticationClientSecret()
-    {
+    public String getAuthenticationClientSecret() {
         return getString("security.client-secret");
     }
 
     /**
      * @return SMTP sender email address
      */
-    public String getSmtpSender()
-    {
+    public String getSmtpSender() {
         return getString("smtp.sender");
     }
 
     /**
      * @return SMTP server host
      */
-    public String getSmtpHost()
-    {
+    public String getSmtpHost() {
         return getString("smtp.host");
     }
 
     /**
      * @return SMTP server port
      */
-    public String getSmtpPort()
-    {
+    public String getSmtpPort() {
         return getString("smtp.port");
     }
 
     /**
      * @return subject prefix for all email messages
      */
-    public String getSmtpSubjectPrefix()
-    {
+    public String getSmtpSubjectPrefix() {
         return getString("smtp.subject-prefix");
     }
 
     /**
      * @return SMTP username
      */
-    public String getSmtpUserName()
-    {
+    public String getSmtpUserName() {
         return getString("smtp.username");
     }
 
     /**
      * @return SMTP password
      */
-    public String getSmtpPassword()
-    {
+    public String getSmtpPassword() {
         return getString("smtp.password");
     }
 
     /**
      * @return name of tag for meeting rooms
      */
-    public String getMeetingRoomTagName()
-    {
+    public String getMeetingRoomTagName() {
         return getString("tags.meeting-room");
     }
 
     /**
      * @return name of tag for meeting rooms
      */
-    public Boolean showOnlyMeetingRooms()
-    {
+    public Boolean showOnlyMeetingRooms() {
         try {
             return getBoolean("design.show-only-meeting-rooms");
         } catch (NoSuchElementException ex) {
@@ -322,13 +292,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return url to folder with design files (not ending with "/")
      */
-    public String getDesignFolder()
-    {
+    public String getDesignFolder() {
         String design = getString("design.folder");
         if (design == null || design.equals("(default)")) {
             design = defaultDesignFolderBasePath + "/WEB-INF/default-design";
-        }
-        else {
+        } else {
             design = "file:" + design;
         }
         while (design.endsWith("/")) {
@@ -337,35 +305,39 @@ public class ClientWebConfiguration extends CombinedConfiguration
         return design;
     }
 
+    public boolean isOffline() {
+        return getBoolean("testing.offline", false);
+    }
+
+    public String getOfflineRootAccessToken() {
+        return getString("testing.root-access-token", "UNDEFINED");
+    }
+
     /**
      * @return {@link HierarchicalConfiguration} of design parameters
      */
-    public HierarchicalConfiguration getDesignParameters()
-    {
+    public HierarchicalConfiguration getDesignParameters() {
         return configurationAt("design.parameters");
     }
 
     /**
      * @return public key for {@link ReCaptcha}
      */
-    public String getReCaptchaPublicKey()
-    {
+    public String getReCaptchaPublicKey() {
         return getString("recaptcha.public-key");
     }
 
     /**
      * @return private key for {@link ReCaptcha}
      */
-    public String getReCaptchaPrivateKey()
-    {
+    public String getReCaptchaPrivateKey() {
         return getString("recaptcha.private-key");
     }
 
     /**
      * @return true whether {@link ReCaptcha} is properly configured, false otherwise
      */
-    public boolean isReCaptchaConfigured()
-    {
+    public boolean isReCaptchaConfigured() {
         return !Strings.isNullOrEmpty(getReCaptchaPublicKey()) && !Strings.isNullOrEmpty(getReCaptchaPrivateKey());
     }
 }
