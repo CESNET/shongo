@@ -54,7 +54,10 @@
         <!-- Design source folder -->
         <folder>(default)</folder>
         <!-- Design parameters -->
-        <!--<parameters></parameters>-->
+        <!--<parameters>-->
+            <!-- Show maintenance message -->
+            <!--<maintenance>true</maintenance>-->
+        <!--</parameters>-->
         <!-- Show only meeting rooms on dashboard -->
         <!--show-only-meeting-rooms>true</show-only-meeting-rooms-->
     </design>
