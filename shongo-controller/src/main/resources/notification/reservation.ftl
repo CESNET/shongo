@@ -15,6 +15,10 @@ ${context.message(indent, "reservation.slot")}: ${context.formatInterval(notific
 <#if context.timeZone != "UTC">
 ${context.width(indent)}  ${context.formatInterval(notification.slot, "UTC")}
 </#if>
+<#-- Temporarily until meeting rooms have timezone -->
+<#if context.timeZone != "Europe/Prague">
+${context.width(indent)}  ${context.formatInterval(notification.slot, "Europe/Prague")}
+</#if>
 ${context.message(indent, "reservation.owners")}: <#list notification.owners as owner>${context.formatUser(owner)}<#if owner_has_next>, </#if></#list>
 <#if context.reservationRequestUrl?? && notification.reservationRequestId??>
 ${context.message(indent, "reservationRequest.url")}: ${context.formatReservationRequestUrl(notification.reservationRequestId)}
