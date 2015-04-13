@@ -435,7 +435,7 @@ public abstract class AbstractNotification
             }
             else {
                 return DateTimeFormat.forPattern("ZZ")
-                        .withZone(getTimeZone())
+                        .withZone(timeZone)
                         .print(dateTime);
             }
         }

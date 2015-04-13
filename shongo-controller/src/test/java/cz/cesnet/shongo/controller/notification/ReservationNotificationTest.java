@@ -145,6 +145,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
         userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
+        userSettings.setCurrentTimeZone(DateTimeZone.forID("+06:00"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -292,9 +293,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         AliasSpecification aliasSpecification = (AliasSpecification) reservationRequest.getSpecification();
         aliasSpecification.setValue(null);
-        aliasSpecification.setAliasTypes(new HashSet<AliasType>()
-        {{
-                add(AliasType.SIP_URI);
+        aliasSpecification.setAliasTypes(new HashSet<AliasType>() {{
+            add(AliasType.SIP_URI);
             }});
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
