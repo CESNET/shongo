@@ -97,7 +97,8 @@ dateTimeModule.directive('timePicker', function() {
         link: function postLink(scope, element, attrs, controller) {
             // Create date/time picker
             element.timepicker({
-                //minuteStep: 1
+                // for an unknown reason some settings placed here did not work therefor
+                // setting are located in bootstrap-timepicker.cs.js, bootstrap-timepicker.en.js
             });
         }
     }
