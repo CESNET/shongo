@@ -1,6 +1,4 @@
 ;(function($){
-    $.fn.timepicker.showSeconds = false;
-    $.fn.timepicker.defaults.showSeconds = false;
     $.fn.timepicker.showMeridian = false;
     $.fn.timepicker.defaults.showMeridian = false;
     $.fn.timepicker.showInputs = false;

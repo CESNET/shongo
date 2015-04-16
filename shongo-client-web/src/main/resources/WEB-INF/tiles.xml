@@ -37,7 +37,6 @@
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
             <add-attribute value="bootstrap-timepicker.min.js"/>
-            <add-attribute value="bootstrap-timepicker.en.js"/>
             <add-attribute value="moment.min.js"/>
             <add-attribute value="jquery-select2.min.js"/>
             <add-attribute value="angular-ui-select2.js"/>
