@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
-import antlr.StringUtils;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
-import cz.cesnet.shongo.controller.booking.domain.DomainTag;
+import cz.cesnet.shongo.controller.booking.domain.DomainResource;
 import cz.cesnet.shongo.controller.booking.value.ValueProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
@@ -17,9 +16,6 @@ import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import org.apache.commons.lang.RandomStringUtils;
 import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.security.util.Length;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -163,13 +159,13 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * Delete a domainTag object from the database.
+     * Delete a domainResource object from the database.
      *
-     * @param domainTag
+     * @param domainResource
      */
-    public void deleteDomainTag(DomainTag domainTag)
+    public void deleteDomainResource(DomainResource domainResource)
     {
-        super.delete(domainTag);
+        super.delete(domainResource);
     }
 
     /**
@@ -515,8 +511,36 @@ public class ResourceManager extends AbstractManager
         super.create(domain);
     }
 
-    public void createDomainTag(DomainTag domainTag)
+    public Domain getDomain(Long resourceId)
     {
-        super.create(domainTag);
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        return entityManager.find(Domain.class, resourceId);
+    }
+
+    public void createDomainResource(DomainResource domainResource)
+    {
+        super.create(domainResource);
+    }
+
+    public DomainResource getDomainResource(Long domainId, Long resourceId)
+    {
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<DomainResource> query = criteriaBuilder.createQuery(DomainResource.class);
+            Root<DomainResource> domainResourceRoot = query.from(DomainResource.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("domain"), domainId);
+            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(domainResourceRoot.get("resource"), resourceId);
+            query.select(domainResourceRoot);
+            query.where(param1,param2);
+
+            TypedQuery<DomainResource> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getSingleResult();
+        } catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(DomainResource.class, domainId);
+            //TODO:add resourceId to exception
+        }
     }
 }

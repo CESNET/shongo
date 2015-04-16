@@ -107,7 +107,16 @@ public enum ObjectType
             {{
                     add(ObjectRole.READER);
                     add(ObjectRole.RESERVATION);
-            }});
+            }}),
+    DOMAIN("dom",
+            new HashMap<ObjectRole, ObjectPermission[]>()
+            {{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
+                            ObjectPermission.WRITE,
+                            ObjectPermission.READ
+                    });
+                }},
+            null),;
 
     /**
      * Unique code for the {@link ObjectType}.

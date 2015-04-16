@@ -2,13 +2,13 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.DomainListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import org.joda.time.Interval;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface to the service handling operations on resources.
@@ -106,6 +106,33 @@ public interface ResourceService extends Service {
 
     @API
     public void removeResourceTag(SecurityToken token, String resourceId, String tagId);
+
+    @API
+    public String createDomain(SecurityToken token, Domain domain);
+
+    @API
+    public List<DomainResource> listDomainResources(DomainListRequest request);
+
+    @API
+    public Domain getDomain(SecurityToken token, String domainId);
+
+    @API
+    public void modifyDomain(SecurityToken token, Domain domain);
+
+    @API
+    public void deleteDomain(SecurityToken token, String domainId);
+
+//    @API
+//    TODO:public void addDomainTag(SecurityToken token, DomainTag domainTag);
+//
+//    @API
+//    public void removeDomainTag(SecurityToken token, String domainId, String tagId);
+
+    @API
+    public void addDomainResource(SecurityToken token, DomainResource domainResource);
+
+    @API
+    public void removeDomainResource(SecurityToken token, String domainId, String resourceId);
 
     /**
      * TODO:MR Create ACL for public access
