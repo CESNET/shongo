@@ -129,7 +129,7 @@ public interface ResourceService extends Service {
 //    public void removeDomainTag(SecurityToken token, String domainId, String tagId);
 
     @API
-    public void addDomainResource(SecurityToken token, DomainResource domainResource);
+    public void addDomainResource(SecurityToken token, DomainResource domainResource, String domainId, String resourceId);
 
     @API
     public void removeDomainResource(SecurityToken token, String domainId, String resourceId);
