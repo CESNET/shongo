@@ -6,6 +6,8 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
+import cz.cesnet.shongo.controller.booking.domain.DomainTag;
 import cz.cesnet.shongo.controller.booking.value.ValueProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
@@ -43,6 +45,7 @@ public class ResourceManager extends AbstractManager
     public ResourceManager(EntityManager entityManager)
     {
         super(entityManager);
+
     }
 
     /**
@@ -147,6 +150,26 @@ public class ResourceManager extends AbstractManager
     public void deleteResourceTag(ResourceTag resourceTag)
     {
         super.delete(resourceTag);
+    }
+
+    /**
+     * Delete a domain object from the database.
+     *
+     * @param domain
+     */
+    public void deleteDomain(Domain domain)
+    {
+        super.delete(domain);
+    }
+
+    /**
+     * Delete a domainTag object from the database.
+     *
+     * @param domainTag
+     */
+    public void deleteDomainTag(DomainTag domainTag)
+    {
+        super.delete(domainTag);
     }
 
     /**
@@ -421,7 +444,7 @@ public class ResourceManager extends AbstractManager
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        return entityManager.find(Tag.class,tagId);
+        return entityManager.find(Tag.class, tagId);
     }
 
     public Tag findTag(String name)
@@ -485,5 +508,15 @@ public class ResourceManager extends AbstractManager
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
 
         return typedQuery.getResultList();
+    }
+
+    public void createDomain(Domain domain)
+    {
+        super.create(domain);
+    }
+
+    public void createDomainTag(DomainTag domainTag)
+    {
+        super.create(domainTag);
     }
 }

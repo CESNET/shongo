@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +12,7 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Domain extends AbstractComplexType
+public class Domain extends IdentifiedComplexType
 {
     /**
      * Represents an unique domain name (e.g., "cz.cesnet")

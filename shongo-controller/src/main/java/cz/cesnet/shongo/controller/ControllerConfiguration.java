@@ -59,6 +59,15 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String JADE_PLATFORM_ID = "jade.platform-id";
 
     /**
+     * Interdomains configuration
+     */
+    public static final String INTERDOMAIN_HOST = "domain.inter-domain-connection.host";
+    public static final String INTERDOMAIN_PORT = "domain.inter-domain-connection.port";
+    public static final String INTERDOMAIN_FORCE_HTTPS = "domain.inter-domain-connection.force-https";
+    //TODO
+    public static final String INTERDOMAINS = "domains";
+
+    /**
      * Worker configuration (it runs scheduler and executor).
      */
     public static final String WORKER_PERIOD = "worker.period";

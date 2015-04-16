@@ -1318,6 +1318,47 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     }
 
     /**
+     * Test periodic request with future after worker lookahead.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testLookaheadNotificationsWithPeriod() throws Exception
+    {
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(Locale.ENGLISH);
+        userSettings.setUseWebService(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
+        ReservationService reservationService = getReservationService();
+
+        Resource meetingRoom = new Resource();
+        meetingRoom.setName("Meeting room");
+        meetingRoom.setAllocatable(true);
+        String meetingRoomId = getResourceService().createResource(SECURITY_TOKEN_ROOT, meetingRoom);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("Meeting Room Reservation Request");
+        reservationRequest.setSpecification(new ResourceSpecification(meetingRoomId));
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2015-02-13T07:30", "PT1H30M", "P1W", "2016-12-31"));
+        reservationRequest.setPurpose(ReservationRequestPurpose.USER);
+
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        AclEntry aclEntry = new AclEntry();
+        aclEntry.setIdentityType(AclIdentityType.USER);
+        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN_USER1));
+        aclEntry.setRole(ObjectRole.OWNER);
+        aclEntry.setObjectId(reservationRequestId);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, aclEntry);
+
+        runPreprocessorAndScheduler(new Interval("2015-02-17T13:46/2016-02-17T13:46"));
+
+        runPreprocessorAndScheduler(new Interval("2015-04-08T08:00/2016-04-08T08:00"));
+        runPreprocessorAndScheduler(new Interval("2015-04-08T09:00/2016-04-08T09:00"));
+    }
+
+    /**
      * {@link NotificationExecutor} for testing.
      */
     private class TestingNotificationExecutor extends NotificationExecutor

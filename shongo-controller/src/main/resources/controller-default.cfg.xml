@@ -11,7 +11,21 @@
     <domain>
         <name>unknown</name>
         <organization>Unknown Organization</organization>
+        <!-- Interdomain protocol listening port -->
+        <inter-domain-connection>
+            <!--<host></host>-->
+            <port>1234</port>
+            <force-https>false</force-https>
+        </inter-domain-connection>
     </domain>
+
+    <!-- Interdomains resource sharing options -->
+    <domains>
+        <domain>
+            <name></name>
+            <host></host>
+        </domain>
+    </domains>
 
     <!-- Database settings -->
     <database>
