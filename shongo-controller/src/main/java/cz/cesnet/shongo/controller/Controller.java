@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
@@ -23,8 +24,17 @@ import org.apache.commons.cli.*;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
+import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +42,10 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -106,6 +118,11 @@ public class Controller
      * Jade container.
      */
     protected Container jadeContainer;
+
+    /**
+     * InterDomain REST server
+     */
+    protected Server restServer;
 
     /**
      * List of threads which are started for the controller.
@@ -300,6 +317,21 @@ public class Controller
         return configuration.getInt(ControllerConfiguration.JADE_PORT);
     }
 
+    public String getInterDomainHost()
+    {
+        return configuration.getString(ControllerConfiguration.INTERDOMAIN_HOST);
+    }
+
+    public int getInterDomainPort()
+    {
+        return configuration.getInt(ControllerConfiguration.INTERDOMAIN_PORT);
+    }
+
+    public boolean isInterDomainServerForceHttps()
+    {
+        return configuration.getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
+    }
+
     /**
      * @return {@link #jadeContainer}
      */
@@ -473,6 +505,7 @@ public class Controller
         start();
         startRpc();
         startJade();
+        startInterDomainRESTApi();
         startWorkerThread();
         startComponents();
     }
@@ -549,6 +582,89 @@ public class Controller
         addJadeAgent(configuration.getString(ControllerConfiguration.JADE_AGENT_NAME), jadeAgent);
 
         return jadeContainer;
+    }
+
+    public Server startInterDomainRESTApi()
+    {
+        logger.info("Starting Inter Domain REST server on {}:{}...",
+                getInterDomainHost(), getInterDomainPort());
+
+        restServer = new Server();
+        // Configure SSL
+        ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
+
+        // Create web app
+        WebAppContext webAppContext = new WebAppContext();
+//        webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
+        webAppContext.setDescriptor("WEB-INF/web.xml");
+//        webAppContext.setContextPath("/rest");
+        webAppContext.setParentLoaderPriority(true);
+
+        URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
+        if (resourceBaseUrl == null) {
+            throw new RuntimeException("WEB-INF is not in classpath.");
+        }
+        String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
+        webAppContext.setResourceBase(resourceBase);
+
+        // SSL key store
+//        final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
+//        boolean forceHttps = sslKeyStore != null && clientWebConfiguration.isServerForceHttps();
+//        boolean forwarded = clientWebConfiguration.isServerForceHttps();
+//        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
+        boolean forceHttps = isInterDomainServerForceHttps();
+
+        // Configure HTTP connector
+        final SelectChannelConnector httpConnector;
+        if (forceHttps) {
+            httpConnector = new SslSelectChannelConnector();
+        }
+        else {
+            httpConnector = new SelectChannelConnector();
+        }
+        httpConnector.setPort(getInterDomainPort());
+        restServer.addConnector(httpConnector);
+
+        // Configure HTTPS connector
+//        if (sslKeyStore != null) {
+//            if (forceHttps) {
+//                // Redirect HTTP to HTTPS
+//                httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
+//                // Require confidential (forces the HTTP to HTTPS redirection)
+//                Constraint constraint = new Constraint();
+//                constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
+//                ConstraintMapping constraintMapping = new ConstraintMapping();
+//                constraintMapping.setConstraint(constraint);
+//                constraintMapping.setPathSpec("/*");
+//                ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
+//                constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
+//                webAppContext.setSecurityHandler(constraintSecurityHandler);
+//            }
+//
+//            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+//            sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
+//            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+//            httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
+//            if (forwarded) {
+//                httpsConnector.setForwarded(true);
+//                if (forwardedHost != null) {
+//                    httpsConnector.setHostHeader(forwardedHost);
+//                }
+//            }
+//            server.addConnector(httpsConnector);
+//        }
+
+        restServer.setHandler(webAppContext);
+        try {
+            restServer.start();
+            logger.info("Inter Domain REST server successfully started.");
+        }
+        catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+
+
+        return restServer;
     }
 
     /**
@@ -637,6 +753,15 @@ public class Controller
                 rpcServer.stop();
             }
             catch (Exception exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
+        if (restServer != null) {
+            logger.info("Stopping Controller Inter Domain REST server...");
+            try {
+                restServer.stop();
+            } catch (Exception exception) {
                 throw new RuntimeException(exception);
             }
         }
@@ -914,6 +1039,9 @@ public class Controller
 
         // Add mail notification executor
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender(), configuration));
+
+        // Initialize Inter Domain agent
+        InterDomainAgent.create(configuration);
 
         // Add XML-RPC services
         RecordingsCache recordingsCache = new RecordingsCache();

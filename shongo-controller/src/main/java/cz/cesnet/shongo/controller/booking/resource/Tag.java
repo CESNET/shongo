@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 
 /**
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
