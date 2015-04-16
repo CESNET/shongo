@@ -16,7 +16,7 @@ import java.beans.PropertyEditorSupport;
  */
 public class LocalTimeEditor extends PropertyEditorSupport
 {
-    private static DateTimeFormatter dateTimeFormatterCs = DateTimeFormat.forPattern("HH:mm:ss");
+    private static DateTimeFormatter dateTimeFormatterCs = DateTimeFormat.forPattern("HH:mm");
     private static DateTimeFormatter dateTimeFormatterEn = DateTimeFormat.forPattern("hh:mm aa");
     private static DateTimeParser[] parsers = {
         dateTimeFormatterCs.getParser(),

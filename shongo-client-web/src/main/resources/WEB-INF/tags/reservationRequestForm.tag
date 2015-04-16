@@ -699,7 +699,7 @@
             </div>
             <div class="col-xs-2">
                 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-show-inputs="false" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
                 </c:if>
             </div>
             <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
