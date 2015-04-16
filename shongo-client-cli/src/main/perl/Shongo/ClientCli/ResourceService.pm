@@ -176,21 +176,21 @@ sub populate()
                 }
             },
         },
-        'add-domain-tag' => {
+        'add-domain-resource' => {
             desc => 'Assign tag to domain',
             args => '[<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                add_domain_tag(@args);
+                add_domain_resource(@args);
             },
         },
-        'remove-domain-tag' => {
+        'remove-domain-resource' => {
             desc => 'Remove tag from domain',
-            options => 'domain=s tag=s',
-            args => '[<domain-id>] [<tag-id>]',
+            options => 'domain=s resource=s',
+            args => '[<domain-id>] [<resource-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                remove_domain_tag(@args);
+                remove_domain_resource(@args);
             },
         },
     });
@@ -658,16 +658,16 @@ sub remove_domain()
     );
 }
 
-sub add_domain_tag()
+sub add_domain_resource()
 {
     my ($attributes, $options) = @_;
 
     $options->{'on_confirm'} = sub {
-        my ($domain_tag) = @_;
+        my ($domain_resource) = @_;
         console_print_info("Adding tag to domain...");
         my $response = Shongo::ClientCli->instance()->secure_request(
-            'Resource.createDomainTag',
-            $domain_tag->to_xml()
+            'Resource.addDomainResource',
+            $domain_resource->to_xml()
         );
         if ( defined($response) ) {
             return $response;
@@ -675,54 +675,54 @@ sub add_domain_tag()
         return undef;
     };
 
-    my $domain_tag = Shongo::ClientCli::API::Object->new();
+    my $domain_resource = Shongo::ClientCli::API::Object->new();
 
-    $domain_tag->set_object_class('DomainTag');
-    $domain_tag->set_object_name('DomainTag');
-    $domain_tag->add_attribute(
+    $domain_resource->set_object_class('DomainResource');
+    $domain_resource->set_object_name('DomainResource');
+    $domain_resource->add_attribute(
         'id', {
             'title' => 'Identifier',
             'editable' => 0
         }
     );
-    $domain_tag->add_attribute(
+    $domain_resource->add_attribute(
         'domain', {
             'required' => 1,
             'title' => 'Domain ID',
         }
     );
-    $domain_tag->add_attribute(
+    $domain_resource->add_attribute(
         'tag', {
             'required' => 1,
             'title' => 'Tag ID',
         }
     );
-    $domain_tag->add_attribute(
+    $domain_resource->add_attribute(
         'licenseCount', {
             'required' => 1,
             'title' => 'License count',
         }
     );
-    $domain_tag->add_attribute(
+    $domain_resource->add_attribute(
         'price', {
             'required' => 1,
             'title' => 'Price',
         }
     );
-    $domain_tag->add_attribute(
+    $domain_resource->add_attribute(
         'priority', {
             'required' => 1,
             'title' => 'Priority',
         }
     );
 
-    my $id = $domain_tag->create($attributes, $options);
+    my $id = $domain_resource->create($attributes, $options);
     if ( defined($id) ) {
         console_print_info("Tag '%s' successfully added to domain.", $id);
     }
 }
 
-sub remove_domain_tag()
+sub remove_domain_resource()
 {
     my (@args) = @_;
     if ( scalar(@args) < 2 ) {
@@ -732,7 +732,7 @@ sub remove_domain_tag()
     my $domain_id = $args[0];
     my $tag_id = $args[1];
     Shongo::ClientCli->instance()->secure_request(
-        'Resource.removeDomainTag',
+        'Resource.removeDomainResource',
         RPC::XML::string->new($domain_id),
         RPC::XML::string->new($tag_id),
     );

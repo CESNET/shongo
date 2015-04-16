@@ -6,24 +6,22 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Capability;
+import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.Tag;
-import cz.cesnet.shongo.controller.api.request.ListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
-import cz.cesnet.shongo.controller.api.request.TagListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
-import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
-import cz.cesnet.shongo.controller.notification.Target;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -509,7 +507,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     @Override
     public String createTag(SecurityToken securityToken, Tag tagApi) {
         authorization.validate(securityToken);
-        checkNotNull("resource", tagApi);
+        checkNotNull("tag", tagApi);
 
         cz.cesnet.shongo.controller.booking.resource.Tag tag = new cz.cesnet.shongo.controller.booking.resource.Tag();
 
@@ -587,7 +585,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            return resourceManager.getTag(ObjectIdentifier.parseId(tagId,ObjectType.TAG)).toApi();
+            return resourceManager.getTag(ObjectIdentifier.parseId(tagId, ObjectType.TAG)).toApi();
         }
         finally {
             entityManager.close();
@@ -641,7 +639,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
                 PersistenceException cause = (PersistenceException) exception.getCause();
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
-                    logger.warn("Resource '" + tagId + "' cannot be deleted because is still referenced.",
+                    logger.warn("Tag '" + tagId + "' cannot be deleted because is still referenced.",
                             exception);
                     ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
                             cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
@@ -731,11 +729,262 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Delete the resourceTag
             Long persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
             Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
-            ResourceTag resourceTag = resourceManager.getResourceTag(persistenceResourceId,persistenceTagId);
+            ResourceTag resourceTag = resourceManager.getResourceTag(persistenceResourceId, persistenceTagId);
 
             authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
 
             resourceManager.deleteResourceTag(resourceTag);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public String createDomain(SecurityToken securityToken, Domain domainApi) {
+        authorization.validate(securityToken);
+        checkNotNull("domain", domainApi);
+
+        cz.cesnet.shongo.controller.booking.domain.Domain domain = new cz.cesnet.shongo.controller.booking.domain.Domain();
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            // Create tag from API
+            domain.fromApi(domainApi);
+
+            // Save it
+            resourceManager.createDomain(domain);
+
+            authorizationManager.createAclEntry(AclIdentityType.USER, securityToken.getUserId(), domain, ObjectRole.OWNER);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+
+        // Return domain shongo-id
+        return ObjectIdentifier.formatId(domain);
+    }
+
+    @Override
+    public List<DomainResource> listDomainResources(DomainListRequest request)
+    {
+        throw new TodoImplementException("listDomainResources");
+//        checkNotNull("request", request);
+//        SecurityToken securityToken = request.getSecurityToken();
+//        authorization.validate(securityToken);
+//
+//        EntityManager entityManager = entityManagerFactory.createEntityManager();
+//        ResourceManager resourceManager = new ResourceManager(entityManager);
+//        try {
+//            List<Tag> tagList = new ArrayList();
+//            List<ResourceTag> resourceTags;
+//            if (request.getResourceId() == null) {
+//                for (cz.cesnet.shongo.controller.booking.resource.Tag tag : resourceManager.listAllTags()) {
+//                    tagList.add(tag.toApi());
+//                }
+//            } else {
+//                Long persistenceResourceId = ObjectIdentifier.parseId(request.getResourceId(),ObjectType.RESOURCE);
+//                resourceTags = resourceManager.getResourceTags(persistenceResourceId);
+//
+//                for (ResourceTag resourceTag : resourceTags) {
+//                    Tag tag = resourceTag.getTag().toApi();
+//
+//                    tagList.add(tag);
+//                }
+//            }
+//
+//            return tagList;
+//        }
+//        finally {
+//            entityManager.close();
+//        }
+    }
+
+    @Override
+    public Domain getDomain(SecurityToken token, String domainId) {
+        checkNotNull("domain-id", domainId);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
+                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+
+            if (!authorization.hasObjectPermission(token, domain, ObjectPermission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);
+            }
+
+            return domain.toApi();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void modifyDomain(SecurityToken token, Domain domain) {
+        throw new TodoImplementException();
+    }
+
+    @Override
+    public void deleteDomain(SecurityToken token, String domainId) {
+        authorization.validate(token);
+        checkNotNull("domain-id", domainId);
+        Long persistanceId = ObjectIdentifier.parseId(domainId,ObjectType.DOMAIN);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            // Delete the domain
+            cz.cesnet.shongo.controller.booking.domain.Domain persistanceDomain = resourceManager.getDomain(
+                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+
+            if (!authorization.hasObjectPermission(token, persistanceDomain, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete domain %s", domainId);
+            }
+
+            authorizationManager.deleteAclEntriesForEntity(persistanceDomain);
+            resourceManager.deleteDomain(persistanceDomain);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        catch (RollbackException exception) {
+            if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                PersistenceException cause = (PersistenceException) exception.getCause();
+                if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                    logger.warn("Domain '" + domainId + "' cannot be deleted because is still referenced.",
+                            exception);
+                    ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
+                            cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
+                    return;
+                }
+            }
+            throw exception;
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void addDomainResource(SecurityToken token, DomainResource domainResourceApi) {
+        authorization.validate(token);
+        checkNotNull("domain-resource", domainResourceApi);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
+        String resourceId = domainResourceApi.getResource().getId();
+        String domainId = domainResourceApi.getDomain().getId();
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.booking.resource.Resource resource;
+            resource = resourceManager.get(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+            cz.cesnet.shongo.controller.booking.domain.Domain domain;
+            domain = resourceManager.getDomain(ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+
+            if (!authorization.hasObjectPermission(token, resource, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add domain (%s) for resource (%s)", domainId, resourceId);
+            }
+
+            cz.cesnet.shongo.controller.booking.domain.DomainResource domainResource;
+            domainResource = new cz.cesnet.shongo.controller.booking.domain.DomainResource();
+
+            domainResource.setDomain(domain);
+            domainResource.setResource(resource);
+            domainResource.setLicenseCount(domainResourceApi.getLicenseCount());
+            domainResource.setPrice(domainResourceApi.getPrice());
+            domainResource.setPriority(domainResourceApi.getPriority());
+
+            resourceManager.createDomainResource(domainResource);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        catch (RollbackException exception) {
+            if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                PersistenceException cause = (PersistenceException) exception.getCause();
+                if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                    throw new IllegalArgumentException("Resource (resource-id: " + resourceId + " has been allready assigned to this resource (resource-id: " + resourceId + ").", exception);
+                }
+            }
+            throw exception;
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void removeDomainResource(SecurityToken token, String domainId, String resourceId) {
+        authorization.validate(token);
+        checkNotNull("domain-id", domainId);
+        checkNotNull("resource-id", resourceId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+
+
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            // Delete the domainResource
+            Long persistenceDomainId = ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN);
+            Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
+            cz.cesnet.shongo.controller.booking.domain.DomainResource domainResource = resourceManager.getDomainResource(persistenceDomainId, persistenceResourceId);
+
+            if (!authorization.hasObjectPermission(token, domainResource.getDomain(), ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add domain (%s) for resource (%s)", domainId, resourceId);
+            }
+
+            resourceManager.deleteDomainResource(domainResource);
 
             entityManager.getTransaction().commit();
         }
@@ -783,5 +1032,4 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.close();
         }
     }
-
 }

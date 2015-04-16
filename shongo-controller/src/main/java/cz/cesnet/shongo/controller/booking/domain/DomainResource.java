@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.booking.domain;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import javax.persistence.*;
@@ -11,11 +13,11 @@ import javax.persistence.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"domain_id", "tag_id"}))
-public class DomainTag extends SimplePersistentObject {
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"domain_id", "resource_id"}))
+public class DomainResource extends SimplePersistentObject {
     private Domain domain;
 
-    private Tag tag;
+    private Resource resource;
 
     private Integer licenseCount;
 
@@ -35,12 +37,12 @@ public class DomainTag extends SimplePersistentObject {
 
     @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
-    public Tag getTag() {
-        return tag;
+    public Resource getResource() {
+        return resource;
     }
 
-    public void setTag(Tag tag) {
-        this.tag = tag;
+    public void setResource(Resource resource) {
+        this.resource = resource;
     }
 
     public Integer getLicenseCount() {
