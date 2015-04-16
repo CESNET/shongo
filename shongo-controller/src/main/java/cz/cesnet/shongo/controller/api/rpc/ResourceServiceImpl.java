@@ -785,7 +785,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         }
 
         // Return domain shongo-id
-        return ObjectIdentifier.formatId(domain);
+        return ObjectIdentifier.formatId(ObjectType.DOMAIN, domain.getId());
     }
 
     @Override
@@ -903,7 +903,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void addDomainResource(SecurityToken token, DomainResource domainResourceApi) {
+    public void addDomainResource(SecurityToken token, DomainResource domainResourceApi, String domainId, String resourceId) {
         authorization.validate(token);
         checkNotNull("domain-resource", domainResourceApi);
 
@@ -911,8 +911,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
-        String resourceId = domainResourceApi.getResource().getId();
-        String domainId = domainResourceApi.getDomain().getId();
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();

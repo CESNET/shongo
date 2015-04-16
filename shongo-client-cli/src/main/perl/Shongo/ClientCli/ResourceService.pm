@@ -664,10 +664,14 @@ sub add_domain_resource()
 
     $options->{'on_confirm'} = sub {
         my ($domain_resource) = @_;
+        my $domain_id = $args[0];
+        my $resource_id = $args[1];
         console_print_info("Adding tag to domain...");
         my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.addDomainResource',
-            $domain_resource->to_xml()
+            $domain_resource->to_xml(),
+            RPC::XML::string->new($domain_id),
+            RPC::XML::string->new($resource_id),
         );
         if ( defined($response) ) {
             return $response;
@@ -685,18 +689,18 @@ sub add_domain_resource()
             'editable' => 0
         }
     );
-    $domain_resource->add_attribute(
-        'domain', {
-            'required' => 1,
-            'title' => 'Domain ID',
-        }
-    );
-    $domain_resource->add_attribute(
-        'tag', {
-            'required' => 1,
-            'title' => 'Tag ID',
-        }
-    );
+#    $domain_resource->add_attribute(
+#        'domain', {
+#            'required' => 1,
+#            'title' => 'Domain ID',
+#        }
+#    );
+#    $domain_resource->add_attribute(
+#        'tag', {
+#            'required' => 1,
+#            'title' => 'Tag ID',
+#        }
+#    );
     $domain_resource->add_attribute(
         'licenseCount', {
             'required' => 1,
@@ -730,11 +734,11 @@ sub remove_domain_resource()
         return;
     }
     my $domain_id = $args[0];
-    my $tag_id = $args[1];
+    my $resource_id = $args[1];
     Shongo::ClientCli->instance()->secure_request(
         'Resource.removeDomainResource',
         RPC::XML::string->new($domain_id),
-        RPC::XML::string->new($tag_id),
+        RPC::XML::string->new($resource_id),
     );
 }
 
