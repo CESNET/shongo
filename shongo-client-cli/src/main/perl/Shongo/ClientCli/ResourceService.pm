@@ -661,11 +661,17 @@ sub remove_domain()
 sub add_domain_resource()
 {
     my ($attributes, $options) = @_;
-
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<domain-id> <tag-id>' must be specified.");
+        return;
+    }
+    my $domain_id = $args[0];
+    my $resource_id = $args[1];
+    
     $options->{'on_confirm'} = sub {
         my ($domain_resource) = @_;
-        my $domain_id = $args[0];
-        my $resource_id = $args[1];
+
         console_print_info("Adding tag to domain...");
         my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.addDomainResource',
