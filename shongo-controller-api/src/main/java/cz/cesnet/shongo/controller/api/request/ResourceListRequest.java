@@ -36,6 +36,11 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private Set<String> tagNames = new HashSet<>();
 
     /**
+     * Id of domain
+     */
+    private String domainId;
+
+    /**
      * User-ids of resource owners.
      */
     private Set<String> userIds = new HashSet<String>();
@@ -166,6 +171,14 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         this.tagNames.add(tagName);
     }
 
+    public String getDomainId() {
+        return domainId;
+    }
+
+    public void setDomainId(String domainId) {
+        this.domainId = domainId;
+    }
+
     /**
      * @param capabilityClasses sets the {@link #capabilityClasses}
      */
@@ -233,6 +246,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private static final String RESOURCE_IDS = "resourceIds";
     private static final String TAG_ID = "tagId";
     private static final String TAG_NAMES = "tagNames";
+    private static final String DOMAIN_ID = "domainId";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
     private static final String CAPABILITY_CLASSES = "capabilityClasses";
@@ -246,6 +260,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(TAG_ID,tagId);
         dataMap.set(TAG_NAMES,tagNames);
+        dataMap.set(DOMAIN_ID, domainId);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
         dataMap.set(CAPABILITY_CLASSES, capabilityClasses);
@@ -261,6 +276,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         tagId = dataMap.getString(TAG_ID);
         tagNames = dataMap.getSet(TAG_NAMES, String.class);
+        domainId = dataMap.getString(DOMAIN_ID);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
         capabilityClasses = dataMap.getClassSet(CAPABILITY_CLASSES, Capability.class);
