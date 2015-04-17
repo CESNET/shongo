@@ -126,7 +126,7 @@ public class Domain extends IdentifiedComplexType
     private static final String ORGANIZATION = "organization";
     private static final String STATUS = "status";
     private static final String CODE = "code";
-    private static final String URL = "URL";
+    private static final String URL = "url";
     private static final String PORT = "port";
 
     @Override
@@ -137,8 +137,10 @@ public class Domain extends IdentifiedComplexType
         dataMap.set(ORGANIZATION, organization);
         dataMap.set(STATUS, status);
         dataMap.set(CODE, code);
-        dataMap.set(URL, deviceAddress.getUrl());
-        dataMap.set(PORT, deviceAddress.getPort());
+        if (deviceAddress != null) {
+            dataMap.set(URL, deviceAddress.getUrl());
+            dataMap.set(PORT, deviceAddress.getPort());
+        }
         return dataMap;
     }
 

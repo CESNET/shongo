@@ -80,7 +80,13 @@ public class DeviceAddress implements Concept
             this.ssl = false;
         }
         else {
+            if (host.startsWith("https://")) {
+                host = host.substring(8);
+            }
             this.ssl = true;
+        }
+        if (host.endsWith("/")) {
+            host = host.substring(0,host.length() - 1);
         }
         this.host = host;
         this.port = port;

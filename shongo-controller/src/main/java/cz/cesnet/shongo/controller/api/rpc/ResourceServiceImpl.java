@@ -306,7 +306,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (request.getTagId() != null) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_id FROM resource_tag "
-                        + " WHERE tag_id = :tagId)", "tagId", request.getTagId());
+                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseId(request.getTagId(), ObjectType.TAG));
             }
 
             // Filter requested tag-name
@@ -315,6 +315,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                         + " SELECT resource_tag.resource_id FROM resource_tag "
                         + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
                         + " WHERE tag.name IN(:tagNames))", "tagNames", request.getTagNames());
+            }
+
+            // Filter requested by foreign domain
+            if (request.getDomainId() != null) {
+                queryFilter.addFilter("resource_summary.id IN ("
+                        + " SELECT resource_id FROM domain_resource "
+                        + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
             }
 
             // Filter user-ids

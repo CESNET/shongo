@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+
+import java.util.List;
 
 /**
  * InterDomain agent for Domain Controller
@@ -17,6 +20,8 @@ public class InterDomainAgent implements InterDomainProtocol
     private ResourceService resourceService;
 
     private ReservationService reservationService;
+
+    private List<Domain> domains;
 
     protected InterDomainAgent(ControllerConfiguration configuration) {
         setDomains(configuration);

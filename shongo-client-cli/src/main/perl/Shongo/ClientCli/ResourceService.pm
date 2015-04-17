@@ -63,8 +63,8 @@ sub populate()
         },
         'list-resources' => {
             desc => 'List all existing resources',
-            options => 'user=s name=s tag=s',
-            args => '[-user=*|<user-id>] [-name=<name>] [-tag=<name>]',
+            options => 'user=s name=s tag=s domain=s',
+            args => '[-user=*|<user-id>] [-name=<name>] [-tag=<name>] [-domain=<domain-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_resources($params->{'options'});
@@ -357,6 +357,9 @@ sub list_resources()
     }
     if ( defined($options->{'tag'}) ) {
         $filter->{'tagName'} = [$options->{'tag'}];
+    }
+    if ( defined($options->{'domain'}) ) {
+        $filter->{'domainId'} = $options->{'domain'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Resource.listResources', $filter);
@@ -733,6 +736,8 @@ sub add_domain_resource()
             'title' => 'Priority',
         }
     );
+
+    $domain_resource->create($attributes, $options);
 }
 
 sub remove_domain_resource()
