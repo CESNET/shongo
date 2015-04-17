@@ -58,14 +58,18 @@ sub list_domains()
             {'field' => 'name',         'title' => 'Name'},
             {'field' => 'organization', 'title' => 'Organization'},
             {'field' => 'status',       'title' => 'Status'},
+            {'field' => 'url',       'title' => 'Url'}
         ],
         'data' => []
     };
     foreach my $domain (@{$response}) {
+				var_dump($domain);
+				my $url = $domain->{'url'} eq "" ? "local" : "$domain->{'url'}:$domain->{'port'}";
         push(@{$table->{'data'}}, {
             'name' => $domain->{'name'},
             'organization' => $domain->{'organization'},
-            'status' => $DomainStatus->{$domain->{'status'}}
+            'status' => $DomainStatus->{$domain->{'status'}},
+						'url' => $url,
         });
     }
     console_print_table($table);
