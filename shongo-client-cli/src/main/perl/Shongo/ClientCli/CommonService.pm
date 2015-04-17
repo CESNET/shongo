@@ -55,6 +55,7 @@ sub list_domains()
     }
     my $table = {
         'columns' => [
+            {'field' => 'id',         'title' => 'Identifier'},
             {'field' => 'name',         'title' => 'Name'},
             {'field' => 'organization', 'title' => 'Organization'},
             {'field' => 'status',       'title' => 'Status'},
@@ -65,7 +66,9 @@ sub list_domains()
     foreach my $domain (@{$response}) {
 				var_dump($domain);
 				my $url = $domain->{'url'} eq "" ? "local" : "$domain->{'url'}:$domain->{'port'}";
+				my $id = $domain->{'id'} eq "" ? "none" : $domain->{'id'};
         push(@{$table->{'data'}}, {
+            'id' => $id,
             'name' => $domain->{'name'},
             'organization' => $domain->{'organization'},
             'status' => $DomainStatus->{$domain->{'status'}},

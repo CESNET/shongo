@@ -177,7 +177,7 @@ sub populate()
             },
         },
         'add-domain-resource' => {
-            desc => 'Assign tag to domain',
+            desc => 'Assign resource to domain',
             args => '[<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
@@ -185,7 +185,7 @@ sub populate()
             },
         },
         'remove-domain-resource' => {
-            desc => 'Remove tag from domain',
+            desc => 'Remove resource from domain',
             options => 'domain=s resource=s',
             args => '[<domain-id>] [<resource-id>]',
             method => sub {
@@ -674,22 +674,20 @@ sub add_domain_resource()
 {
     my ($attributes, $options) = @_;
     my (@args) = @_;
-    if ( scalar(@args) < 2 ) {
-        console_print_error("Arguments '<domain-id> <tag-id>' must be specified.");
-        return;
-    }
-    my $domain_id = $args[0];
-    my $resource_id = $args[1];
 
     $options->{'on_confirm'} = sub {
         my ($domain_resource) = @_;
 
-        console_print_info("Adding tag to domain...");
+        console_print_info("Adding resource to domain...");
+				my $domain = $domain_resource->{'domain'};
+				my $resource = $domain_resource->{'resource'};
+				delete $domain_resource->{'domain'};
+        delete $domain_resource->{'resource'};
         my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.addDomainResource',
             $domain_resource->to_xml(),
-            RPC::XML::string->new($domain_id),
-            RPC::XML::string->new($resource_id),
+            RPC::XML::string->new($domain),
+            RPC::XML::string->new($resource),
         );
         if ( defined($response) ) {
             return $response;
@@ -707,18 +705,16 @@ sub add_domain_resource()
             'editable' => 0
         }
     );
-#    $domain_resource->add_attribute(
-#        'domain', {
-#            'required' => 1,
-#            'title' => 'Domain ID',
-#        }
-#    );
-#    $domain_resource->add_attribute(
-#        'tag', {
-#            'required' => 1,
-#            'title' => 'Tag ID',
-#        }
-#    );
+    $domain_resource->add_attribute(
+        'domain', {
+            'title' => 'Domain ID',
+        }
+    );
+    $domain_resource->add_attribute(
+        'resource', {
+            'title' => 'Resource ID',
+        }
+    );
     $domain_resource->add_attribute(
         'licenseCount', {
             'required' => 1,
@@ -737,18 +733,13 @@ sub add_domain_resource()
             'title' => 'Priority',
         }
     );
-
-    my $id = $domain_resource->create($attributes, $options);
-    if ( defined($id) ) {
-        console_print_info("Tag '%s' successfully added to domain.", $id);
-    }
 }
 
 sub remove_domain_resource()
 {
     my (@args) = @_;
     if ( scalar(@args) < 2 ) {
-        console_print_error("Arguments '<domain-id> <tag-id>' must be specified.");
+        console_print_error("Arguments '<domain-id> <resource-id>' must be specified.");
         return;
     }
     my $domain_id = $args[0];
