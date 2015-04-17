@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -104,6 +105,8 @@ public class ObjectTypeResolver
                 return Executable.class;
             case TAG:
                 return Tag.class;
+            case DOMAIN:
+                return Domain.class;
             default:
                 throw new TodoImplementException(objectType);
         }

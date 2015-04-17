@@ -5,11 +5,15 @@ import cz.cesnet.shongo.connector.api.jade.common.GetStatus;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceTag;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
 
@@ -89,9 +93,21 @@ public class CommonServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(token);
 
-        List<Domain> domainList = new ArrayList<Domain>();
-        domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
-        return domainList;
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            List<Domain> domainList = new ArrayList<Domain>();
+            domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
+            for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
+                domainList.add(domain.toApi());
+            }
+            return Collections.unmodifiableList(domainList);
+        }
+        finally {
+            entityManager.close();
+        }
+
+
     }
 
     @Override

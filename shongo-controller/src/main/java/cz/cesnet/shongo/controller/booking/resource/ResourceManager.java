@@ -543,4 +543,17 @@ public class ResourceManager extends AbstractManager
             //TODO:add resourceId to exception
         }
     }
+
+    public List<Domain> listAllDomains()
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
+        Root<Domain> domainRoot = query.from(Domain.class);
+        query.select(domainRoot);
+
+        TypedQuery<Domain> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+    }
 }
