@@ -638,6 +638,18 @@ sub add_domain()
             'title' => 'Domain organization',
         }
     );
+    $domain->add_attribute(
+        'url', {
+            'required' => 1,
+            'title' => 'Url',
+        }
+    );
+    $domain->add_attribute(
+        'port', {
+            'required' => 1,
+            'title' => 'Port',
+        }
+    );
 
     my $id = $domain->create($attributes, $options);
     if ( defined($id) ) {
@@ -668,7 +680,7 @@ sub add_domain_resource()
     }
     my $domain_id = $args[0];
     my $resource_id = $args[1];
-    
+
     $options->{'on_confirm'} = sub {
         my ($domain_resource) = @_;
 
