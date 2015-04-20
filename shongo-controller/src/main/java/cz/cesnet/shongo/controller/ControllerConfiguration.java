@@ -63,7 +63,10 @@ public class ControllerConfiguration extends CombinedConfiguration
      */
     public static final String INTERDOMAIN_HOST = "domain.inter-domain-connection.host";
     public static final String INTERDOMAIN_PORT = "domain.inter-domain-connection.port";
+    public static final String INTERDOMAIN_SSL_PORT = "domain.inter-domain-connection.ssl-port";
     public static final String INTERDOMAIN_FORCE_HTTPS = "domain.inter-domain-connection.force-https";
+    public static final String INTERDOMAIN_SSL_KEY_STORE = "domain.inter-domain-connection.ssl-key-store";
+    public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = "domain.inter-domain-connection.ssl-key-store-password";
     //TODO
     public static final String INTERDOMAINS = "domains";
 

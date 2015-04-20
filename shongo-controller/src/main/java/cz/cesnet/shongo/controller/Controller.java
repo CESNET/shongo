@@ -327,9 +327,27 @@ public class Controller
         return configuration.getInt(ControllerConfiguration.INTERDOMAIN_PORT);
     }
 
+    public int getInterDomainSslPort()
+    {
+        return configuration.getInt(ControllerConfiguration.INTERDOMAIN_SSL_PORT);
+    }
+
     public boolean isInterDomainServerForceHttps()
     {
         return configuration.getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
+    }
+
+    public String getInterDomainSslKeyStore()
+    {
+        String sslKeyStore = configuration.getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
+        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
+            return null;
+        }
+        return sslKeyStore;
+    }
+
+    public String getServerSslKeyStorePassword() {
+        return configuration.getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
     }
 
     /**
@@ -500,8 +518,7 @@ public class Controller
      *
      * @throws Exception
      */
-    public void startAll() throws Exception
-    {
+    public void startAll() throws Exception {
         start();
         startRpc();
         startJade();
@@ -608,7 +625,7 @@ public class Controller
         webAppContext.setResourceBase(resourceBase);
 
         // SSL key store
-//        final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
+        final String sslKeyStore = getInterDomainSslKeyStore();
 //        boolean forceHttps = sslKeyStore != null && clientWebConfiguration.isServerForceHttps();
 //        boolean forwarded = clientWebConfiguration.isServerForceHttps();
 //        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
@@ -626,33 +643,35 @@ public class Controller
         restServer.addConnector(httpConnector);
 
         // Configure HTTPS connector
-//        if (sslKeyStore != null) {
-//            if (forceHttps) {
-//                // Redirect HTTP to HTTPS
-//                httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
-//                // Require confidential (forces the HTTP to HTTPS redirection)
-//                Constraint constraint = new Constraint();
-//                constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
-//                ConstraintMapping constraintMapping = new ConstraintMapping();
-//                constraintMapping.setConstraint(constraint);
-//                constraintMapping.setPathSpec("/*");
-//                ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
-//                constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
-//                webAppContext.setSecurityHandler(constraintSecurityHandler);
-//            }
-//
-//            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
-//            sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
-//            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
-//            httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
+        if (sslKeyStore != null) {
+            if (forceHttps) {
+                // Redirect HTTP to HTTPS
+                httpConnector.setConfidentialPort(getInterDomainSslPort());
+                // Require confidential (forces the HTTP to HTTPS redirection)
+                Constraint constraint = new Constraint();
+                constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
+                ConstraintMapping constraintMapping = new ConstraintMapping();
+                constraintMapping.setConstraint(constraint);
+                constraintMapping.setPathSpec("/*");
+                ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
+                constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
+                webAppContext.setSecurityHandler(constraintSecurityHandler);
+            }
+
+            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+            sslContextFactory.setKeyStorePassword(getServerSslKeyStorePassword());
+            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+            httpsConnector.setPort(getInterDomainSslPort());
+            httpsConnector.setTruststore();
+            httpsConnector.
 //            if (forwarded) {
 //                httpsConnector.setForwarded(true);
 //                if (forwardedHost != null) {
 //                    httpsConnector.setHostHeader(forwardedHost);
 //                }
 //            }
-//            server.addConnector(httpsConnector);
-//        }
+            restServer.addConnector(httpsConnector);
+        }
 
         restServer.setHandler(webAppContext);
         try {
