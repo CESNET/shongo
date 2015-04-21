@@ -8,10 +8,11 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.api.Configuration;
+import cz.cesnet.shongo.connector.api.UsageStats;
 import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
 import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.support.KeepAliveTransportFactory;
-import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -66,7 +67,7 @@ import java.util.regex.Pattern;
  */
 public class CiscoMCUConnector extends AbstractMultipointConnector
 {
-    private static Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
 
     private static final Pattern E164_PATTERN = Pattern.compile("^\\+?\\d{9,14}$");
 
@@ -134,7 +135,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private Set<String> hiddenParticipantAddresses = new HashSet<String>();
 
     //ClearSea connector - temporarily
-    LifeSizeUVCClearSea lifeSizeUVCClearSea;
+    volatile LifeSizeUVCClearSea lifeSizeUVCClearSea;
     public static final String ALIAS_SERVICE_HOST = "alias-service.host";
     public static final String ALIAS_SERVICE_PORT = "alias-service.port";
     public static final String ALIAS_SERVICE_USERNAME = "alias-service.auth.username";
@@ -385,7 +386,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     }
 
     @Override
-    public String createRoom(Room room) throws CommandException
+    public String createRoom(final Room room) throws CommandException
     {
         Command cmd = new Command("conference.create");
 
@@ -416,36 +417,60 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             throw new RuntimeException("Room name must be filled for the new room.");
         }
 
-        execApi(cmd);
+        final String roomName = (String) cmd.getParameterValue("conferenceName");
+
+        try {
+            execApi(cmd);
+        }
+        catch (CommandException ex) {
+            // Check if the room is really not created
+            try {
+                if (getRoom(roomName) == null) {
+                    throw ex;
+                }
+            }
+            catch (Exception e) {
+                throw ex;
+            }
+        }
 
         //TODO if CS alias
         if (this.lifeSizeUVCClearSea != null) {
             if (!ConnectionState.DISCONNECTED.equals(this.lifeSizeUVCClearSea.getStatus())) {
-                try {
-                    // Allocate alias in ClearSea
-                    Alias alias = room.getAlias(AliasType.H323_E164);
-                    if (alias == null) {
-                        throw new CommandException("H323_E164 must be set for ClearSea alias.");
+                new Thread() {
+                    public void run() {
+                        try {
+                            // Allocate alias in ClearSea
+                            Alias alias = room.getAlias(AliasType.H323_E164);
+                            if (alias == null) {
+                                throw new CommandException("H323_E164 must be set for ClearSea alias.");
+                            }
+                            lifeSizeUVCClearSea.createAlias(alias.getType(), alias.getValue(), roomName);
+                        } catch (CommandException ex) {
+                            logger.error("Failed to create ClearSea alias: " + ex.getMessage());
+
+                            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+                            notifyTarget.addMessage("en",
+                                    "Failed to create ClearSea alias pro místnost: " + room.getName(),
+                                    "Creation of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                                            + "Thrown exception:" + ex.getMessage());
+                            notifyTarget.addMessage("cs",
+                                    "Selhalo vytvoření ClearSea aliasu pro místnost: " + room.getName(),
+                                    "Pro místnost \"" + room.getName() + "\" nebylo možné vytvořit alias pro ClearSea." + "\n"
+                                            + "Nastala následující chyba:" + ex.getMessage());
+
+                            try {
+                                performControllerAction(notifyTarget);
+                            } catch (CommandException e) {
+                                logger.error("Failed to send notification: " + e);
+                            }
+                        }
                     }
-                    this.lifeSizeUVCClearSea.createAlias(alias.getType(), alias.getValue(), (String) cmd.getParameterValue("conferenceName"));
-                } catch (CommandException ex) {
-                    logger.error("Failed to create ClearSea alias: " + ex.getMessage());
-
-                    NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
-                    notifyTarget.addMessage("en",
-                            "Failed to create ClearSea alias pro místnost: " + room.getName(),
-                            "Creation of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
-                                    + "Thrown exception:" + ex.getMessage());
-                    notifyTarget.addMessage("cs",
-                            "Selhalo vytvoření ClearSea aliasu pro místnost: " + room.getName(),
-                            "Pro místnost \"" + room.getName() + "\" nebylo možné vytvořit alias pro ClearSea." + "\n"
-                                    + "Nastala následující chyba:" + ex.getMessage());
-
-                    performControllerAction(notifyTarget);
-                }
+                }.start();
             }
         }
-        return (String) cmd.getParameterValue("conferenceName");
+
+        return roomName;
     }
 
     private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
@@ -638,32 +663,39 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     @Override
     public void deleteRoom(String roomId) throws CommandException
     {
-        Room room = getRoom(roomId);
-        try {
-            if (this.lifeSizeUVCClearSea != null) {
-                this.lifeSizeUVCClearSea.deleteAlias(room.getName());
-            }
-        }
-        catch (CommandException ex) {
-            logger.error("Failed to delete ClearSea alias: " + ex.getMessage());
+        final Room room = getRoom(roomId);
+        if (this.lifeSizeUVCClearSea != null) {
+            new Thread() {
+                public void run() {
+                    try {
+                        lifeSizeUVCClearSea.deleteAlias(room.getName());
+                    } catch (CommandException ex) {
+                        logger.error("Failed to delete ClearSea alias: " + ex.getMessage());
 
-            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
-            notifyTarget.addMessage("en",
-                    "Failed to delete ClearSea alias pro místnost: " + room.getName(),
-                    "Deleting of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
-                            + "Thrown exception:" + ex.getMessage());
-            notifyTarget.addMessage("cs",
-                    "Selhalo smaznání ClearSea aliasu pro místnost: " + room.getName(),
-                    "Pro místnost \"" + room.getName() + "\" nebylo možné smazat alias pro ClearSea." + "\n"
-                            + "Nastala následující chyba:" + ex.getMessage());
+                        NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+                        notifyTarget.addMessage("en",
+                                "Failed to delete ClearSea alias pro místnost: " + room.getName(),
+                                "Deleting of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                                        + "Thrown exception:" + ex.getMessage());
+                        notifyTarget.addMessage("cs",
+                                "Selhalo smaznání ClearSea aliasu pro místnost: " + room.getName(),
+                                "Pro místnost \"" + room.getName() + "\" nebylo možné smazat alias pro ClearSea." + "\n"
+                                        + "Nastala následující chyba:" + ex.getMessage());
 
-            performControllerAction(notifyTarget);
+                        try {
+                            performControllerAction(notifyTarget);
+                        } catch (CommandException e) {
+                            logger.error("Failed to send notification: " + e);
+                        }
+                    }
+                }
+            }.start();
+
         }
 
         Command cmd = new Command("conference.destroy");
         cmd.setParameter("conferenceName", truncateString(roomId));
         execApi(cmd);
-
     }
 
     @Override
