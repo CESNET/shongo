@@ -284,18 +284,19 @@ public class Executor extends SwitchableComponent
                         }
                     }
                 }
-                for (Executable executable : executableManager.listExecutablesForUpdate(dateTime, maxAttemptCount)) {
-                    executionPlan.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable));
-                }
                 for (Executable executable : executableManager.listExecutablesForStop(stop, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StopExecutableAction(executable));
                 }
                 for (Executable executable : executableManager.listExecutablesForFinalization(dateTime, maxAttemptCount)) {
+                    executionPlan.addExecutionAction(new ExecutionAction.FinalizeExecutableAction(executable));
+                }
+                for (Executable executable : executableManager.listExecutablesForUpdate(dateTime, maxAttemptCount)) {
                     ExecutionAction executionAction = executionPlan.getActionByExecutionTarget(executable);
                     if (executionAction != null) {
-                        executionPlan.removeExecutionAction(executionAction);
+                        // Skip updating executable when other action is planned (i.e., start or stop)
+                        continue;
                     }
-                    executionPlan.addExecutionAction(new ExecutionAction.FinalizeExecutableAction(executable));
+                    executionPlan.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable));
                 }
                 for (ExecutableService service : executableManager.listServicesForActivation(start, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.ActivateExecutableServiceAction(service));
