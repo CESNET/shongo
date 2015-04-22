@@ -177,7 +177,7 @@ public class ClientWeb
         // SSL key store
         final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
         boolean forceHttps = sslKeyStore != null && clientWebConfiguration.isServerForceHttps();
-        boolean forwarded = clientWebConfiguration.isServerForceHttps();
+        boolean forwarded = clientWebConfiguration.isServerForwarded();
         String forwardedHost = clientWebConfiguration.getServerForwardedHost();
 
         // Configure HTTP connector

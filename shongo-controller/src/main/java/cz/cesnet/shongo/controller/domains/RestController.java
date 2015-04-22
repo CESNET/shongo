@@ -23,8 +23,24 @@ public class RestController {
     @RequestMapping(value = "/test", method = RequestMethod.GET)
     @ResponseBody
     public List<String> handle() {
-        ResourceService resourceService = InterDomainAgent.getResourceService();
-        resourceService.listResources(null);
+        InterDomainAgent idp = InterDomainAgent.getInstance();
+        idp.performRequest(InterDomainAgent.HttpMethod.GET, "https://localhost:8433/rest/any" , null);
+        //resourceService.listResources(null);
         return new ArrayList<String>();
     }
+
+    @RequestMapping(value = "/any", method = RequestMethod.GET)
+    @ResponseBody
+    public List<String> handlea() {
+        InterDomainAgent idp = InterDomainAgent.getInstance();
+        //resourceService.listResources(null);
+        return new ArrayList<String>();
+    }
+
+    @RequestMapping(value = "/sec", method = RequestMethod.GET)
+    @ResponseBody
+    public List<String> handle2() {
+        return new ArrayList<String>();
+    }
+
 }

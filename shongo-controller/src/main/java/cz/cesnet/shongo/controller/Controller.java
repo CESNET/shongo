@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
+import cz.cesnet.shongo.controller.domains.SSLClientCertFilter;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
@@ -38,10 +39,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.servlet.DispatcherType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -603,87 +606,71 @@ public class Controller
 
     public Server startInterDomainRESTApi()
     {
-        logger.info("Starting Inter Domain REST server on {}:{}...",
-                getInterDomainHost(), getInterDomainPort());
+        if (getInterDomainHost() != null) {
+            logger.info("Starting Inter Domain REST server on {}:{}...",
+                    getInterDomainHost(), getInterDomainSslPort());
 
-        restServer = new Server();
-        // Configure SSL
-        ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
+            restServer = new Server();
+            // Configure SSL
+            ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
 
-        // Create web app
-        WebAppContext webAppContext = new WebAppContext();
-//        webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
-        webAppContext.setDescriptor("WEB-INF/web.xml");
-//        webAppContext.setContextPath("/rest");
-        webAppContext.setParentLoaderPriority(true);
+            // Create web app
+            WebAppContext webAppContext = new WebAppContext();
+            webAppContext.addServlet(new ServletHolder("rest", DispatcherServlet.class), "/rest/*");
+            EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
+            webAppContext.addFilter(SSLClientCertFilter.class, "/rest/sec", filterTypes);
+            webAppContext.setParentLoaderPriority(true);
 
-        URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
-        if (resourceBaseUrl == null) {
-            throw new RuntimeException("WEB-INF is not in classpath.");
-        }
-        String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
-        webAppContext.setResourceBase(resourceBase);
+            URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
+            if (resourceBaseUrl == null) {
+                throw new RuntimeException("WEB-INF is not in classpath.");
+            }
+            String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
+            webAppContext.setResourceBase(resourceBase);
 
-        // SSL key store
-        final String sslKeyStore = getInterDomainSslKeyStore();
-//        boolean forceHttps = sslKeyStore != null && clientWebConfiguration.isServerForceHttps();
+            // SSL key store
+            final String sslKeyStore = getInterDomainSslKeyStore();
+            boolean forceHttps = sslKeyStore != null && isInterDomainServerForceHttps();
 //        boolean forwarded = clientWebConfiguration.isServerForceHttps();
 //        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
-        boolean forceHttps = isInterDomainServerForceHttps();
 
-        // Configure HTTP connector
-        final SelectChannelConnector httpConnector;
-        if (forceHttps) {
-            httpConnector = new SslSelectChannelConnector();
-        }
-        else {
-            httpConnector = new SelectChannelConnector();
-        }
-        httpConnector.setPort(getInterDomainPort());
-        restServer.addConnector(httpConnector);
-
-        // Configure HTTPS connector
-        if (sslKeyStore != null) {
+            // Configure HTTPS connector
             if (forceHttps) {
-                // Redirect HTTP to HTTPS
-                httpConnector.setConfidentialPort(getInterDomainSslPort());
-                // Require confidential (forces the HTTP to HTTPS redirection)
-                Constraint constraint = new Constraint();
-                constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
-                ConstraintMapping constraintMapping = new ConstraintMapping();
-                constraintMapping.setConstraint(constraint);
-                constraintMapping.setPathSpec("/*");
-                ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
-                constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
-                webAppContext.setSecurityHandler(constraintSecurityHandler);
-            }
+                final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+                sslContextFactory.setKeyStorePassword(getServerSslKeyStorePassword());
+                final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+                httpsConnector.setPort(getInterDomainSslPort());
+                httpsConnector.setConfidentialPort(getInterDomainSslPort());
 
-            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
-            sslContextFactory.setKeyStorePassword(getServerSslKeyStorePassword());
-            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
-            httpsConnector.setPort(getInterDomainSslPort());
-            httpsConnector.setTruststore();
-            httpsConnector.
+//            httpsConnector.setTruststore(getInterDomainSslKeyStore());
+//            httpsConnector.
 //            if (forwarded) {
 //                httpsConnector.setForwarded(true);
 //                if (forwardedHost != null) {
 //                    httpsConnector.setHostHeader(forwardedHost);
 //                }
 //            }
-            restServer.addConnector(httpsConnector);
-        }
+                restServer.addConnector(httpsConnector);
+            } else {
+                final SelectChannelConnector httpConnector;
+                httpConnector = new SelectChannelConnector();
+                httpConnector.setPort(getInterDomainPort());
+                restServer.addConnector(httpConnector);
 
-        restServer.setHandler(webAppContext);
-        try {
-            restServer.start();
-            logger.info("Inter Domain REST server successfully started.");
-        }
-        catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+            }
+
+            restServer.setHandler(webAppContext);
+            try {
+                restServer.start();
+                logger.info("Inter Domain REST server successfully started.");
+            } catch (Exception exception) {
+                throw new RuntimeException(exception);
+            }
 
 
-        return restServer;
+            return restServer;
+        }
+        return null;
     }
 
     /**

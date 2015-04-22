@@ -23,7 +23,7 @@ import java.net.URL;
  */
 public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements AliasService {
 
-    private static Logger logger = LoggerFactory.getLogger(LifeSizeUVCClearSea.class);
+    private static final Logger logger = LoggerFactory.getLogger(LifeSizeUVCClearSea.class);
 
     /**
      * baseURL for the REST requests, and IP
