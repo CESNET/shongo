@@ -12,11 +12,16 @@
         <name>unknown</name>
         <organization>Unknown Organization</organization>
         <!-- Interdomain protocol listening port -->
-        <inter-domain-connection>
-            <!--<host></host>-->
-            <port>1234</port>
-            <force-https>false</force-https>
-        </inter-domain-connection>
+        <!--<inter-domain-connection>-->
+            <!--<host>localhost</host>-->
+            <!--<port></port>-->
+            <!--<ssl-port>8433</ssl-port>-->
+            <!--<force-https>true</force-https>-->
+            <!--<ssl-key-store></ssl-key-store>-->
+            <!--<ssl-key-store-password></ssl-key-store-password>-->
+            <!--<ssl-trust-store></ssl-trust-store>-->
+            <!--<ssl-trust-store-password></ssl-trust-store-password>-->
+        <!--</inter-domain-connection>-->
     </domain>
 
     <!-- Interdomains resource sharing options -->
