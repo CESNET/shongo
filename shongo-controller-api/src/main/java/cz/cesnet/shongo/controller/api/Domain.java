@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.api.util.DeviceAddress;
+import org.codehaus.jackson.annotate.JsonValue;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -197,11 +198,25 @@ public class Domain extends IdentifiedComplexType
         /**
          * Means that domain is currently available to the controller.
          */
-        AVAILABLE,
+        AVAILABLE("available"),
 
         /**
          * Means that domain is currently not available to the controller.
          */
-        NOT_AVAILABLE
+        NOT_AVAILABLE("not-available");
+
+        private String status;
+
+        Status(String status) {
+            this.status = status;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
     }
 }

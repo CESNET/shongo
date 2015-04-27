@@ -5,7 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -17,7 +17,6 @@ import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
-import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
@@ -205,10 +204,10 @@ public abstract class RoomEndpoint extends Endpoint
     public final String getRoomDescriptionApi()
     {
         if (roomDescription != null) {
-            return String.format("[%s:%d] %s", Domain.getLocalDomainCode(), getId(), roomDescription);
+            return String.format("[%s:%d] %s", LocalDomain.getLocalDomainCode(), getId(), roomDescription);
         }
         else {
-            return String.format("[%s:%d]", Domain.getLocalDomainCode(), getId());
+            return String.format("[%s:%d]", LocalDomain.getLocalDomainCode(), getId());
         }
     }
 

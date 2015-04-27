@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
@@ -200,7 +200,7 @@ public class ObjectIdentifier
         if (matcher.matches()) {
             return new ObjectIdentifier(ObjectType.getByCode(matcher.group(1)), parsePersistenceId(matcher.group(2)));
         }
-        return parse(Domain.getLocalDomainName(), objectId);
+        return parse(LocalDomain.getLocalDomainName(), objectId);
     }
 
     /**
@@ -210,7 +210,7 @@ public class ObjectIdentifier
      */
     public static ObjectIdentifier parse(String objectId, ObjectType objectType)
     {
-        return parse(Domain.getLocalDomainName(), objectType, objectId);
+        return parse(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -220,7 +220,7 @@ public class ObjectIdentifier
      */
     public static String formatId(Class<? extends PersistentObject> objectClass, Long objectLocalId)
     {
-        return formatId(Domain.getLocalDomainName(), objectClass, objectLocalId);
+        return formatId(LocalDomain.getLocalDomainName(), objectClass, objectLocalId);
     }
 
     /**
@@ -230,7 +230,7 @@ public class ObjectIdentifier
      */
     public static String formatId(ObjectType objectType, Long objectLocalId)
     {
-        return formatId(Domain.getLocalDomainName(), objectType, objectLocalId);
+        return formatId(LocalDomain.getLocalDomainName(), objectType, objectLocalId);
     }
 
     /**
@@ -240,7 +240,7 @@ public class ObjectIdentifier
      */
     public static String formatId(ObjectType objectType, String objectLocalId)
     {
-        return formatId(Domain.getLocalDomainName(), objectType, objectLocalId);
+        return formatId(LocalDomain.getLocalDomainName(), objectType, objectLocalId);
     }
 
     /**
@@ -250,7 +250,7 @@ public class ObjectIdentifier
      */
     public static String formatId(Class<? extends PersistentObject> objectClass, String objectLocalId)
     {
-        return formatId(Domain.getLocalDomainName(), objectClass, objectLocalId);
+        return formatId(LocalDomain.getLocalDomainName(), objectClass, objectLocalId);
     }
 
     /**
@@ -269,7 +269,7 @@ public class ObjectIdentifier
     public static String formatId(Resource resource)
     {
         resource.checkPersisted();
-        return formatId(Domain.getLocalDomainName(), Resource.class, resource.getId());
+        return formatId(LocalDomain.getLocalDomainName(), Resource.class, resource.getId());
     }
 
     /**
@@ -289,7 +289,7 @@ public class ObjectIdentifier
     public static String formatId(AbstractReservationRequest reservationRequest)
     {
         reservationRequest.checkPersisted();
-        return formatId(Domain.getLocalDomainName(), AbstractReservationRequest.class,
+        return formatId(LocalDomain.getLocalDomainName(), AbstractReservationRequest.class,
                 reservationRequest.getId());
     }
 
@@ -300,7 +300,7 @@ public class ObjectIdentifier
     public static String formatId(Reservation reservation)
     {
         reservation.checkPersisted();
-        return formatId(Domain.getLocalDomainName(), Reservation.class, reservation.getId());
+        return formatId(LocalDomain.getLocalDomainName(), Reservation.class, reservation.getId());
     }
 
     /**
@@ -310,7 +310,7 @@ public class ObjectIdentifier
     public static String formatId(Executable executable)
     {
         executable.checkPersisted();
-        return formatId(Domain.getLocalDomainName(), Executable.class, executable.getId());
+        return formatId(LocalDomain.getLocalDomainName(), Executable.class, executable.getId());
     }
 
     /**
@@ -320,7 +320,7 @@ public class ObjectIdentifier
      */
     public static Long parseId(String objectId, ObjectType objectType)
     {
-        return parseId(Domain.getLocalDomainName(), objectType, objectId);
+        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -331,7 +331,7 @@ public class ObjectIdentifier
     public static Long parseId(String objectId, Class<? extends PersistentObject> objectClass)
     {
         ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
-        return parseId(Domain.getLocalDomainName(), objectType, objectId);
+        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**

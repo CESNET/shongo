@@ -64,6 +64,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String INTERDOMAIN_HOST = "domain.inter-domain-connection.host";
     public static final String INTERDOMAIN_PORT = "domain.inter-domain-connection.port";
     public static final String INTERDOMAIN_FORCE_HTTPS = "domain.inter-domain-connection.force-https";
+    public static final String INTERDOMAIN_CLIENT_AUTH = "domain.inter-domain-connection.force-client-auth";
     public static final String INTERDOMAIN_SSL_KEY_STORE = "domain.inter-domain-connection.ssl-key-store";
     public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = "domain.inter-domain-connection.ssl-key-store-type";
     public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = "domain.inter-domain-connection.ssl-key-store-password";
@@ -417,10 +418,10 @@ public class ControllerConfiguration extends CombinedConfiguration
             {
                 String name = match.group(1);
                 if (name.equals("domain.name")) {
-                    return Domain.getLocalDomain().getName();
+                    return LocalDomain.getLocalDomain().getName();
                 }
                 else if (name.equals("domain.code")) {
-                    return Domain.getLocalDomain().getCode();
+                    return LocalDomain.getLocalDomain().getCode();
                 }
                 else {
                     throw new IllegalArgumentException("Parameter " + name + " not defined.");
@@ -439,9 +440,14 @@ public class ControllerConfiguration extends CombinedConfiguration
         return getInt(ControllerConfiguration.INTERDOMAIN_PORT);
     }
 
-    public boolean isInterDomainServerForceHttps()
+    public boolean isInterDomainServerHttpsForced()
     {
         return getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
+    }
+
+    public boolean isInterDomainServerClientAuthForced()
+    {
+        return getBoolean(ControllerConfiguration.INTERDOMAIN_CLIENT_AUTH, false);
     }
 
     public String getInterDomainSslKeyStore()

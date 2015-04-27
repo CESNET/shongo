@@ -2,19 +2,14 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.ConnectorStatus;
 import cz.cesnet.shongo.connector.api.jade.common.GetStatus;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
-import cz.cesnet.shongo.controller.booking.resource.ResourceTag;
-import cz.cesnet.shongo.controller.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
@@ -85,7 +80,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
     public Controller getController()
     {
         Controller controller = new Controller();
-        controller.setDomain(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
+        controller.setDomain(LocalDomain.getLocalDomain().toApi());
         return controller;
     }
 
@@ -99,7 +94,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             List<Domain> domainList = new ArrayList<Domain>();
-            domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
+            domainList.add(LocalDomain.getLocalDomain().toApi());
             for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
                 Domain domainApi = domain.toApi();
                 Domain.Status status = InterDomainAgent.getInstance().getStatus(domainApi);

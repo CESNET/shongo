@@ -1,15 +1,12 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import cz.cesnet.shongo.report.Report;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +28,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
     {
         super.before();
 
-        Domain.setLocalDomain(new Domain("test"));
+        LocalDomain.setLocalDomain(new LocalDomain("test"));
         Reporter.create();
 
         // Init cache
@@ -54,7 +51,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
         cache.destroy();
 
         Reporter.getInstance().destroy();
-        Domain.setLocalDomain(null);
+        LocalDomain.setLocalDomain(null);
     }
 
     public Cache getCache()

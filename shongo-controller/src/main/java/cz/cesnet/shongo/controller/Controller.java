@@ -25,6 +25,8 @@ import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.http.protocol.HTTP;
+import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
@@ -47,7 +49,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -173,7 +174,7 @@ public class Controller
         instance = null;
 
         // Local domain
-        Domain.setLocalDomain(null);
+        LocalDomain.setLocalDomain(null);
 
         // Default time zone
         if (oldDefaultTimeZone != null) {
@@ -229,11 +230,11 @@ public class Controller
         }
 
         // Initialize domain
-        Domain localDomain = new Domain();
+        LocalDomain localDomain = new LocalDomain();
         localDomain.setName(this.configuration.getString(ControllerConfiguration.DOMAIN_NAME));
         localDomain.setCode(this.configuration.getString(ControllerConfiguration.DOMAIN_CODE));
         localDomain.setOrganization(this.configuration.getString(ControllerConfiguration.DOMAIN_ORGANIZATION));
-        Domain.setLocalDomain(localDomain);
+        LocalDomain.setLocalDomain(localDomain);
 
         // Create email sender
         this.emailSender = new EmailSender(this.configuration);
@@ -253,12 +254,12 @@ public class Controller
     /**
      * Set domain information.
      *
-     * @param name         sets the {@link Domain#name}
-     * @param organization sets the {@link Domain#organization}
+     * @param name         sets the {@link LocalDomain#name}
+     * @param organization sets the {@link LocalDomain#organization}
      */
     public void setDomain(String name, String organization)
     {
-        Domain localDomain = Domain.getLocalDomain();
+        LocalDomain localDomain = LocalDomain.getLocalDomain();
         localDomain.setName(name);
         localDomain.setOrganization(organization);
     }
@@ -333,6 +334,15 @@ public class Controller
     public String getJadePlatformId()
     {
         return configuration.getString(ControllerConfiguration.JADE_PLATFORM_ID);
+    }
+
+    public static boolean isInterDomainAgentRunning()
+    {
+        try {
+            return getInstance().restServer.isRunning();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -459,7 +469,7 @@ public class Controller
             throw new IllegalStateException("Authorization is not set.");
         }
 
-        logger.info("Controller for domain '{}' is starting...", Domain.getLocalDomain().getName());
+        logger.info("Controller for domain '{}' is starting...", LocalDomain.getLocalDomain().getName());
 
         // Add common components
         addComponent(notificationManager);
@@ -599,9 +609,8 @@ public class Controller
 
             // Create web app
             WebAppContext webAppContext = new WebAppContext();
-            webAppContext.addServlet(new ServletHolder("rest", DispatcherServlet.class), "/rest/*");
-            EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-            webAppContext.addFilter(SSLClientCertFilter.class, "/rest/sec", filterTypes);
+            String servletPath = "/*";
+            webAppContext.addServlet(new ServletHolder("interDomain", DispatcherServlet.class), servletPath);
             webAppContext.setParentLoaderPriority(true);
 
             URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
@@ -613,7 +622,7 @@ public class Controller
 
             // SSL key store
             final String sslKeyStore = configuration.getInterDomainSslKeyStore();
-            boolean forceHttps = sslKeyStore != null && configuration.isInterDomainServerForceHttps();
+            boolean forceHttps = sslKeyStore != null && configuration.isInterDomainServerHttpsForced();
 //        boolean forwarded = clientWebConfiguration.isServerForceHttps();
 //        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
 
@@ -621,7 +630,7 @@ public class Controller
 
             // Configure HTTPS connector
             if (forceHttps) {
-                http_config.setSecureScheme("https");
+                http_config.setSecureScheme(HttpScheme.HTTPS.asString());
                 http_config.setSecurePort(configuration.getInterDomainPort());
                 final HttpConfiguration https_config = new HttpConfiguration(http_config);
                 https_config.addCustomizer(new SecureRequestCustomizer());
@@ -630,15 +639,23 @@ public class Controller
                 final SslContextFactory sslContextFactory = new SslContextFactory();
                 KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
                 trustStore.load(null);
+                // Load certificates of foreign domain's CAs
                 for (String certificatePath : configuration.getForeignDomainsCaCertFiles()) {
                     trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
                             SSLComunication.readPEMCert(certificatePath));
                 }
-                sslContextFactory.setTrustStore(trustStore);
                 sslContextFactory.setKeyStorePath(configuration.getInterDomainSslKeyStore());
                 sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
                 sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
-                sslContextFactory.setNeedClientAuth(true);
+                if (configuration.isInterDomainServerClientAuthForced()) {
+                    // Enable forced client auth
+                    sslContextFactory.setTrustStore(trustStore);
+                    sslContextFactory.setNeedClientAuth(true);
+                    // Enable SSL client filter by certificates
+                    EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
+                    webAppContext.addFilter(SSLClientCertFilter.class, servletPath, filterTypes);
+
+                }
 
                 final ServerConnector httpsConnector = new ServerConnector(restServer,
                         new SslConnectionFactory(sslContextFactory, "http/1.1"),
@@ -651,7 +668,7 @@ public class Controller
 
                 restServer.setConnectors(new Connector[]{httpsConnector});
             } else {
-                http_config.setSecureScheme("http");
+                http_config.setSecureScheme(HttpScheme.HTTP.asString());
                 final ServerConnector httpConnector = new ServerConnector(restServer,
                         new HttpConnectionFactory(http_config));
                 httpConnector.setHost(configuration.getInterDomainHost());

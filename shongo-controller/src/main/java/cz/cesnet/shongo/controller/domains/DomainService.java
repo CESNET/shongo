@@ -90,7 +90,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             List<Domain> domainList = new ArrayList<Domain>();
-            domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
+            domainList.add(LocalDomain.getLocalDomain().toApi());
             for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
                 domainList.add(domain.toApi());
             }
