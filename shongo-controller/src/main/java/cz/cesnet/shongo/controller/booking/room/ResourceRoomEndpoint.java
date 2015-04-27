@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
@@ -10,7 +9,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -19,11 +18,9 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
-import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
@@ -34,7 +31,6 @@ import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint}.
@@ -317,7 +313,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     public RecordingFolder getRecordingFolderApi()
     {
         RecordingFolder recordingFolder = new RecordingFolder();
-        recordingFolder.setName(String.format("%s:%d", Domain.getLocalDomainCode(), getId()));
+        recordingFolder.setName(String.format("%s:%d", LocalDomain.getLocalDomainCode(), getId()));
         recordingFolder.setUserPermissions(getRecordingFolderUserPermissions());
         return recordingFolder;
     }

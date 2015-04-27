@@ -65,7 +65,7 @@ public abstract class Component
     }
 
     /**
-     * {@link Component} which contains reference to current {@link Domain}.
+     * {@link Component} which contains reference to current {@link LocalDomain}.
      */
     public static interface EntityManagerFactoryAware
     {

@@ -37,13 +37,13 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         super.before();
 
-        Domain.setLocalDomain(new Domain("cz.cesnet"));
+        LocalDomain.setLocalDomain(new LocalDomain("cz.cesnet"));
     }
 
     @Override
     public void after() throws Exception
     {
-        Domain.setLocalDomain(null);
+        LocalDomain.setLocalDomain(null);
 
         super.after();
     }

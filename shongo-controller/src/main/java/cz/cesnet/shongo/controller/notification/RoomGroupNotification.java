@@ -4,10 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -297,7 +295,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         String eventId = roomNotification.getNotificationState().getId().toString();
 
         //iCalendar iCalendar = new iCalendar();
-        iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
+        iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), eventId, meetingName);
         event.setInterval(interval, context.getTimeZone());
         if (meetingDescription != null) {
             event.setDescription(meetingDescription);

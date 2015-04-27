@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Domain
+public class LocalDomain
 {
     /**
      * Represents an unique domain name (e.g., "cz.cesnet")
@@ -25,7 +25,7 @@ public class Domain
     /**
      * Constructor.
      */
-    public Domain()
+    public LocalDomain()
     {
     }
 
@@ -34,7 +34,7 @@ public class Domain
      *
      * @param name sets the {@link #name}
      */
-    public Domain(String name)
+    public LocalDomain(String name)
     {
         setName(name);
     }
@@ -45,7 +45,7 @@ public class Domain
      * @param name         sets the {@link #name}
      * @param organization sets the {@link #organization}
      */
-    public Domain(String name, String organization)
+    public LocalDomain(String name, String organization)
     {
         setName(name);
         setOrganization(organization);
@@ -119,23 +119,23 @@ public class Domain
     /**
      * Local domain of {@link Controller#instance}.
      */
-    private static Domain localDomain = null;
+    private static LocalDomain localDomain = null;
 
     /**
      * @return {@link #localDomain}
      */
-    public static void setLocalDomain(Domain domain)
+    public static void setLocalDomain(LocalDomain localDomain)
     {
-        if (domain != null && localDomain != null) {
+        if (localDomain != null && LocalDomain.localDomain != null) {
             throw new IllegalStateException("Local domain is already defined.");
         }
-        localDomain = domain;
+        LocalDomain.localDomain = localDomain;
     }
 
     /**
      * @return {@link #localDomain}
      */
-    public static Domain getLocalDomain()
+    public static LocalDomain getLocalDomain()
     {
         if (localDomain == null) {
             throw new IllegalStateException("No local domain is defined.");

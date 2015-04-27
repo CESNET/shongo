@@ -5,7 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.Specification;
@@ -34,7 +34,6 @@ import org.joda.time.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.sql.Time;
 import java.util.*;
 
 /**
@@ -1361,7 +1360,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         iCalendar iCalendar = new iCalendar(getConfiguration().getString("domain.name"),resourceName);
         for (ReservationSummary reservation : reservationSummaries) {
             //TODO: consolidate periodic reservations
-            cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
+            cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
             event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
             iCalendar.addEvent(event);
         }

@@ -332,11 +332,11 @@ public class Reporter implements ReporterCache.EntryCallback
         StringBuilder configuration = new StringBuilder();
         configuration.append("CONFIGURATION\n\n");
 
-        Domain domain = Domain.getLocalDomain();
+        LocalDomain localDomain = LocalDomain.getLocalDomain();
         configuration.append("  Domain: ")
-                .append(domain.getName())
+                .append(localDomain.getName())
                 .append(" (")
-                .append(domain.getOrganization())
+                .append(localDomain.getOrganization())
                 .append(")\n");
 
         String hostName = null;

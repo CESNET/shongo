@@ -4,8 +4,6 @@ import junit.framework.Assert;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,7 @@ public class ReporterTest
         if (reporterLogger != null) {
             reporterLogger.setLevel(Level.OFF);
         }
-        Domain.setLocalDomain(new Domain("test"));
+        LocalDomain.setLocalDomain(new LocalDomain("test"));
 
         try {
             // Create email sender
@@ -70,7 +68,7 @@ public class ReporterTest
             Assert.assertEquals(13, emailCount.intValue());
         }
         finally {
-            Domain.setLocalDomain(null);
+            LocalDomain.setLocalDomain(null);
             if (reporterLogger != null) {
                 reporterLogger.setLevel(reporterLoggerLevel);
             }
