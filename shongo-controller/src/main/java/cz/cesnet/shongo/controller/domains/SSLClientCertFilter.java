@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.controller.ForeignDomainConnectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletResponse;
@@ -13,20 +17,12 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebFilter(urlPatterns = {"/*"})
 public class SSLClientCertFilter implements Filter {
 
-    List<X509Certificate> allowedCerts = new ArrayList<X509Certificate>();
+    private static final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        try {
-            allowedCerts.add(readPEMCert("keystore/localhostREST.crt"));
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -46,8 +42,13 @@ public class SSLClientCertFilter implements Filter {
     }
 
     private boolean checkAllowedCert(X509Certificate cert) {
-        for (X509Certificate allowedCert : allowedCerts) {
+        try {
+        for (X509Certificate allowedCert : InterDomainAgent.getInstance().listForeignDomainCertificates()) {
             if(cert.equals(allowedCert)) return true;
+        }
+        } catch (IllegalArgumentException e) {
+            logger.error("InterDomainAgent has not started yet.", e);
+            return false;
         }
         return false;
     }
@@ -71,6 +72,5 @@ public class SSLClientCertFilter implements Filter {
 
     @Override
     public void destroy() {
-
     }
 }

@@ -12,25 +12,22 @@
         <name>unknown</name>
         <organization>Unknown Organization</organization>
         <!-- Interdomain protocol listening port -->
-        <!--<inter-domain-connection>-->
+        <inter-domain-connection>
             <!--<host>localhost</host>-->
             <!--<port></port>-->
             <!--<ssl-port>8433</ssl-port>-->
             <!--<force-https>true</force-https>-->
+            <command-timeout>PT33S</command-timeout>
+            <!-- TrustStore of JKS/PKCS12 type with private key and certificate chain of local domain -->
             <!--<ssl-key-store></ssl-key-store>-->
+            <!--<ssl-key-store-type></ssl-key-store-type>-->
             <!--<ssl-key-store-password></ssl-key-store-password>-->
-            <!--<ssl-trust-store></ssl-trust-store>-->
-            <!--<ssl-trust-store-password></ssl-trust-store-password>-->
-        <!--</inter-domain-connection>-->
+            <!-- Trusted CA's of foreign domains (PEM) -->
+            <!--<ssl-trust-store>-->
+                <!--<ca-certificate></ca-certificate>-->
+            <!--</ssl-trust-store>-->
+        </inter-domain-connection>
     </domain>
-
-    <!-- Interdomains resource sharing options -->
-    <domains>
-        <domain>
-            <name></name>
-            <host></host>
-        </domain>
-    </domains>
 
     <!-- Database settings -->
     <database>

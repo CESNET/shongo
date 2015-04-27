@@ -14,6 +14,8 @@ import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceTag;
+import cz.cesnet.shongo.controller.domains.InterDomainAction;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
 
@@ -99,15 +101,16 @@ public class CommonServiceImpl extends AbstractServiceImpl
             List<Domain> domainList = new ArrayList<Domain>();
             domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
             for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
-                domainList.add(domain.toApi());
+                Domain domainApi = domain.toApi();
+                Domain.Status status = InterDomainAgent.getInstance().getStatus(domainApi);
+                domainApi.setStatus(status);
+                domainList.add(domainApi);
             }
             return Collections.unmodifiableList(domainList);
         }
         finally {
             entityManager.close();
         }
-
-
     }
 
     @Override

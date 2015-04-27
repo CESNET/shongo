@@ -653,6 +653,18 @@ sub add_domain()
             'title' => 'Port',
         }
     );
+    $domain->add_attribute(
+        'allocatable', {
+            'required' => 1,
+            'title' => 'Use for allocation',
+        }
+    );
+    $domain->add_attribute(
+        'certificatePaht', {
+            'required' => 1,
+            'title' => 'Domain certificate file',
+        }
+    );
 
     my $id = $domain->create($attributes, $options);
     if ( defined($id) ) {

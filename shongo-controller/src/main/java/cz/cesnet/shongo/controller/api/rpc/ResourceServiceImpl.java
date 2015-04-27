@@ -830,7 +830,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 //        }
     }
 
-    @Override
     public Domain getDomain(SecurityToken token, String domainId) {
         checkNotNull("domain-id", domainId);
         authorization.validate(token);

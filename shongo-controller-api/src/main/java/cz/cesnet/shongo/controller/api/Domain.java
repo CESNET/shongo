@@ -36,9 +36,19 @@ public class Domain extends IdentifiedComplexType
     private String code;
 
     /**
+     * Path to certificate of domain.
+     */
+    private String certificatePath;
+
+    /**
      * Address of foreign domain
      */
-    private DeviceAddress deviceAddress;
+    private DeviceAddress domainAddress;
+
+    /**
+     * Use foreign domain for allocation
+     */
+    private boolean allocatable;
 
     /**
      * @return {@link #name}
@@ -96,12 +106,28 @@ public class Domain extends IdentifiedComplexType
         this.code = code;
     }
 
-    public DeviceAddress getDeviceAddress() {
-        return deviceAddress;
+    public DeviceAddress getDomainAddress() {
+        return domainAddress;
     }
 
-    public void setDeviceAddress(DeviceAddress deviceAddress) {
-        this.deviceAddress = deviceAddress;
+    public void setDomainAddress(DeviceAddress domainAddress) {
+        this.domainAddress = domainAddress;
+    }
+
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    public boolean isAllocatable() {
+        return allocatable;
+    }
+
+    public void setAllocatable(boolean allocatable) {
+        this.allocatable = allocatable;
     }
 
     private static final Pattern GLOBAL_ID_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
@@ -128,6 +154,8 @@ public class Domain extends IdentifiedComplexType
     private static final String CODE = "code";
     private static final String URL = "url";
     private static final String PORT = "port";
+    private static final String CERTIFICATE_PATH = "certificatePath";
+    private static final String ALLOCATABLE = "allocatable";
 
     @Override
     public DataMap toData()
@@ -137,10 +165,12 @@ public class Domain extends IdentifiedComplexType
         dataMap.set(ORGANIZATION, organization);
         dataMap.set(STATUS, status);
         dataMap.set(CODE, code);
-        if (deviceAddress != null) {
-            dataMap.set(URL, deviceAddress.getUrl());
-            dataMap.set(PORT, deviceAddress.getPort());
+        if (domainAddress != null) {
+            dataMap.set(URL, domainAddress.getUrl());
+            dataMap.set(PORT, domainAddress.getPort());
         }
+        dataMap.set(CERTIFICATE_PATH, certificatePath);
+        dataMap.set(ALLOCATABLE, allocatable);
         return dataMap;
     }
 
@@ -148,11 +178,13 @@ public class Domain extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        name = dataMap.getString(NAME);
-        organization = dataMap.getString(ORGANIZATION);
+        name = dataMap.getStringRequired(NAME);
+        organization = dataMap.getStringRequired(ORGANIZATION);
         status = dataMap.getEnum(STATUS, Status.class);
         code = dataMap.getString(CODE);
-        deviceAddress = new DeviceAddress(dataMap.getString(URL), dataMap.getInt(PORT));
+        domainAddress = new DeviceAddress(dataMap.getStringRequired(URL), dataMap.getIntegerRequired(PORT));
+        certificatePath = dataMap.getString(CERTIFICATE_PATH);
+        allocatable = dataMap.getBool(ALLOCATABLE);
     }
 
     /**
