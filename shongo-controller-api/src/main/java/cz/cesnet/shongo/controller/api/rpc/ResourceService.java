@@ -126,7 +126,7 @@ public interface ResourceService extends Service {
 //    TODO:public void addDomainTag(SecurityToken token, DomainTag domainTag);
 //
 //    @API
-//    public void removeDomainTag(SecurityToken token, String domainId, String tagId);
+//    TODO:public void removeDomainTag(SecurityToken token, String domainId, String tagId);
 
     @API
     public void addDomainResource(SecurityToken token, DomainResource domainResource, String domainId, String resourceId);

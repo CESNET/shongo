@@ -36,6 +36,10 @@ public class Domain extends SimplePersistentObject {
 
     private int port;
 
+    private String certificatePath;
+
+    private boolean allocatable;
+
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH, unique = true)
     public String getName() {
         return name;
@@ -81,6 +85,24 @@ public class Domain extends SimplePersistentObject {
         this.port = port;
     }
 
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    @Column(columnDefinition = "tinyint default false")
+    public boolean isAllocatable() {
+        return allocatable;
+    }
+
+    public void setAllocatable(boolean allocatable) {
+        this.allocatable = allocatable;
+    }
+
     /**
      * @return tag converted capability to API
      */
@@ -97,7 +119,9 @@ public class Domain extends SimplePersistentObject {
         domainApi.setName(name);
         domainApi.setCode(code);
         domainApi.setOrganization(organization);
-        domainApi.setDeviceAddress(new DeviceAddress(url, port));
+        domainApi.setDomainAddress(new DeviceAddress(url, port));
+        domainApi.setCertificatePath(certificatePath);
+        domainApi.setAllocatable(allocatable);
     }
 
     /**
@@ -116,7 +140,9 @@ public class Domain extends SimplePersistentObject {
         this.setOrganization(domainApi.getOrganization());
         this.setName(domainApi.getName());
         this.setCode(domainApi.getCode());
-        this.setUrl(domainApi.getDeviceAddress().getUrl());
-        this.setPort(domainApi.getDeviceAddress().getPort());
+        this.setUrl(domainApi.getDomainAddress().getUrl());
+        this.setPort(domainApi.getDomainAddress().getPort());
+        this.setCertificatePath(domainApi.getCertificatePath());
+        this.setAllocatable(domainApi.isAllocatable());
     }
 }

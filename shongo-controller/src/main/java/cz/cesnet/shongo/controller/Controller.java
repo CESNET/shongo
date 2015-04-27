@@ -19,21 +19,15 @@ import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import cz.cesnet.shongo.ssl.SSLComunication;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
-import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.joda.time.DateTimeZone;
@@ -45,10 +39,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.servlet.DispatcherType;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -320,39 +319,6 @@ public class Controller
         return configuration.getInt(ControllerConfiguration.JADE_PORT);
     }
 
-    public String getInterDomainHost()
-    {
-        return configuration.getString(ControllerConfiguration.INTERDOMAIN_HOST);
-    }
-
-    public int getInterDomainPort()
-    {
-        return configuration.getInt(ControllerConfiguration.INTERDOMAIN_PORT);
-    }
-
-    public int getInterDomainSslPort()
-    {
-        return configuration.getInt(ControllerConfiguration.INTERDOMAIN_SSL_PORT);
-    }
-
-    public boolean isInterDomainServerForceHttps()
-    {
-        return configuration.getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
-    }
-
-    public String getInterDomainSslKeyStore()
-    {
-        String sslKeyStore = configuration.getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
-        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
-            return null;
-        }
-        return sslKeyStore;
-    }
-
-    public String getServerSslKeyStorePassword() {
-        return configuration.getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
-    }
-
     /**
      * @return {@link #jadeContainer}
      */
@@ -548,13 +514,27 @@ public class Controller
         rpcServer = new org.eclipse.jetty.server.Server();
         final String sslKeyStore = configuration.getRpcSslKeyStore();
         final String rpcHost = configuration.getRpcHost(true);
+        final HttpConfiguration http_config = new HttpConfiguration();
+        http_config.setSecurePort(getRpcPort());
+
         if (sslKeyStore != null) {
             // Configure HTTPS connector
-            final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
-                    new org.eclipse.jetty.util.ssl.SslContextFactory(sslKeyStore);
+            http_config.setSecureScheme("https");
+            final HttpConfiguration https_config = new HttpConfiguration(http_config);
+            https_config.addCustomizer(new SecureRequestCustomizer());
+            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
             sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
-            final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
-                    new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
+
+            final ServerConnector httpsConnector = new ServerConnector(rpcServer,
+                    new SslConnectionFactory(sslContextFactory, "http/1.1"),
+                    new HttpConnectionFactory(https_config));
+//            httpsConnector.setIdleTimeout(50000);
+
+//            final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
+//                    new org.eclipse.jetty.util.ssl.SslContextFactory(sslKeyStore);
+//            sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
+//            final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
+//                    new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
             if (rpcHost != null) {
                 httpsConnector.setHost(rpcHost);
             }
@@ -563,10 +543,14 @@ public class Controller
         }
         else {
             // Configure HTTP connector
-            final org.eclipse.jetty.server.nio.SelectChannelConnector httpConnector =
-                    new org.eclipse.jetty.server.nio.SelectChannelConnector();
+            http_config.setSecureScheme("http");
+
+            final ServerConnector httpConnector = new ServerConnector(rpcServer,
+                    new HttpConnectionFactory(http_config));
+//            final org.eclipse.jetty.server.nio.SelectChannelConnector httpConnector =
+//                    new org.eclipse.jetty.server.nio.SelectChannelConnector();
             if (rpcHost != null) {
-                httpConnector   .setHost(rpcHost);
+                httpConnector.setHost(rpcHost);
             }
             httpConnector.setPort(getRpcPort());
             rpcServer.addConnector(httpConnector);
@@ -604,11 +588,10 @@ public class Controller
         return jadeContainer;
     }
 
-    public Server startInterDomainRESTApi()
-    {
-        if (getInterDomainHost() != null) {
+    public Server startInterDomainRESTApi() throws NoSuchAlgorithmException, CertificateException, InvalidAlgorithmParameterException, IOException, KeyStoreException {
+        if (configuration.getInterDomainHost() != null) {
             logger.info("Starting Inter Domain REST server on {}:{}...",
-                    getInterDomainHost(), getInterDomainSslPort());
+                    configuration.getInterDomainHost(), configuration.getInterDomainPort());
 
             restServer = new Server();
             // Configure SSL
@@ -629,34 +612,52 @@ public class Controller
             webAppContext.setResourceBase(resourceBase);
 
             // SSL key store
-            final String sslKeyStore = getInterDomainSslKeyStore();
-            boolean forceHttps = sslKeyStore != null && isInterDomainServerForceHttps();
+            final String sslKeyStore = configuration.getInterDomainSslKeyStore();
+            boolean forceHttps = sslKeyStore != null && configuration.isInterDomainServerForceHttps();
 //        boolean forwarded = clientWebConfiguration.isServerForceHttps();
 //        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
 
+            final HttpConfiguration http_config = new HttpConfiguration();
+
             // Configure HTTPS connector
             if (forceHttps) {
-                final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
-                sslContextFactory.setKeyStorePassword(getServerSslKeyStorePassword());
-                final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
-                httpsConnector.setPort(getInterDomainSslPort());
-                httpsConnector.setConfidentialPort(getInterDomainSslPort());
+                http_config.setSecureScheme("https");
+                http_config.setSecurePort(configuration.getInterDomainPort());
+                final HttpConfiguration https_config = new HttpConfiguration(http_config);
+                https_config.addCustomizer(new SecureRequestCustomizer());
 
-//            httpsConnector.setTruststore(getInterDomainSslKeyStore());
-//            httpsConnector.
-//            if (forwarded) {
-//                httpsConnector.setForwarded(true);
-//                if (forwardedHost != null) {
-//                    httpsConnector.setHostHeader(forwardedHost);
-//                }
-//            }
-                restServer.addConnector(httpsConnector);
+
+                final SslContextFactory sslContextFactory = new SslContextFactory();
+                KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
+                trustStore.load(null);
+                for (String certificatePath : configuration.getForeignDomainsCaCertFiles()) {
+                    trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
+                            SSLComunication.readPEMCert(certificatePath));
+                }
+                sslContextFactory.setTrustStore(trustStore);
+                sslContextFactory.setKeyStorePath(configuration.getInterDomainSslKeyStore());
+                sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
+                sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
+                sslContextFactory.setNeedClientAuth(true);
+
+                final ServerConnector httpsConnector = new ServerConnector(restServer,
+                        new SslConnectionFactory(sslContextFactory, "http/1.1"),
+                        new HttpConnectionFactory(https_config));
+                httpsConnector.setHost(configuration.getInterDomainHost());
+                httpsConnector.setPort(configuration.getInterDomainPort());
+                httpsConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
+
+
+
+                restServer.setConnectors(new Connector[]{httpsConnector});
             } else {
-                final SelectChannelConnector httpConnector;
-                httpConnector = new SelectChannelConnector();
-                httpConnector.setPort(getInterDomainPort());
-                restServer.addConnector(httpConnector);
-
+                http_config.setSecureScheme("http");
+                final ServerConnector httpConnector = new ServerConnector(restServer,
+                        new HttpConnectionFactory(http_config));
+                httpConnector.setHost(configuration.getInterDomainHost());
+                httpConnector.setPort(configuration.getInterDomainPort());
+                httpConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
+                restServer.setConnectors(new Connector[]{httpConnector});
             }
 
             restServer.setHandler(webAppContext);
@@ -1047,7 +1048,9 @@ public class Controller
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender(), configuration));
 
         // Initialize Inter Domain agent
-        InterDomainAgent.create(configuration);
+        InterDomainAgent interDomainAgent = InterDomainAgent.create(configuration);
+        interDomainAgent.init(entityManagerFactory);
+
 
         // Add XML-RPC services
         RecordingsCache recordingsCache = new RecordingsCache();

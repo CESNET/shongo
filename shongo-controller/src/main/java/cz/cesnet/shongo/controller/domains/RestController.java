@@ -24,7 +24,6 @@ public class RestController {
     @ResponseBody
     public List<String> handle() {
         InterDomainAgent idp = InterDomainAgent.getInstance();
-        idp.performRequest(InterDomainAgent.HttpMethod.GET, "https://localhost:8433/rest/any" , null);
         //resourceService.listResources(null);
         return new ArrayList<String>();
     }
@@ -43,4 +42,8 @@ public class RestController {
         return new ArrayList<String>();
     }
 
+    @RequestMapping(value = InterDomainAction.DOMAIN_STATUS, method = RequestMethod.GET)
+    public String handleDomainStatus() {
+        return "active";
+    }
 }

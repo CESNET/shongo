@@ -131,4 +131,19 @@ public class DeviceAddress implements Concept
             return "http://" + host;
         }
     }
+
+    public String getFullUrl()
+    {
+        String host = this.host;
+        while (host.endsWith("/")) {
+            host = host.substring(0,host.length() - 1);
+        }
+        host += ":" + port;
+        if (isSsl()) {
+            return "https://" + host;
+        }
+        else {
+            return "http://" + host;
+        }
+    }
 }

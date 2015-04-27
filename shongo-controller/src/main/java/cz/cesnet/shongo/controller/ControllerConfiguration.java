@@ -63,12 +63,12 @@ public class ControllerConfiguration extends CombinedConfiguration
      */
     public static final String INTERDOMAIN_HOST = "domain.inter-domain-connection.host";
     public static final String INTERDOMAIN_PORT = "domain.inter-domain-connection.port";
-    public static final String INTERDOMAIN_SSL_PORT = "domain.inter-domain-connection.ssl-port";
     public static final String INTERDOMAIN_FORCE_HTTPS = "domain.inter-domain-connection.force-https";
     public static final String INTERDOMAIN_SSL_KEY_STORE = "domain.inter-domain-connection.ssl-key-store";
+    public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = "domain.inter-domain-connection.ssl-key-store-type";
     public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = "domain.inter-domain-connection.ssl-key-store-password";
-    //TODO
-    public static final String INTERDOMAINS = "domains";
+    public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = "domain.inter-domain-connection.ssl-trust-store.ca-certificate";
+    public static final String INTERDOMAIN_COMMAND_TIMEOUT = "domain.inter-domain-connection.command-timeout";
 
     /**
      * Worker configuration (it runs scheduler and executor).
@@ -427,5 +427,49 @@ public class ControllerConfiguration extends CombinedConfiguration
                 }
             }
         });
+    }
+
+    public String getInterDomainHost()
+    {
+        return getString(ControllerConfiguration.INTERDOMAIN_HOST);
+    }
+
+    public int getInterDomainPort()
+    {
+        return getInt(ControllerConfiguration.INTERDOMAIN_PORT);
+    }
+
+    public boolean isInterDomainServerForceHttps()
+    {
+        return getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
+    }
+
+    public String getInterDomainSslKeyStore()
+    {
+        String sslKeyStore = getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
+        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
+            return null;
+        }
+        return sslKeyStore;
+    }
+
+    public String getInterDomainSslKeyStoreType() {
+        return getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE);
+    }
+
+    public String getInterDomainSslKeyStorePassword() {
+        return getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
+    }
+
+    public List<String> getForeignDomainsCaCertFiles() {
+        List<String> caCertFiles = new ArrayList<String>();
+        for (Object o : getList(ControllerConfiguration.INTERDOMAIN_TRUSTED_CA_CERT_FILES)) {
+            caCertFiles.add((String) o);
+        }
+        return caCertFiles;
+    }
+
+    public int getInterDomainCommandTimeout() {
+        return (int) getDuration(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT).getMillis();
     }
 }
