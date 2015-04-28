@@ -656,12 +656,13 @@ sub add_domain()
     $domain->add_attribute(
         'allocatable', {
             'required' => 1,
+            'type' => 'bool',
             'title' => 'Use for allocation',
         }
     );
     $domain->add_attribute(
-        'certificatePaht', {
-            'required' => 1,
+        'certificatePath', {
+            'required' => 0,
             'title' => 'Domain certificate file',
         }
     );

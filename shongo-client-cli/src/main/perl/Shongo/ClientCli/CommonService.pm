@@ -58,21 +58,26 @@ sub list_domains()
             {'field' => 'id',         'title' => 'Identifier'},
             {'field' => 'name',         'title' => 'Name'},
             {'field' => 'organization', 'title' => 'Organization'},
+            {'field' => 'allocatable', 'title' => 'Allocatable'},
             {'field' => 'status',       'title' => 'Status'},
-            {'field' => 'url',       'title' => 'Url'}
+            {'field' => 'url',       'title' => 'Url'},
+            {'field' => 'certificatePath',       'title' => 'Certificate'}
         ],
         'data' => []
     };
     foreach my $domain (@{$response}) {
-				var_dump($domain);
-				my $url = $domain->{'url'} eq "" ? "local" : "$domain->{'url'}:$domain->{'port'}";
-				my $id = $domain->{'id'} eq "" ? "none" : $domain->{'id'};
+        my $url = length $domain->{'url'} ? "$domain->{'url'}:$domain->{'port'}" : "none";
+        my $id = length $domain->{'id'} ? $domain->{'id'} : "none";
+        my $status = length $domain->{'status'} ? $domain->{'status'} : "ERROR";
+        my $certificatePath = length $domain->{'certificatePath'} ? $domain->{'certificatePath'} : "none";
         push(@{$table->{'data'}}, {
             'id' => $id,
             'name' => $domain->{'name'},
             'organization' => $domain->{'organization'},
-            'status' => $DomainStatus->{$domain->{'status'}},
-						'url' => $url,
+            'allocatable' => $domain->{'allocatable'} ? 'yes' : 'no',
+            'status' => $status,
+            'url' => $url,
+            'certificatePath' => $certificatePath
         });
     }
     console_print_table($table);
