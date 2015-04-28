@@ -94,7 +94,7 @@ public class Domain extends SimplePersistentObject {
         this.certificatePath = certificatePath;
     }
 
-    @Column(columnDefinition = "tinyint default false")
+    @Column(nullable = false)
     public boolean isAllocatable() {
         return allocatable;
     }

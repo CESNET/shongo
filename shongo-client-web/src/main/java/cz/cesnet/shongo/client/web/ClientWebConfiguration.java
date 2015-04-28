@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.TodoImplementException;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.apache.commons.configuration.*;
-import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import java.io.File;
 import java.net.MalformedURLException;

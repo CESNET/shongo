@@ -64,6 +64,13 @@
             <version>1.9.13</version>
         </dependency>
 
+        <!-- Google core libraries -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
+
         <!-- Hibernate is used for accessing database -->
         <dependency>
             <groupId>org.hibernate</groupId>

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
@@ -88,14 +89,24 @@ public class InterDomainAgent implements InterDomainProtocol {
     public List<X509Certificate> listForeignDomainCertificates() {
         List<X509Certificate> certificates = new ArrayList<X509Certificate>();
         for (Domain domain : domainService.listDomains()) {
+            String certificate = domain.getCertificatePath();
+            if (Strings.isNullOrEmpty(certificate)) {
+                if (configuration.isInterDomainServerClientAuthForced()) {
+                    String message = "Cannot connect to domain " + domain.getName()
+                            + ", certificate file does not exist or is not configured.";
+                    logger.error(message);
+                    notifyDomainAdmin(message, null);
+                }
+                continue;
+            }
             try {
-                certificates.add(SSLComunication.readPEMCert(domain.getCertificatePath()));
+                certificates.add(SSLComunication.readPEMCert(certificate));
             } catch (CertificateException e) {
-                String message = "Failed to read certificate " + domain.getCertificatePath();
+                String message = "Failed to read certificate " + certificate;
                 logger.error(message, e);
                 notifyDomainAdmin(message, e);
             } catch (IOException e) {
-                String message = "Cannot read file " + domain.getCertificatePath();
+                String message = "Cannot read file " + certificate;
                 logger.error(message, e);
                 notifyDomainAdmin(message, e);
             }
@@ -105,7 +116,7 @@ public class InterDomainAgent implements InterDomainProtocol {
 
     public Domain.Status getStatus(Domain domain) {
         JSONObject response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, domain, null);
-        if ("".equals(response.get("status"))) {
+        if (Domain.Status.AVAILABLE.toString().equals(response.get("status"))) {
             return Domain.Status.AVAILABLE;
         }
         return Domain.Status.NOT_AVAILABLE;
@@ -125,17 +136,20 @@ public class InterDomainAgent implements InterDomainProtocol {
         try {
             connection = (HttpsURLConnection) actionUrl.openConnection();
             // For secure connection
+            String certificatePath = domain.getCertificatePath();
             if("HTTPS".equals(actionUrl.getProtocol().toUpperCase())) {
-                String certificatePath = domain.getCertificatePath();
-                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                trustStore.load(null);
-                trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
-                        SSLComunication.readPEMCert(certificatePath));
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-                trustManagerFactory.init(trustStore);
+                TrustManagerFactory trustManagerFactory = null;
+                if (certificatePath != null) {
+                    KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    trustStore.load(null);
+                    trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
+                            SSLComunication.readPEMCert(certificatePath));
+                    trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+                    trustManagerFactory.init(trustStore);
+                }
 
                 SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+                sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory == null ? null : trustManagerFactory.getTrustManagers(), null);
 
                 connection.setSSLSocketFactory(sslContext.getSocketFactory());
             }

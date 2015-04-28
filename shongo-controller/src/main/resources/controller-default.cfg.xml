@@ -17,6 +17,8 @@
             <!--<port></port>-->
             <!--<ssl-port>8433</ssl-port>-->
             <!--<force-https>true</force-https>-->
+            <!-- Only whe force https is true -->
+            <!--<force-client-auth>true</force-client-auth>-->
             <command-timeout>PT33S</command-timeout>
             <!-- TrustStore of JKS/PKCS12 type with private key and certificate chain of local domain -->
             <!--<ssl-key-store></ssl-key-store>-->

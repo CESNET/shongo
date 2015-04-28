@@ -13,6 +13,8 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -27,6 +29,9 @@ public class CommonServiceImpl extends AbstractServiceImpl
         implements CommonService, Component.EntityManagerFactoryAware,
                    Component.ControllerAgentAware, Component.AuthorizationAware
 {
+
+    private static Logger logger = LoggerFactory.getLogger(CommonServiceImpl.class);
+
     /**
      * @see javax.persistence.EntityManagerFactory
      */
@@ -94,10 +99,17 @@ public class CommonServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             List<Domain> domainList = new ArrayList<Domain>();
-            domainList.add(LocalDomain.getLocalDomain().toApi());
+            Domain localDomain = LocalDomain.getLocalDomain().toApi();
+            localDomain.setAllocatable(true);
+            domainList.add(localDomain);
             for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
                 Domain domainApi = domain.toApi();
-                Domain.Status status = InterDomainAgent.getInstance().getStatus(domainApi);
+                Domain.Status status = null;
+                try {
+                    status = InterDomainAgent.getInstance().getStatus(domainApi);
+                } catch (Exception e) {
+                    logger.warn("Failed to get status for domain " + domain.getName(), e);
+                }
                 domainApi.setStatus(status);
                 domainList.add(domainApi);
             }
