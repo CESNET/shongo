@@ -45,8 +45,19 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 "https://127.0.0.1:8182/user/settings");
         System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
                 "https://127.0.0.1:8182/detail/${reservationRequestId}");
-
+        System.setProperty(ControllerConfiguration.TIMEZONE, "UTC");
         super.before();
+    }
+
+    @Override
+    public void configureSystemProperties()
+    {
+        super.configureSystemProperties();
+        System.setProperty(ControllerConfiguration.NOTIFICATION_USER_SETTINGS_URL,
+                "https://127.0.0.1:8182/user/settings");
+        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
+                "https://127.0.0.1:8182/detail/${reservationRequestId}");
+        System.setProperty(ControllerConfiguration.TIMEZONE, "UTC");
     }
 
     @Override
@@ -1083,6 +1094,44 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
+    }
+
+    @Test
+    public void testBug()
+    {
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(Locale.ENGLISH);
+        userSettings.setUseWebService(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
+        ReservationService reservationService = getReservationService();
+
+        Resource meetingRoom = new Resource();
+        meetingRoom.setName("Meeting room");
+        meetingRoom.setAllocatable(true);
+        String meetingRoomId = getResourceService().createResource(SECURITY_TOKEN_USER1, meetingRoom);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("Meeting Room Reservation Request");
+        reservationRequest.setSpecification(new ResourceSpecification(meetingRoomId));
+        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2015-02-13T09:30", "PT1H30M", "P1W", "2016-12-31");
+        slot.setTimeZone(DateTimeZone.forID("Europe/Prague"));
+        reservationRequest.addSlot(slot);
+        reservationRequest.setPurpose(ReservationRequestPurpose.USER);
+
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        DateTime start = new DateTime("2015-04-01T13:46");
+        Period lookahead = new Period("P1W");
+        Period schedulerPeriod = new Period("PT1H");
+        DateTime end = new DateTime("2015-04-08T12:00");
+        while(start.isBefore(end)) {
+            runPreprocessorAndScheduler(new Interval(start, lookahead));
+            start = start.plus(schedulerPeriod);
+        }
+        for (Class<? extends AbstractNotification> clazz : getNotificationTypes()) {
+            Assert.assertNotSame(ReservationNotification.Deleted.class, clazz);
+        }
     }
 
     /**
