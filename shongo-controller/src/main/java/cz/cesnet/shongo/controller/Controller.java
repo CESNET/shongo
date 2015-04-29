@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
@@ -599,7 +600,7 @@ public class Controller
     }
 
     public Server startInterDomainRESTApi() throws NoSuchAlgorithmException, CertificateException, InvalidAlgorithmParameterException, IOException, KeyStoreException {
-        if (configuration.getInterDomainHost() != null) {
+        if (configuration.isInterDomainConfigured()) {
             logger.info("Starting Inter Domain REST server on {}:{}...",
                     configuration.getInterDomainHost(), configuration.getInterDomainPort());
 
@@ -660,7 +661,10 @@ public class Controller
                 final ServerConnector httpsConnector = new ServerConnector(restServer,
                         new SslConnectionFactory(sslContextFactory, "http/1.1"),
                         new HttpConnectionFactory(https_config));
-                httpsConnector.setHost(configuration.getInterDomainHost());
+                String host = configuration.getInterDomainHost();
+                if (!Strings.isNullOrEmpty(host)) {
+                    httpsConnector.setHost(host);
+                }
                 httpsConnector.setPort(configuration.getInterDomainPort());
                 httpsConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
 
@@ -1065,8 +1069,10 @@ public class Controller
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender(), configuration));
 
         // Initialize Inter Domain agent
-        InterDomainAgent interDomainAgent = InterDomainAgent.create(configuration);
-        interDomainAgent.init(entityManagerFactory);
+        if (configuration.isInterDomainConfigured()) {
+            InterDomainAgent interDomainAgent = InterDomainAgent.create(configuration);
+            interDomainAgent.init(entityManagerFactory);
+        }
 
 
         // Add XML-RPC services

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -61,15 +62,16 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * Interdomains configuration
      */
-    public static final String INTERDOMAIN_HOST = "domain.inter-domain-connection.host";
-    public static final String INTERDOMAIN_PORT = "domain.inter-domain-connection.port";
-    public static final String INTERDOMAIN_FORCE_HTTPS = "domain.inter-domain-connection.force-https";
-    public static final String INTERDOMAIN_CLIENT_AUTH = "domain.inter-domain-connection.force-client-auth";
-    public static final String INTERDOMAIN_SSL_KEY_STORE = "domain.inter-domain-connection.ssl-key-store";
-    public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = "domain.inter-domain-connection.ssl-key-store-type";
-    public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = "domain.inter-domain-connection.ssl-key-store-password";
-    public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = "domain.inter-domain-connection.ssl-trust-store.ca-certificate";
-    public static final String INTERDOMAIN_COMMAND_TIMEOUT = "domain.inter-domain-connection.command-timeout";
+    public static final String INTERDOMAIN = "domain.inter-domain-connection";
+    public static final String INTERDOMAIN_HOST = INTERDOMAIN + ".host";
+    public static final String INTERDOMAIN_PORT = INTERDOMAIN + ".port";
+    public static final String INTERDOMAIN_FORCE_HTTPS = INTERDOMAIN + ".force-https";
+    public static final String INTERDOMAIN_CLIENT_AUTH = INTERDOMAIN + ".force-client-auth";
+    public static final String INTERDOMAIN_SSL_KEY_STORE = INTERDOMAIN + ".ssl-key-store";
+    public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = INTERDOMAIN + ".ssl-key-store-type";
+    public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = INTERDOMAIN + ".ssl-key-store-password";
+    public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = INTERDOMAIN + ".ssl-trust-store.ca-certificate";
+    public static final String INTERDOMAIN_COMMAND_TIMEOUT = INTERDOMAIN + ".command-timeout";
 
     /**
      * Worker configuration (it runs scheduler and executor).
@@ -430,14 +432,29 @@ public class ControllerConfiguration extends CombinedConfiguration
         });
     }
 
+    public boolean isInterDomainConfigured()
+    {
+        if (isInterDomainServerHttpsForced()) {
+            if (Strings.isNullOrEmpty(getInterDomainSslKeyStore())
+                    || Strings.isNullOrEmpty(getInterDomainSslKeyStoreType())
+                    || Strings.isNullOrEmpty(getInterDomainSslKeyStorePassword())) {
+                return false;
+            }
+        }
+        if (getInterDomainPort() == null) {
+            return false;
+        }
+        return true;
+    }
+
     public String getInterDomainHost()
     {
         return getString(ControllerConfiguration.INTERDOMAIN_HOST);
     }
 
-    public int getInterDomainPort()
+    public Integer getInterDomainPort()
     {
-        return getInt(ControllerConfiguration.INTERDOMAIN_PORT);
+        return getInteger(ControllerConfiguration.INTERDOMAIN_PORT, null);
     }
 
     public boolean isInterDomainServerHttpsForced()
