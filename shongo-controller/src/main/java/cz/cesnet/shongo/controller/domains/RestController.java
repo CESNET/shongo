@@ -57,9 +57,9 @@ public class RestController {
     }
 
     /**
-     * TODO
+     * Represents Inter Domain response with status code
      */
-    public static class InterDomainResponse {
+    public class InterDomainResponse {
         private Domain.Status status;
 
         private String responseType;

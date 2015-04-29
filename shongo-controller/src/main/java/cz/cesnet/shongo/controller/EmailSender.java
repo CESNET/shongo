@@ -247,11 +247,15 @@ public class EmailSender
 
         public Email(Collection<String> recipients, String subject, String content)
         {
+            addRecipients(recipients);
+            setSubject(subject);
+            setContent(content);
+        }
+
+        public void addRecipients(Collection<String> recipients) {
             for (String recipient : recipients) {
                 addRecipient(recipient);
             }
-            setSubject(subject);
-            setContent(content);
         }
 
         public Email(String recipient, Collection<String> replyTo, String subject, String content)

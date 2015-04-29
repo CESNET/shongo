@@ -54,7 +54,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         }
         this.userError = reservationRequest.getAllocationStateReport(Report.UserType.USER).toUserError();
         this.adminReport = reservationRequest.getAllocationStateReport(Report.UserType.DOMAIN_ADMIN);
-        for (PersonInformation administrator : configuration.getAdministrators(authorizationManager)) {
+        for (PersonInformation administrator : configuration.getAdministrators()) {
             addRecipient(administrator, true);
         }
         for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER).getUserIds()) {

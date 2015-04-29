@@ -1071,7 +1071,7 @@ public class Controller
         // Initialize Inter Domain agent
         if (configuration.isInterDomainConfigured()) {
             InterDomainAgent interDomainAgent = InterDomainAgent.create(configuration);
-            interDomainAgent.init(entityManagerFactory);
+            interDomainAgent.init(entityManagerFactory, controller.getEmailSender());
         }
 
 
