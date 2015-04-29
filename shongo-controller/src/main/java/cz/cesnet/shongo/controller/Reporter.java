@@ -102,15 +102,8 @@ public class Reporter implements ReporterCache.EntryCallback
             logger.warn("Cannot get list of administrators, because controller isn't specified...");
             return Collections.emptyList();
         }
-        Authorization authorization = controller.getAuthorization();
-        EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
-        try {
-            ControllerConfiguration configuration = controller.getConfiguration();
-            return configuration.getAdministratorEmails(entityManager, authorization);
-        }
-        finally {
-            entityManager.close();
-        }
+        ControllerConfiguration configuration = controller.getConfiguration();
+        return configuration.getAdministratorEmails();
     }
 
     /**
@@ -181,7 +174,7 @@ public class Reporter implements ReporterCache.EntryCallback
                 Set<String> administratorEmails = new HashSet<String>();
                 if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)) {
                     ControllerConfiguration configuration = controller.getConfiguration();
-                    administratorEmails.addAll(configuration.getAdministratorEmails(entityManager, authorization));
+                    administratorEmails.addAll(configuration.getAdministratorEmails());
                     String content = getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable);
                     sendReportEmail(administratorEmails, name, content, false);
                 }

@@ -23,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -1325,6 +1324,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     @Test
     public void testLookaheadNotificationsWithPeriod() throws Exception
     {
+        DateTimeZone dateTimeZone = DateTimeZone.forID("UTC");
+        DateTimeZone.setDefault(dateTimeZone);
+        TimeZone.setDefault(dateTimeZone.toTimeZone());
+
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(Locale.ENGLISH);
         userSettings.setUseWebService(false);
@@ -1340,7 +1343,9 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("Meeting Room Reservation Request");
         reservationRequest.setSpecification(new ResourceSpecification(meetingRoomId));
-        reservationRequest.addSlot(new PeriodicDateTimeSlot("2015-02-13T07:30", "PT1H30M", "P1W", "2016-12-31"));
+        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2015-02-13T09:30", "PT1H30M", "P1W", "2016-12-31");
+        slot.setTimeZone(DateTimeZone.forID("Europe/Prague"));
+        reservationRequest.addSlot(slot);
         reservationRequest.setPurpose(ReservationRequestPurpose.USER);
 
         String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
@@ -1352,10 +1357,14 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aclEntry.setObjectId(reservationRequestId);
         getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, aclEntry);
 
-        runPreprocessorAndScheduler(new Interval("2015-02-17T13:46/2016-02-17T13:46"));
-
-        runPreprocessorAndScheduler(new Interval("2015-04-08T08:00/2016-04-08T08:00"));
-        runPreprocessorAndScheduler(new Interval("2015-04-08T09:00/2016-04-08T09:00"));
+        DateTime start = new DateTime("2015-02-17T13:46");
+        Period lookahead = new Period("P1Y");
+        Period schedulerPeriod = new Period("PT5M");
+        DateTime end = new DateTime("2015-04-08T12:00");
+        while(start.isBefore(end)) {
+            runPreprocessorAndScheduler(new Interval(start, lookahead));
+            start = start.plus(schedulerPeriod);
+        }
     }
 
     /**

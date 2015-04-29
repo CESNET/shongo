@@ -3,14 +3,19 @@ package cz.cesnet.shongo.controller.domains;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
+import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
+import cz.cesnet.shongo.controller.api.jade.Service;
+import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
 import cz.cesnet.shongo.ssl.SSLComunication;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.MessagingException;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -35,6 +40,8 @@ public class InterDomainAgent implements InterDomainProtocol {
 
     private final ControllerConfiguration configuration;
 
+    private EmailSender emailSender;
+
     private final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
     private final KeyManagerFactory keyManagerFactory;
@@ -47,8 +54,7 @@ public class InterDomainAgent implements InterDomainProtocol {
      * @param configuration
      */
     protected InterDomainAgent(ControllerConfiguration configuration) {
-        if (configuration == null || configuration.isInterDomainConfigured()) {
-            //TODO more checks
+        if (configuration == null || !configuration.isInterDomainConfigured()) {
             throw new IllegalStateException("Inter Domain connection is not configured.");
         }
         try {
@@ -85,8 +91,9 @@ public class InterDomainAgent implements InterDomainProtocol {
         return instance;
     }
 
-    public void init(EntityManagerFactory entityManagerFactory) {
+    public void init(EntityManagerFactory entityManagerFactory, EmailSender emailSender) {
         domainService = new DomainService(entityManagerFactory);
+        this.emailSender = emailSender;
         domainService.init(configuration);
     }
 
@@ -106,11 +113,11 @@ public class InterDomainAgent implements InterDomainProtocol {
             try {
                 certificates.add(SSLComunication.readPEMCert(certificate));
             } catch (CertificateException e) {
-                String message = "Failed to read certificate " + certificate;
+                String message = "Failed to load certificate file " + certificate;
                 logger.error(message, e);
                 notifyDomainAdmin(message, e);
             } catch (IOException e) {
-                String message = "Cannot read file " + certificate;
+                String message = "Cannot read certificate file " + certificate;
                 logger.error(message, e);
                 notifyDomainAdmin(message, e);
             }
@@ -126,9 +133,16 @@ public class InterDomainAgent implements InterDomainProtocol {
         return Domain.Status.NOT_AVAILABLE;
     }
 
-    private void notifyDomainAdmin(String message, Throwable e) {
-        //TODO:
-        //throw new TodoImplementException("Notify admin of local domain");
+    private void notifyDomainAdmin(String message, Throwable exception) {
+        String subject = "Error in InterDomainAgent";
+        message += "\n";
+        message += exception.toString();
+        EmailSender.Email emailNotification = new EmailSender.Email(configuration.getAdministratorEmails(), subject, message);
+        try {
+            emailSender.sendEmail(emailNotification);
+        } catch (MessagingException e) {
+            logger.error("Failed to send error to domain admins.", e);
+        }
     }
 
     public JSONObject performRequest(InterDomainAction.HttpMethod method, String action, Domain domain, JSONObject jsonObject) {

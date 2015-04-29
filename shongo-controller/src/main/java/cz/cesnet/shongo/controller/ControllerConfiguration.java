@@ -316,10 +316,9 @@ public class ControllerConfiguration extends CombinedConfiguration
     private List<PersonInformation> administrators;
 
     /**
-     * @param authorizationManager
      * @return set of administrators to which errors are reported.
      */
-    public synchronized List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager)
+    public synchronized List<PersonInformation> getAdministrators()
     {
         if (administrators == null) {
             administrators = new LinkedList<PersonInformation>();
@@ -357,24 +356,12 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @param entityManager
-     * @param authorization
-     * @return set of administrators to which errors are reported.
-     */
-    public synchronized List<PersonInformation> getAdministrators(EntityManager entityManager, Authorization authorization)
-    {
-        return getAdministrators(new AuthorizationManager(entityManager, authorization));
-    }
-
-    /**
-     * @param entityManager
-     * @param authorization
      * @return set of administrator emails to which errors are reported.
      */
-    public synchronized List<String> getAdministratorEmails(EntityManager entityManager, Authorization authorization)
+    public synchronized List<String> getAdministratorEmails()
     {
         List<String> administratorEmails = new LinkedList<String>();
-        for (PersonInformation administrator : getAdministrators(entityManager, authorization)) {
+        for (PersonInformation administrator : getAdministrators()) {
             administratorEmails.add(administrator.getPrimaryEmail());
         }
         return administratorEmails;
