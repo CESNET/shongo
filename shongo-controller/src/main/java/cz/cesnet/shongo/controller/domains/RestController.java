@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class RestController {
 
     @RequestMapping(value = InterDomainAction.DOMAIN_STATUS, method = RequestMethod.GET)
     @ResponseBody
-    public InterDomainResponse handleDomainStatus() {
+    public InterDomainResponse handleDomainStatus(HttpServletRequest request) {
         boolean foreignDomainRunning = cz.cesnet.shongo.controller.Controller.isInterDomainAgentRunning();
         InterDomainResponse response = new InterDomainResponse();
         response.setStatus(foreignDomainRunning ? Domain.Status.AVAILABLE : Domain.Status.NOT_AVAILABLE);

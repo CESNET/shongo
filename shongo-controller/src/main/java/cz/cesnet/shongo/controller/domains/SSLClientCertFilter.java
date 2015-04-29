@@ -43,14 +43,11 @@ public class SSLClientCertFilter implements Filter {
 
     private boolean checkAllowedCert(X509Certificate cert) {
         try {
-        for (X509Certificate allowedCert : InterDomainAgent.getInstance().listForeignDomainCertificates()) {
-            if(cert.equals(allowedCert)) return true;
-        }
+            return (InterDomainAgent.getInstance().getDomain(cert) != null);
         } catch (IllegalArgumentException e) {
             logger.error("InterDomainAgent has not started yet.", e);
             return false;
         }
-        return false;
     }
 
     static private X509Certificate readPEMCert(String certFile) throws CertificateException, IOException {
