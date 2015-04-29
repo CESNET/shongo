@@ -85,6 +85,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        return "Resource";
 //    }
 
+    /**
+     * List all domains included local domain. Every domain will have null status except local.
+     * @return
+     */
     public List<Domain> listDomains() {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);

@@ -7,9 +7,7 @@ import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
-import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
-import cz.cesnet.shongo.controller.api.jade.Service;
-import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
+
 import cz.cesnet.shongo.ssl.SSLComunication;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -27,8 +25,8 @@ import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * InterDomain agent for Domain Controller
@@ -97,11 +95,14 @@ public class InterDomainAgent implements InterDomainProtocol {
         domainService.init(configuration);
     }
 
-    public List<X509Certificate> listForeignDomainCertificates() {
-        List<X509Certificate> certificates = new ArrayList<X509Certificate>();
+    public Map<X509Certificate, Domain> listForeignDomainCertificates() {
+        Map<X509Certificate, Domain> domainsByCert = new HashMap<X509Certificate, Domain>();
         for (Domain domain : domainService.listDomains()) {
             String certificate = domain.getCertificatePath();
             if (Strings.isNullOrEmpty(certificate)) {
+                if (domain.getStatus() != null) {
+                    continue;
+                }
                 if (configuration.isInterDomainServerClientAuthForced()) {
                     String message = "Cannot connect to domain " + domain.getName()
                             + ", certificate file does not exist or is not configured.";
@@ -111,7 +112,7 @@ public class InterDomainAgent implements InterDomainProtocol {
                 continue;
             }
             try {
-                certificates.add(SSLComunication.readPEMCert(certificate));
+                domainsByCert.put(SSLComunication.readPEMCert(certificate), domain);
             } catch (CertificateException e) {
                 String message = "Failed to load certificate file " + certificate;
                 logger.error(message, e);
@@ -122,7 +123,11 @@ public class InterDomainAgent implements InterDomainProtocol {
                 notifyDomainAdmin(message, e);
             }
         }
-        return certificates;
+        return domainsByCert;
+    }
+
+    public Domain getDomain(X509Certificate certificate) {
+        return listForeignDomainCertificates().get(certificate);
     }
 
     public Domain.Status getStatus(Domain domain) {
