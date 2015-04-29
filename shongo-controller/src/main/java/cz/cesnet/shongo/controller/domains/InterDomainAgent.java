@@ -47,6 +47,10 @@ public class InterDomainAgent implements InterDomainProtocol {
      * @param configuration
      */
     protected InterDomainAgent(ControllerConfiguration configuration) {
+        if (configuration == null || configuration.isInterDomainConfigured()) {
+            //TODO more checks
+            throw new IllegalStateException("Inter Domain connection is not configured.");
+        }
         try {
             KeyStore keyStore = KeyStore.getInstance(configuration.getInterDomainSslKeyStoreType());
             FileInputStream keyStoreFile = new FileInputStream(configuration.getInterDomainSslKeyStore());
