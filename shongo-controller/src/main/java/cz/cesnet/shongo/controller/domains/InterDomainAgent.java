@@ -139,9 +139,14 @@ public class InterDomainAgent implements InterDomainProtocol {
     }
 
     private void notifyDomainAdmin(String message, Throwable exception) {
+        if (!Strings.isNullOrEmpty(message)) {
+            throw new IllegalArgumentException("Message cannot be null or epmty.");
+        }
         String subject = "Error in InterDomainAgent";
-        message += "\n";
-        message += exception.toString();
+        if (exception != null) {
+            message += "\n";
+            message += exception.toString();
+        }
         EmailSender.Email emailNotification = new EmailSender.Email(configuration.getAdministratorEmails(), subject, message);
         try {
             emailSender.sendEmail(emailNotification);
