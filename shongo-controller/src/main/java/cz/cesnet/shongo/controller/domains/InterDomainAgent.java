@@ -6,9 +6,12 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
-
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
+import cz.cesnet.shongo.controller.api.domains.InterDomainService;
+import cz.cesnet.shongo.controller.api.request.DomainListRequest;
 import cz.cesnet.shongo.ssl.SSLComunication;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,15 +28,17 @@ import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * InterDomain agent for Domain Controller
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class InterDomainAgent implements InterDomainProtocol {
+public class InterDomainAgent implements InterDomainService {
     private static InterDomainAgent instance;
 
     private final ControllerConfiguration configuration;
@@ -47,6 +52,9 @@ public class InterDomainAgent implements InterDomainProtocol {
     private DomainService domainService;
 
     private int COMMAND_TIMEOUT;
+
+    private final int THREAD_TIMEOUT = 1000;
+
     /**
      * Constructor
      * @param configuration
@@ -126,6 +134,10 @@ public class InterDomainAgent implements InterDomainProtocol {
         return domainsByCert;
     }
 
+    public List<Domain> listForeignDomains() {
+        return domainService.listDomains(true);
+    }
+
     public Domain getDomain(X509Certificate certificate) {
         return listForeignDomainCertificates().get(certificate);
     }
@@ -138,24 +150,91 @@ public class InterDomainAgent implements InterDomainProtocol {
         return Domain.Status.NOT_AVAILABLE;
     }
 
-    private void notifyDomainAdmin(String message, Throwable exception) {
-        if (!Strings.isNullOrEmpty(message)) {
-            throw new IllegalArgumentException("Message cannot be null or epmty.");
+    /**
+     * Returns unmodifiable list of statuses of all foreign domains
+     * @return
+     */
+    public List<Domain> getForeignDomainsStatuses() {
+        List<Domain> foreignDomains = listForeignDomains();
+        Map<Domain, JSONObject> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, foreignDomains, null);
+        for(Map.Entry<Domain, JSONObject> entry : response.entrySet()) {
+            Domain.Status status = null;
+            if (Domain.Status.AVAILABLE.toString().equals(entry.getValue().get("status"))) {
+                status = Domain.Status.AVAILABLE;
+            }
+            else {
+                status = Domain.Status.NOT_AVAILABLE;
+            }
+            entry.getKey().setStatus(status);
         }
-        String subject = "Error in InterDomainAgent";
-        if (exception != null) {
-            message += "\n";
-            message += exception.toString();
-        }
-        EmailSender.Email emailNotification = new EmailSender.Email(configuration.getAdministratorEmails(), subject, message);
-        try {
-            emailSender.sendEmail(emailNotification);
-        } catch (MessagingException e) {
-            logger.error("Failed to send error to domain admins.", e);
-        }
+
+        return foreignDomains;
     }
 
-    public JSONObject performRequest(InterDomainAction.HttpMethod method, String action, Domain domain, JSONObject jsonObject) {
+    public List<ResourceSummary> listResources(Domain domain) {
+        DomainListRequest request = new DomainListRequest(domain.getId());
+        return domainService.listResourcesByDomain(request);
+    }
+
+    /**
+     * TODO parallel request: zvazit jestli nevracet primo objekt, tedy pripadat parametr class a string json atributu
+     * Returns map of given domains with positive result, or does not add it at all to the map.
+     * @param method of the request
+     * @param action to preform
+     * @param domains for which the request will be performed and will be returend in map
+     * @param jsonObject JSON Object to send
+     * @return
+     */
+    protected synchronized Map<Domain, JSONObject> performRequest(final InterDomainAction.HttpMethod method, final String action, final Collection<Domain> domains, final JSONObject jsonObject) {
+
+        final ConcurrentHashMap<Domain, JSONObject> result = new ConcurrentHashMap<Domain, JSONObject>();
+        final ConcurrentHashSet<Domain> failed = new ConcurrentHashSet<Domain>();
+
+        ExecutorService executor = Executors.newFixedThreadPool(domains.size());
+        for (final Domain domain : domains) {
+            Runnable task = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        JSONObject response = performRequest(method, action, domain, jsonObject);
+                        if (response != null) {
+                            result.put(domain, response);
+                        }
+                    }
+                    catch (Exception e) {
+                        String message = "Failed to perform request to domain " + domain.getName();
+                        logger.warn(message, e);
+                        notifyDomainAdmin(message, e);
+                    }
+                    finally {
+                        if (!result.containsKey(domain)) {
+                            failed.add(domain);
+                        }
+                    }
+                }
+            };
+            executor.submit(task);
+        }
+
+        while (result.size() + failed.size() < domains.size()) {
+            try {
+                Thread.sleep(THREAD_TIMEOUT); //TODO: zpracovavat mezitim vysledky?
+            } catch (InterruptedException e) {
+                continue;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Perform request on one foreign domain, returns {@link JSONObject} or throws {@link ForeignDomainConnectException}.
+     * @param method {@link cz.cesnet.shongo.controller.api.domains.InterDomainAction.HttpMethod}
+     * @param action to perform, uses static variables from {@link InterDomainAction}
+     * @param domain for which perform the request
+     * @param jsonObject object to send for {@code HttpMethod.POST}
+     * @return result {@link JSONObject}
+     */
+    protected JSONObject performRequest(final InterDomainAction.HttpMethod method, final String action, final Domain domain, final JSONObject jsonObject) {
         if (action == null || domain == null) {
             throw new IllegalArgumentException("Action and domain cannot be null.");
         }
@@ -229,10 +308,9 @@ public class InterDomainAgent implements InterDomainProtocol {
             connection.disconnect();
         }
         return null;
-
     }
 
-    private URL buildRequestUrl(final Domain domain, String action) {
+    protected URL buildRequestUrl(final Domain domain, String action) {
         action = action.trim();
         while (action.startsWith("/")) {
             action = action.substring(1,action.length());
@@ -247,7 +325,7 @@ public class InterDomainAgent implements InterDomainProtocol {
         }
     }
 
-    public void processError(HttpsURLConnection connection, final Domain domain) {
+    protected void processError(HttpsURLConnection connection, final Domain domain) {
         String actionUrl = connection.getURL().toString();
         try {
             int errorCode = connection.getResponseCode();
@@ -269,6 +347,23 @@ public class InterDomainAgent implements InterDomainProtocol {
             String message = "Failed to get connection respose code for " + actionUrl;
             logger.error(message);
             throw new ForeignDomainConnectException(domain, actionUrl, e);
+        }
+    }
+
+    protected void notifyDomainAdmin(String message, Throwable exception) {
+        if (!Strings.isNullOrEmpty(message)) {
+            throw new IllegalArgumentException("Message cannot be null or epmty.");
+        }
+        String subject = "Error in InterDomainAgent";
+        if (exception != null) {
+            message += "\n";
+            message += exception.toString();
+        }
+        EmailSender.Email emailNotification = new EmailSender.Email(configuration.getAdministratorEmails(), subject, message);
+        try {
+            emailSender.sendEmail(emailNotification);
+        } catch (MessagingException e) {
+            logger.error("Failed to send error to domain admins.", e);
         }
     }
 }

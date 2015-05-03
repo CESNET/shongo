@@ -104,7 +104,7 @@ public class Domain extends SimplePersistentObject {
     }
 
     /**
-     * @return tag converted capability to API
+     * @return domain converted capability to API
      */
     public final cz.cesnet.shongo.controller.api.Domain toApi()
     {

@@ -94,30 +94,11 @@ public class CommonServiceImpl extends AbstractServiceImpl
     public Collection<Domain> listDomains(SecurityToken token)
     {
         authorization.validate(token);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        try {
-            List<Domain> domainList = new ArrayList<Domain>();
-            Domain localDomain = LocalDomain.getLocalDomain().toApi();
-            localDomain.setAllocatable(true);
-            domainList.add(localDomain);
-            for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
-                Domain domainApi = domain.toApi();
-                Domain.Status status = null;
-                try {
-                    status = InterDomainAgent.getInstance().getStatus(domainApi);
-                } catch (Exception e) {
-                    logger.warn("Failed to get status for domain " + domain.getName(), e);
-                }
-                domainApi.setStatus(status);
-                domainList.add(domainApi);
-            }
-            return Collections.unmodifiableList(domainList);
-        }
-        finally {
-            entityManager.close();
-        }
+        Collection<Domain> domains = new ArrayList<Domain>(InterDomainAgent.getInstance().getForeignDomainsStatuses());
+        Domain localDomain = LocalDomain.getLocalDomain().toApi();
+        localDomain.setAllocatable(true);
+        domains.add(localDomain);
+        return domains;
     }
 
     @Override

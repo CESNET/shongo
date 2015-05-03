@@ -438,8 +438,6 @@ public class ResourceManager extends AbstractManager
 
     public Tag getTag(Long tagId)
     {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-
         return entityManager.find(Tag.class, tagId);
     }
 
@@ -541,6 +539,25 @@ public class ResourceManager extends AbstractManager
         } catch (NoResultException exception) {
             return ControllerReportSetHelper.throwObjectNotExistFault(DomainResource.class, domainId);
             //TODO:add resourceId to exception
+        }
+    }
+
+    public List<Long> getResourceIdsByDomain(Long domainId)
+    {
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+            Root<DomainResource> domainResourceRoot = query.from(DomainResource.class);
+            query.multiselect(domainResourceRoot.get("resource").get("id"));
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("domain"), domainId);
+            query.where(param1);
+
+            TypedQuery<Long> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getResultList();
+        } catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(DomainResource.class, domainId);
         }
     }
 

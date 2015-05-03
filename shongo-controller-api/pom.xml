@@ -5,6 +5,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <jetty.version>9.2.5.v20141112</jetty.version>
+    </properties>
+
     <parent>
         <groupId>cz.cesnet.shongo</groupId>
         <artifactId>shongo</artifactId>
@@ -21,6 +25,11 @@
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>shongo-common-api</artifactId>
             <version>${shongo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
     </dependencies>
 
