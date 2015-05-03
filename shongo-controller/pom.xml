@@ -57,7 +57,7 @@
             <version>${spring.version}</version>
         </dependency>
 
-        <!-- Jackson JSON Mapper -->
+        <!-- Jackson JSON Mapper for Spring MVC REST mapper -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>

@@ -9,9 +9,10 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
  */
 public class DomainListRequest extends AbstractRequest
 {
-    String resourceId;
+    String domainId;
 
-    public DomainListRequest() {
+    public DomainListRequest(String domainId) {
+        this.domainId = domainId;
     }
 
     public DomainListRequest(SecurityToken securityToken)
@@ -20,28 +21,11 @@ public class DomainListRequest extends AbstractRequest
     }
 
 
-    public String getResourceId() {
-        return resourceId;
+    public String getDomainId() {
+        return domainId;
     }
 
-    public void setResourceId(String resourceId) {
-        this.resourceId = resourceId;
-    }
-
-    private static final String RESOURCE_ID = "resourceId";
-
-    @Override
-    public DataMap toData()
-    {
-        DataMap dataMap = super.toData();
-        dataMap.set(RESOURCE_ID, resourceId);
-        return dataMap;
-    }
-
-    @Override
-    public void fromData(DataMap dataMap)
-    {
-        super.fromData(dataMap);
-        resourceId = dataMap.getString(RESOURCE_ID);
+    public void setDomainId(String resourceId) {
+        this.domainId = resourceId;
     }
 }

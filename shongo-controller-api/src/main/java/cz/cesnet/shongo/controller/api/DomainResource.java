@@ -12,7 +12,7 @@ public class DomainResource extends IdentifiedComplexType
 {
     private Domain domain;
 
-    private Resource resource;
+    private ResourceSummary resourceSummary;
 
     private Integer licenseCount;
 
@@ -28,12 +28,12 @@ public class DomainResource extends IdentifiedComplexType
         this.domain = domain;
     }
 
-    public Resource getResource() {
-        return resource;
+    public ResourceSummary getResourceSummary() {
+        return resourceSummary;
     }
 
-    public void setResource(Resource resource) {
-        this.resource = resource;
+    public void setResourceSummary(ResourceSummary resourceSummary) {
+        this.resourceSummary = resourceSummary;
     }
 
     public Integer getLicenseCount() {
@@ -61,7 +61,7 @@ public class DomainResource extends IdentifiedComplexType
     }
 
     private static final String DOMAIN = "domain";
-    private static final String RESOURCE = "resource";
+    private static final String RESOURCE_SUMMARY = "resourceSummary";
     private static final String LICENSE_COUNT = "licenseCount";
     private static final String PRICE = "price";
     private static final String PRIORITY = "priority";
@@ -71,7 +71,7 @@ public class DomainResource extends IdentifiedComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(DOMAIN, domain);
-        dataMap.set(RESOURCE, resource);
+        dataMap.set(RESOURCE_SUMMARY, resourceSummary);
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(PRICE, price);
         dataMap.set(PRIORITY, priority);
@@ -83,7 +83,7 @@ public class DomainResource extends IdentifiedComplexType
     {
         super.fromData(dataMap);
         domain = dataMap.getComplexType(DOMAIN, Domain.class);
-        resource = dataMap.getComplexType(RESOURCE, Resource.class);
+        resourceSummary = dataMap.getComplexType(RESOURCE_SUMMARY, ResourceSummary.class);
         licenseCount = dataMap.getInteger(LICENSE_COUNT);
         price = dataMap.getInteger(PRICE);
         priority = dataMap.getInteger(PRIORITY);

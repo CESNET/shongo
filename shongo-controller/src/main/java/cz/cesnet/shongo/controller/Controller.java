@@ -539,6 +539,7 @@ public class Controller
             final ServerConnector httpsConnector = new ServerConnector(rpcServer,
                     new SslConnectionFactory(sslContextFactory, "http/1.1"),
                     new HttpConnectionFactory(https_config));
+//            TODO ================DELETE=================
 //            httpsConnector.setIdleTimeout(50000);
 
 //            final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
@@ -546,6 +547,7 @@ public class Controller
 //            sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
 //            final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
 //                    new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
+//            TODO =================================
             if (rpcHost != null) {
                 httpsConnector.setHost(rpcHost);
             }

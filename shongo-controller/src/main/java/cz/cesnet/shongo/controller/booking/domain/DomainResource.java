@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.booking.domain;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import javax.persistence.*;
 
@@ -67,5 +68,36 @@ public class DomainResource extends SimplePersistentObject {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    /**
+     * @return domainResource converted capability to API
+     */
+    public final cz.cesnet.shongo.controller.api.DomainResource toApi()
+    {
+        cz.cesnet.shongo.controller.api.DomainResource domainResourceApi = new cz.cesnet.shongo.controller.api.DomainResource();
+        toApi(domainResourceApi);
+        return domainResourceApi;
+    }
+
+    public void toApi(cz.cesnet.shongo.controller.api.DomainResource domainResourceApi)
+    {
+//        domainResourceApi.setId(ObjectIdentifier.formatId(this));
+    }
+
+    /**
+     * @param domainResourceApi
+     * @return domainResource converted from API
+     */
+    public static DomainResource createFromApi(cz.cesnet.shongo.controller.api.DomainResource domainResourceApi)
+    {
+        DomainResource domainResource = new DomainResource();
+        domainResource.fromApi(domainResourceApi);
+        return domainResource;
+    }
+
+    public void fromApi(cz.cesnet.shongo.controller.api.DomainResource domainResourceApi)
+    {
+//        this.setDomain(Domain.createFromApi(domainResourceApi.getDomain()));
     }
 }

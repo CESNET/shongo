@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.domains;
+package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.controller.api.Domain;
 
@@ -8,9 +8,8 @@ import cz.cesnet.shongo.controller.api.Domain;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 public class InterDomainAction {
-    public final static String TEST_SEC = "/rest/sec";
     public final static String DOMAIN_STATUS = "/domain/status";
-    public final static String LIST_RESOURCES = "/";
+    public final static String DOMAIN_RESOURCES_LIST = "/domain/resource/list";
 
     public enum HttpMethod {
         GET("GET"), POST("POST"), PUT("PUT"), DELETE("DELETE");
