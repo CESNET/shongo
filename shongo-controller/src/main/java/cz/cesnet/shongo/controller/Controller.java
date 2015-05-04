@@ -26,7 +26,6 @@ import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.http.protocol.HTTP;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -552,6 +551,7 @@ public class Controller
                 httpsConnector.setHost(rpcHost);
             }
             httpsConnector.setPort(getRpcPort());
+            httpsConnector.setIdleTimeout(50000);
             rpcServer.addConnector(httpsConnector);
         }
         else {
