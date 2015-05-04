@@ -302,7 +302,9 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         xmlRpcClient = null; // just for sure the attributes are not used anymore
 
         //Disconnect Alias service
-        this.lifeSizeUVCClearSea.disconnect();
+        if (this.lifeSizeUVCClearSea != null) {
+            this.lifeSizeUVCClearSea.disconnect();
+        }
     }
 
     //</editor-fold>
