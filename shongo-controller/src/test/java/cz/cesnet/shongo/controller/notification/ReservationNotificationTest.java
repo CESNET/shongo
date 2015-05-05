@@ -1096,8 +1096,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runPreprocessorAndScheduler(new Interval("2012-03-01T00:00/2012-03-09T00:00"));
     }
 
+    /**
+     * Test reservation request with long periodicity with different timezone. Should not detect as modification.
+     */
     @Test
-    public void testBug()
+    public void testNotificationForDifferentTimezone()
     {
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(Locale.ENGLISH);
@@ -1119,7 +1122,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequest.addSlot(slot);
         reservationRequest.setPurpose(ReservationRequestPurpose.USER);
 
-        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         DateTime start = new DateTime("2015-04-01T13:46");
         Period lookahead = new Period("P1W");
