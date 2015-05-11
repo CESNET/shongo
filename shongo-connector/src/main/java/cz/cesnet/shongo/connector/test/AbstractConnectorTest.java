@@ -202,6 +202,7 @@ public abstract class AbstractConnectorTest
             Thread.sleep(duration.getMillis());
         }
         catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
             logger.warn("Sleep interrupted", exception);
         }
     }

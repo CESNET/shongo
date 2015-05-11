@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.api.jade;
 
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,5 +74,15 @@ public interface Service
          * Resource administrators. The {@code targetId} must be {@code null}.
          */
         RESOURCE_ADMINS,
+
+        /**
+         * All owners of recording folder should be notified. The {@code targetId} must contain {@link GetRecordingFolderId}.
+         */
+        REC_FOLDER_OWNERS,
+
+        /**
+         * All users with access to recording folder should be notified. The {@code targetId} must contain {@link GetRecordingFolderId}.
+         */
+        REC_FOLDER_READERS
     }
 }

@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.connector.device;
 
-
-import antlr.NameSpace;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -140,7 +138,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     private int recordingsCheckTimeout;
 
     /**
-     * Prefix for recordings.
+     * Prefix for recordings (only on TCS server).
      */
     private String recordingsPrefix;
 
@@ -456,6 +454,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                                 recordingFolderId, recordings);
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                         continue;
                     }
                 }
@@ -1561,8 +1560,24 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                     public void run()
                     {
                         String recordingId = recording.getId();
+
                         try {
                             moveRecordingToAppropriateRecordingFolder(recordingId);
+                            Recording movedRecording = getRecording(recordingId);
+                            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.REC_FOLDER_OWNERS, recording.getRecordingFolderId());
+                            notifyTarget.addMessage("en",
+                                    "Your recording was successfully processed",
+                                    "Your recording is ready to be downloaded at " + movedRecording.getDownloadUrl() + ".\n");
+                            notifyTarget.addMessage("cs",
+                                    "Vaše nahrávka byla zpracována",
+                                    "Vaše nahrávka je připravena ke stažení na " + movedRecording.getDownloadUrl() + ".\n");
+                            try {
+                                performControllerAction(notifyTarget);
+                            }
+                            catch (CommandException notifyException) {
+                                logger.error("Failed to report that moving of recording has failed.", notifyException);
+                            }
+
                         }
                         catch (Exception exception) {
                             logger.error("Error while moving recording " + recordingId + ".", exception);

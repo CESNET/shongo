@@ -412,6 +412,7 @@ public class AdobeConnectRecordingManager
                 Thread.sleep(AdobeConnectConnector.REQUEST_DELAY);
             }
             catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 logger.debug("unexpected wakening, but nothing to worry about");
             }
             response = connector.execApi("meeting-recorder-activity-info", recAttributes);

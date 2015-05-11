@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.RoomSummary;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -11,6 +13,7 @@ import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.RoomNotExistsException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
@@ -114,6 +117,7 @@ public class ServiceImpl implements Service
     {
         Authorization authorization = Authorization.getInstance();
         List<PersonInformation> recipients = new LinkedList<PersonInformation>();
+        ObjectRole role = null;
         switch (targetType) {
             case USER: {
                 try {
@@ -163,6 +167,44 @@ public class ServiceImpl implements Service
                 }
                 break;
             }
+            case REC_FOLDER_OWNERS:
+                role = ObjectRole.OWNER;
+            case REC_FOLDER_READERS:
+                if (role == null) {
+                    role = ObjectRole.READER;
+                }
+                EntityManager entityManager = entityManagerFactory.createEntityManager();
+                try {
+                    DeviceResource resource = getDeviceResourceByAgentName(agentName, entityManager);
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
+                    Executable executable = executableManager.getExecutableByRecordingFolder(resource, targetId);
+                    if (executable == null) {
+                        throw new CommandException(String.format(
+                                "No room was found for recording folder '%s' with agent '%s'.", targetId, agentName));
+                    }
+                    for (UserInformation user : authorization.getUsersWithRole(executable, role)) {
+                        recipients.add(user);
+                    }
+
+                    if (executable instanceof RoomEndpoint) {
+                        Room room = ((RoomEndpoint) executable).getRoomApi(executableManager);
+                        String roomName = room.getName();
+                        for (Map.Entry<String, String> entry : titles.entrySet()) {
+                            String lang = entry.getKey();
+                            String title = entry.getValue();
+                            if ("en".equals(lang)) {
+                                title += " (room: " + roomName + ")";
+                            } else if ("cs".equals(lang)) {
+                                title += " (místnost: " + roomName +")";
+                            }
+                            titles.put(entry.getKey(), title);
+                        }
+                    }
+                }
+                finally {
+                    entityManager.close();
+                }
+                break;
             default:
                 throw new TodoImplementException(targetType);
         }

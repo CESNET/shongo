@@ -122,6 +122,7 @@ public class LocalStorageHandler
                 try {
                     Thread.sleep(WAIT_SLEEP);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     continue;
                 }
             }
@@ -238,6 +239,7 @@ public class LocalStorageHandler
                                 Thread.sleep(WAIT_SLEEP);
                             }
                             catch (InterruptedException sleepException) {
+                                Thread.currentThread().interrupt();
                                 logger.warn("Thread.sleep", sleepException);
                             }
 
@@ -309,6 +311,7 @@ public class LocalStorageHandler
                                 Thread.sleep(WAIT_SLEEP);
                             }
                             catch (InterruptedException sleepException) {
+                                Thread.currentThread().interrupt();
                                 logger.warn("Thread.sleep", sleepException);
                             }
                         }
