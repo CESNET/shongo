@@ -529,7 +529,7 @@ public class Controller
 
         if (sslKeyStore != null) {
             // Configure HTTPS connector
-            http_config.setSecureScheme("https");
+            http_config.setSecureScheme(HttpScheme.HTTPS.asString());
             final HttpConfiguration https_config = new HttpConfiguration(http_config);
             https_config.addCustomizer(new SecureRequestCustomizer());
             final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);

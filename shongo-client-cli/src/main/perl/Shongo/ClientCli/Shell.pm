@@ -18,6 +18,7 @@ use Shongo::ClientCli::ResourceService;
 use Shongo::ClientCli::ResourceControlService;
 use Shongo::ClientCli::ReservationService;
 use Shongo::ClientCli::ExecutableService;
+use Shongo::ClientCli::DomainService;
 use Shongo::Test;
 
 #
@@ -50,6 +51,7 @@ sub new
     Shongo::ClientCli::ResourceControlService->populate($self);
     Shongo::ClientCli::ReservationService->populate($self);
     Shongo::ClientCli::ExecutableService->populate($self);
+    Shongo::ClientCli::DomainService->populate($self);
 
     return(bless($self, $class));;
 }

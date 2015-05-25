@@ -26,6 +26,8 @@ public class DomainResource extends SimplePersistentObject {
 
     private Integer priority;
 
+    private String type;
+
     @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public Domain getDomain() {
@@ -68,6 +70,14 @@ public class DomainResource extends SimplePersistentObject {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**

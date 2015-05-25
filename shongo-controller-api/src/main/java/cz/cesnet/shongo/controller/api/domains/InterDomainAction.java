@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.Domain;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 public class InterDomainAction {
+    public final static String DOMAIN_LOGIN = "/domain/login";
     public final static String DOMAIN_STATUS = "/domain/status";
     public final static String DOMAIN_RESOURCES_LIST = "/domain/resource/list";
 

@@ -52,6 +52,11 @@ public class Domain extends IdentifiedComplexType
     private boolean allocatable;
 
     /**
+     * Password hash for foreign domain.
+     */
+    private String passwordHash;
+
+    /**
      * @return {@link #name}
      */
     public String getName()
@@ -131,6 +136,14 @@ public class Domain extends IdentifiedComplexType
         this.allocatable = allocatable;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     private static final Pattern GLOBAL_ID_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
 
     /**
@@ -157,6 +170,7 @@ public class Domain extends IdentifiedComplexType
     private static final String PORT = "port";
     private static final String CERTIFICATE_PATH = "certificatePath";
     private static final String ALLOCATABLE = "allocatable";
+    private static final String PASSWORD_HASH = "passwordHash";
 
     @Override
     public DataMap toData()
@@ -172,6 +186,7 @@ public class Domain extends IdentifiedComplexType
         }
         dataMap.set(CERTIFICATE_PATH, certificatePath);
         dataMap.set(ALLOCATABLE, allocatable);
+        dataMap.set(PASSWORD_HASH, passwordHash);
         return dataMap;
     }
 
@@ -186,6 +201,7 @@ public class Domain extends IdentifiedComplexType
         domainAddress = new DeviceAddress(dataMap.getStringRequired(URL), dataMap.getIntegerRequired(PORT));
         certificatePath = dataMap.getString(CERTIFICATE_PATH);
         allocatable = dataMap.getBool(ALLOCATABLE);
+        passwordHash = dataMap.getString(PASSWORD_HASH);
     }
 
     /**

@@ -102,7 +102,11 @@ SELECT
     resource.description AS description,
     resource.calendar_public AS calendar_public,
     resource.calendar_uri_key AS calendar_uri_key,
-    string_agg(device_resource_technologies.technologies, ',') AS technologies
+    string_agg(device_resource_technologies.technologies, ',') AS technologies,
+    CASE
+      WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN room_provider_capability on room_provider_capability.id = capability.id) THEN 'ROOM_PROVIDER'
+      ELSE 'RESOURCE'
+      END AS type
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
 LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id

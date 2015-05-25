@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.DomainListRequest;
+import cz.cesnet.shongo.controller.api.request.DomainResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.TagListRequest;
@@ -111,7 +111,7 @@ public interface ResourceService extends Service {
     public String createDomain(SecurityToken token, Domain domain);
 
     @API
-    public List<DomainResource> listDomainResources(DomainListRequest request);
+    public List<DomainResource> listDomainResources(DomainResourceListRequest request);
 
     @API
     public Domain getDomain(SecurityToken token, String domainId);

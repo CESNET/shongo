@@ -1,18 +1,12 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.DomainResource;
-import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -97,15 +91,15 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     /**
      * List all domains included local domain depending on {@code onlyForeignDomans}. Every domain will have null status except local.
-     * @param onlyForeignDomans
+     * @param onlyForeignDomains
      * @return
      */
-    public List<Domain> listDomains(boolean onlyForeignDomans) {
+    public List<Domain> listDomains(boolean onlyForeignDomains) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             List<Domain> domainList = new ArrayList<Domain>();
-            if (!onlyForeignDomans) {
+            if (!onlyForeignDomains) {
                 domainList.add(LocalDomain.getLocalDomain().toApi());
             }
             for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
@@ -118,7 +112,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
-//    public ListResponse<ResourceSummary> listResources(ResourceListRequest request) {
+//    public ListResponse<ResourceSummary> listLocalResources(ResourceListRequest request) {
 //        checkNotNull("request", request);
 //        SecurityToken securityToken = request.getSecurityToken();
 //
@@ -300,7 +294,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        }
 //    }
 
-    public List<ResourceSummary> listResourcesByDomain(DomainListRequest request) {
+    public List<ResourceSummary> listLocalResourcesByDomain(DomainResourceListRequest request) {
         checkNotNull("request", request);
         checkNotNull("domainId", request.getDomainId());
 
@@ -328,6 +322,8 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //                        + " WHERE tag.name = :tagName)", "tagName", request.getTagName());
 //            }
 
+            // Filter by type
+            queryFilter.addFilter("resource_summary.type = '" + request.getResourceType().toString() + "'");
 
             //TODO vylistovat podle capabilities
             // Capability type

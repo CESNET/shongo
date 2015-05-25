@@ -38,6 +38,11 @@ public class Domain extends SimplePersistentObject {
 
     private String certificatePath;
 
+    private String passwordHash;
+
+    /**
+     * Is this domain used for local allocations
+     */
     private boolean allocatable;
 
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH, unique = true)
@@ -101,6 +106,15 @@ public class Domain extends SimplePersistentObject {
 
     public void setAllocatable(boolean allocatable) {
         this.allocatable = allocatable;
+    }
+
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     /**
