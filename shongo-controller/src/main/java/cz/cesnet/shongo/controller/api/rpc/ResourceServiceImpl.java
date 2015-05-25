@@ -795,7 +795,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public List<DomainResource> listDomainResources(DomainListRequest request)
+    public List<DomainResource> listDomainResources(DomainResourceListRequest request)
     {
         throw new TodoImplementException("listDomainResources");
 //        checkNotNull("request", request);

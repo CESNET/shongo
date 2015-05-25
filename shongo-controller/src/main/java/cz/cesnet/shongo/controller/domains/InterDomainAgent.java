@@ -8,9 +8,13 @@ import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.InterDomainService;
-import cz.cesnet.shongo.controller.api.request.DomainListRequest;
+import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
+import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.ssl.SSLComunication;
+import org.apache.ws.commons.util.Base64;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -38,7 +42,7 @@ import java.util.concurrent.Executors;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class InterDomainAgent implements InterDomainService {
+public class InterDomainAgent {
     private static InterDomainAgent instance;
 
     private final ControllerConfiguration configuration;
@@ -53,7 +57,9 @@ public class InterDomainAgent implements InterDomainService {
 
     private int COMMAND_TIMEOUT;
 
-    private final int THREAD_TIMEOUT = 1000;
+    private final int THREAD_TIMEOUT = 500;
+
+    private final ObjectMapper mapper;
 
     /**
      * Constructor
@@ -78,6 +84,7 @@ public class InterDomainAgent implements InterDomainService {
         }
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
 //TODO: nejaka inicializace domen???
+        mapper = new ObjectMapper();
     }
 
     public static synchronized InterDomainAgent create(ControllerConfiguration configuration) {
@@ -103,11 +110,24 @@ public class InterDomainAgent implements InterDomainService {
         domainService.init(configuration);
     }
 
+    public DomainService getDomainService() {
+        return domainService;
+    }
+
+    public Map<String, Domain> listForeignDomain() {
+        Map<String, Domain> domainsByCode = new HashMap<>();
+        for (Domain domain : domainService.listDomains()) {
+            domainsByCode.put(domain.getCode(), domain);
+        }
+        return domainsByCode;
+    }
+
     public Map<X509Certificate, Domain> listForeignDomainCertificates() {
         Map<X509Certificate, Domain> domainsByCert = new HashMap<X509Certificate, Domain>();
         for (Domain domain : domainService.listDomains()) {
             String certificate = domain.getCertificatePath();
             if (Strings.isNullOrEmpty(certificate)) {
+                //exclude local domain
                 if (domain.getStatus() != null) {
                     continue;
                 }
@@ -142,13 +162,10 @@ public class InterDomainAgent implements InterDomainService {
         return listForeignDomainCertificates().get(certificate);
     }
 
-    public Domain.Status getStatus(Domain domain) {
-        JSONObject response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, domain, null);
-        if (Domain.Status.AVAILABLE.toString().equals(response.get("status"))) {
-            return Domain.Status.AVAILABLE;
-        }
-        return Domain.Status.NOT_AVAILABLE;
-    }
+    //TODO: getDomain podle code, access code
+//    public Domain getDomain(String domain) {
+//        return listForeignDomainCertificates().get(certificate);
+//    }
 
     /**
      * Returns unmodifiable list of statuses of all foreign domains
@@ -156,39 +173,72 @@ public class InterDomainAgent implements InterDomainService {
      */
     public List<Domain> getForeignDomainsStatuses() {
         List<Domain> foreignDomains = listForeignDomains();
-        Map<Domain, JSONObject> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, foreignDomains, null);
-        for(Map.Entry<Domain, JSONObject> entry : response.entrySet()) {
-            Domain.Status status = null;
-            if (Domain.Status.AVAILABLE.toString().equals(entry.getValue().get("status"))) {
-                status = Domain.Status.AVAILABLE;
-            }
-            else {
-                status = Domain.Status.NOT_AVAILABLE;
-            }
-            entry.getKey().setStatus(status);
+        Map<Domain, DomainStatus> response = performSingleRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, foreignDomains, DomainStatus.class);
+        for (Map.Entry<Domain, DomainStatus> entry : response.entrySet()) {
+            entry.getKey().setStatus(entry.getValue().toStatus());
         }
 
         return foreignDomains;
     }
 
-    public List<ResourceSummary> listResources(Domain domain) {
-        DomainListRequest request = new DomainListRequest(domain.getId());
-        return domainService.listResourcesByDomain(request);
+    /**
+     * Login to foreign {@code domain}
+     * @return access token
+     */
+    public String login(Domain domain) {
+        try {
+            URL loginUrl = buildRequestUrl(domain, InterDomainAction.DOMAIN_LOGIN);
+            HttpsURLConnection myURLConnection = (HttpsURLConnection) loginUrl.openConnection();
+            String userCredentials = domain.getCode() + ":" + domain.getPasswordHash();
+            String basicAuth = "Basic " + new String(new Base64().encode(userCredentials.getBytes()));
+            myURLConnection.setRequestProperty("Authorization", basicAuth);
+            myURLConnection.setRequestMethod(InterDomainAction.HttpMethod.GET.getValue());
+            myURLConnection.setUseCaches(false);
+            myURLConnection.setDoInput(true);
+            myURLConnection.setDoOutput(true);
+        }
+        catch (IOException e) {
+
+        }
+        return "";
+    }
+
+    public Map<Domain, List<ResourceSummary>> listForeignResources() {
+        Map<Domain, List<ResourceSummary>> domainResources = performListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCES_LIST, listForeignDomains(), ResourceSummary.class);
+        return domainResources;
+    }
+
+    protected <T> Map<Domain, T> performSingleRequest(final InterDomainAction.HttpMethod method, final String action, final Collection<Domain> domains, Class<T> objectClass) {
+        final ConcurrentHashMap<Domain, T> resultMap = new ConcurrentHashMap<>();
+        ObjectReader reader = mapper.reader(objectClass);
+        performRequest(method, action, domains, reader, resultMap, objectClass);
+        return resultMap;
+    }
+
+    protected <T> Map<Domain, List<T>> performListRequest(final InterDomainAction.HttpMethod method, final String action, final Collection<Domain> domains, Class<T> objectClass) {
+        final ConcurrentHashMap<Domain, List<T>> resultMap = new ConcurrentHashMap<>();
+        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+//        Map<Domain, List> result =
+        performRequest(method, action, domains, reader, resultMap, List.class);
+//        Map<Domain, List<T>> typedResult = new HashMap<>();
+//        for (Map.Entry<Domain, List> entry : result.entrySet()) {
+//            result.put(entry.getKey(), entry.getValue());
+//        }
+        return resultMap;
     }
 
     /**
-     * TODO parallel request: zvazit jestli nevracet primo objekt, tedy pripadat parametr class a string json atributu
      * Returns map of given domains with positive result, or does not add it at all to the map.
      * @param method of the request
      * @param action to preform
      * @param domains for which the request will be performed and will be returend in map
-     * @param jsonObject JSON Object to send
-     * @return
+     * @param clazz {@link Class<T>} of the object to return
+     * @return result object as instance of given {@code clazz}
      */
-    protected synchronized Map<Domain, JSONObject> performRequest(final InterDomainAction.HttpMethod method, final String action, final Collection<Domain> domains, final JSONObject jsonObject) {
-
-        final ConcurrentHashMap<Domain, JSONObject> result = new ConcurrentHashMap<Domain, JSONObject>();
-        final ConcurrentHashSet<Domain> failed = new ConcurrentHashSet<Domain>();
+    private final synchronized <T> void performRequest(final InterDomainAction.HttpMethod method, final String action,
+                                                           final Collection<Domain> domains, final ObjectReader reader,
+                                                           final ConcurrentHashMap result, final Class<T> returnClass) {
+        final ConcurrentHashSet<Domain> failed = new ConcurrentHashSet<>();
 
         ExecutorService executor = Executors.newFixedThreadPool(domains.size());
         for (final Domain domain : domains) {
@@ -196,7 +246,7 @@ public class InterDomainAgent implements InterDomainService {
                 @Override
                 public void run() {
                     try {
-                        JSONObject response = performRequest(method, action, domain, jsonObject);
+                        T response = performRequest(method, action, domain, reader, returnClass);
                         if (response != null) {
                             result.put(domain, response);
                         }
@@ -218,12 +268,20 @@ public class InterDomainAgent implements InterDomainService {
 
         while (result.size() + failed.size() < domains.size()) {
             try {
-                Thread.sleep(THREAD_TIMEOUT); //TODO: zpracovavat mezitim vysledky?
+                Thread.sleep(THREAD_TIMEOUT);
             } catch (InterruptedException e) {
                 continue;
             }
         }
-        return result;
+    }
+
+    protected <T> T performSingleRequest(final InterDomainAction.HttpMethod method, final String action, final Domain domain, Class<T> objectClass) {
+        return performRequest(method, action, domain, mapper.reader(objectClass), objectClass);
+    }
+
+    protected <T> List<T> performListRequest(final InterDomainAction.HttpMethod method, final String action, final Domain domain, Class<T> objectClass) {
+        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+        return performRequest(method, action, domain, reader, List.class);
     }
 
     /**
@@ -231,21 +289,84 @@ public class InterDomainAgent implements InterDomainService {
      * @param method {@link cz.cesnet.shongo.controller.api.domains.InterDomainAction.HttpMethod}
      * @param action to perform, uses static variables from {@link InterDomainAction}
      * @param domain for which perform the request
-     * @param jsonObject object to send for {@code HttpMethod.POST}
-     * @return result {@link JSONObject}
+     * @param clazz {@link Class<T>} of the object to return
+     * @return result object as instance of given {@code clazz}
      */
-    protected JSONObject performRequest(final InterDomainAction.HttpMethod method, final String action, final Domain domain, final JSONObject jsonObject) {
-        if (action == null || domain == null) {
-            throw new IllegalArgumentException("Action and domain cannot be null.");
+    private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Domain domain, final ObjectReader reader, Class<T> clazz) {
+        if (action == null || domain == null || reader == null) {
+            throw new IllegalArgumentException("Action, domain and reader cannot be null.");
         }
+
         URL actionUrl = buildRequestUrl(domain, action);
+        HttpsURLConnection connection = buildConnection(domain, actionUrl);
+
+        boolean success = true;
+        try {
+            connection.setRequestMethod(method.getValue());
+            switch (method) {
+                case GET:
+                    connection.setDoInput(true);
+                    connection.setRequestProperty("Accept", "application/json");
+                    processError(connection, domain);
+//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    String responseLine;
+//                    while ((responseLine = bufferedReader.readLine()) != null) {
+//                        stringBuilder.append(responseLine);
+//                    }
+                    return reader.readValue(connection.getInputStream());
+//                    JSONObject jsonResponse = new JSONObject(stringBuilder.toString());
+//                    return jsonResponse;
+                case POST:
+//                    connection.setDoOutput(true);
+//                    connection.setRequestProperty("Content-Type", "application/json");
+//                    if (jsonObject != null) {
+//                        connection.getOutputStream().write(jsonObject.toString().getBytes());
+//                    }
+//                    processError(connection, domain);
+//                    break;
+                case PUT:
+                case DELETE:
+                    throw new TodoImplementException();
+                default:
+                    throw new ForeignDomainConnectException(domain, actionUrl.toString(), "Unsupported http method");
+            }
+        } catch (IOException e) {
+            String message = "Connection to " + actionUrl + " failed.";
+            logger.error(message, e);
+            success = false;
+            throw new ForeignDomainConnectException(domain, actionUrl.toString(), e);
+        } finally {
+            if (success) {
+                logger.info("Action: " + actionUrl + " was successful.");
+            }
+            connection.disconnect();
+        }
+    }
+
+    protected URL buildRequestUrl(final Domain domain, String action) {
+        action = action.trim();
+        while (action.startsWith("/")) {
+            action = action.substring(1,action.length());
+        }
+        String actionUrl = domain.getDomainAddress().getFullUrl() + "/" + action;
+        try {
+            return new URL(actionUrl);
+        } catch (MalformedURLException e) {
+            String message = "Malformed URL " + actionUrl + ".";
+            logger.error(message);
+            throw new ForeignDomainConnectException(domain, actionUrl, e);
+        }
+    }
+
+    protected HttpsURLConnection buildConnection(Domain domain, URL url) {
         HttpsURLConnection connection;
         try {
-            connection = (HttpsURLConnection) actionUrl.openConnection();
+            connection = (HttpsURLConnection) url.openConnection();
             // For secure connection
-            String certificatePath = domain.getCertificatePath();
-            if("HTTPS".equals(actionUrl.getProtocol().toUpperCase())) {
+            if("HTTPS".equals(url.getProtocol().toUpperCase())) {
                 TrustManagerFactory trustManagerFactory = null;
+                String certificatePath = domain.getCertificatePath();
                 if (certificatePath != null) {
                     KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                     trustStore.load(null);
@@ -261,67 +382,15 @@ public class InterDomainAgent implements InterDomainService {
                 connection.setSSLSocketFactory(sslContext.getSocketFactory());
             }
             connection.setConnectTimeout(COMMAND_TIMEOUT);
+            return connection;
         } catch (IOException e) {
-            String message = "Failed to initialize connection for action: " + actionUrl;
+            String message = "Failed to initialize connection for action: " + url;
             logger.error(message, e);
-            throw new ForeignDomainConnectException(domain, actionUrl.toString(), e);
+            throw new ForeignDomainConnectException(domain, url.toString(), e);
         } catch (GeneralSecurityException e) {
             String message = "Failed to load client certificate.";
             logger.error(message, e);
-            throw new ForeignDomainConnectException(domain, actionUrl.toString(), e);
-        }
-        try {
-            connection.setRequestMethod(method.getValue());
-            switch (method) {
-                case GET:
-                    connection.setDoInput(true);
-                    connection.setRequestProperty("Accept", "application/json");
-                    processError(connection, domain);
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(responseLine);
-                    }
-                    JSONObject jsonResponse = new JSONObject(stringBuilder.toString());
-                    return jsonResponse;
-                case POST:
-                    connection.setDoOutput(true);
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    if (jsonObject != null) {
-                        connection.getOutputStream().write(jsonObject.toString().getBytes());
-                    }
-                    processError(connection, domain);
-                    break;
-                case PUT:
-                case DELETE:
-                    throw new TodoImplementException();
-                default:
-                    throw new ForeignDomainConnectException(domain, actionUrl.toString(), "Unsupported http method");
-            }
-            logger.info("Action: " + actionUrl + " was successful.");
-        } catch (IOException e) {
-            String message = "Connection to " + actionUrl + " failed.";
-            logger.error(message, e);
-            throw new ForeignDomainConnectException(domain, actionUrl.toString(), e);
-        } finally {
-            connection.disconnect();
-        }
-        return null;
-    }
-
-    protected URL buildRequestUrl(final Domain domain, String action) {
-        action = action.trim();
-        while (action.startsWith("/")) {
-            action = action.substring(1,action.length());
-        }
-        String actionUrl = domain.getDomainAddress().getFullUrl() + "/" + action;
-        try {
-            return new URL(actionUrl);
-        } catch (MalformedURLException e) {
-            String message = "Malformed URL " + actionUrl + ".";
-            logger.error(message);
-            throw new ForeignDomainConnectException(domain, actionUrl, e);
+            throw new ForeignDomainConnectException(domain, url.toString(), e);
         }
     }
 

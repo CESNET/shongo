@@ -65,7 +65,7 @@ public class ResourceController
     }
 
     /**
-     * Handle resource reservations view
+     * Handle resource list request
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody

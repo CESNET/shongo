@@ -20,6 +20,8 @@ public class DomainResource extends IdentifiedComplexType
 
     private Integer priority;
 
+    private String type;
+
     public Domain getDomain() {
         return domain;
     }
@@ -60,11 +62,20 @@ public class DomainResource extends IdentifiedComplexType
         this.priority = priority;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     private static final String DOMAIN = "domain";
     private static final String RESOURCE_SUMMARY = "resourceSummary";
     private static final String LICENSE_COUNT = "licenseCount";
     private static final String PRICE = "price";
     private static final String PRIORITY = "priority";
+    private static final String TYPE = "type";
 
     @Override
     public DataMap toData()
@@ -75,6 +86,7 @@ public class DomainResource extends IdentifiedComplexType
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(PRICE, price);
         dataMap.set(PRIORITY, priority);
+        dataMap.set(TYPE, type);
         return dataMap;
     }
 
@@ -87,5 +99,6 @@ public class DomainResource extends IdentifiedComplexType
         licenseCount = dataMap.getInteger(LICENSE_COUNT);
         price = dataMap.getInteger(PRICE);
         priority = dataMap.getInteger(PRIORITY);
+        type = dataMap.getString(type);
     }
 }

@@ -5,6 +5,6 @@ package cz.cesnet.shongo.controller.api.domains;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public interface InterDomainService {
+public class InterDomainService {
 
 }

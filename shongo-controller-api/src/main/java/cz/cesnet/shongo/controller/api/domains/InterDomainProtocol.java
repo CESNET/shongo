@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.api.domains;
 
+import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import java.util.List;
  */
 public interface InterDomainProtocol {
 
+    public DomainLogin handleLogin(HttpServletRequest request);
     /**
      *
      * @param request
