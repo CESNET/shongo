@@ -9,6 +9,8 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
 import cz.cesnet.shongo.controller.api.request.DomainResourceListRequest;
+import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.apache.ws.commons.util.Base64;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,6 +32,8 @@ public class InterDomainController implements InterDomainProtocol{
     @RequestMapping(value = InterDomainAction.DOMAIN_LOGIN, method = RequestMethod.GET)
     @ResponseBody
     public DomainLogin handleLogin(HttpServletRequest request) {
+        String[] credentials = SSLCommunication.parseBasicHeader(request);
+        //TODO: vratit access token
         throw new TodoImplementException();
 //        return new Object(String.valueOf(foreignDomainRunning ? Domain.Status.AVAILABLE : Domain.Status.NOT_AVAILABLE));
     }

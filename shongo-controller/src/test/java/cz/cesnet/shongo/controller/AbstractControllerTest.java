@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
@@ -240,6 +241,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         scheduler.setAuthorization(authorization);
         scheduler.init(controller.getConfiguration());
 
+        // Initialize Inter Domain agent
+        if (getConfiguration().isInterDomainConfigured()) {
+            InterDomainAgent interDomainAgent = InterDomainAgent.create(getConfiguration());
+            interDomainAgent.init(getEntityManagerFactory(), controller.getEmailSender());
+        }
+
         controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ReservationServiceImpl(cache));
@@ -330,6 +337,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             logger.debug("Starting controller for " + getClass().getName() + "...");
             controller.start();
             controller.startRpc();
+            controller.startInterDomainRESTApi();
 
             // Start client
             controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());

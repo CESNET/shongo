@@ -24,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
 import org.joda.time.Interval;
@@ -1006,7 +1007,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public ListResponse<ResourceSummary> getResourceIdsWithPublicCalendar()
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
             // List only resources with public calendar
@@ -1034,5 +1034,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
+    }
+
+    @Override
+    public String getLocalDomainPasswordHash() {
+        return configuration.getInterDomainBasicAuthPasswordHash();
     }
 }

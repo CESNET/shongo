@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
+import cz.cesnet.shongo.ssl.SSLCommunication;
 import cz.cesnet.shongo.util.PatternParser;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
@@ -65,13 +66,13 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String INTERDOMAIN = "domain.inter-domain-connection";
     public static final String INTERDOMAIN_HOST = INTERDOMAIN + ".host";
     public static final String INTERDOMAIN_PORT = INTERDOMAIN + ".port";
-    public static final String INTERDOMAIN_FORCE_HTTPS = INTERDOMAIN + ".force-https";
-    public static final String INTERDOMAIN_CLIENT_AUTH = INTERDOMAIN + ".force-client-auth";
+    public static final String INTERDOMAIN_PKI_CLIENT_AUTH = INTERDOMAIN + ".pki-client-auth";
     public static final String INTERDOMAIN_SSL_KEY_STORE = INTERDOMAIN + ".ssl-key-store";
     public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = INTERDOMAIN + ".ssl-key-store-type";
     public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = INTERDOMAIN + ".ssl-key-store-password";
     public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = INTERDOMAIN + ".ssl-trust-store.ca-certificate";
     public static final String INTERDOMAIN_COMMAND_TIMEOUT = INTERDOMAIN + ".command-timeout";
+    public static final String INTERDOMAIN_BASIC_AUTH_PASSWORD = INTERDOMAIN + ".basic-auth.password";
 
     /**
      * Worker configuration (it runs scheduler and executor).
@@ -421,14 +422,35 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     public boolean isInterDomainConfigured()
     {
-        if (isInterDomainServerHttpsForced()) {
-            if (Strings.isNullOrEmpty(getInterDomainSslKeyStore())
-                    || Strings.isNullOrEmpty(getInterDomainSslKeyStoreType())
-                    || Strings.isNullOrEmpty(getInterDomainSslKeyStorePassword())) {
+        if (getInterDomainPort() == null) {
+            return false;
+        }
+        if (isInterDomainServerClientPKIAuthorized()) {
+            if (!hasInterDomainPKI()) {
                 return false;
             }
         }
-        if (getInterDomainPort() == null) {
+        else {
+            if (!hasInterDomainBasicAuth()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean hasInterDomainPKI()
+    {
+        if (Strings.isNullOrEmpty(getInterDomainSslKeyStore())
+                || Strings.isNullOrEmpty(getInterDomainSslKeyStoreType())
+                || Strings.isNullOrEmpty(getInterDomainSslKeyStorePassword())) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean hasInterDomainBasicAuth()
+    {
+        if (Strings.isNullOrEmpty(getInterDomainBasicAuthPasswordHash())) {
             return false;
         }
         return true;
@@ -444,14 +466,13 @@ public class ControllerConfiguration extends CombinedConfiguration
         return getInteger(ControllerConfiguration.INTERDOMAIN_PORT, null);
     }
 
-    public boolean isInterDomainServerHttpsForced()
+    /**
+     * Returns true if PKI auth is selected to be used
+     * @return
+     */
+    public boolean isInterDomainServerClientPKIAuthorized()
     {
-        return getBoolean(ControllerConfiguration.INTERDOMAIN_FORCE_HTTPS, false);
-    }
-
-    public boolean isInterDomainServerClientAuthForced()
-    {
-        return getBoolean(ControllerConfiguration.INTERDOMAIN_CLIENT_AUTH, false);
+        return getBoolean(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, false);
     }
 
     public String getInterDomainSslKeyStore()
@@ -461,6 +482,15 @@ public class ControllerConfiguration extends CombinedConfiguration
             return null;
         }
         return sslKeyStore;
+    }
+
+    public String getInterDomainBasicAuthPasswordHash()
+    {
+        String password = getString(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD);
+        if (Strings.isNullOrEmpty(password)) {
+            return null;
+        }
+        return SSLCommunication.hashPassword(password.getBytes());
     }
 
     public String getInterDomainSslKeyStoreType() {

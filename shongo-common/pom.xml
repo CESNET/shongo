@@ -16,6 +16,10 @@
     <description>Common classes shared between multiple modules in Shongo resource management system.</description>
     <packaging>jar</packaging>
 
+    <properties>
+        <jetty.version>9.2.5.v20141112</jetty.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
@@ -88,6 +92,13 @@
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
             <version>1.4.7</version>
+        </dependency>
+
+        <!-- SSLCommunication -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
     </dependencies>
 
