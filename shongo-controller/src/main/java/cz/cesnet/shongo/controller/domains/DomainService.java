@@ -429,4 +429,18 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             entityManager.close();
         }
     }
+
+    public cz.cesnet.shongo.controller.api.Domain getDomainByCode(String domainCode) {
+        checkNotNull("domain-code", domainCode);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByCode(domainCode);
+
+            return (domain == null ? null : domain.toApi());
+        } finally {
+            entityManager.close();
+        }
+    }
 }

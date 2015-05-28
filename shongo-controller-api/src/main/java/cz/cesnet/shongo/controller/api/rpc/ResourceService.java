@@ -144,4 +144,7 @@ public interface ResourceService extends Service {
      */
     @API
     public ListResponse<ResourceSummary> getResourceIdsWithPublicCalendar();
+
+    @API
+    public String getLocalDomainPasswordHash();
 }

@@ -516,6 +516,21 @@ public class ResourceManager extends AbstractManager
         return entityManager.find(Domain.class, resourceId);
     }
 
+    public Domain getDomainByCode(String domainCode)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
+        Root<Domain> domainResourceRoot = query.from(Domain.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("code"), domainCode);
+        query.select(domainResourceRoot);
+        query.where(param1);
+
+        TypedQuery<Domain> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
     public void createDomainResource(DomainResource domainResource)
     {
         super.create(domainResource);

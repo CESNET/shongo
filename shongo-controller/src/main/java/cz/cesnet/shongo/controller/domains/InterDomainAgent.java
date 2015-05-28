@@ -2,16 +2,18 @@ package cz.cesnet.shongo.controller.domains;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.ssl.SSLComunication;
+import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.apache.tika.io.IOUtils;
 import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -51,7 +53,7 @@ public class InterDomainAgent {
 
     private final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
-    private final KeyManagerFactory keyManagerFactory;
+    private KeyManagerFactory keyManagerFactory = null;
 
     private DomainService domainService;
 
@@ -131,7 +133,7 @@ public class InterDomainAgent {
                 if (domain.getStatus() != null) {
                     continue;
                 }
-                if (configuration.isInterDomainServerClientAuthForced()) {
+                if (configuration.isInterDomainServerClientPKIAuthorized()) {
                     String message = "Cannot connect to domain " + domain.getName()
                             + ", certificate file does not exist or is not configured.";
                     logger.error(message);
@@ -140,7 +142,7 @@ public class InterDomainAgent {
                 continue;
             }
             try {
-                domainsByCert.put(SSLComunication.readPEMCert(certificate), domain);
+                domainsByCert.put(SSLCommunication.readPEMCert(certificate), domain);
             } catch (CertificateException e) {
                 String message = "Failed to load certificate file " + certificate;
                 logger.error(message, e);
@@ -162,10 +164,9 @@ public class InterDomainAgent {
         return listForeignDomainCertificates().get(certificate);
     }
 
-    //TODO: getDomain podle code, access code
-//    public Domain getDomain(String domain) {
-//        return listForeignDomainCertificates().get(certificate);
-//    }
+    public Domain getDomainByCode(String domainCode) {
+        return domainService.getDomainByCode(domainCode);
+    }
 
     /**
      * Returns unmodifiable list of statuses of all foreign domains
@@ -186,21 +187,38 @@ public class InterDomainAgent {
      * @return access token
      */
     public String login(Domain domain) {
+        URL loginUrl = buildRequestUrl(domain, InterDomainAction.DOMAIN_LOGIN);
+        HttpsURLConnection connection = buildConnection(domain, loginUrl);
         try {
-            URL loginUrl = buildRequestUrl(domain, InterDomainAction.DOMAIN_LOGIN);
-            HttpsURLConnection myURLConnection = (HttpsURLConnection) loginUrl.openConnection();
-            String userCredentials = domain.getCode() + ":" + domain.getPasswordHash();
-            String basicAuth = "Basic " + new String(new Base64().encode(userCredentials.getBytes()));
-            myURLConnection.setRequestProperty("Authorization", basicAuth);
-            myURLConnection.setRequestMethod(InterDomainAction.HttpMethod.GET.getValue());
-            myURLConnection.setUseCaches(false);
-            myURLConnection.setDoInput(true);
-            myURLConnection.setDoOutput(true);
+            String passwordHash = configuration.getInterDomainBasicAuthPasswordHash();
+
+            String userCredentials = LocalDomain.getLocalDomainCode() + ":" + passwordHash;
+            String basicAuth = "Basic " + encodeCredentials(userCredentials);
+            connection.setRequestProperty("Authorization", basicAuth);
+            connection.setRequestMethod(InterDomainAction.HttpMethod.GET.getValue());
+            connection.setUseCaches(false);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+
+            processError(connection, domain);
+            ObjectReader reader = mapper.reader(DomainLogin.class);
+            InputStream inputStream = connection.getInputStream();
+            String theString = IOUtils.toString(inputStream);
+            DomainLogin domainLogin = reader.readValue(inputStream);
         }
         catch (IOException e) {
 
         }
+        finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
         return "";
+    }
+
+    public static String encodeCredentials(String credentials) {
+        return new String(new Base64().encode(credentials.getBytes()).replaceAll("\n",""));
     }
 
     public Map<Domain, List<ResourceSummary>> listForeignResources() {
@@ -371,7 +389,7 @@ public class InterDomainAgent {
                     KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                     trustStore.load(null);
                     trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
-                            SSLComunication.readPEMCert(certificatePath));
+                            SSLCommunication.readPEMCert(certificatePath));
                     trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
                     trustManagerFactory.init(trustStore);
                 }
@@ -403,6 +421,8 @@ public class InterDomainAgent {
                     throw new ForeignDomainConnectException(domain, actionUrl, "400 Bad Request " + connection.getResponseMessage());
                 case 401:
                     throw new ForeignDomainConnectException(domain, actionUrl, "401 Unauthorized " + connection.getResponseMessage());
+                case 403:
+                    throw new ForeignDomainConnectException(domain, actionUrl, "401 Forbidden " + connection.getResponseMessage());
                 case 404:
                     throw new ForeignDomainConnectException(domain, actionUrl, "404 Not Found " + connection.getResponseMessage());
                 case 500:

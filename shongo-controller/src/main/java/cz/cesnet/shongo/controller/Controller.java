@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.domains.BasicAuthFilter;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.domains.SSLClientCertFilter;
 import cz.cesnet.shongo.controller.executor.Executor;
@@ -20,7 +21,7 @@ import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import cz.cesnet.shongo.ssl.SSLComunication;
+import cz.cesnet.shongo.ssl.SSLCommunication;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
@@ -623,65 +624,52 @@ public class Controller
             String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
             webAppContext.setResourceBase(resourceBase);
 
-            // SSL key store
-            final String sslKeyStore = configuration.getInterDomainSslKeyStore();
-            boolean forceHttps = sslKeyStore != null && configuration.isInterDomainServerHttpsForced();
-//        boolean forwarded = clientWebConfiguration.isServerForceHttps();
-//        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
-
             final HttpConfiguration http_config = new HttpConfiguration();
 
             // Configure HTTPS connector
-            if (forceHttps) {
-                http_config.setSecureScheme(HttpScheme.HTTPS.asString());
-                http_config.setSecurePort(configuration.getInterDomainPort());
-                final HttpConfiguration https_config = new HttpConfiguration(http_config);
-                https_config.addCustomizer(new SecureRequestCustomizer());
+            http_config.setSecureScheme(HttpScheme.HTTPS.asString());
+            http_config.setSecurePort(configuration.getInterDomainPort());
+            final HttpConfiguration https_config = new HttpConfiguration(http_config);
+            https_config.addCustomizer(new SecureRequestCustomizer());
 
 
-                final SslContextFactory sslContextFactory = new SslContextFactory();
-                KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
-                trustStore.load(null);
-                // Load certificates of foreign domain's CAs
-                for (String certificatePath : configuration.getForeignDomainsCaCertFiles()) {
-                    trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
-                            SSLComunication.readPEMCert(certificatePath));
-                }
-                sslContextFactory.setKeyStorePath(configuration.getInterDomainSslKeyStore());
-                sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
-                sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
-                if (configuration.isInterDomainServerClientAuthForced()) {
-                    // Enable forced client auth
-                    sslContextFactory.setTrustStore(trustStore);
-                    sslContextFactory.setNeedClientAuth(true);
-                    // Enable SSL client filter by certificates
-                    EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-                    webAppContext.addFilter(SSLClientCertFilter.class, servletPath, filterTypes);
-
-                }
-
-                final ServerConnector httpsConnector = new ServerConnector(restServer,
-                        new SslConnectionFactory(sslContextFactory, "http/1.1"),
-                        new HttpConnectionFactory(https_config));
-                String host = configuration.getInterDomainHost();
-                if (!Strings.isNullOrEmpty(host)) {
-                    httpsConnector.setHost(host);
-                }
-                httpsConnector.setPort(configuration.getInterDomainPort());
-                httpsConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
-
-
-
-                restServer.setConnectors(new Connector[]{httpsConnector});
-            } else {
-                http_config.setSecureScheme(HttpScheme.HTTP.asString());
-                final ServerConnector httpConnector = new ServerConnector(restServer,
-                        new HttpConnectionFactory(http_config));
-                httpConnector.setHost(configuration.getInterDomainHost());
-                httpConnector.setPort(configuration.getInterDomainPort());
-                httpConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
-                restServer.setConnectors(new Connector[]{httpConnector});
+            final SslContextFactory sslContextFactory = new SslContextFactory();
+            KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(null);
+            // Load certificates of foreign domain's CAs
+            for (String certificatePath : configuration.getForeignDomainsCaCertFiles()) {
+                trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
+                        SSLCommunication.readPEMCert(certificatePath));
             }
+            sslContextFactory.setKeyStorePath(configuration.getInterDomainSslKeyStore());
+            sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
+            sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
+            sslContextFactory.setTrustStore(trustStore);
+            if (configuration.isInterDomainServerClientPKIAuthorized()) {
+                // Enable forced client auth
+                sslContextFactory.setNeedClientAuth(true);
+                // Enable SSL client filter by certificates
+                EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
+                webAppContext.addFilter(SSLClientCertFilter.class, servletPath, filterTypes);
+            }
+            else {
+                EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
+                webAppContext.addFilter(BasicAuthFilter.class, servletPath, filterTypes);
+            }
+
+            final ServerConnector httpsConnector = new ServerConnector(restServer,
+                    new SslConnectionFactory(sslContextFactory, "http/1.1"),
+                    new HttpConnectionFactory(https_config));
+            String host = configuration.getInterDomainHost();
+            if (!Strings.isNullOrEmpty(host)) {
+                httpsConnector.setHost(host);
+            }
+            httpsConnector.setPort(configuration.getInterDomainPort());
+            httpsConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
+
+
+
+            restServer.setConnectors(new Connector[]{httpsConnector});
 
             restServer.setHandler(webAppContext);
             try {

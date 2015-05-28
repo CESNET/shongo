@@ -14,11 +14,10 @@
         <!-- Interdomain protocol listening port -->
         <inter-domain-connection>
             <!--<host>localhost</host>-->
+            <!-- Secure port for interdomain protocol -->
             <!--<port></port>-->
-            <!--<ssl-port>8433</ssl-port>-->
-            <!--<force-https>true</force-https>-->
-            <!-- Only whe force https is true -->
-            <!--<force-client-auth>true</force-client-auth>-->
+            <!-- Use PKI client auth, basic auth otherwise -->
+            <!--<pki-client-auth>true</pki-client-auth>-->
             <command-timeout>PT33S</command-timeout>
             <!-- TrustStore of JKS/PKCS12 type with private key and certificate chain of local domain -->
             <!--<ssl-key-store></ssl-key-store>-->
@@ -28,6 +27,10 @@
             <!--<ssl-trust-store>-->
                 <!--<ca-certificate></ca-certificate>-->
             <!--</ssl-trust-store>-->
+            <!-- Basic authentication(if PKI is not set) -->
+            <!--<basic-auth>-->
+                <!--<password></password>-->
+            <!--</basic-auth>-->
         </inter-domain-connection>
     </domain>
 

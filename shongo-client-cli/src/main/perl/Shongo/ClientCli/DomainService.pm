@@ -63,6 +63,15 @@ sub populate()
                 remove_domain_resource(@args);
             },
         },
+        'get-password-hash' => {
+            desc => 'Print local domain password hash',
+            options => '',
+            args => '[',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_password_hash(@args);
+            },
+        },
     });
 }
 
@@ -254,6 +263,15 @@ sub remove_domain_resource()
     my $resource_id = $args[1];
     Shongo::ClientCli->instance()->secure_request(
         'Resource.removeDomainResource',
+        RPC::XML::string->new($domain_id),
+        RPC::XML::string->new($resource_id),
+    );
+}
+
+sub get_password_hash()
+{
+    Shongo::ClientCli->instance()->secure_request(
+        'Resource.getLocalDomainPasswordHash',
         RPC::XML::string->new($domain_id),
         RPC::XML::string->new($resource_id),
     );

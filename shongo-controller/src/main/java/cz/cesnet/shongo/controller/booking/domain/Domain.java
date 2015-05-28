@@ -136,6 +136,7 @@ public class Domain extends SimplePersistentObject {
         domainApi.setDomainAddress(new DeviceAddress(url, port));
         domainApi.setCertificatePath(certificatePath);
         domainApi.setAllocatable(allocatable);
+        domainApi.setPasswordHash(passwordHash);
     }
 
     /**
@@ -158,5 +159,6 @@ public class Domain extends SimplePersistentObject {
         this.setPort(domainApi.getDomainAddress().getPort());
         this.setCertificatePath(domainApi.getCertificatePath());
         this.setAllocatable(domainApi.isAllocatable());
+        this.setPasswordHash(domainApi.getPasswordHash());
     }
 }
