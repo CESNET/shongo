@@ -271,7 +271,11 @@
                 if (requestedStart != null || requestedEnd != null) {
                     var permanentRoomStart = moment(permanentRoomSlot[0]).unix();
                     var permanentRoomEnd = moment(permanentRoomSlot[1]).unix();
-                    if ((requestedStart != null && (requestedStart < permanentRoomStart || requestedStart >= permanentRoomEnd)) ||
+                    var realStart = requestedStart;
+                    if (requestedStart != null && requestedStart < (Date.now()/1000|0)) {
+                        realStart = Date.now()/1000|0;
+                    }
+                    if ((realStart != null && (realStart < permanentRoomStart || realStart >= permanentRoomEnd)) ||
                             (requestedEnd != null && (requestedEnd <= permanentRoomStart || requestedEnd > permanentRoomEnd))) {
                         // Remove current permanent room
                         if (permanentRoom == $scope.permanentRoom) {
@@ -301,26 +305,26 @@
             }
         });
         // Update permanent rooms model when start or duration changes
-        $("#startDate,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
+        $("#startDate,#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
         });
         // Set proper technology for selected permanent room
         $scope.$watch("permanentRoom", function () {
-            var reservationId = $scope.permanentRoom.reservationId;
-            if (reservationId != null) {
-                <tag:url var="roomDataUrl" value="<%= ClientWebUrl.ROOM_DATA %>">
-                    <tag:param name="objectId" value=":objectId"/>
-                </tag:url>
-                $.ajax("${roomDataUrl}".replace(":objectId", reservationId), {
-                    dataType: "json"
-                }).done(function (data) {
-                    if (!$scope.pinModified) {
-                        $("#roomPin").val(data.pin);
-                    }
-                }).fail($application.handleAjaxFailure);
-            }
-
             if ($scope.permanentRoom != null) {
+                var reservationId = $scope.permanentRoom.reservationId;
+                if (reservationId != null) {
+                    <tag:url var="roomDataUrl" value="<%= ClientWebUrl.ROOM_DATA %>">
+                    <tag:param name="objectId" value=":objectId"/>
+                    </tag:url>
+                    $.ajax("${roomDataUrl}".replace(":objectId", reservationId), {
+                        dataType: "json"
+                    }).done(function (data) {
+                        if (!$scope.pinModified) {
+                            $("#roomPin").val(data.pin);
+                        }
+                    }).fail($application.handleAjaxFailure);
+                }
+
                 $scope.technology = $scope.permanentRoom.technology;
             }
             else {

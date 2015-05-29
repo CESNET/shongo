@@ -430,9 +430,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getMeetingRoomResourceName()
     {
-        ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
-        if (resource != null) {
-            return resource.getName();
+        if (meetingRoomResourceId != null) {
+            ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+            if (resource != null) {
+                return resource.getName();
+            }
         }
         return null;
     }
