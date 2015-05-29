@@ -58,7 +58,7 @@
     <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
         <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
         <dd>
-            <span>${reservationRequest.meetingRoomResourceName}</span>
+            <span>${reservationRequest.purpose}</span>
         </dd>
     </c:if>
 
