@@ -645,7 +645,7 @@ public class Controller
             sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
             sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
             sslContextFactory.setTrustStore(trustStore);
-            if (configuration.isInterDomainServerClientPKIAuthorized()) {
+            if (configuration.requiresClientPKIAuth()) {
                 // Enable forced client auth
                 sslContextFactory.setNeedClientAuth(true);
                 // Enable SSL client filter by certificates
@@ -1060,10 +1060,8 @@ public class Controller
 
         // Initialize Inter Domain agent
         if (configuration.isInterDomainConfigured()) {
-            InterDomainAgent interDomainAgent = InterDomainAgent.create(configuration);
-            interDomainAgent.init(entityManagerFactory, controller.getEmailSender());
+            InterDomainAgent.create(entityManagerFactory, configuration, controller.getEmailSender());
         }
-
 
         // Add XML-RPC services
         RecordingsCache recordingsCache = new RecordingsCache();

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
@@ -243,8 +244,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         // Initialize Inter Domain agent
         if (getConfiguration().isInterDomainConfigured()) {
-            InterDomainAgent interDomainAgent = InterDomainAgent.create(getConfiguration());
-            interDomainAgent.init(getEntityManagerFactory(), controller.getEmailSender());
+            InterDomainAgent.create(getEntityManagerFactory(), getConfiguration(), controller.getEmailSender());
         }
 
         controller.addRpcService(new AuthorizationServiceImpl());

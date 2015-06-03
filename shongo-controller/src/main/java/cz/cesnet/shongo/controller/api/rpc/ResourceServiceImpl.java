@@ -912,6 +912,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void addDomainResource(SecurityToken token, DomainResource domainResourceApi, String domainId, String resourceId) {
         authorization.validate(token);
         checkNotNull("domain-resource", domainResourceApi);
+        checkNotNull("domain-id", domainId);
+        checkNotNull("resource-id", resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -1037,7 +1039,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String getLocalDomainPasswordHash() {
+    public String getLocalDomainPasswordHash(SecurityToken token) {
+        authorization.validate(token);
         return configuration.getInterDomainBasicAuthPasswordHash();
     }
 }

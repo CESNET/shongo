@@ -2,8 +2,6 @@ package cz.cesnet.shongo.controller;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import cz.cesnet.shongo.ssl.SSLCommunication;
@@ -14,7 +12,6 @@ import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -422,20 +419,15 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     public boolean isInterDomainConfigured()
     {
-        if (getInterDomainPort() == null) {
-            return false;
-        }
-        if (isInterDomainServerClientPKIAuthorized()) {
-            if (!hasInterDomainPKI()) {
-                return false;
+        if (getInterDomainPort() != null) {
+            if (requiresClientPKIAuth() && hasInterDomainPKI()) {
+                return true;
+            }
+            if (hasInterDomainBasicAuth()) {
+                return true;
             }
         }
-        else {
-            if (!hasInterDomainBasicAuth()) {
-                return false;
-            }
-        }
-        return true;
+        return false;
     }
 
     public boolean hasInterDomainPKI()
@@ -470,7 +462,7 @@ public class ControllerConfiguration extends CombinedConfiguration
      * Returns true if PKI auth is selected to be used
      * @return
      */
-    public boolean isInterDomainServerClientPKIAuthorized()
+    public boolean requiresClientPKIAuth()
     {
         return getBoolean(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, false);
     }

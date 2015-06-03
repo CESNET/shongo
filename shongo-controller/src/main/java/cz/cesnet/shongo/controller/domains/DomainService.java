@@ -4,6 +4,8 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.domains.response.*;
+import cz.cesnet.shongo.controller.api.domains.response.DomainResource;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -90,7 +92,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     }
 
     /**
-     * List all domains included local domain depending on {@code onlyForeignDomans}. Every domain will have null status except local.
+     * List all domains included local domain depending on {@code onlyForeignDomains}. Every domain will have null status except local.
      * @param onlyForeignDomains
      * @return
      */
@@ -294,7 +296,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        }
 //    }
 
-    public List<ResourceSummary> listLocalResourcesByDomain(DomainResourceListRequest request) {
+    public List<DomainResource> listLocalResourcesByDomain(DomainResourceListRequest request) {
         checkNotNull("request", request);
         checkNotNull("domainId", request.getDomainId());
 
@@ -303,9 +305,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         try {
             // Filter requested by foreign domain
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
-            queryFilter.addFilter("resource_summary.id IN ("
-                    + " SELECT resource_id FROM domain_resource "
-                    + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
+            queryFilter.addFilter("domain_id = :domainId", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
 
             //TODO: vytahnout zasedacky podle tagu
             // Filter requested tag-id
@@ -369,40 +369,35 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             String queryOrderBy =
                     "resource_summary.allocatable DESC, resource_summary.allocation_order, resource_summary.id";
 
-            Map<String, String> parameters = new HashMap<String, String>();
+            Map<String, String> parameters = new HashMap<>();
             parameters.put("filter", queryFilter.toQueryWhere());
             parameters.put("order", queryOrderBy);
-            String query = NativeQuery.getNativeQuery(NativeQuery.RESOURCE_LIST, parameters);
+            String query = NativeQuery.getNativeQuery(NativeQuery.DOMAIN_RESOURCE_LIST, parameters);
 
-            List<ResourceSummary> response = new ArrayList<ResourceSummary>();
+            List<DomainResource> response = new ArrayList<>();
             ListRequest listRequest = new ListRequest(0, -1);
             ListResponse listResponse = new ListResponse();
             List<Object[]> records = performNativeListRequest(query, queryFilter, listRequest, listResponse, entityManager);
             for (Object[] record : records) {
-                ResourceSummary resourceSummary = new ResourceSummary();
-                resourceSummary.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
-                if (record[1] != null) {
-                    resourceSummary.setParentResourceId(
-                            ObjectIdentifier.formatId(ObjectType.RESOURCE, record[1].toString()));
+                DomainResource domainResource = new DomainResource();
+                domainResource.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
+                domainResource.setName(record[1].toString());
+                domainResource.setDescription(record[2] != null ? record[2].toString() : "");
+//                if (record[6] != null) {
+//                    String recordTechnologies = record[6].toString();
+//                    if (!recordTechnologies.isEmpty()) {
+//                        for (String technology : recordTechnologies.split(",")) {
+//                            domainResource.addTechnology(Technology.valueOf(technology.trim()));
+//                        }
+//                    }
+//                }
+                domainResource.setCalendarPublic((Boolean) record[3]);
+                if ((Boolean) record[3]) {
+                    domainResource.setCalendarUriKey(record[4].toString());
                 }
-                resourceSummary.setUserId(record[2].toString());
-                resourceSummary.setName(record[3].toString());
-                resourceSummary.setAllocatable(record[4] != null && (Boolean) record[4]);
-                resourceSummary.setAllocationOrder(record[5] != null ? (Integer) record[5] : null);
-                resourceSummary.setDescription(record[7] != null ? record[7].toString() : "");
-                if (record[6] != null) {
-                    String recordTechnologies = record[6].toString();
-                    if (!recordTechnologies.isEmpty()) {
-                        for (String technology : recordTechnologies.split(",")) {
-                            resourceSummary.addTechnology(Technology.valueOf(technology.trim()));
-                        }
-                    }
-                }
-                resourceSummary.setCalendarPublic((Boolean)record[8]);
-                if (resourceSummary.isCalendarPublic()) {
-                    resourceSummary.setCalendarUriKey(record[9].toString());
-                }
-                response.add(resourceSummary);
+                domainResource.setLicenseCount((Integer) record[4]);
+                domainResource.setPrice((Integer) record[5]);
+                response.add(domainResource);
             }
             return response;
         }
@@ -430,7 +425,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
-    public cz.cesnet.shongo.controller.api.Domain getDomainByCode(String domainCode) {
+    public cz.cesnet.shongo.controller.api.Domain findDomainByCode(String domainCode) {
         checkNotNull("domain-code", domainCode);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

@@ -11,6 +11,7 @@ public class InterDomainAction {
     public final static String DOMAIN_LOGIN = "/domain/login";
     public final static String DOMAIN_STATUS = "/domain/status";
     public final static String DOMAIN_RESOURCES_LIST = "/domain/resource/list";
+    public final static String DOMAIN_CAPABILITY_LIST = "/domain/capability/list";
 
     public enum HttpMethod {
         GET("GET"), POST("POST"), PUT("PUT"), DELETE("DELETE");
