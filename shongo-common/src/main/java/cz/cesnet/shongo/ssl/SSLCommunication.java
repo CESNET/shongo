@@ -42,7 +42,12 @@ public class SSLCommunication {
         return (X509Certificate) certFact.generateCertificate(bain);
     }
 
-    public static String[] parseBasicHeader(HttpServletRequest request) {
+    /**
+     * Returns decoded credentials from basic auth header
+     * @param request
+     * @return
+     */
+    public static String[] getBasicAuthCredentials(HttpServletRequest request) {
         try {
             String authHeader = request.getHeader("Authorization");
             if ((authHeader == null || !authHeader.startsWith("Basic "))) {

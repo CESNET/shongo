@@ -35,7 +35,7 @@ public class SSLClientCertFilter implements Filter {
 
     private boolean checkAllowedCert(X509Certificate cert) {
         try {
-            return (InterDomainAgent.getInstance().getDomain(cert) != null);
+            return (InterDomainAgent.getInstance().getAuthentication().getDomain(cert) != null);
         } catch (IllegalArgumentException e) {
             logger.error("InterDomainAgent has not started yet.", e);
             return false;

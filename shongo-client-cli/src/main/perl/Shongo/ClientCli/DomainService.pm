@@ -66,10 +66,10 @@ sub populate()
         'get-password-hash' => {
             desc => 'Print local domain password hash',
             options => '',
-            args => '[',
+            args => '',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                get_password_hash(@args);
+                get_password_hash();
             },
         },
     });
@@ -148,7 +148,7 @@ sub add_domain()
     $domain->add_attribute(
         'passwordHash', {
             'required' => 0,
-            'title' => 'Password has (for basic auth)',
+            'title' => 'Password hash (for basic auth)',
         }
     );
 
@@ -270,11 +270,8 @@ sub remove_domain_resource()
 
 sub get_password_hash()
 {
-    Shongo::ClientCli->instance()->secure_request(
-        'Resource.getLocalDomainPasswordHash',
-        RPC::XML::string->new($domain_id),
-        RPC::XML::string->new($resource_id),
-    );
+    my $password_hash = Shongo::ClientCli->instance()->secure_request('Resource.getLocalDomainPasswordHash');
+    console_print_info("Domain's password hash '%s'", $password_hash);
 }
 
 1;

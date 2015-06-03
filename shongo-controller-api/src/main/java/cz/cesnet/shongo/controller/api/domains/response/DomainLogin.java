@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -11,11 +12,12 @@ public class DomainLogin {
     @JsonProperty("accessToken")
     private String accessToken;
 
-    public String getAccessToken() {
-        return accessToken;
+    @JsonCreator
+    public DomainLogin(@JsonProperty("accessToken") String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public String getAccessToken() {
+        return accessToken;
     }
 }

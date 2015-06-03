@@ -27,8 +27,7 @@ import java.util.*;
  */
 public class CommonServiceImpl extends AbstractServiceImpl
         implements CommonService, Component.EntityManagerFactoryAware,
-                   Component.ControllerAgentAware, Component.AuthorizationAware
-{
+        Component.ControllerAgentAware, Component.AuthorizationAware {
 
     private static Logger logger = LoggerFactory.getLogger(CommonServiceImpl.class);
 
@@ -48,26 +47,22 @@ public class CommonServiceImpl extends AbstractServiceImpl
     private Authorization authorization;
 
     @Override
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
-    {
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
-    public void setControllerAgent(ControllerAgent controllerAgent)
-    {
+    public void setControllerAgent(ControllerAgent controllerAgent) {
         this.controllerAgent = controllerAgent;
     }
 
     @Override
-    public void setAuthorization(Authorization authorization)
-    {
+    public void setAuthorization(Authorization authorization) {
         this.authorization = authorization;
     }
 
     @Override
-    public void init(ControllerConfiguration configuration)
-    {
+    public void init(ControllerConfiguration configuration) {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(controllerAgent, ControllerAgent.class);
         checkDependency(authorization, Authorization.class);
@@ -75,15 +70,13 @@ public class CommonServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String getServiceName()
-    {
+    public String getServiceName() {
         return "Common";
     }
 
     @Override
     @Debug
-    public Controller getController()
-    {
+    public Controller getController() {
         Controller controller = new Controller();
         controller.setDomain(LocalDomain.getLocalDomain().toApi());
         return controller;
@@ -91,10 +84,9 @@ public class CommonServiceImpl extends AbstractServiceImpl
 
     @Override
     @Debug
-    public Collection<Domain> listDomains(SecurityToken token)
-    {
+    public Collection<Domain> listDomains(SecurityToken token) {
         authorization.validate(token);
-        Collection<Domain> domains = new ArrayList<Domain>(InterDomainAgent.getInstance().getForeignDomainsStatuses());
+        Collection<Domain> domains = new ArrayList<>(InterDomainAgent.getInstance().getConnector().getForeignDomainsStatuses());
         Domain localDomain = LocalDomain.getLocalDomain().toApi();
         localDomain.setAllocatable(true);
         domains.add(localDomain);
@@ -103,8 +95,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
 
     @Override
     @Debug
-    public Collection<Connector> listConnectors(SecurityToken token)
-    {
+    public Collection<Connector> listConnectors(SecurityToken token) {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -130,8 +121,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
                 ConnectorStatus connectorStatus = (ConnectorStatus) sendLocalCommand.getResult();
                 connector.setAgentState(Connector.AgentState.AVAILABLE);
                 connector.setStatus(connectorStatus);
-            }
-            else {
+            } else {
                 connector.setAgentState(Connector.AgentState.NOT_AVAILABLE);
                 connector.setStatus(new ConnectorStatus(ConnectorStatus.State.NOT_AVAILABLE));
             }
