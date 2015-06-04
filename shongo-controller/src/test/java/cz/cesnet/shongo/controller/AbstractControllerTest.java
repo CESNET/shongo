@@ -357,6 +357,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             controller.destroy();
             preprocessor.destroy();
             scheduler.destroy();
+            InterDomainAgent.destroy();
         }
 
         super.after();

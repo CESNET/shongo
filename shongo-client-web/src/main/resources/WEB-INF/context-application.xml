@@ -10,7 +10,7 @@
     <!-- Enables @Resource annotations -->
     <context:annotation-config />
     <!-- Enables @Scheduled annotations -->
-    <task:annotation-driven/>
+    <task:annotation-driven />
 
     <!-- Application configuration -->
     <bean id="configuration" class="cz.cesnet.shongo.client.web.ClientWebConfiguration" factory-method="getInstance">

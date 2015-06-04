@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.Tag;
+import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -796,7 +797,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public List<DomainResource> listDomainResources(DomainResourceListRequest request)
+    public List<DomainCapability> listDomainCapabilities(DomainCapabilityListRequest request)
     {
         throw new TodoImplementException("listDomainResources");
 //        checkNotNull("request", request);

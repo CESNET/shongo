@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.controller.api.domains;
 
-import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.Resource;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainResource;
+import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
+import org.joda.time.Interval;
 
-import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -26,7 +24,7 @@ public interface InterDomainProtocol {
      */
     public DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    public List<DomainResource> handleListResources(HttpServletRequest request) throws AuthenticationException;
+    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, String type, Interval interval, Technology technology);
 
 
     /**

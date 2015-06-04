@@ -70,6 +70,7 @@ public class InterDomainAgent {
         domainService.init(configuration);
 
         this.authentication = new DomainAuthentication(entityManagerFactory, configuration, emailSender);
+//        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);
         this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
     }
 
@@ -88,6 +89,10 @@ public class InterDomainAgent {
                     + "because no InterDomainAgent instance has been created yet.");
         }
         return instance;
+    }
+
+    public static void destroy() {
+        instance = null;
     }
 
     public DomainService getDomainService() {
