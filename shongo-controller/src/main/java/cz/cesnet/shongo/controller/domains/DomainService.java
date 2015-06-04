@@ -2,10 +2,8 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.domains.response.*;
-import cz.cesnet.shongo.controller.api.domains.response.DomainResource;
+import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -296,9 +294,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        }
 //    }
 
-    public List<DomainResource> listLocalResourcesByDomain(DomainResourceListRequest request) {
+    public List<DomainCapability> listLocalResourcesByDomain(DomainCapabilityListRequest request) {
         checkNotNull("request", request);
         checkNotNull("domainId", request.getDomainId());
+        checkNotNull("type", request.getType());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -323,7 +322,16 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            }
 
             // Filter by type
-            queryFilter.addFilter("resource_summary.type = '" + request.getResourceType().toString() + "'");
+            String type = "";
+            switch (request.getType()) {
+                case VIRTUAL_ROOM:
+                    type = "ROOM_PROVIDER";
+                    break;
+                case RESOURCE:
+                    type = "RESOURCE";
+                    break;
+            }
+            queryFilter.addFilter("resource_summary.type = '" + type + "'");
 
             //TODO vylistovat podle capabilities
             // Capability type
@@ -351,9 +359,15 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            }
 
             //TODO vylistovat podle technologie
+            if (request.getTechnology() != null) {
+                queryFilter.addFilter("resource_summary.id IN ("
+                        + " SELECT device_resource.id FROM device_resource "
+                        + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
+                        + " WHERE device_resource_technologies.technologies = '" + request.getTechnology() + "')");
+            }
             //
             // Technologies
-//            Set<Technology> technologies = request.getTechnologies();
+//            Set<Technology> technologies = request.getTechnology();
 //            if (technologies.size() > 0) {
 //                queryFilter.addFilter("resource_summary.id IN ("
 //                        + " SELECT device_resource.id FROM device_resource "
@@ -374,15 +388,15 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             parameters.put("order", queryOrderBy);
             String query = NativeQuery.getNativeQuery(NativeQuery.DOMAIN_RESOURCE_LIST, parameters);
 
-            List<DomainResource> response = new ArrayList<>();
+            List<DomainCapability> response = new ArrayList<>();
             ListRequest listRequest = new ListRequest(0, -1);
             ListResponse listResponse = new ListResponse();
             List<Object[]> records = performNativeListRequest(query, queryFilter, listRequest, listResponse, entityManager);
             for (Object[] record : records) {
-                DomainResource domainResource = new DomainResource();
-                domainResource.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
-                domainResource.setName(record[1].toString());
-                domainResource.setDescription(record[2] != null ? record[2].toString() : "");
+                DomainCapability domainCapability = new DomainCapability();
+                domainCapability.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
+                domainCapability.setName(record[1].toString());
+                domainCapability.setDescription(record[2] != null ? record[2].toString() : "");
 //                if (record[6] != null) {
 //                    String recordTechnologies = record[6].toString();
 //                    if (!recordTechnologies.isEmpty()) {
@@ -391,13 +405,13 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //                        }
 //                    }
 //                }
-                domainResource.setCalendarPublic((Boolean) record[3]);
+                domainCapability.setCalendarPublic((Boolean) record[3]);
                 if ((Boolean) record[3]) {
-                    domainResource.setCalendarUriKey(record[4].toString());
+                    domainCapability.setCalendarUriKey(record[4].toString());
                 }
-                domainResource.setLicenseCount((Integer) record[4]);
-                domainResource.setPrice((Integer) record[5]);
-                response.add(domainResource);
+                domainCapability.setLicenseCount((Integer) record[4]);
+                domainCapability.setPrice((Integer) record[5]);
+                response.add(domainCapability);
             }
             return response;
         }

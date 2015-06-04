@@ -1,24 +1,20 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainResource;
+import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.controller.api.request.DomainResourceListRequest;
+import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.ssl.SSLCommunication;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -49,23 +45,18 @@ public class InterDomainController implements InterDomainProtocol{
     }
 
     @Override
-    @RequestMapping(value = InterDomainAction.DOMAIN_RESOURCES_LIST, method = RequestMethod.GET)
-    @ResponseBody
-    public List<DomainResource> handleListResources(HttpServletRequest request)
-    {
-        DomainResourceListRequest listRequest = new DomainResourceListRequest(getDomain(request).getId());
-        listRequest.setResourceType(DomainResourceListRequest.ResourceType.RESOURCE);
-        return getDomainService().listLocalResourcesByDomain(listRequest);
-    }
-
     @RequestMapping(value = InterDomainAction.DOMAIN_CAPABILITY_LIST, method = RequestMethod.GET)
     @ResponseBody
-    public List<DomainResource> handleListCapabilities(
+    public List<DomainCapability> handleListCapabilities(
             HttpServletRequest request,
-            @RequestParam(value = "type", required = true) String type)
+            @RequestParam(value = "type", required = true) String type,
+            @RequestParam(value = "interval", required = false) Interval interval,
+            @RequestParam(value = "technology", required = false) Technology technology)
     {
-        DomainResourceListRequest listRequest = new DomainResourceListRequest(getDomain(request).getId());
-        listRequest.setResourceType(DomainResourceListRequest.ResourceType.RESOURCE);
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request).getId());
+        listRequest.setType(DomainCapabilityListRequest.Type.valueOf(type));
+        listRequest.setInterval(interval);
+        listRequest.setTechnology(technology);
         return getDomainService().listLocalResourcesByDomain(listRequest);
     }
 

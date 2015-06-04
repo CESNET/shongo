@@ -9,7 +9,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class DomainResource {
+public class DomainCapability {
     @JsonProperty("id")
     private String id;
 
