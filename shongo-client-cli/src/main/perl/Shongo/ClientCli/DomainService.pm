@@ -103,52 +103,64 @@ sub add_domain()
         return undef;
     };
 
-    my $id = Shongo::ClientCli::API::Domain->create($attributes, $options);
+    my $domain = Shongo::ClientCli::API::Domain->new();
+
+    my $id = $domain->create($attributes, $options);
     if ( defined($id) ) {
         console_print_info("Domain '%s' successfully added.", $id);
     }
 }
 
+sub select_domain
+{
+    my ($id, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'id'}) ) {
+        $id = $attributes->{'id'};
+    }
+    $id = console_read_value('Identifier of the domain', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
+}
+
 sub modify_domain()
 {
-#    my ($id, $attributes, $options) = @_;
-#    $id = Shongo::ClientCli::ResourceService::select_resource($id, $attributes);
-#    if ( !defined($id) ) {
-#        return;
-#    }
-#    my $response = Shongo::ClientCli->instance()->secure_request(
-#        'Resource.getDomain',
-#        RPC::XML::string->new($id)
-#    );
-#
-#    $options->{'on_confirm'} = sub {
-#        my ($resource) = @_;
-#        console_print_info("Modifying domain...");
-#        my $response = Shongo::ClientCli->instance()->secure_request(
-#            'Resource.modifyDomain',
-#            $resource->to_xml()
-#        );
-#        if ( defined($response) ) {
-#            return $resource->{'id'};
-#        }
-#        return undef;
-#    };
-#
-#    if ( defined($response) ) {
-#        my $domain = Shongo::ClientCli::API::Domain->from_hash($response);
-#        if ( defined($domain) ) {
-#            my $new_id = $domain->modify($attributes, $options);
-#            if ( defined($new_id) ) {
-#                console_print_info("Domain '%s' successfully modified to '%s'.", $id, $new_id);
-#            }
-#        }
-#    }
+    my ($id, $attributes, $options) = @_;
+    $id = select_domain($id, $attributes);
+    if ( !defined($id) ) {
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Resource.getDomain',
+        RPC::XML::string->new($id)
+    );
+
+    $options->{'on_confirm'} = sub {
+        my ($domain) = @_;
+        console_print_info("Modifying domain...");
+        my $response = Shongo::ClientCli->instance()->secure_request(
+            'Resource.modifyDomain',
+            $domain->to_xml()
+        );
+        if ( defined($response) ) {
+            return $domain->{'id'};
+        }
+        return undef;
+    };
+
+    if ( defined($response) ) {
+        my $domain = Shongo::ClientCli::API::Resource->from_hash($response);
+        if ( defined($domain) ) {
+            my $new_id = $domain->modify($attributes, $options);
+            if ( defined($new_id) ) {
+                console_print_info("Domain '%s' successfully modified to '%s'.", $id, $new_id);
+            }
+        }
+    }
 }
 
 sub remove_domain()
 {
     my ($id) = @_;
-    $id = Shongo::ClientCli::ResourceService::select_resource($id);
+    $id = select_domain($id);
     if ( !defined($id) ) {
         return;
     }

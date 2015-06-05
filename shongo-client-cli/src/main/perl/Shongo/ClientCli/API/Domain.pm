@@ -84,24 +84,4 @@ sub new()
     return $self;
 }
 
-# @Override
-sub on_create
-{
-    my ($self, $attributes) = @_;
-
-    my $class = $attributes->{'class'};
-    if ( !defined($class) ) {
-        $class = console_read_enum('Select type of resource', ordered_hash(
-            'Resource' => 'Other Resource',
-            'DeviceResource' => 'Device Resource'
-        ));
-    }
-    if ($class eq 'Resource') {
-        return Shongo::ClientCli::API::Resource->new();
-    } elsif ($class eq 'DeviceResource') {
-        return Shongo::ClientCli::API::DeviceResource->new();
-    }
-    die("Unknown resource type '$class'.");
-}
-
 1;
