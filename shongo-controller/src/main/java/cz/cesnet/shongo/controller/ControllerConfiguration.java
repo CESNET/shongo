@@ -69,6 +69,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = INTERDOMAIN + ".ssl-key-store-password";
     public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = INTERDOMAIN + ".ssl-trust-store.ca-certificate";
     public static final String INTERDOMAIN_COMMAND_TIMEOUT = INTERDOMAIN + ".command-timeout";
+    public static final String INTERDOMAIN_CACHE_REFRESH_RATE = INTERDOMAIN + ".cache-refresh-rate";
     public static final String INTERDOMAIN_BASIC_AUTH_PASSWORD = INTERDOMAIN + ".basic-auth.password";
 
     /**
@@ -503,5 +504,9 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     public int getInterDomainCommandTimeout() {
         return (int) getDuration(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT).getMillis();
+    }
+
+    public Integer getInterDomainCacheRefreshRate() {
+        return getInteger(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, 300);
     }
 }

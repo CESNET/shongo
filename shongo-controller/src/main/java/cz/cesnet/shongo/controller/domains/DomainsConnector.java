@@ -71,23 +71,28 @@ public class DomainsConnector
         return executor;
     }
 
-    protected <T> Map<String, T> performSingleRequest(final InterDomainAction.HttpMethod method, final String action,
+    public ControllerConfiguration getConfiguration()
+    {
+        return configuration;
+    }
+
+    protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
                                                       final Map<String, String> parameters, final Collection<Domain> domains,
                                                       Class<T> objectClass)
     {
-        final ConcurrentHashMap<String, T> resultMap = new ConcurrentHashMap<>();
+        final ConcurrentMap<String, T> resultMap = new ConcurrentHashMap<>();
         ObjectReader reader = mapper.reader(objectClass);
-        performParallelRequest(method, action, parameters, domains, reader, resultMap, objectClass);
+        performRequests(method, action, parameters, domains, reader, resultMap, objectClass);
         return resultMap;
     }
 
-    protected <T> Map<String, List<T>> performListRequest(final InterDomainAction.HttpMethod method, final String action,
-                                                          final Map<String, String> parameters, final Collection<Domain> domains,
-                                                          Class<T> objectClass)
+    protected <T> Map<String, List<T>> performTypedListRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                                final Map<String, String> parameters, final Collection<Domain> domains,
+                                                                Class<T> objectClass)
     {
-        final ConcurrentHashMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
+        final ConcurrentMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
-        performParallelRequest(method, action, parameters, domains, reader, resultMap, List.class);
+        performRequests(method, action, parameters, domains, reader, resultMap, List.class);
         return resultMap;
     }
 
@@ -102,16 +107,15 @@ public class DomainsConnector
      * @param returnClass {@link Class<T>} of the object to return
      * @return result object as instance of given {@code clazz}
      */
-    protected synchronized <T> void performParallelRequest(final InterDomainAction.HttpMethod method, final String action,
-                                                               final Map<String, String> parameters, final Collection<Domain> domains,
-                                                               final ObjectReader reader, final ConcurrentHashMap result,
-                                                               final Class<T> returnClass)
+    protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                    final Map<String, String> parameters, final Collection<Domain> domains,
+                                                    final ObjectReader reader, final ConcurrentMap result,
+                                                    final Class<T> returnClass)
     {
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
 
-        ExecutorService executor = Executors.newFixedThreadPool(domains.size());
         for (final Domain domain : domains) {
-            Callable<T> task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result);
+            Callable<T> task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, null);
             futureTasks.put(domain.getCode(), executor.submit(task));
         }
 
@@ -132,16 +136,16 @@ public class DomainsConnector
         }
     }
 
-    protected <T> T performSingleRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
-    {
-        return performRequest(method, action, parameters, domain, mapper.reader(objectClass), objectClass);
-    }
-
-    protected <T> List<T> performListRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
-    {
-        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
-        return performRequest(method, action, parameters, domain, reader, List.class);
-    }
+//    protected <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
+//    {
+//        return performRequest(method, action, parameters, domain, mapper.reader(objectClass), objectClass);
+//    }
+//
+//    protected <T> List<T> performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
+//    {
+//        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+//        return performRequest(method, action, parameters, domain, reader, List.class);
+//    }
 
     /**
      * Perform request on one foreign domain, returns {@link JSONObject} or throws {@link ForeignDomainConnectException}.
@@ -371,7 +375,7 @@ public class DomainsConnector
     public List<Domain> getForeignDomainsStatuses()
     {
         List<Domain> foreignDomains = listForeignDomains();
-        Map<String, DomainStatus> response = performSingleRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, null, foreignDomains, DomainStatus.class);
+        Map<String, DomainStatus> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, null, foreignDomains, DomainStatus.class);
         for (Domain domain : foreignDomains) {
             DomainStatus status = response.get(domain.getCode());
             domain.setStatus(status == null ? Domain.Status.NOT_AVAILABLE : status.toStatus());
@@ -380,11 +384,11 @@ public class DomainsConnector
         return foreignDomains;
     }
 
-    public Map<String, List<DomainCapability>> listForeignResources()
-    {
-        Map<String, List<DomainCapability>> domainResources = performListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCES_LIST, null, listForeignDomains(), DomainCapability.class);
-        return domainResources;
-    }
+//    public Map<String, List<DomainCapability>> listForeignResources()
+//    {
+//        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCES_LIST, null, listForeignDomains(), DomainCapability.class);
+//        return domainResources;
+//    }
 
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
@@ -396,25 +400,61 @@ public class DomainsConnector
         if (request.getTechnology() != null) {
             parameters.put("technology", request.getTechnology().toString());
         }
-        Map<String, List<DomainCapability>> domainResources = performListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listForeignDomains(), DomainCapability.class);
+        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listForeignDomains(), DomainCapability.class);
         return domainResources;
     }
 
-
-    protected class DomainTask<T> implements Callable<T>
+    /**
+     * Represents action to be called on domain. Returns result after successful call. If {@code result} or
+     * {@code unavailableDomains} are set, result or failed action will be written to them (synchronized on the {@code result}).
+     * @param <T> class of the result
+     */
+    protected class DomainTask<T> implements Callable<T>, Runnable
     {
+        /**
+         * Http method of the action
+         */
         private InterDomainAction.HttpMethod method;
+
+        /**
+         * URL path of the action to call
+         */
         private String action;
+
+        /**
+         * GET parameters of the action
+         */
         private Map<String, String> parameters;
+
+        /**
+         * Domain for which will the action be called
+         */
         private Domain domain;
+
+        /**
+         * Reader to parse the JSON result
+         */
         private ObjectReader reader;
+
+        /**
+         * Class of the result to be returned
+         */
         private Class<T> returnClass;
-        private ConcurrentHashMap result;
+
+        /**
+         * Result map to be filled
+         */
+        private ConcurrentMap result;
+
+        /**
+         * Set of domains for which the action fails
+         */
+        private ConcurrentHashSet unavailableDomains;
 
         public DomainTask(final InterDomainAction.HttpMethod method, final String action,
                           final Map<String, String> parameters, final Domain domain,
                           final ObjectReader reader, final Class<T> returnClass,
-                          final ConcurrentHashMap result)
+                          final ConcurrentMap result, final ConcurrentHashSet unavailableDomains)
         {
             this.method = method;
             this.action = action;
@@ -423,38 +463,54 @@ public class DomainsConnector
             this.reader = reader;
             this.returnClass = returnClass;
             this.result = result;
+            this.unavailableDomains = unavailableDomains;
         }
 
         @Override
-        public T call() throws Exception
+        public T call()
         {
+            boolean failed = true;
             try {
+                if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {
+                    throw new IllegalStateException();
+                }
                 T response = performRequest(method, action, parameters, domain, reader, returnClass);
                 if (result != null && response != null) {
-                    result.put(domain.getCode(), response);
+                    synchronized (result) {
+                        result.put(domain.getCode(), response);
+                        if (unavailableDomains != null) {
+                            unavailableDomains.remove(domain.getCode());
+                        }
+                    }
+                    failed = false;
                 }
                 return response;
-            } catch (Exception e) {
-                notifier.notifyDomainAdmin("Failed to perform request to domain " + domain.getName(), e);
+            }
+            catch (IllegalStateException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                try {
+                    notifier.notifyDomainAdmin("Failed to perform request to domain " + domain.getName(), e);
+                }
+                catch (Exception notifyEx) {
+                    logger.error("Notification has failed.", notifyEx);
+                }
                 return null;
+            }
+            finally {
+                if (unavailableDomains != null && failed) {
+                    synchronized (result) {
+                        unavailableDomains.add(domain.getCode());
+                    }
+                }
             }
         }
 
-//        @Override
-//        public void run()
-//        {
-//            try {
-//                T response = performRequest(method, action, parameters, domain, reader, returnClass);
-//                if (response != null) {
-//                    result.put(domain.getCode(), response);
-//                }
-//            } catch (Exception e) {
-//                notifier.notifyDomainAdmin("Failed to perform request to domain " + domain.getName(), e);
-//            } finally {
-//                if (!result.containsKey(domain.getCode())) {
-//                    failed.add(domain);
-//                }
-//            }
-//        }
+        @Override
+        public void run()
+        {
+            call();
+        }
     }
 }

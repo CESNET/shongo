@@ -10,9 +10,11 @@ import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -21,24 +23,28 @@ import java.util.Map;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class InterDomainTest extends AbstractControllerTest {
+public class InterDomainTest extends AbstractControllerTest
+{
     private static final String INTERDOMAIN_LOCAL_HOST = "localhost";
     private static final Integer INTERDOMAIN_LOCAL_PORT = 8443;
     private static final String INTERDOMAIN_LOCAL_PASSWORD = "shongo_test";
     private static final String INTERDOMAIN_LOCAL_PASSWORD_HASH = SSLCommunication.hashPassword(INTERDOMAIN_LOCAL_PASSWORD.getBytes());
+    private static final String TEST_CERT_PATH = "../shongo-controller/src/test/resources/keystore/server.crt";
 
     private Domain loopbackDomain;
 
     @Override
-    public void before() throws Exception {
+    public void before() throws Exception
+    {
         System.setProperty(ControllerConfiguration.INTERDOMAIN_HOST, INTERDOMAIN_LOCAL_HOST);
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PORT, INTERDOMAIN_LOCAL_PORT.toString());
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE, "shongo-controller/src/test/resources/keystore/server.p12");
+        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE, "../shongo-controller/src/test/resources/keystore/server.p12");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD, "shongo");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE, "PKCS12");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, "false");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT, "PT10S");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD, INTERDOMAIN_LOCAL_PASSWORD);
+        System.setProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, "10");
 
         super.before();
 
@@ -47,7 +53,7 @@ public class InterDomainTest extends AbstractControllerTest {
         loopbackDomain.setCode(LocalDomain.getLocalDomainCode());
         loopbackDomain.setOrganization("CESNET z.s.p.o.");
         loopbackDomain.setAllocatable(true);
-        loopbackDomain.setCertificatePath("shongo-controller/src/test/resources/keystore/server.crt");
+        loopbackDomain.setCertificatePath(TEST_CERT_PATH);
         DeviceAddress deviceAddress = new DeviceAddress(INTERDOMAIN_LOCAL_HOST, INTERDOMAIN_LOCAL_PORT);
         loopbackDomain.setDomainAddress(deviceAddress);
         loopbackDomain.setPasswordHash(INTERDOMAIN_LOCAL_PASSWORD_HASH);
@@ -55,37 +61,65 @@ public class InterDomainTest extends AbstractControllerTest {
         loopbackDomain.setId(domainId);
     }
 
+    @After
+    public void tearDown() throws Exception
+    {
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_HOST);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_PORT);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD);
+        System.clearProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE);
+    }
+
+    /**
+     * Test of basic authentication on loopback domain
+     */
     @Test
-    public void testBasicAuthLogin() {
+    public void testBasicAuthLogin()
+    {
         getConnector().login(loopbackDomain);
         List<Domain> domains = getConnector().getForeignDomainsStatuses();
         Assert.assertEquals(Domain.Status.AVAILABLE, domains.get(0).getStatus());
     }
 
+    /**
+     * Test of 2 domains of which one is not accessible.
+     */
     @Test
-    public void testUnavailableDomain() {
+    public void testUnavailableDomain()
+    {
         Domain unavailableDomain = new Domain();
         unavailableDomain.setName("Unavailable");
         unavailableDomain.setCode("none");
         unavailableDomain.setOrganization("CESNET z.s.p.o.");
         unavailableDomain.setAllocatable(true);
-//        unavailableDomain.setCertificatePath("shongo-controller/src/test/resources/keystore/server.crt");
         DeviceAddress deviceAddress = new DeviceAddress("none", INTERDOMAIN_LOCAL_PORT);
         unavailableDomain.setDomainAddress(deviceAddress);
         unavailableDomain.setPasswordHash("none");
         getResourceService().createDomain(SECURITY_TOKEN_ROOT, unavailableDomain);
 
+        // Should return 2 domain statuses
         List<Domain> domains = getConnector().getForeignDomainsStatuses();
         Assert.assertEquals(2, domains.size());
 
+        // Should return only one empty list of domain capabilities
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest();
         listRequest.setType(DomainCapabilityListRequest.Type.RESOURCE);
         Map<String, List<DomainCapability>> domainCapabilities = getConnector().listForeignCapabilities(listRequest);
-        Assert.assertEquals(1, domainCapabilities.entrySet().size());
+        Assert.assertEquals(1, domainCapabilities.size());
     }
 
+    /**
+     * Test of action {@link cz.cesnet.shongo.controller.api.domains.InterDomainAction#DOMAIN_RESOURCES_LIST}
+     * for some types of resources/capabilities
+     */
     @Test
-    public void testListForeignCapabilities() {
+    public void testListForeignCapabilities()
+    {
         DomainResource mcuDomainResource = new DomainResource();
         mcuDomainResource.setPrice(1);
         mcuDomainResource.setLicenseCount(10);
@@ -99,16 +133,16 @@ public class InterDomainTest extends AbstractControllerTest {
         mcu.setAllocationOrder(2);
         String mcuId = createResource(mcu);
 
+        Resource meetingRoom = new Resource();
+        meetingRoom.setAllocatable(true);
+        meetingRoom.setName("meeting-room");
+        String meetingRoomId = createResource(meetingRoom);
+
         DomainResource mrDomainResource = new DomainResource();
         mrDomainResource.setPrice(1);
         mrDomainResource.setLicenseCount(null);
         mrDomainResource.setPriority(1);
         mrDomainResource.setType("mr");
-
-        Resource meetingRoom = new Resource();
-        meetingRoom.setAllocatable(true);
-        meetingRoom.setName("meeting-room");
-        String meetingRoomId = createResource(meetingRoom);
 
         getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mcuDomainResource, loopbackDomain.getId(), mcuId);
         getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoomId);
@@ -132,15 +166,93 @@ public class InterDomainTest extends AbstractControllerTest {
         Assert.assertEquals(0, resources3.get(loopbackDomain.getCode()).size());
     }
 
+    /**
+     * Test of cached domain connector.
+     */
     @Test
-    public void test() throws Exception {
+    public void testCachedDomainResources()
+    {
+        try {
+            Resource meetingRoom = new Resource();
+            meetingRoom.setAllocatable(true);
+            meetingRoom.setName("meeting-room");
+            String meetingRoomId = createResource(meetingRoom);
+
+            Resource meetingRoom2 = new Resource();
+            meetingRoom2.setAllocatable(true);
+            meetingRoom2.setName("meeting-room");
+            String meetingRoom2Id = createResource(meetingRoom2);
+
+            DomainResource mrDomainResource = new DomainResource();
+            mrDomainResource.setPrice(1);
+            mrDomainResource.setLicenseCount(null);
+            mrDomainResource.setPriority(1);
+            mrDomainResource.setType("mr");
+
+            getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoomId);
+            getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoom2Id);
+
+            Domain unavailableDomain = new Domain();
+            unavailableDomain.setName("Unavailable");
+            unavailableDomain.setCode("none");
+            unavailableDomain.setOrganization("CESNET z.s.p.o.");
+            unavailableDomain.setAllocatable(true);
+            DeviceAddress deviceAddress = new DeviceAddress("none", INTERDOMAIN_LOCAL_PORT);
+            unavailableDomain.setDomainAddress(deviceAddress);
+            unavailableDomain.setPasswordHash("none");
+            String unavailableDomainId = getResourceService().createDomain(SECURITY_TOKEN_ROOT, unavailableDomain);
+
+            getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, unavailableDomainId, meetingRoomId);
+
+            // Uninitialized cache should return 2 resources for loopback domain, but it could be slow
+            getConnector().login(loopbackDomain);
+            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest();
+            listRequest.setType(DomainCapabilityListRequest.Type.RESOURCE);
+            Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
+            Assert.assertEquals(2, resources.get(loopbackDomain.getCode()).size());
+
+            while (!getConnector().isResourcesCachedInitialized()) {
+                System.out.println("Waiting for cache to be initialized ...");
+                Thread.sleep(2000);
+            }
+            System.out.println("Cache was INITIALIZED");
+
+            getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, loopbackDomain.getId(), meetingRoom2Id);
+
+            System.out.println("Waiting for cache to be refreshed");
+            Thread.sleep(15000);
+            System.out.println("Cached shoud be refreshed");
+
+            // After cache refresh, it should return only 1 resource for loopback domain
+            resources = getConnector().listForeignCapabilities(listRequest);
+            Assert.assertEquals(1, resources.get(loopbackDomain.getCode()).size());
+
+            getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, unavailableDomainId, meetingRoomId);
+            getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, loopbackDomain.getId(), meetingRoomId);
+            getResourceService().deleteDomain(SECURITY_TOKEN_ROOT, unavailableDomainId);
+            getResourceService().deleteDomain(SECURITY_TOKEN_ROOT, loopbackDomain.getId());
+
+            // Deleting of foreign domain should be recognized immediately
+            resources = getConnector().listForeignCapabilities(listRequest);
+            Assert.assertEquals(0, resources.size());
+        } catch (InterruptedException e) {
+            // Should not have happened
+            e.printStackTrace();
+        }
     }
 
-    protected DomainsConnector getConnector() {
+    @Test
+    public void test() throws Exception
+    {
+    }
+
+    protected CachedDomainsConnector getConnector()
+    {
         return InterDomainAgent.getInstance().getConnector();
     }
 
-    protected DomainService getDomainService() {
+    protected DomainService getDomainService()
+    {
         return InterDomainAgent.getInstance().getDomainService();
     }
 }

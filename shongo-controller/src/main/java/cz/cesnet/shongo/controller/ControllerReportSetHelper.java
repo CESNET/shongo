@@ -43,6 +43,14 @@ public class ControllerReportSetHelper
     }
 
     /**
+     * @throws {@link CommonReportSet.ObjectNotDeletableReferencedException}
+     */
+    public static <T> T throwObjectNotDeletableReferencedFault(Throwable e, Class<?> objectType, String objectId) throws CommonReportSet.ObjectNotDeletableReferencedException
+    {
+        throw new CommonReportSet.ObjectNotDeletableReferencedException(e, objectType.toString(), objectId);
+    }
+
+    /**
      * @throws {@link ControllerReportSet.SecurityNotAuthorizedException}
      */
     public static <T> T throwSecurityNotAuthorizedFault(String action, Object... objects)

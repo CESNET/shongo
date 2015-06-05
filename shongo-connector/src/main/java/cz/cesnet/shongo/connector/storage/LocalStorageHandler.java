@@ -12,6 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * {@link LocalStorageHandler} can manage file and folders in local directory.
+ * This test will fail on Windows
+ * TODO: solve absolute path on multi OS level
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -52,7 +52,7 @@ public class InterDomainAgent {
 
     private DomainService domainService;
 
-    private final DomainsConnector connector;
+    private final CachedDomainsConnector connector;
 
     private final DomainAuthentication authentication;
 
@@ -70,8 +70,8 @@ public class InterDomainAgent {
         domainService.init(configuration);
 
         this.authentication = new DomainAuthentication(entityManagerFactory, configuration, emailSender);
-//        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);
-        this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
+        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);
+//        this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
     }
 
     public static synchronized InterDomainAgent create(EntityManagerFactory entityManagerFactory,
@@ -92,14 +92,17 @@ public class InterDomainAgent {
     }
 
     public static void destroy() {
-        instance = null;
+        if (instance != null) {
+            instance.getConnector().getExecutor().shutdownNow();
+            instance = null;
+        }
     }
 
     public DomainService getDomainService() {
         return domainService;
     }
 
-    public DomainsConnector getConnector() {
+    public CachedDomainsConnector getConnector() {
         return connector;
     }
 

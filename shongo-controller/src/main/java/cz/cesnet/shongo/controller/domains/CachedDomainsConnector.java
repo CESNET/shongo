@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.domains;
 
-import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -9,14 +8,9 @@ import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.codehaus.jackson.map.ObjectReader;
 import org.eclipse.jetty.util.ConcurrentHashSet;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -26,60 +20,116 @@ import java.util.concurrent.*;
  */
 public class CachedDomainsConnector extends DomainsConnector
 {
-    private ConcurrentHashMap<String, List<DomainCapability>> foreignCapabilities = new ConcurrentHashMap<>();
+    /**
+     * Cache of available resources mapped by domains codes
+     */
+    private ConcurrentMap<String, List<DomainCapability>> availableResources = new ConcurrentHashMap<>();
 
-    private ConcurrentHashMap<String, List<DomainCapability>> unavailableForeignCapabilities = new ConcurrentHashMap<>();
-
-    private final int THREAD_TIMEOUT = 500;
-
-    private final long EXECUTOR_MINUTES_DELAY = 5;
+    /**
+     * Cache of unavailable domains, supplement to {#code availableResources} on foreign domains
+     */
+    private ConcurrentHashSet<String> unavailableResources = new ConcurrentHashSet<>();
 
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
         super(entityManagerFactory, configuration, emailSender);
+        initResourceCache();
     }
 
-    @Override
-    public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
+    /**
+     * Start periodic cache of foreign domain's resources (type of RESOURCE)
+     */
+    private void initResourceCache()
     {
+        // Init only for inactive domains
+        List<Domain> domains = new ArrayList<>();
+        for (Domain domain : listForeignDomains()) {
+            if (!availableResources.containsKey(domain.getCode()) && !unavailableResources.contains(domain.getCode())) {
+                domains.add(domain);
+            }
+        }
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("type", request.getType().toString());
-        if (request.getInterval() != null) {
-            parameters.put("interval", request.getInterval().toString());
-        }
-        if (request.getTechnology() != null) {
-            parameters.put("technology", request.getTechnology().toString());
-        }
-        Map<String, List<DomainCapability>> domainResources = performListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listForeignDomains(), DomainCapability.class);
-        return domainResources;
+        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
+        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters,
+                domains, DomainCapability.class, availableResources, unavailableResources);
     }
 
-    @Override
-    protected <T> Map<String, List<T>> performListRequest(final InterDomainAction.HttpMethod method, final String action,
-                                                          final Map<String, String> parameters, final Collection<Domain> domains,
-                                                          Class<T> objectClass)
+    protected <T> Map<String, List<T>> submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
+                                                                    final Map<String, String> parameters, final Collection<Domain> domains,
+                                                                    Class<T> objectClass, ConcurrentMap cache, ConcurrentHashSet unavailableDomainsCache)
     {
         final ConcurrentHashMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
-        performParallelCachedRequest(method, action, parameters, domains, reader, foreignCapabilities, List.class);
+        submitCachedRequests(method, action, parameters, domains, reader, cache, unavailableDomainsCache, List.class);
         return resultMap;
     }
 
-    protected synchronized <T> void performParallelCachedRequest(InterDomainAction.HttpMethod method, String action, Map<String, String> parameters, Collection<Domain> domains, ObjectReader reader, ConcurrentHashMap result, Class<T> returnClass)
+    /**
+     * Submit action tasks to {#code getExecutor()} with periodic repetition (in controller configuration).
+     * @param method Http method
+     * @param action to call
+     * @param parameters of call
+     * @param domains to be used
+     * @param reader for parsing JSON response
+     * @param result concurrent map
+     * @param unavailableDomainsCache concurrent map
+     * @param returnClass class of result object(s)
+     * @param <T>
+     */
+    protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
+                                            Map<String, String> parameters, Collection<Domain> domains,
+                                            ObjectReader reader, ConcurrentMap result,
+                                            ConcurrentHashSet unavailableDomainsCache, Class<T> returnClass)
     {
-        final ConcurrentHashSet<Domain> failed = new ConcurrentHashSet<>();
-
         for (final Domain domain : domains) {
-            Runnable task = (Runnable) new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result);
-            getExecutor().scheduleWithFixedDelay(task, 0, EXECUTOR_MINUTES_DELAY, TimeUnit.MINUTES);
+            Runnable task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, unavailableDomainsCache);
+            getExecutor().scheduleWithFixedDelay(task, 0, getConfiguration().getInterDomainCacheRefreshRate(), TimeUnit.SECONDS);
         }
+    }
 
-        while (result.size() + failed.size() < domains.size()) {
-            try {
-                Thread.sleep(THREAD_TIMEOUT);
-            } catch (InterruptedException e) {
-                continue;
+    protected boolean isResourcesCachedInitialized()
+    {
+        boolean initialized = true;
+        synchronized (availableResources) {
+            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
+                initialized = false;
             }
         }
+        if (!initialized) {
+            initResourceCache();
+        }
+        return initialized;
+    }
+
+    /**
+     * Returns cached resources for now or will perform synchronized request to all foreign domains (can be slow, depending on {@code DomainsConnector.THREAD_TIMEOUT}).
+     * @param request
+     * @return
+     */
+    @Override
+    public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
+    {
+        Map<String, List<DomainCapability>> capabilities;
+        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCachedInitialized()) {
+            capabilities = new HashMap<>();
+            // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
+            synchronized (availableResources) {
+                for (Map.Entry<String, List<DomainCapability>> entry : availableResources.entrySet()) {
+                    if (unavailableResources.contains(entry.getKey())) {
+                        capabilities.put(entry.getKey(), entry.getValue());
+                    }
+                    else {
+                        List<DomainCapability> resources = entry.getValue();
+                        for (DomainCapability resource : resources) {
+                            resource.setAvailable(false);
+                        }
+                        capabilities.put(entry.getKey(), resources);
+                    }
+                }
+            }
+        } else {
+            capabilities = super.listForeignCapabilities(request);
+        }
+        return capabilities;
     }
 }

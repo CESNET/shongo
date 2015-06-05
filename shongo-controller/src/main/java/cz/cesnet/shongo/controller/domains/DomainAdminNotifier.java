@@ -32,7 +32,7 @@ public class DomainAdminNotifier {
         if (emailSender == null) {
             return;
         }
-        if (!Strings.isNullOrEmpty(message)) {
+        if (Strings.isNullOrEmpty(message)) {
             throw new IllegalArgumentException("Message cannot be null or epmty.");
         }
         String subject = "Error in InterDomainAgent";

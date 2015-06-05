@@ -861,7 +861,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void deleteDomain(SecurityToken token, String domainId) {
         authorization.validate(token);
         checkNotNull("domain-id", domainId);
-        Long persistanceId = ObjectIdentifier.parseId(domainId,ObjectType.DOMAIN);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(domainId, ObjectType.DOMAIN);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -872,8 +872,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Delete the domain
-            cz.cesnet.shongo.controller.booking.domain.Domain persistanceDomain = resourceManager.getDomain(
-                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+            cz.cesnet.shongo.controller.booking.domain.Domain persistanceDomain = resourceManager.getDomain(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(token, persistanceDomain, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete domain %s", domainId);
@@ -891,8 +890,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Domain '" + domainId + "' cannot be deleted because is still referenced.",
                             exception);
-                    ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
-                            cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
+                    ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(cz.cesnet.shongo.controller.booking.domain.Domain.class, objectId.getPersistenceId());
                     return;
                 }
             }
