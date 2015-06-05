@@ -89,16 +89,17 @@ public class CachedDomainsConnector extends DomainsConnector
 
     protected boolean isResourcesCachedInitialized()
     {
-        boolean initialized = true;
-        synchronized (availableResources) {
-            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
-                initialized = false;
-            }
-        }
-        if (!initialized) {
-            initResourceCache();
-        }
-        return initialized;
+        return false;
+//        boolean initialized = true;
+//        synchronized (availableResources) {
+//            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
+//                initialized = false;
+//            }
+//        }
+//        if (!initialized) {
+//            initResourceCache();
+//        }
+//        return initialized;
     }
 
     public Set<DomainCapability> listAllocatableForeignResources()

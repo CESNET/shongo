@@ -507,6 +507,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     public Integer getInterDomainCacheRefreshRate() {
-        return getInteger(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, 300);
+        return getDuration(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE).toStandardSeconds().getSeconds();
     }
 }

@@ -11,6 +11,7 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Shell;
+use Shongo::ClientCli::API::Domain;
 
 #
 # Populate shell by options for management of resources.

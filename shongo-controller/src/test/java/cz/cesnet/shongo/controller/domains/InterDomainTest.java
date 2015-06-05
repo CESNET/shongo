@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -239,6 +240,8 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
+        System.out.println(new Duration("PT5H").toStandardSeconds().getSeconds());
+        System.out.println(new Duration("PT5H").getMillis()/1000|0);
     }
 
     protected CachedDomainsConnector getConnector()

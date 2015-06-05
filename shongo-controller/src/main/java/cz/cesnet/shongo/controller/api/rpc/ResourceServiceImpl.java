@@ -415,6 +415,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 response.addItem(resourceSummary);
             }
             for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources()) {
+                //TODO overovat opravneni - tag
                 response.addItem(resource.toResourceSummary());
             }
             return response;
@@ -857,8 +858,37 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void modifyDomain(SecurityToken token, Domain domain) {
-        throw new TodoImplementException();
+    public void modifyDomain(SecurityToken securityToken, Domain domainApi) {
+        authorization.validate(securityToken);
+        checkNotNull("domain", domainApi);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        String domainId = domainApi.getId();
+        ObjectIdentifier objectId = ObjectIdentifier.parse(domainId, ObjectType.DOMAIN);
+
+        try {
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.booking.domain.Domain domain =
+                    resourceManager.getDomain(objectId.getPersistenceId());
+
+            if (!authorization.hasObjectPermission(securityToken, domain, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify domain %s", objectId);
+            }
+
+            domain.fromApi(domainApi);
+
+            resourceManager.updateDomain(domain);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
     }
 
     @Override
