@@ -32,6 +32,17 @@ sub populate()
                 }
             },
         },
+        'modify-domain' => {
+            desc => 'Modify an existing domain',
+            args => '[id] [<json_attributes>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    modify_domain($args[0], $attributes, $params->{'options'});
+                }
+            },
+        },
         'remove-domain' => {
             desc => 'Remove a foreign domain',
             args => '[id]',
@@ -92,76 +103,52 @@ sub add_domain()
         return undef;
     };
 
-    my $domain = Shongo::ClientCli::API::Object->new();
-
-    $domain->set_object_class('Domain');
-    $domain->set_object_name('Domain');
-    $domain->add_attribute(
-        'id', {
-            'title' => 'Identifier',
-            'editable' => 0
-        }
-    );
-    $domain->add_attribute(
-        'name', {
-            'required' => 1,
-            'title' => 'Domain name',
-        }
-    );
-    $domain->add_attribute(
-        'code', {
-            'required' => 1,
-            'title' => 'Domain code',
-        }
-    );
-    $domain->add_attribute(
-        'organization', {
-            'required' => 1,
-            'title' => 'Domain organization',
-        }
-    );
-    $domain->add_attribute(
-        'url', {
-            'required' => 1,
-            'title' => 'Url',
-        }
-    );
-    $domain->add_attribute(
-        'port', {
-            'required' => 1,
-            'title' => 'Port',
-        }
-    );
-    $domain->add_attribute(
-        'allocatable', {
-            'required' => 1,
-            'type' => 'bool',
-            'title' => 'Use for local allocation',
-        }
-    );
-    $domain->add_attribute(
-        'certificatePath', {
-            'required' => 0,
-            'title' => 'Domain certificate file (for PKI auth)',
-        }
-    );
-    $domain->add_attribute(
-        'passwordHash', {
-            'required' => 0,
-            'title' => 'Password hash (for basic auth)',
-        }
-    );
-
-    my $id = $domain->create($attributes, $options);
+    my $id = Shongo::ClientCli::API::Domain->create($attributes, $options);
     if ( defined($id) ) {
         console_print_info("Domain '%s' successfully added.", $id);
     }
 }
 
+sub modify_domain()
+{
+#    my ($id, $attributes, $options) = @_;
+#    $id = Shongo::ClientCli::ResourceService::select_resource($id, $attributes);
+#    if ( !defined($id) ) {
+#        return;
+#    }
+#    my $response = Shongo::ClientCli->instance()->secure_request(
+#        'Resource.getDomain',
+#        RPC::XML::string->new($id)
+#    );
+#
+#    $options->{'on_confirm'} = sub {
+#        my ($resource) = @_;
+#        console_print_info("Modifying domain...");
+#        my $response = Shongo::ClientCli->instance()->secure_request(
+#            'Resource.modifyDomain',
+#            $resource->to_xml()
+#        );
+#        if ( defined($response) ) {
+#            return $resource->{'id'};
+#        }
+#        return undef;
+#    };
+#
+#    if ( defined($response) ) {
+#        my $domain = Shongo::ClientCli::API::Domain->from_hash($response);
+#        if ( defined($domain) ) {
+#            my $new_id = $domain->modify($attributes, $options);
+#            if ( defined($new_id) ) {
+#                console_print_info("Domain '%s' successfully modified to '%s'.", $id, $new_id);
+#            }
+#        }
+#    }
+}
+
 sub remove_domain()
 {
     my ($id) = @_;
-    $id = select_resource($id);
+    $id = Shongo::ClientCli::ResourceService::select_resource($id);
     if ( !defined($id) ) {
         return;
     }

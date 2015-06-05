@@ -22,6 +22,7 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -412,6 +413,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     resourceSummary.setCalendarUriKey(record[9].toString());
                 }
                 response.addItem(resourceSummary);
+            }
+            for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources()) {
+                response.addItem(resource.toResourceSummary());
             }
             return response;
         }
