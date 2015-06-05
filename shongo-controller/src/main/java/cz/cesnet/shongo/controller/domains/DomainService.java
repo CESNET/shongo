@@ -417,8 +417,8 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 if ((Boolean) record[3]) {
                     domainCapability.setCalendarUriKey(record[4].toString());
                 }
-                domainCapability.setLicenseCount((Integer) record[4]);
-                domainCapability.setPrice((Integer) record[5]);
+                domainCapability.setLicenseCount((Integer) record[5]);
+                domainCapability.setPrice((Integer) record[6]);
                 response.add(domainCapability);
             }
             return response;

@@ -19,8 +19,8 @@
             <!-- Use PKI client auth, basic auth otherwise -->
             <!--<pki-client-auth>true</pki-client-auth>-->
             <command-timeout>PT33S</command-timeout>
-            <!-- Refresh rate for domains connector cache in seconds -->
-            <cache-refresh-rate>600</cache-refresh-rate>
+            <!-- Refresh rate for domains connector cache -->
+            <cache-refresh-rate>PT10M</cache-refresh-rate>
             <!-- TrustStore of JKS/PKCS12 type with private key and certificate chain of local domain -->
             <!--<ssl-key-store></ssl-key-store>-->
             <!--<ssl-key-store-type></ssl-key-store-type>-->

@@ -506,7 +506,14 @@ public class ResourceManager extends AbstractManager
 
     public void createDomain(Domain domain)
     {
+        domain.validate();
         super.create(domain);
+    }
+
+    public void updateDomain(Domain domain)
+    {
+        domain.validate();
+        super.update(domain);
     }
 
     public Domain getDomain(Long resourceId)

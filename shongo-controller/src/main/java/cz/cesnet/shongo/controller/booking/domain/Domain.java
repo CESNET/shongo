@@ -1,14 +1,20 @@
 package cz.cesnet.shongo.controller.booking.domain;
 
+import com.google.common.base.Strings;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents foreign domain with local shareable resources/capabilities.
@@ -160,5 +166,32 @@ public class Domain extends SimplePersistentObject {
         this.setCertificatePath(domainApi.getCertificatePath());
         this.setAllocatable(domainApi.isAllocatable());
         this.setPasswordHash(domainApi.getPasswordHash());
+    }
+
+    /**
+     * Validate resource.
+     *
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
+     *
+     */
+    public void validate() throws CommonReportSet.ObjectInvalidException
+    {
+        if (Strings.isNullOrEmpty(code)) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Domain cannot have empty code.");
+        }
+        if (Strings.isNullOrEmpty(url)) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Domain cannot have empty url.");
+        }
+        if (port == 0) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Domain cannot have empty port 0.");
+        }
+        if (Strings.isNullOrEmpty(certificatePath) && Strings.isNullOrEmpty(passwordHash)) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Domain cannot have empty certificate path and password hash.");
+        }
+
     }
 }
