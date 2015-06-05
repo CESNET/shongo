@@ -399,6 +399,7 @@ public class AuthorizationManager extends AclEntryManager
                         + " WHERE dependency.childAclEntry = :aclEntry", AclEntryDependency.class)
                 .setParameter("aclEntry", aclEntry)
                 .getResultList();
+
         if (parentAclEntryDependencies.size() > 0) {
             if (detachChildren) {
                 for (AclEntryDependency aclEntryDependency : parentAclEntryDependencies) {

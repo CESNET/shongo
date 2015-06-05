@@ -22,7 +22,8 @@ import java.util.*;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class DomainService extends AbstractServiceImpl implements Component.EntityManagerFactoryAware {
+public class DomainService extends AbstractServiceImpl implements Component.EntityManagerFactoryAware
+{
     private static Logger logger = LoggerFactory.getLogger(DomainService.class);
 
 //    /**
@@ -51,12 +52,14 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //    }
 
 
-    public DomainService(EntityManagerFactory entityManagerFactory) {
+    public DomainService(EntityManagerFactory entityManagerFactory)
+    {
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -67,12 +70,13 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //    }
 
     @Override
-    public void init(ControllerConfiguration configuration) {
+    public void init(ControllerConfiguration configuration)
+    {
 //        checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
 //        checkDependency(authorization, Authorization.class);
         //TODO: overit zda tu configuration potrebuji
-        super.init(configuration);
+//        super.init(configuration);
     }
 
 //    @Override
@@ -83,18 +87,22 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     /**
      * List all domains included local domain. Every domain will have null status except local.
+     *
      * @return
      */
-    public List<Domain> listDomains() {
+    public List<Domain> listDomains()
+    {
         return listDomains(false);
     }
 
     /**
      * List all domains included local domain depending on {@code onlyForeignDomains}. Every domain will have null status except local.
+     *
      * @param onlyForeignDomains
      * @return
      */
-    public List<Domain> listDomains(boolean onlyForeignDomains) {
+    public List<Domain> listDomains(boolean onlyForeignDomains)
+    {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
@@ -106,8 +114,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 domainList.add(domain.toApi());
             }
             return Collections.unmodifiableList(domainList);
-        }
-        finally {
+        } finally {
             entityManager.close();
         }
     }
@@ -294,7 +301,8 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        }
 //    }
 
-    public List<DomainCapability> listLocalResourcesByDomain(DomainCapabilityListRequest request) {
+    public List<DomainCapability> listLocalResourcesByDomain(DomainCapabilityListRequest request)
+    {
         checkNotNull("request", request);
         checkNotNull("domainId", request.getDomainId());
         checkNotNull("type", request.getType());
@@ -414,13 +422,13 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 response.add(domainCapability);
             }
             return response;
-        }
-        finally {
+        } finally {
             entityManager.close();
         }
     }
 
-    public cz.cesnet.shongo.controller.api.Domain getDomain(String domainId) {
+    public cz.cesnet.shongo.controller.api.Domain getDomain(String domainId)
+    {
         checkNotNull("domain-id", domainId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -433,13 +441,17 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);
 //            }
 
+            if (domain == null) {
+                return null;
+            }
             return domain.toApi();
         } finally {
             entityManager.close();
         }
     }
 
-    public cz.cesnet.shongo.controller.api.Domain findDomainByCode(String domainCode) {
+    public cz.cesnet.shongo.controller.api.Domain findDomainByCode(String domainCode)
+    {
         checkNotNull("domain-code", domainCode);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
