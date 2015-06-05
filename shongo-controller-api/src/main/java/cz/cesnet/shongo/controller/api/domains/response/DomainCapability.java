@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -86,5 +87,18 @@ public class DomainCapability
     public Boolean getAvailable()
     {
         return (available == null ? true : available);
+    }
+
+    public ResourceSummary toResourceSummary()
+    {
+        ResourceSummary resourceSummary = new ResourceSummary();
+        resourceSummary.setId(id);
+        resourceSummary.setName(name);
+        resourceSummary.setDescription(description);
+        resourceSummary.setAllocatable(available);
+        resourceSummary.setCalendarPublic(calendarPublic);
+        resourceSummary.setCalendarUriKey(calendarUriKey);
+
+        return resourceSummary;
     }
 }

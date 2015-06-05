@@ -107,8 +107,7 @@ public class InterDomainTest extends AbstractControllerTest
         Assert.assertEquals(2, domains.size());
 
         // Should return only one empty list of domain capabilities
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest();
-        listRequest.setType(DomainCapabilityListRequest.Type.RESOURCE);
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
         Map<String, List<DomainCapability>> domainCapabilities = getConnector().listForeignCapabilities(listRequest);
         Assert.assertEquals(1, domainCapabilities.size());
     }
@@ -148,19 +147,16 @@ public class InterDomainTest extends AbstractControllerTest
         getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoomId);
 
         getConnector().login(loopbackDomain);
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest();
-        listRequest.setType(DomainCapabilityListRequest.Type.RESOURCE);
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
         Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
         Assert.assertEquals(1, resources.get(loopbackDomain.getCode()).size());
 
-        DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest();
-        listRequest2.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+        DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
         listRequest2.setTechnology(Technology.H323);
         Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
         Assert.assertEquals(1, resources2.get(loopbackDomain.getCode()).size());
 
-        DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest();
-        listRequest3.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+        DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
         listRequest3.setTechnology(Technology.ADOBE_CONNECT);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
         Assert.assertEquals(0, resources3.get(loopbackDomain.getCode()).size());
@@ -206,8 +202,7 @@ public class InterDomainTest extends AbstractControllerTest
 
             // Uninitialized cache should return 2 resources for loopback domain, but it could be slow
             getConnector().login(loopbackDomain);
-            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest();
-            listRequest.setType(DomainCapabilityListRequest.Type.RESOURCE);
+            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
             Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
             Assert.assertEquals(2, resources.get(loopbackDomain.getCode()).size());
 

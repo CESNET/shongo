@@ -21,8 +21,9 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private Interval interval;
 
-    public DomainCapabilityListRequest() {
-        this.domainId = domainId;
+    public DomainCapabilityListRequest(Type type)
+    {
+        this.type = type;
     }
 
     public DomainCapabilityListRequest(String domainId) {

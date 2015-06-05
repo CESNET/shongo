@@ -101,8 +101,19 @@ public class CachedDomainsConnector extends DomainsConnector
         return initialized;
     }
 
+    public Set<DomainCapability> listAllocatableForeignResources()
+    {
+        DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+        Set<DomainCapability> resources = new HashSet<>();
+        for (List<DomainCapability> resourceList : listForeignCapabilities(request).values()) {
+            resources.addAll(resourceList);
+        }
+        return resources;
+    }
+
+
     /**
-     * Returns cached resources for now or will perform synchronized request to all foreign domains (can be slow, depending on {@code DomainsConnector.THREAD_TIMEOUT}).
+     * Returns cached allocatable resources for now or will perform synchronized request to all foreign domains (can be slow, depending on {@code DomainsConnector.THREAD_TIMEOUT}).
      * @param request
      * @return
      */
