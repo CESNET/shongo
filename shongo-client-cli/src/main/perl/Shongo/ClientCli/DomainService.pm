@@ -84,6 +84,15 @@ sub populate()
                 get_password_hash();
             },
         },
+        'list-domain-resources' => {
+            desc => 'List all allocatable foreign resources',
+            options => 'domain=s',
+            args => '[-domain=<domain-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_domain_resources($params->{'options'});
+            },
+        },
     });
 }
 
@@ -272,6 +281,43 @@ sub get_password_hash()
 {
     my $password_hash = Shongo::ClientCli->instance()->secure_request('Resource.getLocalDomainPasswordHash');
     console_print_info("Domain's password hash '%s'", $password_hash);
+}
+
+sub list_domain_resources()
+{
+        my ($options) = @_;
+        my $domain_id = "";
+        if ( defined($options->{'domain'}) ) {
+            $domain_id = $options->{'domain'};
+        }
+        my $application = Shongo::ClientCli->instance();
+        my $response = $application->secure_hash_request('Resource.listForeignResources', $domain_id);
+        if ( !defined($response) ) {
+            return
+        }
+
+        my $table = {
+            'columns' => [
+                {'field' => 'id',           'title' => 'Identifier'},
+                {'field' => 'name',         'title' => 'Name'},
+                {'field' => 'description',  'title' => 'Description'},
+                {'field' => 'type',        'title' => 'Type'},
+                {'field' => 'available',  'title' => 'Available'},
+                {'field' => 'calendarPublic','title' => 'Calendar Public'},
+            ],
+            'data' => []
+        };
+        foreach my $resource (@{$response->{'items'}}) {
+            push(@{$table->{'data'}}, {
+                'id' => $resource->{'id'},
+                'name' => $resource->{'name'},
+                'description' => $resource->{'description'},
+                'available' => $resource->{'available'} ? 'yes' : 'no',
+                'calendarPublic' => $resource->{'calendarPublic'} ? 'yes' : 'no',
+                'type' => $resource->{'type'},
+            });
+        }
+        console_print_table($table);
 }
 
 1;

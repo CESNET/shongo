@@ -261,7 +261,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ResourceManager resourceManager = new ResourceManager(entityManager);
+        //ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
@@ -414,8 +414,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 }
                 response.addItem(resourceSummary);
             }
-            for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources()) {
-                //TODO overovat opravneni - tag
+            for (DomainCapability resource : listForeignResources(securityToken, null)) {
+                //TODO overovat opravneni - tag, pridat domanu do popisu a dalsi
                 response.addItem(resource.toResourceSummary());
             }
             return response;
@@ -423,6 +423,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
+    }
+
+    private Set<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId)
+    {
+        authorization.validate(securityToken);
+
+        return InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources();
     }
 
     @Override

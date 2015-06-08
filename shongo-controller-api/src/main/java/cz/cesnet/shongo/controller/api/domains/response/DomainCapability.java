@@ -36,6 +36,9 @@ public class DomainCapability
     @JsonProperty("price")
     private Integer price;
 
+    @JsonProperty("type")
+    private Integer type;
+
     @JsonProperty("available")
     private Boolean available;
 
@@ -84,6 +87,11 @@ public class DomainCapability
         this.available = available;
     }
 
+    public void setType(Integer type)
+    {
+        this.type = type;
+    }
+
     public Boolean getAvailable()
     {
         return (available == null ? true : available);
@@ -91,6 +99,7 @@ public class DomainCapability
 
     public ResourceSummary toResourceSummary()
     {
+        //TODO: pridat domenu do jmena/popisu
         ResourceSummary resourceSummary = new ResourceSummary();
         resourceSummary.setId(id);
         resourceSummary.setName(name);
