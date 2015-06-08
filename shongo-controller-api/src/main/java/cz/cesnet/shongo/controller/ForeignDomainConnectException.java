@@ -44,7 +44,7 @@ public class ForeignDomainConnectException extends RuntimeException
     @Override
     public String getMessage()
     {
-        return String.format("Cannot connect to foreign domain %s (URL: %s): %s", domain.getName(), url, super.getMessage());
+        return String.format("Cannot connect to foreign domain '%s' (URL: %s): %s", domain.getName(), url, super.getMessage());
     }
 }
 
