@@ -12,29 +12,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class BasicAuthFilter implements Filter {
+public class BasicAuthFilter implements Filter
+{
     private static final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) throws ServletException
+    {
     }
 
     @Override
-    public void doFilter(ServletRequest sr, ServletResponse ss, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest sr, ServletResponse ss, FilterChain chain) throws IOException, ServletException
+    {
         HttpServletResponse res = (HttpServletResponse) ss;
         try {
             HttpServletRequest req = (HttpServletRequest) sr;
             String[] credentials = SSLCommunication.getBasicAuthCredentials(req);
             if (InterDomainAction.DOMAIN_LOGIN.equals(req.getPathInfo())) {
-                String domainCode = credentials[0];
+                String domainName = credentials[0];
                 String password = credentials[1];
-                if (Strings.isNullOrEmpty(domainCode) || Strings.isNullOrEmpty(password) || !checkAllowedDomain(domainCode, password)) {
-                    logger.debug("Client credentials declined for domain ", domainCode);
+                if (Strings.isNullOrEmpty(domainName) || Strings.isNullOrEmpty(password) || !checkAllowedDomain(domainName, password)) {
+                    logger.debug("Client credentials declined for domain ", domainName);
                     res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Client authentication required !");
                     return;
                 }
-            }
-            else {
+            } else {
                 String accessToken = credentials[0];
                 if (Strings.isNullOrEmpty(accessToken) || !checkAccessToken(accessToken)) {
                     logger.debug("Client access token \"" + accessToken + "\" was declined .");
@@ -42,17 +44,17 @@ public class BasicAuthFilter implements Filter {
                     return;
                 }
             }
-        }
-        catch (SSLCommunication.BasicAuthException e) {
+        } catch (SSLCommunication.BasicAuthException e) {
             res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Client authentication required !");
             return;
         }
         chain.doFilter(sr, ss);
     }
 
-    private boolean checkAllowedDomain(String domainCode, String password) {
+    private boolean checkAllowedDomain(String domainName, String password)
+    {
         try {
-            Domain domain = getDomainService().findDomainByCode(domainCode);
+            Domain domain = getDomainService().findDomainByName(domainName);
             if (domain == null || Strings.isNullOrEmpty(password)) {
                 return false;
             }
@@ -66,7 +68,8 @@ public class BasicAuthFilter implements Filter {
         return false;
     }
 
-    private boolean checkAccessToken(String accessToken) {
+    private boolean checkAccessToken(String accessToken)
+    {
         try {
             Domain domain = getAuthentication().getDomain(accessToken);
             if (domain != null) {
@@ -76,17 +79,21 @@ public class BasicAuthFilter implements Filter {
             logger.error("InterDomainAgent has not started yet.", e);
             return false;
         }
-        return false;    }
-
-    @Override
-    public void destroy() {
+        return false;
     }
 
-    protected DomainService getDomainService() {
+    @Override
+    public void destroy()
+    {
+    }
+
+    protected DomainService getDomainService()
+    {
         return InterDomainAgent.getInstance().getDomainService();
     }
 
-    protected DomainAuthentication getAuthentication() {
+    protected DomainAuthentication getAuthentication()
+    {
         return InterDomainAgent.getInstance().getAuthentication();
     }
 }

@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import org.joda.time.Interval;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface to the service handling operations on resources.
@@ -148,4 +149,7 @@ public interface ResourceService extends Service {
 
     @API
     public String getLocalDomainPasswordHash(SecurityToken token);
+
+    @API
+    public ListResponse<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId);
 }

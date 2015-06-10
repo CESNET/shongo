@@ -45,13 +45,12 @@ public class InterDomainTest extends AbstractControllerTest
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, "false");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT, "PT10S");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD, INTERDOMAIN_LOCAL_PASSWORD);
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, "10");
+        System.setProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, "PT10S");
 
         super.before();
 
         loopbackDomain = new Domain();
-        loopbackDomain.setName("TEST");
-        loopbackDomain.setCode(LocalDomain.getLocalDomainCode());
+        loopbackDomain.setName(LocalDomain.getLocalDomainName());
         loopbackDomain.setOrganization("CESNET z.s.p.o.");
         loopbackDomain.setAllocatable(true);
         loopbackDomain.setCertificatePath(TEST_CERT_PATH);
@@ -94,8 +93,7 @@ public class InterDomainTest extends AbstractControllerTest
     public void testUnavailableDomain()
     {
         Domain unavailableDomain = new Domain();
-        unavailableDomain.setName("Unavailable");
-        unavailableDomain.setCode("none");
+        unavailableDomain.setName(LocalDomain.getLocalDomainName()+".unavailable");
         unavailableDomain.setOrganization("CESNET z.s.p.o.");
         unavailableDomain.setAllocatable(true);
         DeviceAddress deviceAddress = new DeviceAddress("none", INTERDOMAIN_LOCAL_PORT);
@@ -150,17 +148,17 @@ public class InterDomainTest extends AbstractControllerTest
         getConnector().login(loopbackDomain);
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
         Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
-        Assert.assertEquals(1, resources.get(loopbackDomain.getCode()).size());
+        Assert.assertEquals(1, resources.get(loopbackDomain.getName()).size());
 
         DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
         listRequest2.setTechnology(Technology.H323);
         Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
-        Assert.assertEquals(1, resources2.get(loopbackDomain.getCode()).size());
+        Assert.assertEquals(1, resources2.get(loopbackDomain.getName()).size());
 
         DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
         listRequest3.setTechnology(Technology.ADOBE_CONNECT);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
-        Assert.assertEquals(0, resources3.get(loopbackDomain.getCode()).size());
+        Assert.assertEquals(0, resources3.get(loopbackDomain.getName()).size());
     }
 
     /**
@@ -190,8 +188,7 @@ public class InterDomainTest extends AbstractControllerTest
             getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoom2Id);
 
             Domain unavailableDomain = new Domain();
-            unavailableDomain.setName("Unavailable");
-            unavailableDomain.setCode("none");
+            unavailableDomain.setName(LocalDomain.getLocalDomainName() + ".unavailable");
             unavailableDomain.setOrganization("CESNET z.s.p.o.");
             unavailableDomain.setAllocatable(true);
             DeviceAddress deviceAddress = new DeviceAddress("none", INTERDOMAIN_LOCAL_PORT);
@@ -205,7 +202,7 @@ public class InterDomainTest extends AbstractControllerTest
             getConnector().login(loopbackDomain);
             DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
             Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
-            Assert.assertEquals(2, resources.get(loopbackDomain.getCode()).size());
+            Assert.assertEquals(2, resources.get(loopbackDomain.getName()).size());
 
             while (!getConnector().isResourcesCachedInitialized()) {
                 System.out.println("Waiting for cache to be initialized ...");
@@ -221,7 +218,7 @@ public class InterDomainTest extends AbstractControllerTest
 
             // After cache refresh, it should return only 1 resource for loopback domain
             resources = getConnector().listForeignCapabilities(listRequest);
-            Assert.assertEquals(1, resources.get(loopbackDomain.getCode()).size());
+            Assert.assertEquals(1, resources.get(loopbackDomain.getName()).size());
 
             getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, unavailableDomainId, meetingRoomId);
             getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, loopbackDomain.getId(), meetingRoomId);
@@ -240,8 +237,6 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-        System.out.println(new Duration("PT5H").toStandardSeconds().getSeconds());
-        System.out.println(new Duration("PT5H").getMillis()/1000|0);
     }
 
     protected CachedDomainsConnector getConnector()

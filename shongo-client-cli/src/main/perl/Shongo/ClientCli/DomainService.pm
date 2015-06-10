@@ -286,12 +286,12 @@ sub get_password_hash()
 sub list_domain_resources()
 {
         my ($options) = @_;
-        my $domain_id = "";
+        my $domain_id;
         if ( defined($options->{'domain'}) ) {
             $domain_id = $options->{'domain'};
         }
         my $application = Shongo::ClientCli->instance();
-        my $response = $application->secure_hash_request('Resource.listForeignResources', $domain_id);
+        my $response = $application->secure_request('Resource.listForeignResources', $domain_id);
         if ( !defined($response) ) {
             return
         }

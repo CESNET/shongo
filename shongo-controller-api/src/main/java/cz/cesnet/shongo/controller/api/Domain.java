@@ -34,7 +34,7 @@ public class Domain extends IdentifiedComplexType
     /**
      * Represents shorten version of {@link #name} (e.g., used in description of virtual rooms)
      */
-    private String code;
+    private String shortName;
 
     /**
      * Path to certificate of domain.
@@ -104,12 +104,12 @@ public class Domain extends IdentifiedComplexType
         this.status = status;
     }
 
-    public String getCode() {
-        return code;
+    public String getShortName() {
+        return shortName;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setShortName(String code) {
+        this.shortName = shortName;
     }
 
     public DeviceAddress getDomainAddress() {
@@ -165,7 +165,7 @@ public class Domain extends IdentifiedComplexType
     private static final String NAME = "name";
     private static final String ORGANIZATION = "organization";
     private static final String STATUS = "status";
-    private static final String CODE = "code";
+    private static final String SHORT_NAME = "shortName";
     private static final String URL = "url";
     private static final String PORT = "port";
     private static final String CERTIFICATE_PATH = "certificatePath";
@@ -179,7 +179,7 @@ public class Domain extends IdentifiedComplexType
         dataMap.set(NAME, name);
         dataMap.set(ORGANIZATION, organization);
         dataMap.set(STATUS, status);
-        dataMap.set(CODE, code);
+        dataMap.set(SHORT_NAME, shortName);
         if (domainAddress != null) {
             dataMap.set(URL, domainAddress.getUrl());
             dataMap.set(PORT, domainAddress.getPort());
@@ -197,7 +197,7 @@ public class Domain extends IdentifiedComplexType
         name = dataMap.getStringRequired(NAME);
         organization = dataMap.getStringRequired(ORGANIZATION);
         status = dataMap.getEnum(STATUS, Status.class);
-        code = dataMap.getString(CODE);
+        shortName = dataMap.getString(SHORT_NAME);
         domainAddress = new DeviceAddress(dataMap.getStringRequired(URL), dataMap.getIntegerRequired(PORT));
         certificatePath = dataMap.getString(CERTIFICATE_PATH);
         allocatable = dataMap.getBool(ALLOCATABLE);

@@ -450,7 +450,7 @@ public class ObjectIdentifier
      * @param objectLocalId object local id for the identifier
      * @return object global identifier.
      */
-    private static String formatId(String domain, ObjectType objectType, Long objectLocalId)
+    public static String formatId(String domain, ObjectType objectType, Long objectLocalId)
     {
         return formatId(domain, objectType, (objectLocalId == null ? null : objectLocalId.toString()));
     }
@@ -489,6 +489,32 @@ public class ObjectIdentifier
         return String.format("%s:%s",
                 (objectType == null ? "*" : objectType.getCode()),
                 (objectLocalId == null ? "*" : objectLocalId));
+    }
+
+    public static String parseDomain(String objectId, ObjectType objectType)
+    {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches() || LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
+            LocalDomain.getLocalDomainName();
+        }
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
+        if (!matcher.matches()) {
+            throw new ControllerReportSet.IdentifierInvalidException(objectId);
+        }
+        return matcher.group(1);
+    }
+
+    public static Boolean isLocal(String objectId, ObjectType objectType)
+    {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches() || LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
+            return true;
+        }
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
+        if (!matcher.matches()) {
+            throw new ControllerReportSet.IdentifierInvalidException(objectId);
+        }
+        else {
+            return false;
+        }
     }
 }
 

@@ -86,7 +86,13 @@ public class CommonServiceImpl extends AbstractServiceImpl
     @Debug
     public Collection<Domain> listDomains(SecurityToken token) {
         authorization.validate(token);
-        Collection<Domain> domains = new ArrayList<>(InterDomainAgent.getInstance().getConnector().getForeignDomainsStatuses());
+        Collection<Domain> domains;
+        if (InterDomainAgent.isInitialized()) {
+            domains = new ArrayList<>(InterDomainAgent.getInstance().getConnector().getForeignDomainsStatuses());
+        }
+        else {
+            domains = new ArrayList<>();
+        }
         Domain localDomain = LocalDomain.getLocalDomain().toApi();
         localDomain.setAllocatable(true);
         domains.add(localDomain);

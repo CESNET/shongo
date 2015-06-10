@@ -26,7 +26,6 @@ import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
-import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
 import org.joda.time.Interval;
@@ -425,11 +424,17 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         }
     }
 
-    private Set<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId)
+    @Override
+    public ListResponse<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId)
     {
         authorization.validate(securityToken);
-
-        return InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources();
+        ListResponse<DomainCapability> response = new ListResponse<>();
+        if (InterDomainAgent.isInitialized()) {
+            for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources()) {
+                response.addItem(resource);
+            }
+        }
+        return response;
     }
 
     @Override
@@ -693,20 +698,30 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.booking.resource.Resource resource;
-            resource = resourceManager.get(ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE));
             cz.cesnet.shongo.controller.booking.resource.Tag tag;
             tag = resourceManager.getTag(ObjectIdentifier.parseId(tagId,ObjectType.TAG));
 
             ResourceTag resourceTag = new ResourceTag();
 
-            resourceTag.setResource(resource);
             resourceTag.setTag(tag);
 
+
+            boolean isResourceLocal = ObjectIdentifier.isLocal(resourceId, ObjectType.RESOURCE);
+            cz.cesnet.shongo.controller.booking.resource.Resource resource = null;
+            if (isResourceLocal) {
+                resource = resourceManager.get(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                resourceTag.setResource(resource);
+            }
+            else {
+                String domain = ObjectIdentifier.parseDomain(resourceId, ObjectType.RESOURCE);
+                Long localId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+                resourceTag.setForeignResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, localId));
+            }
+
             resourceManager.createResourceTag(resourceTag);
-
-            authorizationManager.createAclEntriesForChildEntity(tag, resource);
-
+            if (isResourceLocal) {
+                authorizationManager.createAclEntriesForChildEntity(tag, resource);
+            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

@@ -32,7 +32,7 @@ public class ControllerConfiguration extends CombinedConfiguration
      * Domain configuration.
      */
     public static final String DOMAIN_NAME = "domain.name";
-    public static final String DOMAIN_CODE = "domain.code";
+    public static final String DOMAIN_SHORT_NAME = "domain.shortName";
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
 
     /**
@@ -408,8 +408,8 @@ public class ControllerConfiguration extends CombinedConfiguration
                 if (name.equals("domain.name")) {
                     return LocalDomain.getLocalDomain().getName();
                 }
-                else if (name.equals("domain.code")) {
-                    return LocalDomain.getLocalDomain().getCode();
+                else if (name.equals("domain.shortName")) {
+                    return LocalDomain.getLocalDomain().getShortName();
                 }
                 else {
                     throw new IllegalArgumentException("Parameter " + name + " not defined.");
