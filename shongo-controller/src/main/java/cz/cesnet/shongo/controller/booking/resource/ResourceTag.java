@@ -9,7 +9,7 @@ import javax.persistence.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "tag_id", "full_resource_id"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "tag_id", "foreign_resource_id"}))
 public class ResourceTag extends SimplePersistentObject {
     private Resource resource;
 
