@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 
 import javax.persistence.*;
 
@@ -9,16 +10,17 @@ import javax.persistence.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "tag_id", "foreign_resource_id"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "tag_id", "foreign_resources_id"}))
 public class ResourceTag extends SimplePersistentObject {
     private Resource resource;
 
     private Tag tag;
 
-    private String foreignResourceId;
+    private ForeignResources foreignResources;
 
-    @ManyToOne(optional = true)
+    @ManyToOne
     @Access(AccessType.FIELD)
+    @JoinColumn(name = "resource_id")
     public Resource getResource() {
         return resource;
     }
@@ -29,6 +31,7 @@ public class ResourceTag extends SimplePersistentObject {
 
     @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
+    @JoinColumn(name = "tag_id")
     public Tag getTag() {
         return tag;
     }
@@ -41,14 +44,16 @@ public class ResourceTag extends SimplePersistentObject {
         this.tag = tag;
     }
 
-    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
-    public String getForeignResourceId()
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    @JoinColumn(name = "foreign_resources_id")
+    public ForeignResources getForeignResources()
     {
-        return foreignResourceId;
+        return foreignResources;
     }
 
-    public void setForeignResourceId(String fullResourceId)
+    public void setForeignResources(ForeignResources foreignResources)
     {
-        this.foreignResourceId = fullResourceId;
+        this.foreignResources = foreignResources;
     }
 }

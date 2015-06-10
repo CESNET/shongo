@@ -320,7 +320,7 @@ public class ObjectIdentifier
      */
     public static Long parseId(String objectId, ObjectType objectType)
     {
-        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
+        return parseId(parseDomain(objectId), objectType, objectId);
     }
 
     /**
@@ -445,6 +445,16 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param objectId    object id for the identifier
+     * @param objectType    object type for the identifier
+     * @return object global identifier.
+     */
+    public static String formatId(String objectId, ObjectType objectType)
+    {
+        return formatId(parseDomain(objectId), objectType, parseId(objectId, objectType));
+    }
+
+    /**
      * @param domain        domain name for the identifier
      * @param objectType    object type for the identifier
      * @param objectLocalId object local id for the identifier
@@ -491,10 +501,14 @@ public class ObjectIdentifier
                 (objectLocalId == null ? "*" : objectLocalId));
     }
 
-    public static String parseDomain(String objectId, ObjectType objectType)
+    /**
+     * @param objectId    object id for the identifier
+     * @return object domain
+     */
+    public static String parseDomain(String objectId)
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches() || LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
-            LocalDomain.getLocalDomainName();
+            return LocalDomain.getLocalDomainName();
         }
         Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
         if (!matcher.matches()) {
@@ -513,7 +527,7 @@ public class ObjectIdentifier
             throw new ControllerReportSet.IdentifierInvalidException(objectId);
         }
         else {
-            return false;
+            return LocalDomain.getLocalDomainName().equals(matcher.group(1));
         }
     }
 }

@@ -65,7 +65,7 @@ public class ResourceController
     }
 
     /**
-     * Handle resource list request
+     * Handle reservable resource list request
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody
@@ -100,6 +100,7 @@ public class ResourceController
         permissionListRequest.setSecurityToken(securityToken);
         Map<String,ObjectPermissionSet> resourcePermissionsMap = authorizationService.listObjectPermissions(permissionListRequest);
 
+        // Filter only reservable resources
         for (ResourceSummary resourceSummary : accessibleResources) {
             Set<ObjectPermission> permissions = resourcePermissionsMap.get(resourceSummary.getId()).getObjectPermissions();
 

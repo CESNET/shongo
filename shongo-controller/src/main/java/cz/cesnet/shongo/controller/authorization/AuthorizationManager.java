@@ -537,6 +537,7 @@ public class AuthorizationManager extends AclEntryManager
             Tag tag = (Tag) object;
             ResourceManager resourceManager = new ResourceManager(entityManager);
             for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tag.getId())) {
+                //TODO pro foreign resource
                 createChildAclEntry(aclEntry, identity, resourceTag.getResource(), objectRole,
                         AclEntryDependency.Type.DELETE_CASCADE);
             }

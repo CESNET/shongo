@@ -1,24 +1,21 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.Resource;
-import cz.cesnet.shongo.controller.api.ResourceReservation;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
-import org.joda.time.Interval;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
@@ -151,5 +148,31 @@ public class TagTest extends AbstractControllerTest {
 
         Assert.assertEquals(getResult.getName(),findResult.getName());
         Assert.assertEquals(getResult.getId(),findResult.getId());
+    }
+
+    @Test
+    public void testTagForForeignResource()
+    {
+        ResourceService resourceService = getResourceService();
+        Domain domain = new Domain();
+        domain.setName(LocalDomain.getLocalDomainName() + ".notLocal");
+        domain.setOrganization("CESNET z.s.p.o.");
+        DeviceAddress deviceAddress = new DeviceAddress("127.0.0.1", 8443);
+        domain.setDomainAddress(deviceAddress);
+        domain.setPasswordHash("hashedpassword");
+        resourceService.createDomain(SECURITY_TOKEN_ROOT, domain);
+
+        cz.cesnet.shongo.controller.api.Tag tag = new cz.cesnet.shongo.controller.api.Tag();
+        tag.setName("testTag1");
+        String tagId = resourceService.createTag(SECURITY_TOKEN_ROOT, tag);
+
+        String resourceId = ObjectIdentifier.formatId(domain.getName(), ObjectType.RESOURCE, 1L);
+        resourceService.assignResourceTag(SECURITY_TOKEN_ROOT, resourceId, tagId);
+
+
+        TagListRequest request = new TagListRequest(SECURITY_TOKEN_ROOT);
+        request.setResourceId(resourceId);
+        List<cz.cesnet.shongo.controller.api.Tag> response = resourceService.listTags(request);
+        Assert.assertEquals(1, response.size());
     }
 }

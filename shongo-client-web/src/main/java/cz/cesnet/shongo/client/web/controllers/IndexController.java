@@ -62,7 +62,7 @@ public class IndexController
 
             OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
 
-            // Get all resources with assigned meeting-room tag
+            // Get all readable resources with assigned meeting-room tag
             ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
             Set<String> tagNames = new HashSet<>(Arrays.asList(ClientWebConfiguration.getInstance().getMeetingRoomTagName()));
             resourceListRequest.setTagNames(tagNames);

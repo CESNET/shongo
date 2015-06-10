@@ -61,9 +61,6 @@ public class ResourceManager extends AbstractManager
      */
     public void createResourceTag(ResourceTag resourceTag)
     {
-        if (resourceTag.getResource() != null && resourceTag.getForeignResourceId() != null) {
-            throw new IllegalArgumentException("ResourceTag cannot have set resource and foreignResourceId at the same time.");
-        }
         super.create(resourceTag);
     }
 
@@ -444,6 +441,36 @@ public class ResourceManager extends AbstractManager
         return entityManager.find(Tag.class, tagId);
     }
 
+    public ForeignResources findForeignResources(Domain domain, String type)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
+        Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain").as(String.class), domain.getId());
+        javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("type").as(String.class), type);
+        query.select(tagRoot).where(param1, param2);
+
+        TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public ForeignResources findForeignResources(Domain domain, Long resourceId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
+        Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain").as(String.class), domain.getId());
+        javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId").as(String.class), resourceId);
+        query.select(tagRoot).where(param1, param2);
+
+        TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
     public Tag findTag(String name)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -479,6 +506,27 @@ public class ResourceManager extends AbstractManager
         }
     }
 
+    public ResourceTag getResourceTag(String foreignResourceId, Long tagId)
+    {
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+            Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResourceId"), foreignResourceId);
+            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
+            query.select(resourceTagRoot);
+            query.where(param1,param2);
+
+            TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getSingleResult();
+        } catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(ResourceTag.class, tagId);
+            //TODO:MR add foreignResourceId
+        }
+    }
+
     public List<ResourceTag> getResourceTags(Long resourceId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -486,6 +534,20 @@ public class ResourceManager extends AbstractManager
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
         Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
         javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource"), resourceId);
+        query.select(resourceTagRoot).where(param1);
+
+        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<ResourceTag> getForeignResourceTags(ForeignResources foreignResources)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+        Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResources"), foreignResources.getId());
         query.select(resourceTagRoot).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
