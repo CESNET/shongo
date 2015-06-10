@@ -22,8 +22,10 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -116,7 +118,7 @@ public class DomainsConnector
 
         for (final Domain domain : domains) {
             Callable<T> task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, null);
-            futureTasks.put(domain.getCode(), executor.submit(task));
+            futureTasks.put(domain.getName(), executor.submit(task));
         }
 
         while (!futureTasks.isEmpty()) {
@@ -167,7 +169,7 @@ public class DomainsConnector
         // If basic auth is required
         //TODO !configuration.hasInterDomainPKI() &&
         if (configuration.hasInterDomainBasicAuth()) {
-            String accessToken = this.clientAccessTokens.get(domain.getCode());
+            String accessToken = this.clientAccessTokens.get(domain.getName());
             if (accessToken == null) {
                 accessToken = login(domain);
             }
@@ -335,7 +337,7 @@ public class DomainsConnector
         try {
             String passwordHash = configuration.getInterDomainBasicAuthPasswordHash();
 
-            String userCredentials = LocalDomain.getLocalDomainCode() + ":" + passwordHash;
+            String userCredentials = LocalDomain.getLocalDomainShortName() + ":" + passwordHash;
             String basicAuth = "Basic " + encodeCredentials(userCredentials);
             connection.setRequestProperty("Authorization", basicAuth);
             connection.setRequestMethod(InterDomainAction.HttpMethod.GET.getValue());
@@ -357,7 +359,7 @@ public class DomainsConnector
         }
 
         String accessToken = domainLogin.getAccessToken();
-        this.clientAccessTokens.put(domain.getCode(), accessToken);
+        this.clientAccessTokens.put(domain.getName(), accessToken);
         return accessToken;
 
     }
@@ -377,7 +379,7 @@ public class DomainsConnector
         List<Domain> foreignDomains = listForeignDomains();
         Map<String, DomainStatus> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, null, foreignDomains, DomainStatus.class);
         for (Domain domain : foreignDomains) {
-            DomainStatus status = response.get(domain.getCode());
+            DomainStatus status = response.get(domain.getName());
             domain.setStatus(status == null ? Domain.Status.NOT_AVAILABLE : status.toStatus());
         }
 
@@ -477,9 +479,9 @@ public class DomainsConnector
                 T response = performRequest(method, action, parameters, domain, reader, returnClass);
                 if (result != null && response != null) {
                     synchronized (result) {
-                        result.put(domain.getCode(), response);
+                        result.put(domain.getName(), response);
                         if (unavailableDomains != null) {
-                            unavailableDomains.remove(domain.getCode());
+                            unavailableDomains.remove(domain.getName());
                         }
                     }
                     failed = false;
@@ -501,7 +503,7 @@ public class DomainsConnector
             finally {
                 if (unavailableDomains != null && failed) {
                     synchronized (result) {
-                        unavailableDomains.add(domain.getCode());
+                        unavailableDomains.add(domain.getName());
                     }
                 }
             }

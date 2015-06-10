@@ -8,16 +8,19 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 
-public class SSLClientCertFilter implements Filter {
+public class SSLClientCertFilter implements Filter
+{
 
     private static final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) throws ServletException
+    {
     }
 
     @Override
-    public void doFilter(ServletRequest sr, ServletResponse ss, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest sr, ServletResponse ss, FilterChain chain) throws IOException, ServletException
+    {
         HttpServletResponse res = (HttpServletResponse) ss;
         //according https://java.net/downloads/servlet-spec/Final/servlet-3_1-final-change-bar.pdf part 3.9
         X509Certificate[] certs = (X509Certificate[]) sr.getAttribute("javax.servlet.request.X509Certificate");
@@ -33,7 +36,8 @@ public class SSLClientCertFilter implements Filter {
         chain.doFilter(sr, ss);
     }
 
-    private boolean checkAllowedCert(X509Certificate cert) {
+    private boolean checkAllowedCert(X509Certificate cert)
+    {
         try {
             return (InterDomainAgent.getInstance().getAuthentication().getDomain(cert) != null);
         } catch (IllegalArgumentException e) {
@@ -43,6 +47,7 @@ public class SSLClientCertFilter implements Filter {
     }
 
     @Override
-    public void destroy() {
+    public void destroy()
+    {
     }
 }

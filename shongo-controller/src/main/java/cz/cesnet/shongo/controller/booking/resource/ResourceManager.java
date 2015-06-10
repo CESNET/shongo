@@ -61,6 +61,9 @@ public class ResourceManager extends AbstractManager
      */
     public void createResourceTag(ResourceTag resourceTag)
     {
+        if (resourceTag.getResource() != null && resourceTag.getForeignResourceId() != null) {
+            throw new IllegalArgumentException("ResourceTag cannot have set resource and foreignResourceId at the same time.");
+        }
         super.create(resourceTag);
     }
 
@@ -523,13 +526,13 @@ public class ResourceManager extends AbstractManager
         return entityManager.find(Domain.class, resourceId);
     }
 
-    public Domain getDomainByCode(String domainCode)
+    public Domain getDomainByName(String domainName)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
         Root<Domain> domainResourceRoot = query.from(Domain.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("code"), domainCode);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("name"), domainName);
         query.select(domainResourceRoot);
         query.where(param1);
 

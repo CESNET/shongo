@@ -91,6 +91,13 @@ public class InterDomainAgent {
         return instance;
     }
 
+    public static Boolean isInitialized() {
+        if (instance != null) {
+            return true;
+        }
+        return false;
+    }
+
     public static void destroy() {
         if (instance != null) {
             instance.getConnector().getExecutor().shutdownNow();

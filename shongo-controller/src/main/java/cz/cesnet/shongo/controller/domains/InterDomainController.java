@@ -32,7 +32,7 @@ public class InterDomainController implements InterDomainProtocol{
     @ResponseBody
     public DomainLogin handleLogin(HttpServletRequest request) {
         String[] credentials = SSLCommunication.getBasicAuthCredentials(request);
-        Domain domain = getDomainService().findDomainByCode(credentials[0]);
+        Domain domain = getDomainService().findDomainByName(credentials[0]);
         return new DomainLogin(getAuthentication().generateAccessToken(domain));
     }
 
@@ -57,7 +57,8 @@ public class InterDomainController implements InterDomainProtocol{
         listRequest.setType(DomainCapabilityListRequest.Type.valueOf(type));
         listRequest.setInterval(interval);
         listRequest.setTechnology(technology);
-        return getDomainService().listLocalResourcesByDomain(listRequest);
+        List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
+        return capabilities;
     }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)

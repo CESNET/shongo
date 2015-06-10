@@ -204,10 +204,10 @@ public abstract class RoomEndpoint extends Endpoint
     public final String getRoomDescriptionApi()
     {
         if (roomDescription != null) {
-            return String.format("[%s:%d] %s", LocalDomain.getLocalDomainCode(), getId(), roomDescription);
+            return String.format("[%s:%d] %s", LocalDomain.getLocalDomainShortName(), getId(), roomDescription);
         }
         else {
-            return String.format("[%s:%d]", LocalDomain.getLocalDomainCode(), getId());
+            return String.format("[%s:%d]", LocalDomain.getLocalDomainShortName(), getId());
         }
     }
 

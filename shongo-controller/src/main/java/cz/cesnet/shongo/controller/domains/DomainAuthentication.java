@@ -112,14 +112,14 @@ public class DomainAuthentication {
                 accessToken = generatedToken;
             }
         }
-        domainsAccessTokens.put(accessToken, domain.getCode());
+        domainsAccessTokens.put(accessToken, domain.getName());
         return accessToken;
     }
 
     protected Domain getDomain(String accessToken) {
         domainsAccessTokens.clearExpired(DateTime.now());
-        String domainCode = domainsAccessTokens.get(accessToken);
-        return (domainCode == null ? null : domainService.findDomainByCode(domainCode));
+        String domainName = domainsAccessTokens.get(accessToken);
+        return (domainName == null ? null : domainService.findDomainByName(domainName));
     }
 
     protected Domain getDomain(X509Certificate certificate) {
@@ -129,14 +129,4 @@ public class DomainAuthentication {
     protected KeyManagerFactory getKeyManagerFactory() {
         return keyManagerFactory;
     }
-
-//    public AuthType getAuthType() {
-//        //TODO
-//        return null;
-//    }
-//
-//    public static enum AuthType {
-//        BASIC,
-//        CLIENT_CERT;
-//    }
 }

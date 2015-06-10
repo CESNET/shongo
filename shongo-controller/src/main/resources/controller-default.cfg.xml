@@ -20,7 +20,7 @@
             <!--<pki-client-auth>true</pki-client-auth>-->
             <command-timeout>PT33S</command-timeout>
             <!-- Refresh rate for domains connector cache -->
-            <cache-refresh-rate>PT10M</cache-refresh-rate>
+            <cache-refresh-rate>PT5M</cache-refresh-rate>
             <!-- TrustStore of JKS/PKCS12 type with private key and certificate chain of local domain -->
             <!--<ssl-key-store></ssl-key-store>-->
             <!--<ssl-key-store-type></ssl-key-store-type>-->
@@ -145,7 +145,7 @@
         <port>25</port>
         <!--<username></username>-->
         <!--<password></password>-->
-        <subject-prefix xml:space="preserve">[${domain.code}] </subject-prefix>
+        <subject-prefix xml:space="preserve">[${domain.shortName}] </subject-prefix>
     </smtp>
 
     <!-- Configuration of notifications -->

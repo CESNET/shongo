@@ -44,7 +44,7 @@ public class CachedDomainsConnector extends DomainsConnector
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
         for (Domain domain : listForeignDomains()) {
-            if (!availableResources.containsKey(domain.getCode()) && !unavailableResources.contains(domain.getCode())) {
+            if (!availableResources.containsKey(domain.getName()) && !unavailableResources.contains(domain.getName())) {
                 domains.add(domain);
             }
         }
@@ -89,17 +89,16 @@ public class CachedDomainsConnector extends DomainsConnector
 
     protected boolean isResourcesCachedInitialized()
     {
-        return false;
-//        boolean initialized = true;
-//        synchronized (availableResources) {
-//            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
-//                initialized = false;
-//            }
-//        }
-//        if (!initialized) {
-//            initResourceCache();
-//        }
-//        return initialized;
+        boolean initialized = true;
+        synchronized (availableResources) {
+            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
+                initialized = false;
+            }
+        }
+        if (!initialized) {
+            initResourceCache();
+        }
+        return initialized;
     }
 
     public Set<DomainCapability> listAllocatableForeignResources()

@@ -313,7 +313,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     public RecordingFolder getRecordingFolderApi()
     {
         RecordingFolder recordingFolder = new RecordingFolder();
-        recordingFolder.setName(String.format("%s:%d", LocalDomain.getLocalDomainCode(), getId()));
+        recordingFolder.setName(String.format("%s:%d", LocalDomain.getLocalDomainShortName(), getId()));
         recordingFolder.setUserPermissions(getRecordingFolderUserPermissions());
         return recordingFolder;
     }

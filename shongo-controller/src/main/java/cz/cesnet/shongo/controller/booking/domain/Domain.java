@@ -31,7 +31,7 @@ public class Domain extends SimplePersistentObject {
     /**
      * Represents shorten version of {@link #name} (e.g., used in description of virtual rooms)
      */
-    private String code;
+    private String shortName;
 
     /**
      * Represents a user-visible domain organization (e.g., "CESNET, z.s.p.o.").
@@ -61,12 +61,12 @@ public class Domain extends SimplePersistentObject {
     }
 
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH, unique = true)
-    public String getCode() {
-        return code;
+    public String getShortName() {
+        return shortName;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
@@ -137,7 +137,7 @@ public class Domain extends SimplePersistentObject {
     {
         domainApi.setId(ObjectIdentifier.formatId(this));
         domainApi.setName(name);
-        domainApi.setCode(code);
+        domainApi.setShortName(shortName);
         domainApi.setOrganization(organization);
         domainApi.setDomainAddress(new DeviceAddress(url, port));
         domainApi.setCertificatePath(certificatePath);
@@ -160,7 +160,7 @@ public class Domain extends SimplePersistentObject {
     {
         this.setOrganization(domainApi.getOrganization());
         this.setName(domainApi.getName());
-        this.setCode(domainApi.getCode());
+        this.setShortName(domainApi.getShortName());
         this.setUrl(domainApi.getDomainAddress().getUrl());
         this.setPort(domainApi.getDomainAddress().getPort());
         this.setCertificatePath(domainApi.getCertificatePath());
@@ -176,9 +176,9 @@ public class Domain extends SimplePersistentObject {
      */
     public void validate() throws CommonReportSet.ObjectInvalidException
     {
-        if (Strings.isNullOrEmpty(code)) {
+        if (Strings.isNullOrEmpty(name)) {
             throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
-                    "Domain cannot have empty code.");
+                    "Domain cannot have empty name.");
         }
         if (Strings.isNullOrEmpty(url)) {
             throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),

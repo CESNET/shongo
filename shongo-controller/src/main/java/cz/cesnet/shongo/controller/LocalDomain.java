@@ -15,7 +15,7 @@ public class LocalDomain
     /**
      * Represents shorten version of {@link #name} (e.g., used in description of virtual rooms)
      */
-    private String code;
+    private String shortName;
 
     /**
      * Represents a user-visible domain organization (e.g., "CESNET, z.s.p.o.").
@@ -32,7 +32,7 @@ public class LocalDomain
     /**
      * Constructor.
      *
-     * @param name sets the {@link #name}
+     * @param name sets the {@link #name
      */
     public LocalDomain(String name)
     {
@@ -68,24 +68,24 @@ public class LocalDomain
     }
 
     /**
-     * @return {@link #code}
+     * @return {@link #shortName}
      */
-    public String getCode()
+    public String getShortName()
     {
-        if (code == null) {
+        if (shortName == null) {
             return name;
         }
         else {
-            return code;
+            return shortName;
         }
     }
 
     /**
-     * @param code sets the {@link #code}
+     * @param shortName sets the {@link #shortName}
      */
-    public void setCode(String code)
+    public void setShortName(String shortName)
     {
-        this.code = code;
+        this.shortName = shortName;
     }
 
     /**
@@ -155,13 +155,13 @@ public class LocalDomain
     }
 
     /**
-     * @return {@link #localDomain#getCode()} ()}
+     * @return {@link #localDomain#getShortName()} ()}
      */
-    public static String getLocalDomainCode()
+    public static String getLocalDomainShortName()
     {
         if (localDomain == null) {
             throw new IllegalStateException("No local domain is defined.");
         }
-        return localDomain.getCode();
+        return localDomain.getShortName();
     }
 }
