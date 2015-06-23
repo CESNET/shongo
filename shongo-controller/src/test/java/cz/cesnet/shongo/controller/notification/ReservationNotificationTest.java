@@ -1137,6 +1137,92 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         }
     }
 
+    @Test
+    public void testResourceRemainingCapacity() throws Exception {
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new RecordingCapability(3));
+        tcs.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, tcs);
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("95{digit:1}@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
+        mcu.setAllocatable(true);
+        mcu.addAdministratorEmail("pavelka@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, mcu);
+
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(UserSettings.LOCALE_CZECH);
+        userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
+        userSettings.setCurrentTimeZone(DateTimeZone.forID("+06:00"));
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Room Reservation Request");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(8);
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+
+        ReservationRequest reservationRequestNew = new ReservationRequest();
+        reservationRequestNew.setDescription("Room Reservation Request");
+        reservationRequestNew.setSlot("2012-06-22T17:00", "PT2H2M");
+        reservationRequestNew.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecificationNew = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailabilityNew = roomSpecificationNew.createAvailability();
+        roomAvailabilityNew.setParticipantCount(2);
+        roomAvailabilityNew.addServiceSpecification(new RecordingServiceSpecification(true));
+        roomSpecificationNew.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequestNew.setSpecification(roomSpecificationNew);
+        String reservationRequestIdNew = allocate(reservationRequestNew);
+        checkAllocated(reservationRequestIdNew);
+
+        ReservationRequest reservationRequestOver = new ReservationRequest();
+        reservationRequestOver.setDescription("Room Reservation Request");
+        reservationRequestOver.setSlot("2012-06-22T14:00", "PT5H3M");
+        reservationRequestOver.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecificationOver = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailabilityOver = roomSpecificationOver.createAvailability();
+        roomAvailabilityOver.setParticipantCount(1);
+        roomAvailabilityOver.addServiceSpecification(new RecordingServiceSpecification(true));
+        roomSpecificationOver.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequestOver.setSpecification(roomSpecificationOver);
+        String reservationRequestIdOver = allocate(reservationRequestOver);
+        checkAllocated(reservationRequestIdOver);
+
+        runScheduler();
+
+        //TODO: test remaining capacity (should not be <0)
+        // 1x system-admin: allocation-failed
+        // 4x resource-admin: new, deleted, new, deleted
+        // 4x user: changes(allocation-failed), changes (new), changes (deleted, new), changes (deleted)
+//        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+//        {{
+//                add(ReservationRequestNotification.class);
+//                add(AllocationFailedNotification.class);
+//                add(ReservationRequestNotification.class);
+//                add(ReservationNotification.New.class);
+//                add(ReservationRequestNotification.class);
+//                add(ReservationNotification.Deleted.class);
+//                add(ReservationNotification.New.class);
+//                add(ReservationRequestNotification.class);
+//                add(ReservationNotification.Deleted.class);
+//            }}, getNotificationTypes());
+    }
+
     /**
      * {@link NotificationExecutor} for testing.
      */
