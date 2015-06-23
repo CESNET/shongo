@@ -820,9 +820,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             if (recordingsTCSDrive.equals(drive.getChildText("DriveLetter",ns))) {
                 int freeSpace = Integer.decode(drive.getChildText("Free",ns));
                 if (this.freeSpaceLimit.compareTo(freeSpace) < 0) {
-                    logger.warn("Space left on TCS server \"" + getDeviceAddress().getHost() + "\": " + freeSpace + " kB.");
+                    logger.debug("Space left on TCS server \"" + getDeviceAddress().getHost() + "\": " + freeSpace + " kB.");
                     return true;
                 } else {
+                    logger.warn("Space left on TCS server \"" + getDeviceAddress().getHost() + "\": " + freeSpace + " kB.");
                     return false;
                 }
             }
