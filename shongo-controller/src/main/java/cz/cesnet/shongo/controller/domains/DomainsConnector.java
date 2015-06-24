@@ -471,6 +471,9 @@ public class DomainsConnector
         @Override
         public T call()
         {
+            if (!Thread.currentThread().getName().contains("domainTask")) {
+                Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
+            }
             boolean failed = true;
             try {
                 if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {

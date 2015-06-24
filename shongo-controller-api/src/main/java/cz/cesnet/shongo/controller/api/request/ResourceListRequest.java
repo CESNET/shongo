@@ -66,6 +66,11 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private boolean allocatable;
 
     /**
+     * Object permissions for given security token
+     */
+    private ObjectPermission permission;
+
+    /**
      * Constructor.
      */
     public ResourceListRequest()
@@ -177,6 +182,16 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
 
     public void setDomainId(String domainId) {
         this.domainId = domainId;
+    }
+
+    public ObjectPermission getPermission()
+    {
+        return permission;
+    }
+
+    public void setPermission(ObjectPermission permission)
+    {
+        this.permission = permission;
     }
 
     /**

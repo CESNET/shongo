@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
-import cz.cesnet.shongo.controller.api.request.TagListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import org.joda.time.Interval;
 
 import java.util.List;
@@ -151,5 +148,5 @@ public interface ResourceService extends Service {
     public String getLocalDomainPasswordHash(SecurityToken token);
 
     @API
-    public ListResponse<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId);
+    public ListResponse<ResourceSummary> listForeignResources(ForeignResourcesListRequest request);
 }
