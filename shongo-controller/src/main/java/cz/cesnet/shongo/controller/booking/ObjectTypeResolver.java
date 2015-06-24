@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 
@@ -107,6 +108,8 @@ public class ObjectTypeResolver
                 return Tag.class;
             case DOMAIN:
                 return Domain.class;
+            case FOREIGN_RESOURCES:
+                return ForeignResources.class;
             default:
                 throw new TodoImplementException(objectType);
         }

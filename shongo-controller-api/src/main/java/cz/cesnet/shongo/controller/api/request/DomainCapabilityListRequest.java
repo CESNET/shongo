@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import org.joda.time.Interval;
 
@@ -20,6 +21,8 @@ public class DomainCapabilityListRequest extends AbstractRequest
     private Technology technology;
 
     private Interval interval;
+
+    private ObjectPermission permission;
 
     public DomainCapabilityListRequest(Type type)
     {
@@ -60,6 +63,16 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     public void setTechnology(Technology technology) {
         this.technology = technology;
+    }
+
+    public ObjectPermission getPermission()
+    {
+        return permission;
+    }
+
+    public void setPermission(ObjectPermission permission)
+    {
+        this.permission = permission;
     }
 
     public enum Type

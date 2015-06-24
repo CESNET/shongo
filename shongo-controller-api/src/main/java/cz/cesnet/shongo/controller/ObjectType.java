@@ -108,6 +108,9 @@ public enum ObjectType
                     add(ObjectRole.READER);
                     add(ObjectRole.RESERVATION);
             }}),
+    /**
+     * Represents a {@link cz.cesnet.shongo.controller.api.Domain}
+     */
     DOMAIN("dom",
             new HashMap<ObjectRole, ObjectPermission[]>()
             {{
@@ -116,7 +119,29 @@ public enum ObjectType
                             ObjectPermission.READ
                     });
                 }},
-            null),;
+            null),
+
+    /**
+     * Represents a {@link cz.cesnet.shongo.controller.api.Resource}.
+     */
+    FOREIGN_RESOURCES("fres",
+            new HashMap<ObjectRole, ObjectPermission[]>()
+            {{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
+                            ObjectPermission.READ,
+                            ObjectPermission.WRITE,
+                            ObjectPermission.CONTROL_RESOURCE,
+                    });
+                    put(ObjectRole.RESERVATION, new ObjectPermission[]{
+                            ObjectPermission.READ,
+                            ObjectPermission.RESERVE_RESOURCE
+                    });
+                    put(ObjectRole.READER, new ObjectPermission[]{
+                            ObjectPermission.READ
+                    });
+                }},
+            null
+    ),;
 
     /**
      * Unique code for the {@link ObjectType}.

@@ -259,12 +259,15 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
+        if (request.getPermission() == null) {
+            request.setPermission(ObjectPermission.READ);
+        }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         //ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
+                    cz.cesnet.shongo.controller.booking.resource.Resource.class, request.getPermission());
             if (readableResourceIds != null) {
                 // Allow to add/delete items in the set
                 readableResourceIds = new HashSet<Long>(readableResourceIds);
@@ -288,9 +291,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilterParameter("resourceIds", requestedResourceIds);
 
                 // Check if user has any reservations for not readable resources for them to become readable
+                // (or other given permission)
                 if (notReadableResourceIds.size() > 0) {
                     Set<Long> readableReservationIds = authorization.getEntitiesWithPermission(securityToken,
-                            cz.cesnet.shongo.controller.booking.reservation.Reservation.class, ObjectPermission.READ);
+                            cz.cesnet.shongo.controller.booking.reservation.Reservation.class, request.getPermission());
                     List readableResources = entityManager.createNativeQuery("SELECT resource_reservation.resource_id"
                             + " FROM resource_reservation"
                             + " WHERE resource_reservation.id IN (:reservationIds)"
@@ -414,13 +418,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 }
                 response.addItem(resourceSummary);
             }
-            for (DomainCapability resource : listForeignResources(securityToken, null)) {
-                //TODO overovat opravneni - tag, pridat domanu do popisu a dalsi
-//                Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
-//                        cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectPermission.READ);
 
-                response.addItem(resource.toResourceSummary());
-            }
+            // Adding foreign resources
+            ForeignResourcesListRequest listRequest = new ForeignResourcesListRequest();
+            listRequest.setSecurityToken(securityToken);
+            listRequest.setPermission(request.getPermission());
+            listRequest.setTagName(request.getTagName());
+            response.addAll(listForeignResources(listRequest));
             return response;
         }
         finally {
@@ -429,14 +433,23 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ListResponse<DomainCapability> listForeignResources(SecurityToken securityToken, String domainId)
+    public ListResponse<ResourceSummary> listForeignResources(ForeignResourcesListRequest request)
     {
-        //TODO parametrizace
+        SecurityToken securityToken = request.getSecurityToken();
+        //TODO parametrizace: overovat opravneni, overovat acl
         authorization.validate(securityToken);
-        ListResponse<DomainCapability> response = new ListResponse<>();
+        ListResponse<ResourceSummary> response = new ListResponse<>();
+
+        ObjectPermission permission = request.getPermission();
+        Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
+                cz.cesnet.shongo.controller.booking.resource.ForeignResources.class, permission == null ? ObjectPermission.READ : permission);
+
         if (InterDomainAgent.isInitialized()) {
             for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAllocatableForeignResources()) {
-                response.addItem(resource);
+                //TODO overovat opravneni - tag, pridat domanu do popisu a dalsi
+                //TODO: na tomto zaklade vylistovat ForeignResources s opravnenim, nebo obracene
+                //TODO: if resource has permission
+                response.addItem(resource.toResourceSummary());
             }
         }
         return response;
