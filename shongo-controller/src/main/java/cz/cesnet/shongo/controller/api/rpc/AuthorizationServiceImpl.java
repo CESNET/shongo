@@ -13,18 +13,22 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.domain.*;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
+import org.hibernate.exception.ConstraintViolationException;
+
+import javax.persistence.*;
 import java.util.*;
 
 /**
@@ -498,7 +502,53 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 throw new TodoImplementException(aclEntryApi.getIdentityType());
         }
 
-        ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(aclEntryApi.getObjectId());
+        ObjectIdentifier objectIdentifier;
+        if (ObjectIdentifier.isLocal(aclEntryApi.getObjectId())) {
+            objectIdentifier = ObjectIdentifier.parse(aclEntryApi.getObjectId());
+        }
+        else {
+            ObjectIdentifier foreignObjectIdentifier = ObjectIdentifier.parseForeignId(aclEntryApi.getObjectId());
+            switch (foreignObjectIdentifier.getObjectType()) {
+                case RESOURCE:
+                    EntityManager entityManager = entityManagerFactory.createEntityManager();
+                    ResourceManager resourceManager = new ResourceManager(entityManager);
+                    String domainName = ObjectIdentifier.parseDomain(aclEntryApi.getObjectId());
+                    Domain domain = resourceManager.getDomainByName(domainName);
+
+                    try {
+                        ForeignResources foreignResources = null;
+                        try {
+
+                            foreignResources = resourceManager.findForeignResources(domain, foreignObjectIdentifier.getPersistenceId());
+                        }
+                        catch (Exception ex) {
+                            if (!(ex instanceof CommonReportSet.ObjectNotExistsException)) {
+                                throw ex;
+                            }
+                        }
+
+                        if (foreignResources == null) {
+                            entityManager.getTransaction().begin();
+                            foreignResources = new ForeignResources();
+                            foreignResources.setDomain(domain);
+                            foreignResources.setForeignResourceId(foreignObjectIdentifier.getPersistenceId());
+                            resourceManager.createForeignResources(foreignResources);
+                            entityManager.getTransaction().commit();
+                        }
+
+                        objectIdentifier = new ObjectIdentifier(ObjectType.FOREIGN_RESOURCES, foreignResources.getId());
+                    }
+                    finally {
+                        if (entityManager.getTransaction().isActive()) {
+                            entityManager.getTransaction().rollback();
+                        }
+                        entityManager.close();
+                    }
+                    break;
+                default:
+                    throw new TodoImplementException("Unsupported type of foreign object");
+            }
+        }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {

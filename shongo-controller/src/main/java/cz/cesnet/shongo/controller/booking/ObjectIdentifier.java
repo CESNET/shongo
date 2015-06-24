@@ -204,6 +204,22 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param objectId foreign object global identifier
+     * @return parsed {@link ObjectIdentifier}
+     */
+    public static ObjectIdentifier parseForeignId(String objectId)
+    {
+        if (objectId == null) {
+            return null;
+        }
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
+        if (matcher.matches()) {
+            return new ObjectIdentifier(ObjectType.getByCode(matcher.group(2)), parsePersistenceId(matcher.group(3)));
+        }
+        return parse(LocalDomain.getLocalDomainName(), objectId);
+    }
+
+    /**
      * @param objectId   object identifier
      * @param objectType
      * @return parsed {@link ObjectIdentifier}
@@ -320,7 +336,7 @@ public class ObjectIdentifier
      */
     public static Long parseId(String objectId, ObjectType objectType)
     {
-        return parseId(parseDomain(objectId), objectType, objectId);
+        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -332,6 +348,16 @@ public class ObjectIdentifier
     {
         ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
         return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
+    }
+
+    /**
+     * @param objectId   object local id for the identifier
+     * @param objectType object type for the identifier
+     * @return parsed local identifier from given global or local identifier
+     */
+    public static Long parseForeignId(String objectId, ObjectType objectType)
+    {
+        return parseId(parseDomain(objectId), objectType, objectId);
     }
 
     /**
@@ -517,7 +543,7 @@ public class ObjectIdentifier
         return matcher.group(1);
     }
 
-    public static Boolean isLocal(String objectId, ObjectType objectType)
+    public static Boolean isLocal(String objectId)
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches() || LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
             return true;
