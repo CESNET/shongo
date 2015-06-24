@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"domain_id", "foreign_resource_id", "type"}))
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"domain_id", "foreign_resource_id"}), @UniqueConstraint(columnNames = {"domain_id", "type"})})
 public class ForeignResources extends SimplePersistentObject
 {
     private Domain domain;

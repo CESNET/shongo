@@ -10,7 +10,8 @@ import javax.persistence.*;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "tag_id", "foreign_resources_id"}))
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"tag_id", "resource_id"}),
+        @UniqueConstraint(columnNames = {"tag_id", "foreign_resources_id"})})
 public class ResourceTag extends SimplePersistentObject {
     private Resource resource;
 
@@ -29,6 +30,19 @@ public class ResourceTag extends SimplePersistentObject {
         this.resource = resource;
     }
 
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    @JoinColumn(name = "foreign_resources_id")
+    public ForeignResources getForeignResources()
+    {
+        return foreignResources;
+    }
+
+    public void setForeignResources(ForeignResources foreignResources)
+    {
+        this.foreignResources = foreignResources;
+    }
+
     @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     @JoinColumn(name = "tag_id")
@@ -42,18 +56,5 @@ public class ResourceTag extends SimplePersistentObject {
     public void setTag(Tag tag)
     {
         this.tag = tag;
-    }
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    @JoinColumn(name = "foreign_resources_id")
-    public ForeignResources getForeignResources()
-    {
-        return foreignResources;
-    }
-
-    public void setForeignResources(ForeignResources foreignResources)
-    {
-        this.foreignResources = foreignResources;
     }
 }

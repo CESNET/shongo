@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
@@ -601,14 +602,15 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             if (request.getResourceId() != null) {
                 String resourceId = request.getResourceId();
-                Long persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
 
-                if (ObjectIdentifier.isLocal(resourceId, ObjectType.RESOURCE)) {
+                if (ObjectIdentifier.isLocal(resourceId)) {
+                    Long persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
                     resourceTags = resourceManager.getResourceTags(persistenceResourceId);
                 }
                 else {
+                    Long foreignResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
                     cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(ObjectIdentifier.parseDomain(resourceId));
-                    ForeignResources foreignResources = resourceManager.findForeignResources(domain, persistenceResourceId);
+                    ForeignResources foreignResources = resourceManager.findForeignResources(domain, foreignResourceId);
                     resourceTags = resourceManager.getForeignResourceTags(foreignResources);
                 }
 
@@ -740,17 +742,17 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.resource.Tag tag;
-            tag = resourceManager.getTag(ObjectIdentifier.parseId(tagId,ObjectType.TAG));
+            ObjectIdentifier objectIdentifier = new ObjectIdentifier(ObjectType.TAG, ObjectIdentifier.parseId(tagId,ObjectType.TAG));
+            tag = (cz.cesnet.shongo.controller.booking.resource.Tag) checkObjectExistence(objectIdentifier, entityManager);
 
             ResourceTag resourceTag = new ResourceTag();
 
             resourceTag.setTag(tag);
 
 
-            boolean isResourceLocal = ObjectIdentifier.isLocal(resourceId, ObjectType.RESOURCE);
             // Object for child ACL
             PersistentObject persistentObject = null;
-            if (isResourceLocal) {
+            if (ObjectIdentifier.isLocal(resourceId)) {
                 cz.cesnet.shongo.controller.booking.resource.Resource resource;
                 resource = resourceManager.get(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
                 resourceTag.setResource(resource);
@@ -760,10 +762,23 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             else {
                 String domainName = ObjectIdentifier.parseDomain(resourceId);
                 cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
-                Long localId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
-                ForeignResources foreignResources = new ForeignResources();
-                foreignResources.setDomain(domain);
-                foreignResources.setForeignResourceId(localId);
+                Long localId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
+
+                ForeignResources foreignResources = null;
+                try {
+                    foreignResources = resourceManager.findForeignResources(domain, localId);
+                }
+                catch (Exception ex) {
+                    if (!(ex instanceof NoResultException)) {
+                        throw ex;
+                    }
+                }
+
+                if (foreignResources == null) {
+                    foreignResources = new ForeignResources();
+                    foreignResources.setDomain(domain);
+                    foreignResources.setForeignResourceId(localId);
+                }
                 resourceTag.setForeignResources(foreignResources);
                 // Delegate ACL for foreignResources
                 persistentObject = foreignResources;
@@ -779,7 +794,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
                 PersistenceException cause = (PersistenceException) exception.getCause();
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
-                    throw new IllegalArgumentException("Tag (tag-id: " + tagId + " has been allready assigned to this resource (resource-id: " + resourceId + ").",exception);
+                    throw new IllegalArgumentException("Tag (tag-id: " + tagId + " has been already assigned to this resource (resource-id: " + resourceId + ").",exception);
                 }
             }
             throw exception;
@@ -806,25 +821,45 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
 
+        Long persistenceTagId = null;
+        Long persistenceResourceId = null;
+        ResourceTag resourceTag = null;
+        ForeignResources foreignResources = null;
+
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Delete the resourceTag
-            Long persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
-            ResourceTag resourceTag;
-            if (ObjectIdentifier.isLocal(resourceId, ObjectType.RESOURCE)) {
-                Long persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+            persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
+            if (ObjectIdentifier.isLocal(resourceId)) {
+                persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
                 resourceTag = resourceManager.getResourceTag(persistenceResourceId, persistenceTagId);
                 authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
             }
             else {
-                resourceTag = resourceManager.getResourceTag(resourceId, persistenceTagId);
+                String domainName = ObjectIdentifier.parseDomain(resourceId);
+                cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
+                persistenceResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
+                foreignResources = resourceManager.findForeignResources(domain, persistenceResourceId);
+                resourceTag = resourceManager.getForeignResourceTag(foreignResources.getId(), persistenceTagId);
             }
 
             resourceManager.deleteResourceTag(resourceTag);
 
             entityManager.getTransaction().commit();
+        }
+        catch (NoResultException exception) {
+            if (resourceTag == null) {
+                logger.warn("Tag '" + tagId + "' cannot be removed from resource '" + resourceId + "' because the tag does not exist.",
+                        exception);
+                ControllerReportSetHelper.throwObjectNotExistFault(cz.cesnet.shongo.controller.booking.resource.Tag.class, persistenceTagId);
+            }
+            else {
+                logger.warn("Tag '" + tagId + "' cannot be removed from resource '" + resourceId + "' because it is not assigned.",
+                        exception);
+                ControllerReportSetHelper.throwObjectNotExistFault(cz.cesnet.shongo.controller.booking.resource.ResourceTag.class, 0L);
+            }
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -1151,5 +1186,22 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public String getLocalDomainPasswordHash(SecurityToken token) {
         authorization.validate(token);
         return configuration.getInterDomainBasicAuthPasswordHash();
+    }
+
+    /**
+     * @param objectId      of object which should be checked for existence
+     * @param entityManager which can be used
+     * @return {@link cz.cesnet.shongo.PersistentObject} for given {@code objectId}
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
+     *
+     */
+    private PersistentObject checkObjectExistence(ObjectIdentifier objectId, EntityManager entityManager)
+            throws CommonReportSet.ObjectNotExistsException
+    {
+        PersistentObject object = entityManager.find(objectId.getObjectClass(), objectId.getPersistenceId());
+        if (object == null) {
+            ControllerReportSetHelper.throwObjectNotExistFault(objectId);
+        }
+        return object;
     }
 }

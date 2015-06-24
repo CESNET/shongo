@@ -354,7 +354,7 @@ public class AuthorizationManager extends AclEntryManager
         CriteriaQuery<AclEntryDependency> query = criteriaBuilder.createQuery(AclEntryDependency.class);
         Root<AclEntryDependency> aclEntryDependencyRoot = query.from(AclEntryDependency.class);
         Join<AclEntryDependency,AclEntry> join = aclEntryDependencyRoot.join("childAclEntry");
-        query.where(criteriaBuilder.equal(join.get("objectIdentity"),childObjectIdentity));
+        query.where(criteriaBuilder.equal(join.get("objectIdentity"), childObjectIdentity));
 
         TypedQuery<AclEntryDependency> typedQuery = entityManager.createQuery(query);
         List<AclEntryDependency> aclEntryDependencyList = typedQuery.getResultList();
@@ -537,8 +537,14 @@ public class AuthorizationManager extends AclEntryManager
             Tag tag = (Tag) object;
             ResourceManager resourceManager = new ResourceManager(entityManager);
             for (ResourceTag resourceTag : resourceManager.getResourceTagsByTag(tag.getId())) {
-                //TODO pro foreign resource
-                createChildAclEntry(aclEntry, identity, resourceTag.getResource(), objectRole,
+                PersistentObject persistentObject = null;
+                if (resourceTag.getResource() != null) {
+                    persistentObject = resourceTag.getResource();
+                }
+                else if (resourceTag.getForeignResources() != null) {
+                    persistentObject = resourceTag.getForeignResources();
+                }
+                createChildAclEntry(aclEntry, identity, persistentObject, objectRole,
                         AclEntryDependency.Type.DELETE_CASCADE);
             }
         }

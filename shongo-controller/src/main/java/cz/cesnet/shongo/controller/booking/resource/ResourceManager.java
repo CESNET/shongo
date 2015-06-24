@@ -65,6 +65,16 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
+     * Create a new foreignResources object in the database.
+     *
+     * @param foreignResources
+     */
+    public void createForeignResources(ForeignResources foreignResources)
+    {
+        super.create(foreignResources);
+    }
+
+    /**
      * Create a new resource in the database.
      *
      * @param resource
@@ -462,8 +472,8 @@ public class ResourceManager extends AbstractManager
 
         CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
         Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain").as(String.class), domain.getId());
-        javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId").as(String.class), resourceId);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain.getId());
+        javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId"), resourceId);
         query.select(tagRoot).where(param1, param2);
 
         TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
@@ -485,6 +495,12 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
+    /**
+     * Returns {@link ResourceTag} for given local {@link Resource} and {@link Tag} or null
+     * @param resourceId
+     * @param tagId
+     * @return
+     */
     public ResourceTag getResourceTag(Long resourceId, Long tagId)
     {
         try {
@@ -506,14 +522,20 @@ public class ResourceManager extends AbstractManager
         }
     }
 
-    public ResourceTag getResourceTag(String foreignResourceId, Long tagId)
+    /**
+     * Returns {@link ResourceTag} for given foreign {@link Resource} and {@link Tag} or null
+     * @param foreignResourceId
+     * @param tagId
+     * @return
+     */
+    public ResourceTag getForeignResourceTag(Long foreignResourceId, Long tagId)
     {
         try {
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
             CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
             Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
-            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResourceId"), foreignResourceId);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResources"), foreignResourceId);
             javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
             query.select(resourceTagRoot);
             query.where(param1,param2);
@@ -527,6 +549,11 @@ public class ResourceManager extends AbstractManager
         }
     }
 
+    /**
+     * List {@link ResourceTag} for given {@link Resource}
+     * @param resourceId
+     * @return
+     */
     public List<ResourceTag> getResourceTags(Long resourceId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -541,6 +568,11 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getResultList();
     }
 
+    /**
+     * Returns list of {@link Tag} for given {@link ForeignResources}
+     * @param foreignResources
+     * @return
+     */
     public List<ResourceTag> getForeignResourceTags(ForeignResources foreignResources)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -555,6 +587,11 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getResultList();
     }
 
+    /**
+     * List {@link ResourceTag} by given {@link Tag} id
+     * @param tagId
+     * @return
+     */
     public List<ResourceTag> getResourceTagsByTag(Long tagId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
