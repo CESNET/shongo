@@ -685,13 +685,31 @@ public class ResourceManager extends AbstractManager
         }
     }
 
+    /**
+     * List all domains
+     * @return
+     */
     public List<Domain> listAllDomains()
+    {
+        return listAllDomains(null);
+    }
+
+    /**
+     * List all domains. All domains if {@code allocatable} is null, filtered by this param otherwise.
+     * @param allocatable
+     * @return
+     */
+    public List<Domain> listAllDomains(Boolean allocatable)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
         Root<Domain> domainRoot = query.from(Domain.class);
         query.select(domainRoot);
+        if (allocatable != null) {
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainRoot.get("allocatable"), allocatable);
+            query.where(param1);
+        }
 
         TypedQuery<Domain> typedQuery = entityManager.createQuery(query);
 

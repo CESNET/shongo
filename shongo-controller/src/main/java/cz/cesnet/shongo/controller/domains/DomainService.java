@@ -86,22 +86,22 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //    }
 
     /**
-     * List all domains included local domain. Every domain will have null status except local.
+     * List all domains without local domain. Every domain will have null status.
      *
      * @return
      */
-    public List<Domain> listDomains()
+    public List<Domain> listForeignDomains()
     {
-        return listDomains(false);
+        return listDomains(true, null);
     }
 
     /**
      * List all domains included local domain depending on {@code onlyForeignDomains}. Every domain will have null status except local.
-     *
+     * By param {@code allocatable} can be filtered only allocatable domains.
      * @param onlyForeignDomains
      * @return
      */
-    public List<Domain> listDomains(boolean onlyForeignDomains)
+    public List<Domain> listDomains(boolean onlyForeignDomains, Boolean allocatable)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -110,7 +110,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             if (!onlyForeignDomains) {
                 domainList.add(LocalDomain.getLocalDomain().toApi());
             }
-            for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains()) {
+            for (cz.cesnet.shongo.controller.booking.domain.Domain domain : resourceManager.listAllDomains(allocatable)) {
                 domainList.add(domain.toApi());
             }
             return Collections.unmodifiableList(domainList);
