@@ -69,13 +69,9 @@ public class DomainAuthentication {
      */
     protected Map<X509Certificate, Domain> listForeignDomainCertificates() {
         Map<X509Certificate, Domain> domainsByCert = new HashMap<X509Certificate, Domain>();
-        for (Domain domain : domainService.listDomains()) {
+        for (Domain domain : domainService.listForeignDomains()) {
             String certificate = domain.getCertificatePath();
             if (Strings.isNullOrEmpty(certificate)) {
-                //exclude local domain
-                if (domain.getStatus() != null) {
-                    continue;
-                }
                 if (configuration.requiresClientPKIAuth()) {
                     String message = "Cannot connect to domain " + domain.getName()
                             + ", certificate file does not exist or is not configured.";

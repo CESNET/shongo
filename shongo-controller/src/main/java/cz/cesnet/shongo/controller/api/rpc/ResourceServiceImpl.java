@@ -947,26 +947,26 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 //        }
     }
 
-//    public Domain getDomain(SecurityToken token, String domainId) {
-//        checkNotNull("domain-id", domainId);
-//        authorization.validate(token);
-//
-//        EntityManager entityManager = entityManagerFactory.createEntityManager();
-//        ResourceManager resourceManager = new ResourceManager(entityManager);
-//        try {
-//            cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
-//                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
-//
-//            if (!authorization.hasObjectPermission(token, domain, ObjectPermission.READ)) {
-//                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);
-//            }
-//
-//            return domain.toApi();
-//        }
-//        finally {
-//            entityManager.close();
-//        }
-//    }
+    public Domain getDomain(SecurityToken token, String domainId) {
+        checkNotNull("domain-id", domainId);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
+                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+
+            if (!authorization.hasObjectPermission(token, domain, ObjectPermission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);
+            }
+
+            return domain.toApi();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
 
     @Override
     public void modifyDomain(SecurityToken securityToken, Domain domainApi) {

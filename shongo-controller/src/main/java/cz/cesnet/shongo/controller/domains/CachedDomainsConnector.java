@@ -37,13 +37,15 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
-     * Start periodic cache of foreign domain's resources (type of RESOURCE)
+     * Start periodic cache of foreign domain's resources (type of {@link cz.cesnet.shongo.controller.ObjectType#RESOURCE}).
+     * When cache is initialized, it will add new domains. Removing from cache and {@link ScheduledThreadPoolExecutor}
+     * is handled by thread itself ({@link DomainTask}).
      */
     private void initResourceCache()
     {
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
-        for (Domain domain : listForeignDomains()) {
+        for (Domain domain : listAllocatableForeignDomains()) {
             if (!availableResources.containsKey(domain.getName()) && !unavailableResources.contains(domain.getName())) {
                 domains.add(domain);
             }
@@ -87,11 +89,11 @@ public class CachedDomainsConnector extends DomainsConnector
         }
     }
 
-    protected boolean isResourcesCachedInitialized()
+    protected boolean isResourcesCacheInitialized()
     {
         boolean initialized = true;
         synchronized (availableResources) {
-            if (availableResources.size() + unavailableResources.size() != listForeignDomains().size()) {
+            if (availableResources.size() + unavailableResources.size() != listAllocatableForeignDomains().size()) {
                 initialized = false;
             }
         }
@@ -121,7 +123,7 @@ public class CachedDomainsConnector extends DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, List<DomainCapability>> capabilities;
-        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCachedInitialized()) {
+        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCacheInitialized()) {
             capabilities = new HashMap<>();
             // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
             synchronized (availableResources) {

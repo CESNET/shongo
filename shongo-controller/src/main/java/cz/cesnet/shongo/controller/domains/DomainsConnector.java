@@ -366,7 +366,12 @@ public class DomainsConnector
 
     public List<Domain> listForeignDomains()
     {
-        return this.domainService.listDomains(true);
+        return this.domainService.listForeignDomains();
+    }
+
+    public List<Domain> listAllocatableForeignDomains()
+    {
+        return this.domainService.listDomains(true, true);
     }
 
     /**
@@ -402,7 +407,8 @@ public class DomainsConnector
         if (request.getTechnology() != null) {
             parameters.put("technology", request.getTechnology().toString());
         }
-        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listForeignDomains(), DomainCapability.class);
+        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET,
+                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listAllocatableForeignDomains(), DomainCapability.class);
         return domainResources;
     }
 
@@ -468,6 +474,11 @@ public class DomainsConnector
             this.unavailableDomains = unavailableDomains;
         }
 
+        /**
+         * Callable will be terminated (throws {@link IllegalStateException}) only if domains does not exist.
+         *
+         * @return
+         */
         @Override
         public T call()
         {
@@ -477,7 +488,7 @@ public class DomainsConnector
             boolean failed = true;
             try {
                 if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {
-                    throw new IllegalStateException();
+                    terminateDomainTask();
                 }
                 T response = performRequest(method, action, parameters, domain, reader, returnClass);
                 if (result != null && response != null) {
@@ -490,20 +501,17 @@ public class DomainsConnector
                     failed = false;
                 }
                 return response;
-            }
-            catch (IllegalStateException e) {
+            } catch (IllegalStateException e) {
+                // Thread will be terminated (in {@link ScheduledThreadPoolExecutor}).
                 throw e;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 try {
                     notifier.notifyDomainAdmin("Failed to perform request to domain " + domain.getName(), e);
-                }
-                catch (Exception notifyEx) {
+                } catch (Exception notifyEx) {
                     logger.error("Notification has failed.", notifyEx);
                 }
                 return null;
-            }
-            finally {
+            } finally {
                 if (unavailableDomains != null && failed) {
                     synchronized (result) {
                         unavailableDomains.add(domain.getName());
@@ -512,10 +520,31 @@ public class DomainsConnector
             }
         }
 
+        /**
+         * Runnable will be terminated (throws {@link IllegalStateException}) if domain does not exist or is no allocatable.
+         */
         @Override
         public void run()
         {
+            Domain internalDomain = InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId());
+            if (internalDomain == null || !internalDomain.isAllocatable()) {
+                terminateDomainTask();
+            }
             call();
+        }
+
+        private void terminateDomainTask() throws IllegalStateException
+        {
+            synchronized (result) {
+                if (result != null) {
+                    result.remove(domain.getName());
+                }
+                if (unavailableDomains != null) {
+                    unavailableDomains.remove(domain.getName());
+                }
+            }
+            logger.info("Domain '" + domain.getName() + "' does not exist or is not allocatable. Domain task terminated.");
+            throw new IllegalStateException("Domain '" + domain.getName() + "' does not exist or is not allocatable.");
         }
     }
 }

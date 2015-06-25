@@ -40,7 +40,7 @@ sub new()
     );
     $self->add_attribute(
         'code', {
-            'required' => 1,
+            'required' => 0,
             'title' => 'Domain code',
         }
     );

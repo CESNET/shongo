@@ -10,12 +10,10 @@ import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.ssl.SSLCommunication;
-import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -204,7 +202,7 @@ public class InterDomainTest extends AbstractControllerTest
             Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
             Assert.assertEquals(2, resources.get(loopbackDomain.getName()).size());
 
-            while (!getConnector().isResourcesCachedInitialized()) {
+            while (!getConnector().isResourcesCacheInitialized()) {
                 System.out.println("Waiting for cache to be initialized ...");
                 Thread.sleep(2000);
             }
