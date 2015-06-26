@@ -451,6 +451,11 @@ public class ResourceManager extends AbstractManager
         return entityManager.find(Tag.class, tagId);
     }
 
+    public ForeignResources getForeignResources(Long foreignResourceId)
+    {
+        return entityManager.find(ForeignResources.class, foreignResourceId);
+    }
+
     public ForeignResources findForeignResources(Domain domain, String type)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -468,17 +473,40 @@ public class ResourceManager extends AbstractManager
 
     public ForeignResources findForeignResources(Domain domain, Long resourceId)
     {
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
+            Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain.getId());
+            javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId"), resourceId);
+            query.select(tagRoot).where(param1, param2);
+
+            TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getSingleResult();
+        } catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(domain, ForeignResources.class, resourceId);
+        }
+    }
+
+    public List<ForeignResources> listForeignResources(Domain domain)
+    {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
         Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
         javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain.getId());
-        javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId"), resourceId);
-        query.select(tagRoot).where(param1, param2);
+        query.select(tagRoot).where(param1);
 
         TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
 
-        return typedQuery.getSingleResult();
+        return typedQuery.getResultList();
+    }
+
+    public void deleteForeignResources(ForeignResources foreignResources)
+    {
+        super.delete(foreignResources);
     }
 
     public Tag findTag(String name)
@@ -627,17 +655,22 @@ public class ResourceManager extends AbstractManager
 
     public Domain getDomainByName(String domainName)
     {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
-        Root<Domain> domainResourceRoot = query.from(Domain.class);
-        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("name"), domainName);
-        query.select(domainResourceRoot);
-        query.where(param1);
+            CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
+            Root<Domain> domainResourceRoot = query.from(Domain.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("name"), domainName);
+            query.select(domainResourceRoot);
+            query.where(param1);
 
-        TypedQuery<Domain> typedQuery = entityManager.createQuery(query);
+            TypedQuery<Domain> typedQuery = entityManager.createQuery(query);
 
-        return typedQuery.getSingleResult();
+            return typedQuery.getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return ControllerReportSetHelper.throwObjectNotExistFault(Domain.class, 0L);
+        }
     }
 
     public void createDomainResource(DomainResource domainResource)

@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import org.apache.http.annotation.ThreadSafe;
 import org.codehaus.jackson.map.ObjectReader;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
@@ -21,14 +23,18 @@ import java.util.concurrent.*;
 public class CachedDomainsConnector extends DomainsConnector
 {
     /**
-     * Cache of available resources mapped by domains codes
+     * Cache of available resources mapped by domains codes.
+     *
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code availableResources} BEFORE USE.
      */
-    private ConcurrentMap<String, List<DomainCapability>> availableResources = new ConcurrentHashMap<>();
+    private Map<String, List<DomainCapability>> availableResources = new HashMap<>();
 
     /**
      * Cache of unavailable domains, supplement to {#code availableResources} on foreign domains
+     *
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code availableResources} BEFORE USE.
      */
-    private ConcurrentHashSet<String> unavailableResources = new ConcurrentHashSet<>();
+    private Set<String> unavailableResources = new HashSet<>();
 
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
@@ -41,13 +47,15 @@ public class CachedDomainsConnector extends DomainsConnector
      * When cache is initialized, it will add new domains. Removing from cache and {@link ScheduledThreadPoolExecutor}
      * is handled by thread itself ({@link DomainTask}).
      */
-    private void initResourceCache()
+    synchronized private void initResourceCache()
     {
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
-        for (Domain domain : listAllocatableForeignDomains()) {
-            if (!availableResources.containsKey(domain.getName()) && !unavailableResources.contains(domain.getName())) {
-                domains.add(domain);
+        synchronized (availableResources) {
+            for (Domain domain : listAllocatableForeignDomains()) {
+                if (!availableResources.containsKey(domain.getName())) {
+                    domains.add(domain);
+                }
             }
         }
         Map<String, String> parameters = new HashMap<>();
@@ -56,9 +64,9 @@ public class CachedDomainsConnector extends DomainsConnector
                 domains, DomainCapability.class, availableResources, unavailableResources);
     }
 
-    protected <T> Map<String, List<T>> submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
+    private <T> Map<String, List<T>> submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
                                                                     final Map<String, String> parameters, final Collection<Domain> domains,
-                                                                    Class<T> objectClass, ConcurrentMap cache, ConcurrentHashSet unavailableDomainsCache)
+                                                                    Class<T> objectClass, Map<String, ?> cache, Set<String> unavailableDomainsCache)
     {
         final ConcurrentHashMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
@@ -80,8 +88,8 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
                                             Map<String, String> parameters, Collection<Domain> domains,
-                                            ObjectReader reader, ConcurrentMap result,
-                                            ConcurrentHashSet unavailableDomainsCache, Class<T> returnClass)
+                                            ObjectReader reader, Map<String, ?> result,
+                                            Set<String> unavailableDomainsCache, Class<T> returnClass)
     {
         for (final Domain domain : domains) {
             Runnable task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, unavailableDomainsCache);
@@ -89,25 +97,59 @@ public class CachedDomainsConnector extends DomainsConnector
         }
     }
 
-    protected boolean isResourcesCacheInitialized()
+    /**
+     * @return true if cache contains resources for all allocatable domains, false otherwise.
+     */
+    protected boolean checkResourcesCacheInitialized()
     {
         boolean initialized = true;
+        int cachedDomainsCount;
         synchronized (availableResources) {
-            if (availableResources.size() + unavailableResources.size() != listAllocatableForeignDomains().size()) {
-                initialized = false;
-            }
+            cachedDomainsCount = availableResources.size();
         }
-        if (!initialized) {
-            initResourceCache();
+        int actualDomainsCount = listAllocatableForeignDomains().size();
+        if (cachedDomainsCount != actualDomainsCount) {
+            initialized = false;
         }
+
+        initResourceCache();
         return initialized;
     }
 
-    public Set<DomainCapability> listAllocatableForeignResources()
+    protected boolean isResourcesCacheReady()
+    {
+        int cachedDomainsCount;
+        synchronized (availableResources) {
+            cachedDomainsCount = availableResources.size();
+        }
+        int actualDomainsCount = listAllocatableForeignDomains().size();
+
+        boolean isReady = false;
+        if (actualDomainsCount == cachedDomainsCount) {
+            isReady = false;
+        }
+        else if (actualDomainsCount > cachedDomainsCount) {
+            if (actualDomainsCount - cachedDomainsCount == 1 && actualDomainsCount != 1) {
+                isReady = true;
+            }
+        }
+        else if (cachedDomainsCount > actualDomainsCount) {
+            isReady = true;
+        }
+
+        initResourceCache();
+        return isReady;
+    }
+
+    /**
+     * @return {@link Set<DomainCapability>} of resources for foreign available domains
+     */
+    public Set<DomainCapability> listAvailableForeignResources()
     {
         DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
         Set<DomainCapability> resources = new HashSet<>();
-        for (List<DomainCapability> resourceList : listForeignCapabilities(request).values()) {
+        for (Map.Entry<String, List<DomainCapability>> entry : listForeignCapabilities(request).entrySet()) {
+            List<DomainCapability> resourceList = entry.getValue();
             resources.addAll(resourceList);
         }
         return resources;
@@ -123,18 +165,42 @@ public class CachedDomainsConnector extends DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, List<DomainCapability>> capabilities;
-        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCacheInitialized()) {
+        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCacheReady()) {
             capabilities = new HashMap<>();
             // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
             synchronized (availableResources) {
-                for (Map.Entry<String, List<DomainCapability>> entry : availableResources.entrySet()) {
-                    if (unavailableResources.contains(entry.getKey())) {
-                        capabilities.put(entry.getKey(), entry.getValue());
+                // Filter domains for which resources will be returned.
+                ConcurrentMap<String, List<DomainCapability>> requestedResources = new ConcurrentHashMap<>();
+                if (!request.getResourceIds().isEmpty()) {
+                    for (String requestResourceId : request.getResourceIds()) {
+                        String domainName = ObjectIdentifier.parseDomain(requestResourceId);
+                        requestedResources.put(domainName, availableResources.get(domainName));
                     }
-                    else {
-                        List<DomainCapability> resources = entry.getValue();
-                        for (DomainCapability resource : resources) {
-                            resource.setAvailable(false);
+                }
+                else {
+                    if (request.getDomainName() != null) {
+                        String domainName = request.getDomainName();
+                        requestedResources.put(domainName, availableResources.get(domainName));
+                    }
+                }
+
+                // Filter requested resources and set unavailable resources
+                for (Map.Entry<String, List<DomainCapability>> entry : requestedResources.entrySet()) {
+                    String domainName = entry.getKey();
+                    List<DomainCapability> capabilityList = entry.getValue();
+                    if (capabilityList == null) {
+                        continue;
+                    }
+                    // If domain exists and is allocatable
+                    if (isDomainAllocatable(domainName)) {
+                        List<DomainCapability> resources = new ArrayList<>();
+                        for (DomainCapability resource : capabilityList) {
+                            if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
+                                if (unavailableResources.contains(domainName)) {
+                                    resource.setAvailable(false);
+                                }
+                                resources.add(resource);
+                            }
                         }
                         capabilities.put(entry.getKey(), resources);
                     }

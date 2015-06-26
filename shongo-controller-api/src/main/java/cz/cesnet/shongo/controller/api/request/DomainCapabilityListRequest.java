@@ -2,8 +2,13 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import org.joda.time.Interval;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Request
@@ -11,7 +16,7 @@ import org.joda.time.Interval;
  */
 public class DomainCapabilityListRequest extends AbstractRequest
 {
-    private String domainId;
+    private Domain domain;
 
     /**
      * {@link Type#RESOURCE} of the resources to be listed.
@@ -24,21 +29,35 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private ObjectPermission permission;
 
+    private Set<String> resourceIds = new HashSet<>();
+
     public DomainCapabilityListRequest(Type type)
     {
         this.type = type;
     }
 
-    public DomainCapabilityListRequest(String domainId) {
-        this.domainId = domainId;
+    public DomainCapabilityListRequest(Domain domain) {
+        this.domain = domain;
     }
 
-    public String getDomainId() {
-        return domainId;
+    public Domain getDomain()
+    {
+        return domain;
     }
 
-    public void setDomainId(String resourceId) {
-        this.domainId = resourceId;
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    public String getDomainName()
+    {
+        return (domain == null ? null : domain.getName());
+    }
+
+    public String getDomainId()
+    {
+        return (domain == null ? null : domain.getId());
     }
 
     public Type getType() {
@@ -73,6 +92,21 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void setPermission(ObjectPermission permission)
     {
         this.permission = permission;
+    }
+
+    public Set<String> getResourceIds()
+    {
+        return resourceIds;
+    }
+
+    public void setResourceIds(Set<String> resourceIds)
+    {
+        this.resourceIds = resourceIds;
+    }
+
+    public void addResourceId(String resourceId)
+    {
+        this.resourceIds.add(resourceId);
     }
 
     public enum Type

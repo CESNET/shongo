@@ -5,42 +5,8 @@ import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
-import cz.cesnet.shongo.controller.ForeignDomainConnectException;
-import cz.cesnet.shongo.controller.LocalDomain;
-import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
-import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.ssl.SSLCommunication;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.ws.commons.util.Base64;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.eclipse.jetty.util.ConcurrentHashSet;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.mail.MessagingException;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * InterDomain agent for Domain Controller
