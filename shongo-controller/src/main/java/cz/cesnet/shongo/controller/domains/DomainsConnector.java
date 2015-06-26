@@ -12,7 +12,6 @@ import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +21,9 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
-import java.io.BufferedReader;
+import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -82,7 +80,7 @@ public class DomainsConnector
                                                       final Map<String, String> parameters, final Collection<Domain> domains,
                                                       Class<T> objectClass)
     {
-        final ConcurrentMap<String, T> resultMap = new ConcurrentHashMap<>();
+        final Map<String, T> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(objectClass);
         performRequests(method, action, parameters, domains, reader, resultMap, objectClass);
         return resultMap;
@@ -92,7 +90,7 @@ public class DomainsConnector
                                                                 final Map<String, String> parameters, final Collection<Domain> domains,
                                                                 Class<T> objectClass)
     {
-        final ConcurrentMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
+        final Map<String, List<T>> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
         performRequests(method, action, parameters, domains, reader, resultMap, List.class);
         return resultMap;
@@ -111,7 +109,7 @@ public class DomainsConnector
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
                                                     final Map<String, String> parameters, final Collection<Domain> domains,
-                                                    final ObjectReader reader, final ConcurrentMap result,
+                                                    final ObjectReader reader, final Map<String, ?> result,
                                                     final Class<T> returnClass)
     {
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
@@ -364,14 +362,36 @@ public class DomainsConnector
 
     }
 
+    /**
+     * @return all domains, even the ones that are not allocatable
+     */
     public List<Domain> listForeignDomains()
     {
         return this.domainService.listForeignDomains();
     }
 
+    /**
+     * @return all foreign domains used for allocation
+     */
     public List<Domain> listAllocatableForeignDomains()
     {
         return this.domainService.listDomains(true, true);
+    }
+
+    /**
+     * Test if domain by given name exists and is allocatable.
+     * @param domainName
+     * @return
+     */
+    public boolean isDomainAllocatable(String domainName)
+    {
+        try {
+            Domain domain = this.domainService.findDomainByName(domainName);
+            return domain.isAllocatable();
+        }
+        catch (NoResultException ex) {
+            return false;
+        }
     }
 
     /**
@@ -407,8 +427,17 @@ public class DomainsConnector
         if (request.getTechnology() != null) {
             parameters.put("technology", request.getTechnology().toString());
         }
+        List<Domain> domains;
+        if (request.getDomain() == null) {
+            domains = listAllocatableForeignDomains();
+        }
+        else {
+            domains = new ArrayList<>();
+            domains.add(request.getDomain());
+        }
+        // Resource IDs are not filtered by inter domain protocol
         Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET,
-                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, listAllocatableForeignDomains(), DomainCapability.class);
+                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, domains, DomainCapability.class);
         return domainResources;
     }
 
@@ -452,17 +481,17 @@ public class DomainsConnector
         /**
          * Result map to be filled
          */
-        private ConcurrentMap result;
+        private Map<String, ?> result;
 
         /**
          * Set of domains for which the action fails
          */
-        private ConcurrentHashSet unavailableDomains;
+        private Set<String> unavailableDomains;
 
         public DomainTask(final InterDomainAction.HttpMethod method, final String action,
                           final Map<String, String> parameters, final Domain domain,
                           final ObjectReader reader, final Class<T> returnClass,
-                          final ConcurrentMap result, final ConcurrentHashSet unavailableDomains)
+                          final Map<String, ?> result, final Set<String> unavailableDomains)
         {
             this.method = method;
             this.action = action;
@@ -493,7 +522,7 @@ public class DomainsConnector
                 T response = performRequest(method, action, parameters, domain, reader, returnClass);
                 if (result != null && response != null) {
                     synchronized (result) {
-                        result.put(domain.getName(), response);
+                        ((Map<String, T>) result).put(domain.getName(), response);
                         if (unavailableDomains != null) {
                             unavailableDomains.remove(domain.getName());
                         }
@@ -512,8 +541,19 @@ public class DomainsConnector
                 }
                 return null;
             } finally {
+                // If {@code unavailableDomains} is set and request failed add it and also to {@link result}
+                // with empty {@code ArrayList} if possible.
+                // {@code unavailableDomains} is used only by CachedDomainsConnector.
                 if (unavailableDomains != null && failed) {
                     synchronized (result) {
+                        if (!result.containsKey(domain.getName())) {
+                            try {
+                                result.put(domain.getName(), null);
+                            }
+                            catch (ClassCastException ex) {
+                                // Ignore
+                            }
+                        }
                         unavailableDomains.add(domain.getName());
                     }
                 }
@@ -526,6 +566,9 @@ public class DomainsConnector
         @Override
         public void run()
         {
+            if (!Thread.currentThread().getName().contains("domainTask")) {
+                Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
+            }
             Domain internalDomain = InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId());
             if (internalDomain == null || !internalDomain.isAllocatable()) {
                 terminateDomainTask();

@@ -53,7 +53,7 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "interval", required = false) Interval interval,
             @RequestParam(value = "technology", required = false) Technology technology)
     {
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request).getId());
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
         listRequest.setType(DomainCapabilityListRequest.Type.valueOf(type));
         listRequest.setInterval(interval);
         listRequest.setTechnology(technology);

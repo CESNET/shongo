@@ -115,7 +115,9 @@ public enum ObjectType
             new HashMap<ObjectRole, ObjectPermission[]>()
             {{
                     put(ObjectRole.OWNER, new ObjectPermission[]{
-                            ObjectPermission.WRITE,
+                            ObjectPermission.READ, ObjectPermission.WRITE
+                    });
+                    put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
                 }},

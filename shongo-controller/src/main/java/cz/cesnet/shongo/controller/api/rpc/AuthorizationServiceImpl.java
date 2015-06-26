@@ -518,7 +518,6 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     try {
                         ForeignResources foreignResources = null;
                         try {
-
                             foreignResources = resourceManager.findForeignResources(domain, foreignObjectIdentifier.getPersistenceId());
                         }
                         catch (Exception ex) {
