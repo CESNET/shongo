@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.domain;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -92,6 +93,7 @@ public class DomainResource extends SimplePersistentObject {
 
     public void toApi(cz.cesnet.shongo.controller.api.DomainResource domainResourceApi)
     {
+        throw new TodoImplementException();
 //        domainResourceApi.setId(ObjectIdentifier.formatId(this));
     }
 
@@ -108,6 +110,7 @@ public class DomainResource extends SimplePersistentObject {
 
     public void fromApi(cz.cesnet.shongo.controller.api.DomainResource domainResourceApi)
     {
-//        this.setDomain(Domain.createFromApi(domainResourceApi.getDomain()));
+        throw new TodoImplementException();
+//        this.setDomain(Domain.createFromApi(domainResourceApi.getDomainName()));
     }
 }

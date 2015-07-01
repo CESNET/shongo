@@ -36,6 +36,11 @@ public class ObjectIdentifier
     private Long persistenceId;
 
     /**
+     * Name of {@link cz.cesnet.shongo.controller.booking.domain.Domain}, null if local.
+     */
+    private String domainName;
+
+    /**
      * Constructor.
      */
     public ObjectIdentifier()
@@ -53,6 +58,7 @@ public class ObjectIdentifier
     {
         this.objectType = objectType;
         this.persistenceId = null;
+        this.domainName = null;
     }
 
     /**
@@ -65,6 +71,20 @@ public class ObjectIdentifier
     {
         this.objectType = objectType;
         this.persistenceId = persistenceId;
+        this.domainName = LocalDomain.getLocalDomainName();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param objectType    sets the {@link #objectType}
+     * @param persistenceId sets the {@link #persistenceId}
+     */
+    public ObjectIdentifier(String domainName, ObjectType objectType, Long persistenceId)
+    {
+        this.objectType = objectType;
+        this.persistenceId = persistenceId;
+        this.domainName = domainName == null ? LocalDomain.getLocalDomainName() : domainName;
     }
 
     /**
@@ -76,6 +96,7 @@ public class ObjectIdentifier
     {
         this.objectType = ObjectTypeResolver.getObjectType(persistentObject.getClass());
         this.persistenceId = persistentObject.getId();
+        this.domainName = LocalDomain.getLocalDomainName();
     }
 
     /**
@@ -117,6 +138,26 @@ public class ObjectIdentifier
     public void setPersistenceId(Long persistenceId)
     {
         this.persistenceId = persistenceId;
+    }
+
+    public String getDomainName()
+    {
+        return domainName == null ? LocalDomain.getLocalDomainName() : domainName;
+    }
+
+    public void setDomain(String domainName)
+    {
+        this.domainName = domainName;
+    }
+
+    public String formatGlobalId()
+    {
+        return ObjectIdentifier.formatId(getDomainName(), getObjectType(), getPersistenceId());
+    }
+
+    public boolean isLocal()
+    {
+        return LocalDomain.getLocalDomainName().equals(getDomainName());
     }
 
     /**
@@ -214,7 +255,7 @@ public class ObjectIdentifier
         }
         Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
         if (matcher.matches()) {
-            return new ObjectIdentifier(ObjectType.getByCode(matcher.group(2)), parsePersistenceId(matcher.group(3)));
+            return new ObjectIdentifier(matcher.group(1), ObjectType.getByCode(matcher.group(2)), parsePersistenceId(matcher.group(3)));
         }
         return parse(LocalDomain.getLocalDomainName(), objectId);
     }
@@ -404,7 +445,7 @@ public class ObjectIdentifier
             throw new ControllerReportSet.IdentifierInvalidDomainException(objectId, domain);
         }
         ObjectType objectType = ObjectType.getByCode(matcher.group(2));
-        return new ObjectIdentifier(objectType, parsePersistenceId(matcher.group(3)));
+        return new ObjectIdentifier(domain, objectType, parsePersistenceId(matcher.group(3)));
     }
 
     /**

@@ -2,8 +2,11 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.domain.DomainResource;
@@ -456,7 +459,7 @@ public class ResourceManager extends AbstractManager
         return entityManager.find(ForeignResources.class, foreignResourceId);
     }
 
-    public ForeignResources findForeignResources(Domain domain, String type)
+    public ForeignResources findForeignResourcesByType(Domain domain, String type)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
@@ -471,14 +474,24 @@ public class ResourceManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public ForeignResources findForeignResources(Domain domain, Long resourceId)
+    public ForeignResources findForeignResourcesByResourceId(ObjectIdentifier objectIdentifier)
+    {
+        if (!ObjectType.RESOURCE.equals(objectIdentifier.getObjectType())) {
+            throw new IllegalArgumentException("ObjectIdentifier must be of type RESOURCE.");
+        }
+        String domainName = objectIdentifier.getDomainName();
+        Long resourceId = objectIdentifier.getPersistenceId();
+        return findForeignResourcesByResourceId(domainName, resourceId);
+    }
+
+    public ForeignResources findForeignResourcesByResourceId(String domainName, Long resourceId)
     {
         try {
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
             CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
             Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
-            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain.getId());
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), getDomainByName(domainName).getId());
             javax.persistence.criteria.Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId"), resourceId);
             query.select(tagRoot).where(param1, param2);
 
@@ -486,7 +499,7 @@ public class ResourceManager extends AbstractManager
 
             return typedQuery.getSingleResult();
         } catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwObjectNotExistFault(domain, ForeignResources.class, resourceId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(domainName, ForeignResources.class, resourceId);
         }
     }
 
@@ -502,6 +515,41 @@ public class ResourceManager extends AbstractManager
         TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
 
         return typedQuery.getResultList();
+    }
+
+    public PersistentObject findResourcesPersistentObject(String resourceId)
+    {
+        if (ObjectIdentifier.parseType(resourceId) == null) {
+            resourceId = ObjectIdentifier.formatId(ObjectType.RESOURCE, resourceId);
+        }
+        ObjectIdentifier objectIdentifier = ObjectIdentifier.parseForeignId(resourceId);
+
+        switch (objectIdentifier.getObjectType()) {
+            case RESOURCE:
+                if (objectIdentifier.isLocal()) {
+                    return get(objectIdentifier.getPersistenceId());
+                }
+                else {
+                    cz.cesnet.shongo.controller.booking.domain.Domain domain;
+                    domain = getDomainByName(objectIdentifier.getDomainName());
+                    PersistentObject persistentObject = domain;
+
+                    // Tries to find {@link ForeignResources} if exists
+                    try {
+                        Long foreignResourceId = objectIdentifier.getPersistenceId();
+                        ForeignResources foreignResources = findForeignResourcesByResourceId(domain.getName(), foreignResourceId);
+                        persistentObject = foreignResources;
+                    }
+                    catch (CommonReportSet.ObjectNotExistsException ex) {
+                        // If no {@link ForeignResources} exists, use {@link Domain} (for ACL)
+                    }
+                    return persistentObject;
+                }
+            case FOREIGN_RESOURCES:
+                return getForeignResources(objectIdentifier.getPersistenceId());
+            default:
+                throw new IllegalArgumentException("Unsupported type of object '" + objectIdentifier.getObjectType() + "'.");
+        }
     }
 
     public void deleteForeignResources(ForeignResources foreignResources)
@@ -659,9 +707,9 @@ public class ResourceManager extends AbstractManager
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
             CriteriaQuery<Domain> query = criteriaBuilder.createQuery(Domain.class);
-            Root<Domain> domainResourceRoot = query.from(Domain.class);
-            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("name"), domainName);
-            query.select(domainResourceRoot);
+            Root<Domain> domainRoot = query.from(Domain.class);
+            javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(domainRoot.get("name"), domainName);
+            query.select(domainRoot);
             query.where(param1);
 
             TypedQuery<Domain> typedQuery = entityManager.createQuery(query);

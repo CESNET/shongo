@@ -380,6 +380,7 @@ SELECT
     allocation.abstract_reservation_request_id AS reservation_request_id,
     CASE
     WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
+    WHEN foreign_resource_reservation.id IS NOT NULL THEN 'RESOURCE'
     WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
     WHEN alias_reservation.id IS NOT NULL THEN 'ALIAS'
     WHEN value_reservation.id IS NOT NULL THEN 'VALUE'
@@ -395,6 +396,7 @@ SELECT
         value_capability.resource_id,
         recording_capability.resource_id
     ) AS resource_id,
+    foreign_resource_reservation.foreign_resources_id as foreign_resources_id,
     room_reservation.license_count AS room_license_count,
     CAST(NULL AS TEXT) AS room_name,
     STRING_AGG(alias.type, ',') AS alias_types,
@@ -404,6 +406,7 @@ FROM reservation
 LEFT JOIN reservation_allocation ON reservation_allocation.id = reservation.id
 LEFT JOIN allocation ON allocation.id = reservation_allocation.allocation_id
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
+LEFT JOIN foreign_resource_reservation ON foreign_resource_reservation.id = reservation.id
 LEFT JOIN room_reservation ON room_reservation.id = reservation.id
 LEFT JOIN capability AS room_capability ON room_capability.id = room_reservation.room_provider_capability_id
 LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
@@ -419,6 +422,7 @@ LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = allo
 GROUP BY reservation.id,
          allocation.id,
          resource_reservation.id,
+         foreign_resource_reservation.id,
          room_reservation.id,
          room_capability.id,
          alias_reservation.id,

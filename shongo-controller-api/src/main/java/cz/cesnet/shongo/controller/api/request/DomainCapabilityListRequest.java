@@ -11,17 +11,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Request
+ * List request of domain capabilities.
+ *
  * @author Ondřej Pavelka <pavelka@cesnet.cz>
  */
 public class DomainCapabilityListRequest extends AbstractRequest
 {
-    private Domain domain;
-
     /**
      * {@link Type#RESOURCE} of the resources to be listed.
      */
-    private Type type;
+    private Type capabilityType;
 
     private Technology technology;
 
@@ -29,11 +28,24 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private ObjectPermission permission;
 
+    /**
+     * For filtering resources by ids.
+     */
     private Set<String> resourceIds = new HashSet<>();
 
-    public DomainCapabilityListRequest(Type type)
+    /**
+     * For filtering capabilities by {@code resourceType}, not usable with {@code resourceType}
+     */
+    private Domain domain;
+
+    /**
+     * For filtering capabilities by {@code resourceType}, {@code domain} must be set. Not usable with {@code resourceType}
+     */
+    private String resourceType;
+
+    public DomainCapabilityListRequest(Type capabilityType)
     {
-        this.type = type;
+        this.capabilityType = capabilityType;
     }
 
     public DomainCapabilityListRequest(Domain domain) {
@@ -60,12 +72,24 @@ public class DomainCapabilityListRequest extends AbstractRequest
         return (domain == null ? null : domain.getId());
     }
 
-    public Type getType() {
-        return type;
+    public Type getCapabilityType()
+    {
+        return capabilityType;
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setCapabilityType(Type capabilityType)
+    {
+        this.capabilityType = capabilityType;
+    }
+
+    public String getResourceType()
+    {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType)
+    {
+        this.resourceType = resourceType;
     }
 
     public Interval getInterval() {

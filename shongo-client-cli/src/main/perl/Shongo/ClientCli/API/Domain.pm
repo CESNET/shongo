@@ -46,7 +46,7 @@ sub new()
     );
     $self->add_attribute(
         'organization', {
-            'required' => 1,
+            'required' => 0,
             'title' => 'Domain organization',
         }
     );

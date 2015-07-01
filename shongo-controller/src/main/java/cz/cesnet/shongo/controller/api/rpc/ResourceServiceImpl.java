@@ -425,7 +425,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             listRequest.setSecurityToken(securityToken);
             listRequest.setPermission(request.getPermission());
             listRequest.setTagName(request.getTagName());
-            response.addAll(listForeignResources(listRequest));
+            ListResponse<ResourceSummary> resourceSummaries = listForeignResources(listRequest);
+            response.addAll(resourceSummaries);
+            response.setCount(response.getCount() + resourceSummaries.getItemCount());
             return response;
         }
         finally {
@@ -437,87 +439,108 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public ListResponse<ResourceSummary> listForeignResources(ForeignResourcesListRequest request)
     {
         SecurityToken securityToken = request.getSecurityToken();
-        //TODO parametrizace: overovat opravneni, overovat acl
         authorization.validate(securityToken);
-        ListResponse<ResourceSummary> response = new ListResponse<>();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        ObjectPermission permission = request.getPermission();
-        Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
-                cz.cesnet.shongo.controller.booking.resource.ForeignResources.class, permission == null ? ObjectPermission.READ : permission);
-
-        if (InterDomainAgent.isInitialized()) {
-            for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAvailableForeignResources()) {
-                //TODO overovat opravneni - tag, pridat domanu do popisu a dalsi
-                //TODO: na tomto zaklade vylistovat ForeignResources s opravnenim, nebo obracene
-                //TODO: if resource has permission
-                response.addItem(resource.toResourceSummary());
+        try {
+            DomainCapabilityListRequest capabilityListRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+            ObjectPermission permission = request.getPermission();
+            Set<Long> readableForeignResourcesIds = authorization.getEntitiesWithPermission(securityToken,
+                    cz.cesnet.shongo.controller.booking.resource.ForeignResources.class, permission == null ? ObjectPermission.READ : permission);
+            if (readableForeignResourcesIds != null) {
+                for (Long foreignResourcesId : readableForeignResourcesIds) {
+                    ForeignResources foreignResources = resourceManager.getForeignResources(foreignResourcesId);
+                    if (foreignResources.getForeignResourceId() != null) {
+                        String domainName = foreignResources.getDomain().getName();
+                        Long resourceId = foreignResources.getForeignResourceId();
+                        capabilityListRequest.addResourceId(ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId));
+                    }
+                    else {
+                        capabilityListRequest.setResourceType(foreignResources.getType());
+                        capabilityListRequest.setDomain(foreignResources.getDomain().toApi());
+                    }
+                }
             }
+
+            ListResponse<ResourceSummary> response = new ListResponse<>();
+            if (InterDomainAgent.isInitialized()) {
+                Tag tag = null;
+                if (request.getTagName() != null) {
+                    tag = findTag(securityToken, request.getTagName());
+                }
+                for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAvailableForeignResources(capabilityListRequest)) {
+                    if (tag != null) {
+                        TagListRequest tagListRequest = new TagListRequest();
+                        tagListRequest.setSecurityToken(securityToken);
+                        tagListRequest.setResourceId(resource.getId());
+                        if (!listTags(tagListRequest).contains(tag)) {
+                            continue;
+                        }
+                    }
+                    ResourceSummary resourceSummary = resource.toResourceSummary();
+                    resourceSummary.setDomainName(ObjectIdentifier.parseDomain(resource.getId()));
+                    response.addItem(resourceSummary);
+                }
+            }
+            return response;
         }
-        return response;
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
-    public Resource getResource(SecurityToken securityToken, String resourceId)
+    public Resource getResource(SecurityToken securityToken, String objectId)
     {
         authorization.validate(securityToken);
-        checkNotNull("resourceId", resourceId);
+        checkNotNull("objectId", objectId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        ObjectType objectType = ObjectIdentifier.parseType(resourceId);
-        objectType = objectType == null? ObjectType.RESOURCE : objectType;
-        ObjectIdentifier objectId;
-        PersistentObject foreignObject = null;
-        if (ObjectIdentifier.isLocal(resourceId)) {
-            // Get id of {@link Resource} or {@link ForeignResources}
-            objectId = ObjectIdentifier.parse(resourceId, objectType);
-        }
-        else {
-            // Find {@link ForeignResources} for foreign resource or domain.
-            ObjectIdentifier foreignResourceId = ObjectIdentifier.parseForeignId(resourceId);
-            cz.cesnet.shongo.controller.booking.domain.Domain domain;
-            domain = resourceManager.getDomainByName(ObjectIdentifier.parseDomain(resourceId));
-            objectId = new ObjectIdentifier(domain);
-            foreignObject = domain;
-            try {
-                ForeignResources foreignResources = resourceManager.findForeignResources(domain, foreignResourceId.getPersistenceId());
-                objectId = new ObjectIdentifier(foreignResources);
-                foreignObject = foreignResources;
-            }
-            catch (CommonReportSet.ObjectNotExistsException ex) {
 
-            }
-        }
         try {
-            PersistentObject persistentObject = null;
-            switch (objectId.getObjectType()) {
-                case RESOURCE:
-                    persistentObject = resourceManager.get(
-                        objectId.getPersistenceId());
-                    break;
-                case FOREIGN_RESOURCES:
-                case DOMAIN:
-                    persistentObject = foreignObject;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported type of object '" + objectId + "'.");
+            if (ObjectIdentifier.parseType(objectId) == null) {
+                objectId = ObjectIdentifier.formatId(ObjectType.RESOURCE, objectId);
             }
+            ObjectIdentifier objectIdentifier = ObjectIdentifier.parseForeignId(objectId);
+
+            // Get persistent object to check permissions
+            PersistentObject persistentObject = resourceManager.findResourcesPersistentObject(objectId);
+
+            ObjectIdentifier persistentObjectIdentifier = new ObjectIdentifier(persistentObject);
 
             if (!authorization.hasObjectPermission(securityToken, persistentObject, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", objectId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", persistentObjectIdentifier);
             }
 
             Resource resource = null;
-            switch (objectId.getObjectType()) {
+            switch (persistentObjectIdentifier.getObjectType()) {
                 case RESOURCE:
                     resource = ((cz.cesnet.shongo.controller.booking.resource.Resource) persistentObject).toApi(entityManager);
+                    break;
                 case FOREIGN_RESOURCES:
                 case DOMAIN:
                     DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
-                    request.addResourceId(resourceId);
-                    InterDomainAgent.getInstance().getConnector().listForeignCapabilities(request);
-                    //vytahnout tento konkretni zdroj
-                    //resource
+                    String domainName = null;
+                    if (ObjectType.FOREIGN_RESOURCES.equals(objectIdentifier.getObjectType())) {
+                        ForeignResources foreignResources = (ForeignResources) persistentObject;
+                        domainName = foreignResources.getDomain().getName();
+                        String resourceId = ObjectIdentifier.formatId(domainName, cz.cesnet.shongo.controller.booking.resource.Resource.class, foreignResources.getForeignResourceId());
+                        request.addResourceId(resourceId);
+                    } else {
+                        // For {@link DOMAIN} {@code objectIdentifier} is for foreign resource
+                        domainName = objectIdentifier.getDomainName();
+                        request.addResourceId(objectIdentifier.formatGlobalId());
+                    }
+                    Map<String, List<DomainCapability>> resources = InterDomainAgent.getInstance().getConnector().listForeignCapabilities(request);
+
+                    // No resource was found
+                    if (resources.isEmpty()) {
+                        ControllerReportSetHelper.throwObjectNotExistFault(domainName, cz.cesnet.shongo.controller.booking.resource.Resource.class, objectIdentifier.getPersistenceId());
+                    }
+                    DomainCapability capability = resources.get(domainName).get(0);
+                    resource = capability.toResource();
                     break;
             }
 
@@ -646,20 +669,25 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             List<Tag> tagList = new ArrayList();
-            List<ResourceTag> resourceTags;
+            List<ResourceTag> resourceTags = new ArrayList<>();
 
             if (request.getResourceId() != null) {
                 String resourceId = request.getResourceId();
 
                 if (ObjectIdentifier.isLocal(resourceId)) {
                     Long persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
-                    resourceTags = resourceManager.getResourceTags(persistenceResourceId);
+                    resourceTags.addAll(resourceManager.getResourceTags(persistenceResourceId));
                 }
                 else {
-                    Long foreignResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
-                    cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(ObjectIdentifier.parseDomain(resourceId));
-                    ForeignResources foreignResources = resourceManager.findForeignResources(domain, foreignResourceId);
-                    resourceTags = resourceManager.getForeignResourceTags(foreignResources);
+                    try {
+                        Long foreignResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
+                        String domainName = ObjectIdentifier.parseDomain(resourceId);
+                        ForeignResources foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, foreignResourceId);
+                        resourceTags.addAll(resourceManager.getForeignResourceTags(foreignResources));
+                    }
+                    catch (CommonReportSet.ObjectNotExistsException ex) {
+                        // If no {@link ForeignResources} exists, use {@link Domain} (for ACL)
+                    }
                 }
 
                 for (ResourceTag resourceTag : resourceTags) {
@@ -671,7 +699,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             else if (request.getForeignResourceType() != null && request.getDomainId() != null) {
                 Long domainId = ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN);
                 cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(domainId);
-                ForeignResources foreignResources = resourceManager.findForeignResources(domain, request.getForeignResourceType());
+                ForeignResources foreignResources = resourceManager.findForeignResourcesByType(domain, request.getForeignResourceType());
                 resourceTags = resourceManager.getForeignResourceTags(foreignResources);
 
                 for (ResourceTag resourceTag : resourceTags) {
@@ -809,24 +837,20 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
             else {
                 String domainName = ObjectIdentifier.parseDomain(resourceId);
-                cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
                 Long localId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
 
                 ForeignResources foreignResources = null;
                 try {
-                    foreignResources = resourceManager.findForeignResources(domain, localId);
+                    foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, localId);
                 }
-                catch (Exception ex) {
-                    if (!(ex instanceof NoResultException)) {
-                        throw ex;
-                    }
-                }
-
-                if (foreignResources == null) {
+                catch (CommonReportSet.ObjectNotExistsException ex) {
+                    cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
+                    // Create {@link ForeignResources} if does not exist
                     foreignResources = new ForeignResources();
                     foreignResources.setDomain(domain);
                     foreignResources.setForeignResourceId(localId);
                 }
+
                 resourceTag.setForeignResources(foreignResources);
                 // Delegate ACL for foreignResources
                 persistentObject = foreignResources;
@@ -887,9 +911,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
             else {
                 String domainName = ObjectIdentifier.parseDomain(resourceId);
-                cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
                 persistenceResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
-                foreignResources = resourceManager.findForeignResources(domain, persistenceResourceId);
+                foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, persistenceResourceId);
                 resourceTag = resourceManager.getForeignResourceTag(foreignResources.getId(), persistenceTagId);
             }
 

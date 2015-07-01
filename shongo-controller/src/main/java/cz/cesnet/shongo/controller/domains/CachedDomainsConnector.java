@@ -7,9 +7,7 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import org.apache.http.annotation.ThreadSafe;
 import org.codehaus.jackson.map.ObjectReader;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
@@ -39,7 +37,7 @@ public class CachedDomainsConnector extends DomainsConnector
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
         super(entityManagerFactory, configuration, emailSender);
-        initResourceCache();
+        updateResourceCache();
     }
 
     /**
@@ -47,7 +45,7 @@ public class CachedDomainsConnector extends DomainsConnector
      * When cache is initialized, it will add new domains. Removing from cache and {@link ScheduledThreadPoolExecutor}
      * is handled by thread itself ({@link DomainTask}).
      */
-    synchronized private void initResourceCache()
+    synchronized private void updateResourceCache()
     {
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
@@ -112,7 +110,7 @@ public class CachedDomainsConnector extends DomainsConnector
             initialized = false;
         }
 
-        initResourceCache();
+        updateResourceCache();
         return initialized;
     }
 
@@ -126,7 +124,7 @@ public class CachedDomainsConnector extends DomainsConnector
 
         boolean isReady = false;
         if (actualDomainsCount == cachedDomainsCount) {
-            isReady = false;
+            isReady = true;
         }
         else if (actualDomainsCount > cachedDomainsCount) {
             if (actualDomainsCount - cachedDomainsCount == 1 && actualDomainsCount != 1) {
@@ -137,16 +135,18 @@ public class CachedDomainsConnector extends DomainsConnector
             isReady = true;
         }
 
-        initResourceCache();
+        updateResourceCache();
         return isReady;
     }
 
     /**
      * @return {@link Set<DomainCapability>} of resources for foreign available domains
      */
-    public Set<DomainCapability> listAvailableForeignResources()
+    public Set<DomainCapability> listAvailableForeignResources(DomainCapabilityListRequest request)
     {
-        DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())) {
+            throw new IllegalArgumentException("Type has to be RESOURCE.");
+        }
         Set<DomainCapability> resources = new HashSet<>();
         for (Map.Entry<String, List<DomainCapability>> entry : listForeignCapabilities(request).entrySet()) {
             List<DomainCapability> resourceList = entry.getValue();
@@ -165,23 +165,24 @@ public class CachedDomainsConnector extends DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, List<DomainCapability>> capabilities;
-        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getType()) && isResourcesCacheReady()) {
+        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType()) && isResourcesCacheReady()) {
             capabilities = new HashMap<>();
             // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
             synchronized (availableResources) {
                 // Filter domains for which resources will be returned.
-                ConcurrentMap<String, List<DomainCapability>> requestedResources = new ConcurrentHashMap<>();
+                Map<String, List<DomainCapability>> requestedResources = new HashMap<>();
                 if (!request.getResourceIds().isEmpty()) {
                     for (String requestResourceId : request.getResourceIds()) {
                         String domainName = ObjectIdentifier.parseDomain(requestResourceId);
                         requestedResources.put(domainName, availableResources.get(domainName));
                     }
                 }
+                else if (request.getDomainName() != null) {
+                    String domainName = request.getDomainName();
+                    requestedResources.put(domainName, availableResources.get(domainName));
+                }
                 else {
-                    if (request.getDomainName() != null) {
-                        String domainName = request.getDomainName();
-                        requestedResources.put(domainName, availableResources.get(domainName));
-                    }
+                    requestedResources = availableResources;
                 }
 
                 // Filter requested resources and set unavailable resources
@@ -195,14 +196,20 @@ public class CachedDomainsConnector extends DomainsConnector
                     if (isDomainAllocatable(domainName)) {
                         List<DomainCapability> resources = new ArrayList<>();
                         for (DomainCapability resource : capabilityList) {
+                            // Filter by ids
                             if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
-                                if (unavailableResources.contains(domainName)) {
-                                    resource.setAvailable(false);
+                                // Filter by type
+                                if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
+                                    if (unavailableResources.contains(domainName)) {
+                                        resource.setAvailable(false);
+                                    }
+                                    resources.add(resource);
                                 }
-                                resources.add(resource);
                             }
                         }
-                        capabilities.put(entry.getKey(), resources);
+                        if (!resources.isEmpty()) {
+                            capabilities.put(entry.getKey(), resources);
+                        }
                     }
                 }
             }

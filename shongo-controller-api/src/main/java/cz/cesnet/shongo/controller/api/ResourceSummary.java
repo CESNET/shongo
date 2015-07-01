@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import com.sun.java.browser.plugin2.DOM;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
@@ -58,6 +59,11 @@ public class ResourceSummary extends IdentifiedComplexType
      * Hash key used for public calendar URL
      */
     private String calendarUriKey;
+
+    /**
+     * Name of the resource {@link Domain}
+     */
+    private String domainName;
 
     /**
      * @return {@link #userId}
@@ -180,6 +186,16 @@ public class ResourceSummary extends IdentifiedComplexType
         this.calendarUriKey = calendarUriKey;
     }
 
+    public String getDomainName()
+    {
+        return domainName;
+    }
+
+    public void setDomainName(String domainName)
+    {
+        this.domainName = domainName;
+    }
+
     /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
@@ -197,6 +213,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String DESCRIPTION = "description";
     private static final String CALENDAR_PUBLIC = "calendarPublic";
     private static final String CALENDAR_URI_KEY = "calendarUriKey";
+    private static final String DOMAIN_NAME = "domainName";
 
     @Override
     public DataMap toData()
@@ -208,9 +225,10 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
-        dataMap.set(DESCRIPTION,description);
-        dataMap.set(CALENDAR_PUBLIC,calendarPublic);
-        dataMap.set(CALENDAR_URI_KEY,calendarUriKey);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(CALENDAR_PUBLIC, calendarPublic);
+        dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
+        dataMap.set(DOMAIN_NAME, domainName);
         return dataMap;
     }
 
@@ -227,5 +245,6 @@ public class ResourceSummary extends IdentifiedComplexType
         description = dataMap.getString(DESCRIPTION);
         calendarPublic = dataMap.getBool(CALENDAR_PUBLIC);
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
+        domainName = dataMap.getString(DOMAIN_NAME);
     }
 }

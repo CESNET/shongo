@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import com.google.common.base.Strings;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
@@ -55,4 +57,25 @@ public class ForeignResources extends SimplePersistentObject
     {
         this.type = type;
     }
-}
+
+    /**
+     * Validate resource.
+     *
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
+     *
+     */
+    public void validate() throws CommonReportSet.ObjectInvalidException
+    {
+        if (domain == null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Domain cannot be null.");
+        }
+        if (type == null && foreignResourceId == null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Type or resource ID has to be set.");
+        }
+        if (type != null && foreignResourceId != null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Type and resource ID cannot be set at the same time.");
+        }
+    }}

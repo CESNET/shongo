@@ -423,9 +423,14 @@
                 if (resource.description) {
                     description = " (" + resource.description + ")";
                 }
+                var domain = "";
+                console.debug(resource);
+                if (resource.domainName) {
+                    domain = " (" + resource.domainName + ")";
+                }
                 resources.push({
                     id: resource.id,
-                    text: "<strong>" + resource.name + "</strong>" + description
+                    text: "<strong>" + resource.name + "</strong>" + description + domain
                 });
             }
             callback(resources);
