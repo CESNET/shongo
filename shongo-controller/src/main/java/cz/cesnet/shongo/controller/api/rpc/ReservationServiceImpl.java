@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
@@ -1152,6 +1153,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_summary");
 
@@ -1159,11 +1161,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             Boolean hasReadForAll = false;
             if (request.getResourceIds().size() == 1) {
                 String resourceId = request.getResourceIds().iterator().next();
-                Long persistentResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
-                ResourceManager resourceManager = new ResourceManager(entityManager);
 
-                cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(persistentResourceId);
-                if (authorization.hasObjectPermission(securityToken,resource,ObjectPermission.READ)) {
+                PersistentObject persistentObject = resourceManager.findResourcesPersistentObject(resourceId);
+                if (authorization.hasObjectPermission(securityToken, persistentObject, ObjectPermission.READ)) {
                     hasReadForAll = true;
                 }
             }
@@ -1206,12 +1206,26 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // List only reservations which allocates requested resource
             if (!request.getResourceIds().isEmpty()) {
-                queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
-                Set<Long> resourceIds = new HashSet<Long>();
+                Set<Long> resourceIds = new HashSet<>();
+                Set<Long> foreignResourcesIds = new HashSet<>();
                 for (String resourceId : request.getResourceIds()) {
-                    resourceIds.add(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                    if (ObjectIdentifier.isLocal(resourceId)) {
+                        resourceIds.add(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                    }
+                    else {
+                        ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseForeignId(resourceId);
+                        ForeignResources foreignResources = resourceManager.findForeignResourcesByResourceId(resourceIdentifier);
+                        foreignResourcesIds.add(foreignResources.getId());
+                    }
                 }
-                queryFilter.addFilterParameter("resourceIds", resourceIds);
+                if (!resourceIds.isEmpty()) {
+                    queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
+                    queryFilter.addFilterParameter("resourceIds", resourceIds);
+                }
+                if (!foreignResourcesIds.isEmpty()) {
+                    queryFilter.addFilter("reservation_summary.foreign_resources_id IN(:foreignResourcesIds)");
+                    queryFilter.addFilterParameter("foreignResourcesIds", foreignResourcesIds);
+                }
             }
 
             // List only reservations in requested interval
@@ -1556,6 +1570,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
      */
     private ReservationSummary getReservationSummary(Object[] record)
     {
+        if (record[7] != null) {
+            throw new TodoImplementException("Vytazeni cizi rezervace");
+//            reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
+        }
         ReservationSummary reservationSummary = new ReservationSummary();
         reservationSummary.setId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
         reservationSummary.setUserId(record[1] != null ? record[1].toString() : null);
@@ -1566,20 +1584,20 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[6] != null) {
             reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
         }
-        if (record[7] != null) {
-            reservationSummary.setRoomLicenseCount(record[7] != null ? ((Number) record[7]).intValue() : null);
-        }
         if (record[8] != null) {
-            reservationSummary.setRoomName(record[8] != null ? record[8].toString() : null);
+            reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
         }
         if (record[9] != null) {
-            reservationSummary.setAliasTypes(record[9] != null ? record[9].toString() : null);
+            reservationSummary.setRoomName(record[9] != null ? record[9].toString() : null);
         }
         if (record[10] != null) {
-            reservationSummary.setValue(record[10] != null ? record[10].toString() : null);
+            reservationSummary.setAliasTypes(record[10] != null ? record[10].toString() : null);
         }
         if (record[11] != null) {
-            reservationSummary.setReservationRequestDescription(record[11] != null ? record[11].toString() : null);
+            reservationSummary.setValue(record[11] != null ? record[11].toString() : null);
+        }
+        if (record[12] != null) {
+            reservationSummary.setReservationRequestDescription(record[12] != null ? record[12].toString() : null);
         }
         return reservationSummary;
     }

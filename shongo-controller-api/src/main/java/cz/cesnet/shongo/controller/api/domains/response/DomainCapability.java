@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.api.domains.response;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
+import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
+import sun.security.util.ObjectIdentifier;
 
 /**
  * Represents domain login response
@@ -102,6 +104,46 @@ public class DomainCapability extends IdentifiedComplexType
         this.type = type;
     }
 
+    public String getName()
+    {
+        return name;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public Technology getTechnology()
+    {
+        return technology;
+    }
+
+    public boolean isCalendarPublic()
+    {
+        return calendarPublic;
+    }
+
+    public String getCalendarUriKey()
+    {
+        return calendarUriKey;
+    }
+
+    public Integer getLicenseCount()
+    {
+        return licenseCount;
+    }
+
+    public Integer getPrice()
+    {
+        return price;
+    }
+
+    public String getType()
+    {
+        return type;
+    }
+
     public Boolean getAvailable()
     {
         return (available == null ? true : available);
@@ -109,7 +151,6 @@ public class DomainCapability extends IdentifiedComplexType
 
     public ResourceSummary toResourceSummary()
     {
-        //TODO: pridat domenu do jmena/popisu
         ResourceSummary resourceSummary = new ResourceSummary();
         resourceSummary.setId(id);
         resourceSummary.setName(name);
@@ -119,6 +160,19 @@ public class DomainCapability extends IdentifiedComplexType
         resourceSummary.setCalendarUriKey(calendarUriKey);
 
         return resourceSummary;
+    }
+
+    public Resource toResource()
+    {
+        Resource resource = new Resource();
+        resource.setId(id);
+        resource.setName(name);
+        resource.setDescription(description);
+        resource.setAllocatable(available);
+        resource.setCalendarPublic(calendarPublic);
+        resource.setCalendarUriKey(calendarUriKey);
+
+        return resource;
     }
 
     public static final String ID = "id";

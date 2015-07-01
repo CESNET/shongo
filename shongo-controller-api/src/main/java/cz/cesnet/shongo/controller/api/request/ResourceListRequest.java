@@ -267,6 +267,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private static final String CAPABILITY_CLASSES = "capabilityClasses";
     private static final String TECHNOLOGIES = "technologies";
     private static final String ALLOCATABLE = "allocatable";
+    private static final String PERMISSION = "permission";
 
     @Override
     public DataMap toData()
@@ -281,6 +282,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         dataMap.set(CAPABILITY_CLASSES, capabilityClasses);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(ALLOCATABLE, allocatable);
+        dataMap.set(PERMISSION, permission);
         return dataMap;
     }
 
@@ -297,5 +299,6 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         capabilityClasses = dataMap.getClassSet(CAPABILITY_CLASSES, Capability.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
+        permission = dataMap.getEnum(PERMISSION, ObjectPermission.class);
     }
 }

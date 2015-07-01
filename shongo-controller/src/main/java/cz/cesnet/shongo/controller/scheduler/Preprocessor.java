@@ -174,6 +174,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                         boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet, entityManager);
 
                         // Update child reservation request date/time slot
+//                        if (!slot.equals(childReservationRequest.getSlot())) {
                         if (!Temporal.isIntervalEqualed(slot, childReservationRequest.getSlot())) {
                             childReservationRequest.setSlot(slot);
                             modified = true;

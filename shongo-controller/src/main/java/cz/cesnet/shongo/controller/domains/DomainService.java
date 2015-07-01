@@ -305,7 +305,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     {
         checkNotNull("request", request);
         checkNotNull("domainId", request.getDomainId());
-        checkNotNull("type", request.getType());
+        checkNotNull("capabilityType", request.getCapabilityType());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -331,7 +331,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
             // Filter by type
             String type = "";
-            switch (request.getType()) {
+            switch (request.getCapabilityType()) {
                 case VIRTUAL_ROOM:
                     type = "ROOM_PROVIDER";
                     break;
@@ -459,7 +459,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         try {
             cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
 
-            return (domain == null ? null : domain.toApi());
+            return domain.toApi();
         } finally {
             entityManager.close();
         }

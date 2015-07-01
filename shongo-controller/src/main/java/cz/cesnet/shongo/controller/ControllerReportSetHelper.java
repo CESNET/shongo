@@ -34,12 +34,12 @@ public class ControllerReportSetHelper
     /**
      * @throws {@link CommonReportSet.ObjectNotExistsException}
      */
-    public static <T> T throwObjectNotExistFault(cz.cesnet.shongo.controller.booking.domain.Domain domain, Class<? extends PersistentObject> objectType, Long objectId)
+    public static <T> T throwObjectNotExistFault(String domainName, Class<? extends PersistentObject> objectType, Long objectId)
             throws CommonReportSet.ObjectNotExistsException
     {
         throw new CommonReportSet.ObjectNotExistsException(objectType.getSimpleName(),
                 (ObjectIdentifier.isAvailableForObjectType(objectType)
-                        ? ObjectIdentifier.formatId(domain.getName(), objectType, objectId) : objectId.toString()));
+                        ? ObjectIdentifier.formatId(domainName, objectType, objectId) : objectId.toString()));
     }
 
     /**

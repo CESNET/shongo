@@ -288,7 +288,14 @@
             },
             data: [
                 <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
+                    <c:choose>
+                        <c:when test="${meetingRoomResource.domainName != null}">
+                            {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b><br />(${meetingRoomResource.domainName})"},
+                        </c:when>
+                        <c:otherwise>
+                            {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
+                        </c:otherwise>
+                    </c:choose>
                 </c:forEach>
             ]
         };

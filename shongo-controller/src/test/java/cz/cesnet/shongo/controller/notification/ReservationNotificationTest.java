@@ -66,29 +66,35 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         getController().addNotificationExecutor(notificationExecutor);
 
-        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>() {{
-            add(new PersonInformation() {
-                @Override
-                public String getFullName() {
-                    return "admin";
-                }
+        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>()
+        {{
+                add(new PersonInformation()
+                {
+                    @Override
+                    public String getFullName()
+                    {
+                        return "admin";
+                    }
 
-                @Override
-                public String getRootOrganization() {
-                    return null;
-                }
+                    @Override
+                    public String getRootOrganization()
+                    {
+                        return null;
+                    }
 
-                @Override
-                public String getPrimaryEmail() {
-                    return "martin.srom@cesnet.cz";
-                }
+                    @Override
+                    public String getPrimaryEmail()
+                    {
+                        return "martin.srom@cesnet.cz";
+                    }
 
-                @Override
-                public String toString() {
-                    return getFullName();
-                }
-            });
-        }});
+                    @Override
+                    public String toString()
+                    {
+                        return getFullName();
+                    }
+                });
+            }});
     }
 
     /**
@@ -1359,13 +1365,80 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         DateTime start = new DateTime("2015-02-17T13:46");
         Period lookahead = new Period("P1Y");
-        Period schedulerPeriod = new Period("PT5M");
-        DateTime end = new DateTime("2015-04-08T12:00");
+        Period schedulerPeriod = new Period("PT30M");
+        DateTime end = new DateTime("2015-02-25T12:00");
         while(start.isBefore(end)) {
             runPreprocessorAndScheduler(new Interval(start, lookahead));
             start = start.plus(schedulerPeriod);
-        }
+
+            // Should contain only 1 new notification, NO deleted
+            Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+            {{
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());        }
     }
+
+//    @Test
+//    public void testLookaheadNotificationPeriodOnPermanentRoom() throws Exception
+//    {
+//        DateTimeZone dateTimeZone = DateTimeZone.forID("UTC");
+//        DateTimeZone.setDefault(dateTimeZone);
+//        TimeZone.setDefault(dateTimeZone.toTimeZone());
+//
+//        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+//        userSettings.setLocale(Locale.ENGLISH);
+//        userSettings.setUseWebService(false);
+//        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+//
+//        DeviceResource aliasProvider = new DeviceResource();
+//        aliasProvider.addTechnology(Technology.ADOBE_CONNECT);
+//        aliasProvider.setName("adobeConnect");
+//        aliasProvider.addCapability(new RoomProviderCapability(10));
+//        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+//        aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{hash}"));
+//        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
+//        aliasProvider.addCapability(aliasProviderCapability);
+//        aliasProvider.setAllocatable(true);
+//        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
+//
+//        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+//        permanentRoomReservationRequest.setDescription("Alias Reservation Request");
+//        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+//        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+//        permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.ADOBE_CONNECT_URI));
+//        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+//        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+//        checkAllocated(permanentRoomReservationRequestId);
+//
+//        ReservationRequestSet capacityReservationRequest = new ReservationRequestSet();
+//        capacityReservationRequest.setDescription("Capacity Reservation Request");
+//        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2012-01-01T07:20", "PT2H10M", "P1W", "2012-12-31");
+//        capacityReservationRequest.addSlot(slot);
+//        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+//        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+//        capacityReservationRequest.setSpecification(new RoomSpecification(5));
+//
+//        String capacityReservationRequestId = getReservationService().createReservationRequest(SECURITY_TOKEN, capacityReservationRequest);
+//
+//
+//        AclEntry aclEntry = new AclEntry();
+//        aclEntry.setIdentityType(AclIdentityType.USER);
+//        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN_USER1));
+//        aclEntry.setRole(ObjectRole.OWNER);
+//        aclEntry.setObjectId(capacityReservationRequestId);
+//        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, aclEntry);
+//
+//        DateTime start = new DateTime("2012-01-01T11:00");
+//        Period lookahead = new Period("P1W");
+//        Period schedulerPeriod = new Period("PT5M");
+//        DateTime end = new DateTime("2012-12-31T12:00");
+//        while(start.isBefore(end)) {
+//            runPreprocessorAndScheduler(new Interval(start, lookahead));
+//            start = start.plus(schedulerPeriod);
+//
+//            Assert.assertFalse(getNotificationTypes().contains(ReservationNotification.Deleted.class));
+//        }
+//    }
 
     /**
      * {@link NotificationExecutor} for testing.

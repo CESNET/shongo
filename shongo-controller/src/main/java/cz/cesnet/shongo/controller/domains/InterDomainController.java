@@ -54,7 +54,7 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "technology", required = false) Technology technology)
     {
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
-        listRequest.setType(DomainCapabilityListRequest.Type.valueOf(type));
+        listRequest.setCapabilityType(DomainCapabilityListRequest.Type.valueOf(type));
         listRequest.setInterval(interval);
         listRequest.setTechnology(technology);
         List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);

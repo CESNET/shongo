@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -389,7 +390,7 @@ public class DomainsConnector
             Domain domain = this.domainService.findDomainByName(domainName);
             return domain.isAllocatable();
         }
-        catch (NoResultException ex) {
+        catch (CommonReportSet.ObjectNotExistsException ex) {
             return false;
         }
     }
@@ -420,7 +421,7 @@ public class DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("type", request.getType().toString());
+        parameters.put("type", request.getCapabilityType().toString());
         if (request.getInterval() != null) {
             parameters.put("interval", request.getInterval().toString());
         }

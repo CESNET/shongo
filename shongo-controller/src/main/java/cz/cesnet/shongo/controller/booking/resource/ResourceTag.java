@@ -30,7 +30,7 @@ public class ResourceTag extends SimplePersistentObject {
         this.resource = resource;
     }
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @Access(AccessType.FIELD)
     @JoinColumn(name = "foreign_resources_id")
     public ForeignResources getForeignResources()
