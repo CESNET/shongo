@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.domains;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
@@ -141,7 +140,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //                Set<Long> requestedResourceIds = new HashSet<Long>();
 //                Set<Long> notReadableResourceIds = new HashSet<Long>();
 //                for (String resourceApiId : request.getResourceIds()) {
-//                    Long resourceId = ObjectIdentifier.parseId(resourceApiId, ObjectType.RESOURCE);
+//                    Long resourceId = ObjectIdentifier.parseLocalId(resourceApiId, ObjectType.RESOURCE);
 //                    if (readableResourceIds != null && !readableResourceIds.contains(resourceId)) {
 //                        notReadableResourceIds.add(resourceId);
 //                    }
@@ -171,7 +170,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            if (request.getTagId() != null) {
 //                queryFilter.addFilter("resource_summary.id IN ("
 //                        + " SELECT resource_id FROM resource_tag "
-//                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseId(request.getTagId(), ObjectType.TAG));
+//                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseLocalId(request.getTagId(), ObjectType.TAG));
 //            }
 //
 //            // Filter requested tag-name
@@ -186,7 +185,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            if (request.getDomainId() != null) {
 //                queryFilter.addFilter("resource_summary.id IN ("
 //                        + " SELECT resource_id FROM domain_resource "
-//                        + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
+//                        + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
 //            }
 //
 //            // Filter user-ids
@@ -312,14 +311,14 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         try {
             // Filter requested by foreign domain
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
-            queryFilter.addFilter("domain_id = :domainId", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
+            queryFilter.addFilter("domain_id = :domainId", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
 
             //TODO: vytahnout zasedacky podle tagu
             // Filter requested tag-id
 //            if (request.getTagId() != null) {
 //                queryFilter.addFilter("resource_summary.id IN ("
 //                        + " SELECT resource_id FROM resource_tag "
-//                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseId(request.getTagId(), ObjectType.TAG));
+//                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseLocalId(request.getTagId(), ObjectType.TAG));
 //            }
 //             Filter requested tag-name
 //            if (request.getTagName() != null) {
@@ -435,7 +434,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
-                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+                    ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN));
 
 //            if (!authorization.hasObjectPermission(token, domain, ObjectPermission.READ)) {
 //                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);

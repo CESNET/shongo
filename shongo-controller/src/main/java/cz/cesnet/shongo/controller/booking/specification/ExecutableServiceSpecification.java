@@ -146,7 +146,7 @@ public abstract class ExecutableServiceSpecification extends Specification
             setResource(null);
         }
         else {
-            Long resourcePersistenceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+            Long resourcePersistenceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourcePersistenceId));
         }
@@ -156,7 +156,7 @@ public abstract class ExecutableServiceSpecification extends Specification
             setExecutable(null);
         }
         else {
-            Long executablePersistenceId = ObjectIdentifier.parseId(executableId, ObjectType.EXECUTABLE);
+            Long executablePersistenceId = ObjectIdentifier.parseLocalId(executableId, ObjectType.EXECUTABLE);
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             setExecutable(executableManager.get(executablePersistenceId));
         }

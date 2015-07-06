@@ -319,7 +319,7 @@ public class AliasSpecification extends Specification
             setAliasProviderCapability(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseId(
+            Long resourceId = ObjectIdentifier.parseLocalId(
                     aliasSpecificationApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);

@@ -362,6 +362,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<ReservationRequest> listCompletedReservationRequests(Interval interval)
     {
+        //TODO: IDP: when to process???
         List<ReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :activeState"

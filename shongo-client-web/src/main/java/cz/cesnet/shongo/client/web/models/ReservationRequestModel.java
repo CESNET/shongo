@@ -448,6 +448,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return null;
     }
 
+    public String getMeetingRoomResourceDomain()
+    {
+        ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        if (resource != null) {
+            return resource.getDomainName();
+        }
+        return null;
+    }
+
     public Period getSlotBefore()
     {
         if (slotBeforeMinutes != 0) {

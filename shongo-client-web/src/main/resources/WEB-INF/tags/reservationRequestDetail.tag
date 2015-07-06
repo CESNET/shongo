@@ -66,16 +66,21 @@
     <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
         <dt><spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:</dt>
         <dd>
-            <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
             <span>${reservationRequest.meetingRoomResourceName}</span>
         </dd>
-        <dt><spring:message code="views.room.roomDescription"/>:</dt>
-        <dd>
-            <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
-            <c:set var="newLine" value="\n" />
-            <c:set var="myText" value="one\ntwo\nthree" />
-            <span>${fn:replace(reservationRequest.meetingRoomResourceDescription, newLine, '<br />')}</span>
-        </dd>
+        <c:if test="${reservationRequest.meetingRoomResourceDescription != ''}">
+            <dt><spring:message code="views.room.roomDescription"/>:</dt>
+            <dd>
+                <c:set var="newLine" value="\n" />
+                <span>${fn:replace(reservationRequest.meetingRoomResourceDescription, newLine, '<br />')}</span>
+            </dd>
+        </c:if>
+        <c:if test="${reservationRequest.meetingRoomResourceDomain != null}">
+            <dt><spring:message code="views.room.domain"/>:</dt>
+            <dd>
+                <span>${reservationRequest.meetingRoomResourceDomain}</span>
+            </dd>
+        </c:if>
     </c:if>
 
     <%-- Event from request --%>

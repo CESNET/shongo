@@ -591,7 +591,7 @@ public class RoomSpecification extends Specification
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = ObjectIdentifier.parseId(establishmentApi.getResourceId(), ObjectType.RESOURCE);
+                Long resourceId = ObjectIdentifier.parseLocalId(establishmentApi.getResourceId(), ObjectType.RESOURCE);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));
             }

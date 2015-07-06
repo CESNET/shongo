@@ -173,7 +173,7 @@ public abstract class ValueProvider extends SimplePersistentObject
             EntityManager entityManager)
     {
         if (object instanceof String) {
-            Long resourceId = ObjectIdentifier.parseId((String) object, ObjectType.RESOURCE);
+            Long resourceId = ObjectIdentifier.parseLocalId((String) object, ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
             ValueProviderCapability valueProviderCapability =

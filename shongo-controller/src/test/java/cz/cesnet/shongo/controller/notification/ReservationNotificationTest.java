@@ -1009,7 +1009,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         }
         if (requiredRoomEndpointId != null) {
             RoomNotification roomNotification = (RoomNotification) notification;
-            Long executableId = ObjectIdentifier.parseId(requiredRoomEndpointId, ObjectType.EXECUTABLE);
+            Long executableId = ObjectIdentifier.parseLocalId(requiredRoomEndpointId, ObjectType.EXECUTABLE);
             Assert.assertEquals(message + " - RoomEndpointId", executableId, roomNotification.getRoomEndpointId());
         }
         if (requiredRecipient != null) {

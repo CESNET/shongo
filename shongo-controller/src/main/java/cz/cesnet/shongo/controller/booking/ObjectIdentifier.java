@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -375,9 +376,9 @@ public class ObjectIdentifier
      * @param objectType object type for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    public static Long parseId(String objectId, ObjectType objectType)
+    public static Long parseLocalId(String objectId, ObjectType objectType)
     {
-        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
+        return parseLocalId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -385,10 +386,24 @@ public class ObjectIdentifier
      * @param objectId    object local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    public static Long parseId(String objectId, Class<? extends PersistentObject> objectClass)
+    public static Long parseLocalId(String objectId, Class<? extends PersistentObject> objectClass)
     {
         ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
-        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
+        return parseLocalId(LocalDomain.getLocalDomainName(), objectType, objectId);
+    }
+
+    /**
+     * @param objectId   object local id for the identifier
+     * @param objectType object type for the identifier
+     * @return parsed local identifier from given global or local identifier
+     */
+    public static Long parseTypedId(String objectId, ObjectType objectType)
+    {
+        ObjectType idType = parseType(objectId);
+        if (objectType == null &&  idType == null) {
+            throw new IllegalArgumentException("Object type must be specified at least in one parameter.");
+        }
+        return parseLocalId(parseDomain(objectId), parseType(objectId), objectId);
     }
 
     /**
@@ -398,7 +413,7 @@ public class ObjectIdentifier
      */
     public static Long parseForeignId(String objectId, ObjectType objectType)
     {
-        return parseId(parseDomain(objectId), objectType, objectId);
+        return parseLocalId(parseDomain(objectId), objectType, objectId);
     }
 
     /**
@@ -475,7 +490,7 @@ public class ObjectIdentifier
      * @param objectId    object local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    private static Long parseId(String domain, ObjectType objectType, String objectId)
+    private static Long parseLocalId(String domain, ObjectType objectType, String objectId)
             throws ControllerReportSet.IdentifierInvalidException,
                    ControllerReportSet.IdentifierInvalidDomainException,
                    ControllerReportSet.IdentifierInvalidTypeException
@@ -518,7 +533,7 @@ public class ObjectIdentifier
      */
     public static String formatId(String objectId, ObjectType objectType)
     {
-        return formatId(parseDomain(objectId), objectType, parseId(objectId, objectType));
+        return formatId(parseDomain(objectId), objectType, parseLocalId(objectId, objectType));
     }
 
     /**

@@ -211,6 +211,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
+        // Check if local resource
+        cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ResourceSpecification) request.getSpecification();
+        if (!ObjectIdentifier.isLocal(resourceSpecificationApi.getResourceId())) {
+            //TODO: check availability for foreign resources???
+            return Boolean.TRUE;
+        }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -793,7 +800,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         + ")");
                 Set<Long> reservationRequestIds = new HashSet<Long>();
                 for (String reservationRequestId : request.getReservationRequestIds()) {
-                    reservationRequestIds.add(ObjectIdentifier.parseId(
+                    reservationRequestIds.add(ObjectIdentifier.parseLocalId(
                             reservationRequestId, ObjectType.RESERVATION_REQUEST));
                 }
                 queryFilter.addFilterParameter("reservationRequestIds", reservationRequestIds);
@@ -816,7 +823,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             + " SELECT DISTINCT abstract_reservation_request.allocation_id"
                             + " FROM abstract_reservation_request "
                             + " WHERE abstract_reservation_request.id = :parentReservationRequestId)");
-                    queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseId(
+                    queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseLocalId(
                             parentReservationRequestId, ObjectType.RESERVATION_REQUEST));
                 }
                 else {
@@ -854,7 +861,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (specificationResourceId != null) {
                     queryFilter.addFilter("specification_summary.resource_id = :resource_id");
                     queryFilter.addFilterParameter("resource_id",
-                            ObjectIdentifier.parseId(specificationResourceId, ObjectType.RESOURCE));
+                            ObjectIdentifier.parseLocalId(specificationResourceId, ObjectType.RESOURCE));
                 }
 
                 String reusedReservationRequestId = request.getReusedReservationRequestId();
@@ -869,7 +876,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     }
                     else {
                         // List only reservation requests which reuse given reservation request
-                        Long persistenceId = ObjectIdentifier.parseId(
+                        Long persistenceId = ObjectIdentifier.parseLocalId(
                                 reusedReservationRequestId, ObjectType.RESERVATION_REQUEST);
                         queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
                                 + ":reusedReservationRequestId");
@@ -1210,7 +1217,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 Set<Long> foreignResourcesIds = new HashSet<>();
                 for (String resourceId : request.getResourceIds()) {
                     if (ObjectIdentifier.isLocal(resourceId)) {
-                        resourceIds.add(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                        resourceIds.add(ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE));
                     }
                     else {
                         ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseForeignId(resourceId);
@@ -1290,7 +1297,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Check if reservation has set calendar as public and if there is only one resource requested
             if (request.getResourceIds().size() == 1) {
                 String resourceId = request.getResourceIds().iterator().next();
-                Long persistentResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+                Long persistentResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
 
                 cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(persistentResourceId);
@@ -1323,7 +1330,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
                 Set<Long> resourceIds = new HashSet<Long>();
                 for (String resourceId : request.getResourceIds()) {
-                    resourceIds.add(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                    resourceIds.add(ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE));
                 }
                 queryFilter.addFilterParameter("resourceIds", resourceIds);
             }

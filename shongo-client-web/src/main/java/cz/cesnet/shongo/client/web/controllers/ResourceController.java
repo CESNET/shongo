@@ -89,43 +89,19 @@ public class ResourceController
         if (tag != null) {
             resourceListRequest.addTagName(tag);
         }
-        List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
-        resourceListRequest.setPermission(ObjectPermission.RESERVE_RESOURCE);
-
-        ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
-        //TODO DELETE
-//        ObjectPermissionListRequest permissionListRequest = new ObjectPermissionListRequest();
-//        for (ResourceSummary resourceSummary : accessibleResources)
-//        {
-//            permissionListRequest.addObjectId(resourceSummary.getId());
-//        }
-//        permissionListRequest.setSecurityToken(securityToken);
-//        Map<String,ObjectPermissionSet> resourcePermissionsMap = authorizationService.listObjectPermissions(permissionListRequest);
-        //TODO DELETE
 
         // Filter only reservable resources
+        List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
+        resourceListRequest.setPermission(ObjectPermission.RESERVE_RESOURCE);
+        ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
         for (ResourceSummary resourceSummary : accessibleResources) {
-            //TODO DELETE
-//            Set<ObjectPermission> permissions = resourcePermissionsMap.get(resourceSummary.getId()).getObjectPermissions();
-
-//            AclEntryListRequest aclEntryListRequest = new AclEntryListRequest();
-//            aclEntryListRequest.addObjectId(resourceSummary.getId());
-//            aclEntryListRequest.addRole(ObjectRole.RESERVATION);
-//            aclEntryListRequest.setSecurityToken(securityToken);
-//            ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(aclEntryListRequest);
-
-//            if (permissions.contains(ObjectPermission.RESERVE_RESOURCE) || aclEntries.getItems().isEmpty()) {
-            //TODO DELETE
                 Map<String, Object> resource = new HashMap<String, Object>();
                 resource.put("id", resourceSummary.getId());
-                resource.put("name", resourceSummary.getName());
+            resource.put("name", resourceSummary.getName());
                 resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
                 resource.put("description", resourceSummary.getDescription());
                 resource.put("domainName", resourceSummary.getDomainName());
                 resources.add(resource);
-            //TODO DELETE
-//            }
-            //TODO DELETE
         }
         return resources;
     }

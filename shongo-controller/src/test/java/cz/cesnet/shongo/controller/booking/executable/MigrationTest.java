@@ -68,7 +68,7 @@ public class MigrationTest extends AbstractExecutorTest
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(
-                ObjectIdentifier.parseId(reservation.getExecutable().getId(), ObjectType.EXECUTABLE));
+                ObjectIdentifier.parseLocalId(reservation.getExecutable().getId(), ObjectType.EXECUTABLE));
         executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
         executableManager.update(executable);
         entityManager.close();

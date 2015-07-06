@@ -131,7 +131,7 @@ public class ExistingEndpointParticipant extends EndpointParticipant implements 
             setResource(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseId(
+            Long resourceId = ObjectIdentifier.parseLocalId(
                     existingEndpointParticipantApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourceId));

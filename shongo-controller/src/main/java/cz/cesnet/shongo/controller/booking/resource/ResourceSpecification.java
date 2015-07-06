@@ -114,7 +114,7 @@ public class ResourceSpecification extends Specification implements ReservationT
             setResource(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseId(resourceSpecificationApi.getResourceId(), ObjectType.RESOURCE);
+            Long resourceId = ObjectIdentifier.parseTypedId(resourceSpecificationApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourceId));
         }

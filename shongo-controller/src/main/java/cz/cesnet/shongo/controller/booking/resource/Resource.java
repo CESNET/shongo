@@ -17,7 +17,6 @@ import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.report.ReportableComplex;
-import org.hibernate.annotations.GenericGenerator;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -557,7 +556,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setCalendarUriKey(resourceApi.getCalendarUriKey());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
-            newParentResourceId = ObjectIdentifier.parseId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);
+            newParentResourceId = ObjectIdentifier.parseLocalId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);
         }
         Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
         if ((newParentResourceId == null && oldParentResourceId != null)
