@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
-import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.log4j.Level;
 import org.junit.Test;
@@ -127,7 +126,7 @@ public class DatabasePerformanceTest
 
             cz.cesnet.shongo.controller.booking.request.ReservationRequest persistentReservationRequest =
                     entityManager.find(cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
-                            ObjectIdentifier.parseId(reservationRequestId,
+                            ObjectIdentifier.parseLocalId(reservationRequestId,
                                     cz.cesnet.shongo.controller.booking.request.ReservationRequest.class));
 
             enableSqlLogger(true);

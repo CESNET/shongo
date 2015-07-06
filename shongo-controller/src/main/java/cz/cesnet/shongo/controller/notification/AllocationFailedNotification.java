@@ -97,7 +97,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
             String reservationRequestId = getReservationRequestId();
             if (reservationRequestId != null) {
                 titleBuilder.append("[failed] [req:");
-                titleBuilder.append(ObjectIdentifier.parseId(reservationRequestId, ObjectType.RESERVATION_REQUEST));
+                titleBuilder.append(ObjectIdentifier.parseLocalId(reservationRequestId, ObjectType.RESERVATION_REQUEST));
                 titleBuilder.append("] ");
             }
 

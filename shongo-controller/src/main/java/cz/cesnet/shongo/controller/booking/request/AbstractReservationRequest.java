@@ -581,7 +581,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
 
         if (api.getReusedReservationRequestId() != null) {
             Long reusedReservationRequestId =
-                    ObjectIdentifier.parseId(api.getReusedReservationRequestId(), ObjectType.RESERVATION_REQUEST);
+                    ObjectIdentifier.parseLocalId(api.getReusedReservationRequestId(), ObjectType.RESERVATION_REQUEST);
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationRequest reusedReservationRequest =
                     reservationRequestManager.getReservationRequest(reusedReservationRequestId);

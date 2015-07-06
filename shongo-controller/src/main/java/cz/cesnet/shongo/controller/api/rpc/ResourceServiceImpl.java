@@ -263,9 +263,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         if (request.getPermission() == null) {
             request.setPermission(ObjectPermission.READ);
         }
+        // List request for foreign resources
+        ForeignResourcesListRequest foreignResourcesListRequest = new ForeignResourcesListRequest();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        //ResourceManager resourceManager = new ResourceManager(entityManager);
+        boolean searchLocal = true;
+        boolean searchForeign = true;
         try {
             Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, request.getPermission());
@@ -282,14 +285,27 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 Set<Long> requestedResourceIds = new HashSet<Long>();
                 Set<Long> notReadableResourceIds = new HashSet<Long>();
                 for (String resourceApiId : request.getResourceIds()) {
-                    Long resourceId = ObjectIdentifier.parseId(resourceApiId, ObjectType.RESOURCE);
-                    if (readableResourceIds != null && !readableResourceIds.contains(resourceId)) {
-                        notReadableResourceIds.add(resourceId);
+                    if (ObjectIdentifier.isLocal(resourceApiId)) {
+                        Long resourceId = ObjectIdentifier.parseLocalId(resourceApiId, ObjectType.RESOURCE);
+                        if (readableResourceIds != null && !readableResourceIds.contains(resourceId)) {
+                            notReadableResourceIds.add(resourceId);
+                        }
+                        requestedResourceIds.add(resourceId);
                     }
-                    requestedResourceIds.add(resourceId);
+                    else {
+                        foreignResourcesListRequest.addResourceId(resourceApiId);
+                    }
                 }
-                queryFilter.addFilter("id IN(:resourceIds)");
-                queryFilter.addFilterParameter("resourceIds", requestedResourceIds);
+                if (!requestedResourceIds.isEmpty()) {
+                    queryFilter.addFilter("id IN(:resourceIds)");
+                    queryFilter.addFilterParameter("resourceIds", requestedResourceIds);
+                    if (foreignResourcesListRequest.getResourceIds().isEmpty()) {
+                        searchForeign = false;
+                    }
+                }
+                else {
+                    searchLocal = false;
+                }
 
                 // Check if user has any reservations for not readable resources for them to become readable
                 // (or other given permission)
@@ -313,7 +329,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (request.getTagId() != null) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_id FROM resource_tag "
-                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseId(request.getTagId(), ObjectType.TAG));
+                        + " WHERE tag_id = :tagId)", "tagId", ObjectIdentifier.parseLocalId(request.getTagId(), ObjectType.TAG));
             }
 
             // Filter requested tag-name
@@ -328,7 +344,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (request.getDomainId() != null) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_id FROM domain_resource "
-                        + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN));
+                        + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
             }
 
             // Filter user-ids
@@ -392,42 +408,45 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             String query = NativeQuery.getNativeQuery(NativeQuery.RESOURCE_LIST, parameters);
 
             ListResponse<ResourceSummary> response = new ListResponse<ResourceSummary>();
-            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
-            for (Object[] record : records) {
-                ResourceSummary resourceSummary = new ResourceSummary();
-                resourceSummary.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
-                if (record[1] != null) {
-                    resourceSummary.setParentResourceId(
-                            ObjectIdentifier.formatId(ObjectType.RESOURCE, record[1].toString()));
-                }
-                resourceSummary.setUserId(record[2].toString());
-                resourceSummary.setName(record[3].toString());
-                resourceSummary.setAllocatable(record[4] != null && (Boolean) record[4]);
-                resourceSummary.setAllocationOrder(record[5] != null ? (Integer) record[5] : null);
-                resourceSummary.setDescription(record[7] != null ? record[7].toString() : "");
-                if (record[6] != null) {
-                    String recordTechnologies = record[6].toString();
-                    if (!recordTechnologies.isEmpty()) {
-                        for (String technology : recordTechnologies.split(",")) {
-                            resourceSummary.addTechnology(Technology.valueOf(technology.trim()));
+            if (searchLocal) {
+                List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+                for (Object[] record : records) {
+                    ResourceSummary resourceSummary = new ResourceSummary();
+                    resourceSummary.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
+                    if (record[1] != null) {
+                        resourceSummary.setParentResourceId(
+                                ObjectIdentifier.formatId(ObjectType.RESOURCE, record[1].toString()));
+                    }
+                    resourceSummary.setUserId(record[2].toString());
+                    resourceSummary.setName(record[3].toString());
+                    resourceSummary.setAllocatable(record[4] != null && (Boolean) record[4]);
+                    resourceSummary.setAllocationOrder(record[5] != null ? (Integer) record[5] : null);
+                    resourceSummary.setDescription(record[7] != null ? record[7].toString() : "");
+                    if (record[6] != null) {
+                        String recordTechnologies = record[6].toString();
+                        if (!recordTechnologies.isEmpty()) {
+                            for (String technology : recordTechnologies.split(",")) {
+                                resourceSummary.addTechnology(Technology.valueOf(technology.trim()));
+                            }
                         }
                     }
+                    resourceSummary.setCalendarPublic((Boolean) record[8]);
+                    if (resourceSummary.isCalendarPublic()) {
+                        resourceSummary.setCalendarUriKey(record[9].toString());
+                    }
+                    response.addItem(resourceSummary);
                 }
-                resourceSummary.setCalendarPublic((Boolean)record[8]);
-                if (resourceSummary.isCalendarPublic()) {
-                    resourceSummary.setCalendarUriKey(record[9].toString());
-                }
-                response.addItem(resourceSummary);
             }
 
-            // Adding foreign resources
-            ForeignResourcesListRequest listRequest = new ForeignResourcesListRequest();
-            listRequest.setSecurityToken(securityToken);
-            listRequest.setPermission(request.getPermission());
-            listRequest.setTagName(request.getTagName());
-            ListResponse<ResourceSummary> resourceSummaries = listForeignResources(listRequest);
-            response.addAll(resourceSummaries);
-            response.setCount(response.getCount() + resourceSummaries.getItemCount());
+            // List foreign resources
+            if (searchForeign) {
+                foreignResourcesListRequest.setSecurityToken(securityToken);
+                foreignResourcesListRequest.setPermission(request.getPermission());
+                foreignResourcesListRequest.setTagName(request.getTagName());
+                ListResponse<ResourceSummary> resourceSummaries = listForeignResources(foreignResourcesListRequest);
+                response.addAll(resourceSummaries);
+                response.setCount(response.getCount() + resourceSummaries.getItemCount());
+            }
             return response;
         }
         finally {
@@ -454,7 +473,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     if (foreignResources.getForeignResourceId() != null) {
                         String domainName = foreignResources.getDomain().getName();
                         Long resourceId = foreignResources.getForeignResourceId();
-                        capabilityListRequest.addResourceId(ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId));
+                        String fullResourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId);
+                        if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(fullResourceId)) {
+                            capabilityListRequest.addResourceId(fullResourceId);
+                        }
                     }
                     else {
                         capabilityListRequest.setResourceType(foreignResources.getType());
@@ -675,7 +697,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 String resourceId = request.getResourceId();
 
                 if (ObjectIdentifier.isLocal(resourceId)) {
-                    Long persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+                    Long persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
                     resourceTags.addAll(resourceManager.getResourceTags(persistenceResourceId));
                 }
                 else {
@@ -697,7 +719,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 }
             }
             else if (request.getForeignResourceType() != null && request.getDomainId() != null) {
-                Long domainId = ObjectIdentifier.parseId(request.getDomainId(), ObjectType.DOMAIN);
+                Long domainId = ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN);
                 cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(domainId);
                 ForeignResources foreignResources = resourceManager.findForeignResourcesByType(domain, request.getForeignResourceType());
                 resourceTags = resourceManager.getForeignResourceTags(foreignResources);
@@ -729,7 +751,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            return resourceManager.getTag(ObjectIdentifier.parseId(tagId, ObjectType.TAG)).toApi();
+            return resourceManager.getTag(ObjectIdentifier.parseLocalId(tagId, ObjectType.TAG)).toApi();
         }
         finally {
             entityManager.close();
@@ -760,7 +782,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void deleteTag(SecurityToken token, String tagId) {
         authorization.validate(token);
         checkNotNull("tag", tagId);
-        Long persistanceId = ObjectIdentifier.parseId(tagId,ObjectType.TAG);
+        Long persistanceId = ObjectIdentifier.parseLocalId(tagId, ObjectType.TAG);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -818,7 +840,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.resource.Tag tag;
-            ObjectIdentifier objectIdentifier = new ObjectIdentifier(ObjectType.TAG, ObjectIdentifier.parseId(tagId,ObjectType.TAG));
+            ObjectIdentifier objectIdentifier = new ObjectIdentifier(ObjectType.TAG, ObjectIdentifier.parseLocalId(tagId, ObjectType.TAG));
             tag = (cz.cesnet.shongo.controller.booking.resource.Tag) checkObjectExistence(objectIdentifier, entityManager);
 
             ResourceTag resourceTag = new ResourceTag();
@@ -830,7 +852,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             PersistentObject persistentObject = null;
             if (ObjectIdentifier.isLocal(resourceId)) {
                 cz.cesnet.shongo.controller.booking.resource.Resource resource;
-                resource = resourceManager.get(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+                resource = resourceManager.get(ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE));
                 resourceTag.setResource(resource);
                 // Delegate ACL for resource
                 persistentObject = resource;
@@ -903,9 +925,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Delete the resourceTag
-            persistenceTagId = ObjectIdentifier.parseId(tagId, ObjectType.TAG);
+            persistenceTagId = ObjectIdentifier.parseLocalId(tagId, ObjectType.TAG);
             if (ObjectIdentifier.isLocal(resourceId)) {
-                persistenceResourceId = ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE);
+                persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
                 resourceTag = resourceManager.getResourceTag(persistenceResourceId, persistenceTagId);
                 authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getResource());
             }
@@ -1001,7 +1023,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 //                    tagList.add(tag.toApi());
 //                }
 //            } else {
-//                Long persistenceResourceId = ObjectIdentifier.parseId(request.getResourceId(),ObjectType.RESOURCE);
+//                Long persistenceResourceId = ObjectIdentifier.parseLocalId(request.getResourceId(),ObjectType.RESOURCE);
 //                resourceTags = resourceManager.getResourceTags(persistenceResourceId);
 //
 //                for (ResourceTag resourceTag : resourceTags) {
@@ -1026,7 +1048,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
-                    ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+                    ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN));
 
             if (!authorization.hasObjectPermission(token, domain, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read domain %s", domainId);
@@ -1158,9 +1180,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.resource.Resource resource;
-            resource = resourceManager.get(ObjectIdentifier.parseId(resourceId, ObjectType.RESOURCE));
+            resource = resourceManager.get(ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE));
             cz.cesnet.shongo.controller.booking.domain.Domain domain;
-            domain = resourceManager.getDomain(ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN));
+            domain = resourceManager.getDomain(ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN));
 
             if (!authorization.hasObjectPermission(token, resource, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add domain (%s) for resource (%s)", domainId, resourceId);
@@ -1216,8 +1238,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Delete the domainResource
-            Long persistenceDomainId = ObjectIdentifier.parseId(domainId, ObjectType.DOMAIN);
-            Long persistenceResourceId = ObjectIdentifier.parseId(resourceId,ObjectType.RESOURCE);
+            Long persistenceDomainId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
+            Long persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
             cz.cesnet.shongo.controller.booking.domain.DomainResource domainResource = resourceManager.getDomainResource(persistenceDomainId, persistenceResourceId);
 
             if (!authorization.hasObjectPermission(token, domainResource.getDomain(), ObjectPermission.WRITE)) {

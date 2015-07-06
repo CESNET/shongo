@@ -512,6 +512,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 allocatedReservation, previousReservation, authorizationManager));
 
         // Update reservation request
+        //TODO: IDP: if reservation.state#PENDING - nemen stav
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);

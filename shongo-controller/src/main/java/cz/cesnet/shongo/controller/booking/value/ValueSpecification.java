@@ -171,7 +171,7 @@ public class ValueSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.ValueSpecification valueSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ValueSpecification) specificationApi;
-        Long resourceId = ObjectIdentifier.parseId(valueSpecificationApi.getResourceId(), ObjectType.RESOURCE);
+        Long resourceId = ObjectIdentifier.parseLocalId(valueSpecificationApi.getResourceId(), ObjectType.RESOURCE);
         ResourceManager resourceManager = new ResourceManager(entityManager);
         Resource resource = resourceManager.get(resourceId);
         ValueProviderCapability valueProviderCapability = resource.getCapabilityRequired(ValueProviderCapability.class);

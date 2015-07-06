@@ -386,7 +386,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         super.onAfterAdded(notificationManager, entityManager);
 
-        Long reservationRequestId = ObjectIdentifier.parseId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
+        Long reservationRequestId = ObjectIdentifier.parseLocalId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
         notificationManager.reservationRequestNotificationsById.put(reservationRequestId, this);
     }
 
@@ -395,7 +395,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         super.onAfterRemoved(notificationManager);
 
-        Long reservationRequestId = ObjectIdentifier.parseId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
+        Long reservationRequestId = ObjectIdentifier.parseLocalId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
         notificationManager.reservationRequestNotificationsById.remove(reservationRequestId);
     }
 

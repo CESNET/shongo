@@ -424,7 +424,6 @@
                     description = " (" + resource.description + ")";
                 }
                 var domain = "";
-                console.debug(resource);
                 if (resource.domainName) {
                     domain = " (" + resource.domainName + ")";
                 }

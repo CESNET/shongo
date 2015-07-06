@@ -2,16 +2,24 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.controller.ObjectPermission;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * {@link ListRequest} for foreign resources.
  *
- * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 public class ForeignResourcesListRequest extends AbstractRequest
 {
     private ObjectPermission permission;
 
     private String tagName;
+
+    /**
+     * For filtering resources by ids.
+     */
+    private Set<String> resourceIds = new HashSet<>();
 
     public void setPermission(ObjectPermission permission)
     {
@@ -31,5 +39,20 @@ public class ForeignResourcesListRequest extends AbstractRequest
     public void setTagName(String tagName)
     {
         this.tagName = tagName;
+    }
+
+    public Set<String> getResourceIds()
+    {
+        return resourceIds;
+    }
+
+    public void setResourceIds(Set<String> resourceIds)
+    {
+        this.resourceIds = resourceIds;
+    }
+
+    public void addResourceId(String resourceId)
+    {
+        this.resourceIds.add(resourceId);
     }
 }
