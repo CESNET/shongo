@@ -78,7 +78,7 @@ sub new()
                 my $item = sprintf("%s (%s) %s",
                     interval_format($reservation_request->{'earliestSlot'}),
                     $reservation_request->{'id'},
-                    Shongo::ClientCli::API::ReservationRequest::get_state($reservation_request)
+                    '[' . Shongo::ClientCli::API::ReservationRequest::format_state($reservation_request->{'allocationState'}) . ']'
                 );
                 if ( $reservation_request->{'allocationState'} eq 'ALLOCATED' ) {
                     $item .= sprintf("\n  " . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s", $reservation_request->{'lastReservationId'});
