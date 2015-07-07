@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import com.sun.java.browser.plugin2.DOM;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
