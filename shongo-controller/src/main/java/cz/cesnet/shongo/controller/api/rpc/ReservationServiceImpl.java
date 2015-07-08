@@ -212,11 +212,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
         // Check if local resource
-        cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
-                (cz.cesnet.shongo.controller.api.ResourceSpecification) request.getSpecification();
-        if (!ObjectIdentifier.isLocal(resourceSpecificationApi.getResourceId())) {
-            //TODO: check availability for foreign resources???
-            return Boolean.TRUE;
+        if (request.getSpecification() instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
+            cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
+                    (cz.cesnet.shongo.controller.api.ResourceSpecification) request.getSpecification();
+            if (!ObjectIdentifier.isLocal(resourceSpecificationApi.getResourceId())) {
+                //TODO: check availability for foreign resources???
+                return Boolean.TRUE;
+            }
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
