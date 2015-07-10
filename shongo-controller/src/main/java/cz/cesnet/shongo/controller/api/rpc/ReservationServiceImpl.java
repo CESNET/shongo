@@ -235,20 +235,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 //                }
             }
 
-            Boolean isFirstSlot = null;
-            int slotsLeft = slots.size();
             // For each time slot in periodic reservation request
             for (Interval slotToTest : slots) {
-                if (isFirstSlot == null) {
-                    isFirstSlot = Boolean.TRUE;
-                } else {
-                    if (isFirstSlot)
-                        isFirstSlot = Boolean.FALSE;
-                }
-
                 // We must check only the future (because scheduler allocates only in future)
                 DateTime minimumDateTime = DateTime.now();
-                //Interval slot = request.getSlot();
                 Interval slot = slotToTest;
                 if (slot.getEnd().isBefore(minimumDateTime)) {
                     throw new ControllerReportSet.ReservationRequestEmptyDurationException();
@@ -326,7 +316,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                                 reservationTask.perform();
                             } finally {
                                 entityManager.getTransaction().rollback();
-                                slotsLeft--;
                             }
                         } else {
                             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
