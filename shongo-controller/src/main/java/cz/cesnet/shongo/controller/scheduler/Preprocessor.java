@@ -152,8 +152,8 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                     // If possible child reservation request overlaps current slot
                     if (possibleHours < 24) {
                         if (childReservationRequest != null) {
-                            int hours = Math.abs(Hours.hoursBetween(
-                                    slot.getStart(), possibleChildReservationRequest.getSlot().getEnd()).getHours());
+//                            int hours = Math.abs(Hours.hoursBetween(
+//                                    slot.getStart(), possibleChildReservationRequest.getSlot().getEnd()).getHours());
                             // If possible child reservation has already been found and new one does not fit better
                             if (possibleHours >= childReservationRequestHours) {
                                 // Skip the new one
