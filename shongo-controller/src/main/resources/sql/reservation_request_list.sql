@@ -30,10 +30,12 @@ SELECT
         WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
         ELSE reused_specification_summary.alias_room_name
     END AS alias_room_name,
-    specification_summary.resource_id AS resource_id,
+    specification_summary.resource_id resource_id,
     reservation_request_summary.usage_executable_state AS usage_executable_state,
     reservation_request_summary.future_child_count,
-    resource_summary.name AS resource_name
+    resource_summary.name AS resource_name,
+    foreign_resources.foreign_resource_id,
+    domain.name as domain_name
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
@@ -41,5 +43,8 @@ LEFT JOIN abstract_reservation_request AS reused_reservation_request ON reused_r
 LEFT JOIN specification_summary AS reused_specification_summary ON reused_specification_summary.id = reused_reservation_request.specification_id
 LEFT JOIN executable_summary ON executable_summary.id = reservation_request_summary.last_executable_id
 LEFT JOIN resource_summary ON resource_summary.id = specification_summary.resource_id
+LEFT JOIN resource_specification ON resource_specification.id = specification_summary.id
+LEFT JOIN foreign_resources ON foreign_resources.id = resource_specification.foreign_resources_id
+LEFT JOIN domain ON domain.id = foreign_resources.domain_id
 WHERE ${filter}
 ORDER BY ${order}

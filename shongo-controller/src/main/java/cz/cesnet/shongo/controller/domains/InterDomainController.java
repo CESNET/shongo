@@ -7,7 +7,9 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -60,6 +62,22 @@ public class InterDomainController implements InterDomainProtocol{
         List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
         return capabilities;
     }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_ALLOCATE, method = RequestMethod.GET)
+    @ResponseBody
+    public Reservation handleAllocate(HttpServletRequest request,
+            @RequestParam(value = "type", required = true) String type,
+            @RequestParam(value = "slot", required = false) Interval slot,
+            @RequestParam(value = "resourceId", required = false) String resourceId,
+            @RequestParam(value = "technology", required = false) Technology technology,
+            @RequestParam(value = "userId", required = false) String userId)
+    {
+        //TODO alokovat
+        //TODO: vytvorit reservation request s 0:ID domeny?
+        return null;
+    }
+
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({NotAuthorizedException.class})

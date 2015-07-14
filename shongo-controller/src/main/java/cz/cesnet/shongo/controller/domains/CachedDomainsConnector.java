@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -34,6 +35,13 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     private Set<String> unavailableResources = new HashSet<>();
 
+    /**
+     * Cache for unsaved reservations by reservation request id.
+     *
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code reservations} BEFORE USE.
+     */
+    private Map<String, Reservation> reservations = new HashMap<>();
+
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
         super(entityManagerFactory, configuration, emailSender);
@@ -62,14 +70,12 @@ public class CachedDomainsConnector extends DomainsConnector
                 domains, DomainCapability.class, availableResources, unavailableResources);
     }
 
-    private <T> Map<String, List<T>> submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
+    private <T> void submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
                                                                     final Map<String, String> parameters, final Collection<Domain> domains,
                                                                     Class<T> objectClass, Map<String, ?> cache, Set<String> unavailableDomainsCache)
     {
-        final ConcurrentHashMap<String, List<T>> resultMap = new ConcurrentHashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
         submitCachedRequests(method, action, parameters, domains, reader, cache, unavailableDomainsCache, List.class);
-        return resultMap;
     }
 
     /**

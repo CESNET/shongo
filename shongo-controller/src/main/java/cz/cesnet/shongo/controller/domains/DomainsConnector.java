@@ -8,11 +8,17 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
+import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +55,8 @@ public class DomainsConnector
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
+    private final EntityManagerFactory entityManagerFactory;
+
     private final ControllerConfiguration configuration;
 
     private final DomainService domainService;
@@ -61,6 +69,7 @@ public class DomainsConnector
 
     public DomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
+        this.entityManagerFactory = entityManagerFactory;
         domainService = new DomainService(entityManagerFactory);
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
@@ -412,12 +421,6 @@ public class DomainsConnector
         return foreignDomains;
     }
 
-//    public Map<String, List<DomainCapability>> listForeignResources()
-//    {
-//        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCES_LIST, null, listForeignDomains(), DomainCapability.class);
-//        return domainResources;
-//    }
-
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, String> parameters = new HashMap<>();
@@ -440,6 +443,32 @@ public class DomainsConnector
         Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET,
                 InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, domains, DomainCapability.class);
         return domainResources;
+    }
+
+    /**
+     * Returns unmodifiable list of statuses of all foreign domains
+     *
+     * @return
+     */
+    public cz.cesnet.shongo.controller.booking.reservation.Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources)
+    {
+        Domain domain = foreignResources.getDomain().toApi();
+        ObjectReader reader = mapper.reader(Reservation.class);
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("slot", slot.toString());
+        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
+        parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
+        parameters.put("userId", schedulerContext.getUserId());
+
+        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
+
+        switch (reservation.getType()) {
+            case RESOURCE:
+                return ForeignResourceReservation.createFromApi(reservation, entityManagerFactory.createEntityManager());
+            case VIRTUAL_ROOM:
+            default:
+                throw new TodoImplementException("Unsupported type of reservation for inter domain protocol.");
+        }
     }
 
     /**

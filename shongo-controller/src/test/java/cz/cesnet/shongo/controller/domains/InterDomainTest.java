@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.LocalDomain;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
@@ -74,6 +75,8 @@ public class InterDomainTest extends AbstractControllerTest
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT);
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD);
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE);
+
+        super.after();
     }
 
     /**

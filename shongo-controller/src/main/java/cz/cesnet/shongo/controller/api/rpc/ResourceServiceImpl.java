@@ -694,21 +694,20 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             List<ResourceTag> resourceTags = new ArrayList<>();
 
             if (request.getResourceId() != null) {
-                String resourceId = request.getResourceId();
+                ObjectIdentifier resourceId = ObjectIdentifier.parseTypedId(request.getResourceId(), ObjectType.RESOURCE);
 
-                if (ObjectIdentifier.isLocal(resourceId)) {
-                    Long persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
-                    resourceTags.addAll(resourceManager.getResourceTags(persistenceResourceId));
+                if (resourceId.isLocal()) {
+                    resourceTags.addAll(resourceManager.getResourceTags(resourceId.getPersistenceId()));
                 }
                 else {
                     try {
-                        Long foreignResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
-                        String domainName = ObjectIdentifier.parseDomain(resourceId);
+                        String domainName = resourceId.getDomainName();
+                        Long foreignResourceId = resourceId.getPersistenceId();
                         ForeignResources foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, foreignResourceId);
                         resourceTags.addAll(resourceManager.getForeignResourceTags(foreignResources));
                     }
                     catch (CommonReportSet.ObjectNotExistsException ex) {
-                        // If no {@link ForeignResources} exists, use {@link Domain} (for ACL)
+                        // If no {@link ForeignResources} exists
                     }
                 }
 
@@ -861,17 +860,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 String domainName = ObjectIdentifier.parseDomain(resourceId);
                 Long localId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
 
-                ForeignResources foreignResources = null;
-                try {
-                    foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, localId);
-                }
-                catch (CommonReportSet.ObjectNotExistsException ex) {
-                    cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
-                    // Create {@link ForeignResources} if does not exist
-                    foreignResources = new ForeignResources();
-                    foreignResources.setDomain(domain);
-                    foreignResources.setForeignResourceId(localId);
-                }
+                ForeignResources foreignResources = resourceManager.findOrCreateForeignResources(domainName, localId);
 
                 resourceTag.setForeignResources(foreignResources);
                 // Delegate ACL for foreignResources
@@ -916,9 +905,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
 
         Long persistenceTagId = null;
-        Long persistenceResourceId = null;
+        Long persistenceResourceId;
         ResourceTag resourceTag = null;
-        ForeignResources foreignResources = null;
+        ForeignResources foreignResources;
 
         try {
             authorizationManager.beginTransaction();

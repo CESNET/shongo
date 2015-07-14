@@ -512,26 +512,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     ResourceManager resourceManager = new ResourceManager(entityManager);
                     String domainName = foreignObjectIdentifier.getDomainName();
                     try {
-                        ForeignResources foreignResources = null;
-                        try {
-                            foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, foreignObjectIdentifier.getPersistenceId());
-                        }
-                        catch (Exception ex) {
-                            if (!(ex instanceof CommonReportSet.ObjectNotExistsException)) {
-                                throw ex;
-                            }
-                        }
-
-                        // Create {@link ForeignResources} if missing
-                        if (foreignResources == null) {
-                            entityManager.getTransaction().begin();
-                            Domain domain = resourceManager.getDomainByName(domainName);
-                            foreignResources = new ForeignResources();
-                            foreignResources.setDomain(domain);
-                            foreignResources.setForeignResourceId(foreignObjectIdentifier.getPersistenceId());
-                            resourceManager.createForeignResources(foreignResources);
-                            entityManager.getTransaction().commit();
-                        }
+                        entityManager.getTransaction().begin();
+                        ForeignResources foreignResources = resourceManager.findOrCreateForeignResources(domainName, foreignObjectIdentifier.getPersistenceId());
+                        entityManager.getTransaction().commit();
 
                         objectIdentifier = new ObjectIdentifier(ObjectType.FOREIGN_RESOURCES, foreignResources.getId());
                     }
