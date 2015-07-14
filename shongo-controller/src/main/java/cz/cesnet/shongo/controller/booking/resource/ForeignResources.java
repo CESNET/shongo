@@ -78,4 +78,13 @@ public class ForeignResources extends SimplePersistentObject
             throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
                     "Type and resource ID cannot be set at the same time.");
         }
-    }}
+    }
+
+    public void validateSingleResource() throws CommonReportSet.ObjectInvalidException
+    {
+        if (domain == null || foreignResourceId == null || type != null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "This ForeignResources is not for single resource or missing required field.");
+        }
+    }
+}

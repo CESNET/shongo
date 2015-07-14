@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.Interval;
@@ -11,6 +14,7 @@ import org.joda.time.Interval;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
+
 
 /**
  * Represents a specific existing resource in the compartment.
@@ -24,6 +28,11 @@ public class ResourceSpecification extends Specification implements ReservationT
      * Specific resource.
      */
     private Resource resource;
+
+    /**
+     * Resource from foreign domain
+     */
+    private ForeignResources foreignResources;
 
     /**
      * Constructor.
@@ -43,6 +52,16 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     /**
+     * Constructor.
+     *
+     * @param foreignResources sets the {@link #foreignResources}
+     */
+    public ResourceSpecification(ForeignResources foreignResources)
+    {
+        this.foreignResources = foreignResources;
+    }
+
+    /**
      * @return {@link #resource}
      */
     @OneToOne
@@ -56,7 +75,31 @@ public class ResourceSpecification extends Specification implements ReservationT
      */
     public void setResource(Resource resource)
     {
+        if (resource != null && foreignResources != null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Cannot set Resource because ForeignResources is allready set.");
+        }
+
         this.resource = resource;
+    }
+
+    @OneToOne
+    public ForeignResources getForeignResources()
+    {
+        return foreignResources;
+    }
+
+    public void setForeignResources(ForeignResources foreignResources)
+    {
+        if (foreignResources == null) {
+            return;
+        }
+        if (resource != null) {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Cannot set ForeignResources because Resource is allready set.");
+        }
+        foreignResources.validateSingleResource();
+        this.foreignResources = foreignResources;
     }
 
     @Override
@@ -81,9 +124,19 @@ public class ResourceSpecification extends Specification implements ReservationT
             @Override
             protected Reservation allocateReservation() throws SchedulerException
             {
-                ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, slot, resource);
-                Reservation reservation = reservationTask.perform();
-                addReports(reservationTask);
+                Reservation reservation;
+                if (resource != null) {
+                    ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, slot, resource);
+                    reservation = reservationTask.perform();
+                    addReports(reservationTask);
+                }
+                else if (foreignResources != null) {
+                    reservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources);
+                }
+                else {
+                    throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                            "Cannot allocate because resource is not set.");
+                }
                 return reservation;
             }
         };
@@ -100,7 +153,16 @@ public class ResourceSpecification extends Specification implements ReservationT
     {
         cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
-        resourceSpecificationApi.setResourceId(ObjectIdentifier.formatId(resource));
+        String resourceId = null;
+        if (resource != null) {
+            resourceId = ObjectIdentifier.formatId(resource);
+        }
+        if (foreignResources != null) {
+            String domainName = foreignResources.getDomain().getName();
+            resourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, foreignResources.getForeignResourceId());
+        }
+        resourceSpecificationApi.setResourceId(resourceId);
+
         super.toApi(specificationApi);
     }
 
@@ -114,9 +176,16 @@ public class ResourceSpecification extends Specification implements ReservationT
             setResource(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseTypedId(resourceSpecificationApi.getResourceId(), ObjectType.RESOURCE);
+            ObjectIdentifier objectIdentifier = ObjectIdentifier.parseTypedId(resourceSpecificationApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
-            setResource(resourceManager.get(resourceId));
+            if (objectIdentifier.isLocal()) {
+                setResource(resourceManager.get(objectIdentifier.getPersistenceId()));
+            }
+            else {
+                String domainName = objectIdentifier.getDomainName();
+                Long resourceId = objectIdentifier.getPersistenceId();
+                setForeignResources(resourceManager.findOrCreateForeignResources(domainName, resourceId));
+            }
         }
 
         super.fromApi(specificationApi, entityManager);

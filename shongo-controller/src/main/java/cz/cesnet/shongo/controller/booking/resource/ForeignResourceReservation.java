@@ -1,8 +1,13 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
+import cz.cesnet.shongo.controller.domains.DomainService;
 
 import javax.persistence.*;
 
@@ -26,11 +31,7 @@ public class ForeignResourceReservation extends TargetedReservation
 
     public void setForeignResources(ForeignResources foreignResources)
     {
-        foreignResources.validate();
-        if (foreignResources.getForeignResourceId() == null) {
-            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
-                    "Resource ID has to be set.");
-        }
+        foreignResources.validateSingleResource();
         this.foreignResources = foreignResources;
     }
 
@@ -39,5 +40,30 @@ public class ForeignResourceReservation extends TargetedReservation
     public Long getTargetId()
     {
         return null;
+    }
+
+    public static ForeignResourceReservation createFromApi(Reservation reservationApi, EntityManager entityManager)
+    {
+        ForeignResourceReservation foreignResourceReservation = new ForeignResourceReservation();
+        foreignResourceReservation.fromApi(reservationApi, entityManager);
+        return foreignResourceReservation;
+    }
+
+    public void fromApi(Reservation reservationApi, EntityManager entityManager)
+    {
+        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(reservationApi.getType())) {
+            throw new IllegalArgumentException("Reservation is of type resource.");
+        }
+
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ObjectIdentifier resourceId = ObjectIdentifier.parseForeignId(reservationApi.getResourceId());
+        foreignResources = resourceManager.findForeignResourcesByResourceId(resourceId);
+        if (foreignResources == null) {
+            Domain domain = resourceManager.getDomainByName(resourceId.getDomainName());
+            foreignResources = new ForeignResources();
+            foreignResources.setForeignResourceId(resourceId.getPersistenceId());
+            foreignResources.setDomain(domain);
+        }
+        setSlot(reservationApi.getSlot());
     }
 }

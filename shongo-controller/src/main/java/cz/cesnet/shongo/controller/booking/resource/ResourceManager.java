@@ -503,6 +503,21 @@ public class ResourceManager extends AbstractManager
         }
     }
 
+    public ForeignResources findOrCreateForeignResources(String domainName, Long resourceId)
+    {
+        ForeignResources foreignResources;
+        try {
+            foreignResources = findForeignResourcesByResourceId(domainName, resourceId);
+        }
+        catch (CommonReportSet.ObjectNotExistsException ex) {
+            cz.cesnet.shongo.controller.booking.domain.Domain domain = getDomainByName(domainName);
+            foreignResources = new ForeignResources();
+            foreignResources.setDomain(domain);
+            foreignResources.setForeignResourceId(resourceId);
+        }
+        return foreignResources;
+    }
+
     public List<ForeignResources> listForeignResources(Domain domain)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -541,7 +556,7 @@ public class ResourceManager extends AbstractManager
                         persistentObject = foreignResources;
                     }
                     catch (CommonReportSet.ObjectNotExistsException ex) {
-                        // If no {@link ForeignResources} exists, use {@link Domain} (for ACL)
+                        // If no {@link ForeignResources} exists, use {@link Domain} (e.g. for ACL)
                     }
                     return persistentObject;
                 }

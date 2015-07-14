@@ -1015,7 +1015,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(objectId.getPersistenceId());
-            //TODO: MR: CEITEC - uncomment ASAP
             if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
             }
@@ -1548,8 +1547,20 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
-            reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
-                    ObjectType.RESOURCE, ((Number) record[19]).longValue()));
+            if (record[19] != null) {
+                reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
+                        ObjectType.RESOURCE, ((Number) record[19]).longValue()));
+            }
+            else {
+                // Only for current reservation request
+                //TODO: verify - needed for history???
+                if (record.length >= 25) {
+                    String domainName = record[24].toString();
+                    Long resourceId = ((Number) record[23]).longValue();
+                    String foreignResourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId);
+                    reservationRequestSummary.setResourceId(foreignResourceId);
+                }
+            }
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);

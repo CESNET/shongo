@@ -5,6 +5,8 @@ import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -17,6 +19,8 @@ public class InterDomainAgent {
     private static InterDomainAgent instance;
 
     private DomainService domainService;
+
+    private ReservationService reservationService;
 
     private final CachedDomainsConnector connector;
 
@@ -34,6 +38,7 @@ public class InterDomainAgent {
 
         domainService = new DomainService(entityManagerFactory);
         domainService.init(configuration);
+
 
         this.authentication = new DomainAuthentication(entityManagerFactory, configuration, emailSender);
         this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);

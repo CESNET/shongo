@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 
@@ -246,6 +247,20 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param objectId   object local id for the identifier
+     * @param objectType object type for the identifier
+     * @return parsed local identifier from given global or local identifier
+     */
+    public static ObjectIdentifier parseTypedId(String objectId, ObjectType objectType)
+    {
+        ObjectType idType = parseType(objectId);
+        if (objectType == null &&  idType == null) {
+            throw new IllegalArgumentException("Object type must be specified at least in one parameter.");
+        }
+        return parse(parseDomain(objectId), parseType(objectId), objectId);
+    }
+
+    /**
      * @param objectId foreign object global identifier
      * @return parsed {@link ObjectIdentifier}
      */
@@ -372,13 +387,24 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param foreignResources from witch the global identifier of foreign resource should be formatted
+     * @return foreign {@code resource} global identifier.
+     */
+    public static String formatId(ForeignResources foreignResources)
+    {
+        foreignResources.checkPersisted();
+        foreignResources.validateSingleResource();
+        return formatId(foreignResources.getDomain().getName(), Resource.class, foreignResources.getForeignResourceId());
+    }
+
+    /**
      * @param objectId   object local id for the identifier
      * @param objectType object type for the identifier
      * @return parsed local identifier from given global or local identifier
      */
     public static Long parseLocalId(String objectId, ObjectType objectType)
     {
-        return parseLocalId(LocalDomain.getLocalDomainName(), objectType, objectId);
+        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -389,21 +415,7 @@ public class ObjectIdentifier
     public static Long parseLocalId(String objectId, Class<? extends PersistentObject> objectClass)
     {
         ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
-        return parseLocalId(LocalDomain.getLocalDomainName(), objectType, objectId);
-    }
-
-    /**
-     * @param objectId   object local id for the identifier
-     * @param objectType object type for the identifier
-     * @return parsed local identifier from given global or local identifier
-     */
-    public static Long parseTypedId(String objectId, ObjectType objectType)
-    {
-        ObjectType idType = parseType(objectId);
-        if (objectType == null &&  idType == null) {
-            throw new IllegalArgumentException("Object type must be specified at least in one parameter.");
-        }
-        return parseLocalId(parseDomain(objectId), parseType(objectId), objectId);
+        return parseId(LocalDomain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -413,7 +425,7 @@ public class ObjectIdentifier
      */
     public static Long parseForeignId(String objectId, ObjectType objectType)
     {
-        return parseLocalId(parseDomain(objectId), objectType, objectId);
+        return parseId(parseDomain(objectId), objectType, objectId);
     }
 
     /**
@@ -490,7 +502,7 @@ public class ObjectIdentifier
      * @param objectId    object local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    private static Long parseLocalId(String domain, ObjectType objectType, String objectId)
+    private static Long parseId(String domain, ObjectType objectType, String objectId)
             throws ControllerReportSet.IdentifierInvalidException,
                    ControllerReportSet.IdentifierInvalidDomainException,
                    ControllerReportSet.IdentifierInvalidTypeException
