@@ -59,6 +59,7 @@ public class DomainAuthentication {
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Failed to load keystore " + configuration.getInterDomainSslKeyStore(), e);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to read keystore " + configuration.getInterDomainSslKeyStore(), e);
         }
     }

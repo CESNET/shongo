@@ -32,7 +32,7 @@ public class InterDomainTest extends AbstractControllerTest
     private static final Integer INTERDOMAIN_LOCAL_PORT = 8443;
     private static final String INTERDOMAIN_LOCAL_PASSWORD = "shongo_test";
     private static final String INTERDOMAIN_LOCAL_PASSWORD_HASH = SSLCommunication.hashPassword(INTERDOMAIN_LOCAL_PASSWORD.getBytes());
-    private static final String TEST_CERT_PATH = "../shongo-controller/src/test/resources/keystore/server.crt";
+    private static final String TEST_CERT_PATH = "./shongo-controller/src/test/resources/keystore/server.crt";
 
     private Domain loopbackDomain;
 
@@ -41,7 +41,7 @@ public class InterDomainTest extends AbstractControllerTest
     {
         System.setProperty(ControllerConfiguration.INTERDOMAIN_HOST, INTERDOMAIN_LOCAL_HOST);
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PORT, INTERDOMAIN_LOCAL_PORT.toString());
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE, "../shongo-controller/src/test/resources/keystore/server.p12");
+        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE, "./shongo-controller/src/test/resources/keystore/server.p12");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD, "shongo");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE, "PKCS12");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, "false");
