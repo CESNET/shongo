@@ -114,6 +114,7 @@
                 <version>2.18</version>
                 <configuration>
                     <forkCount>0</forkCount>
+                    <workingDirectory>${project.basedir}</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>
