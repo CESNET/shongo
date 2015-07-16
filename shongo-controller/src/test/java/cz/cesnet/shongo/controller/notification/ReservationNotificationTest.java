@@ -1224,9 +1224,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     }
 
     /**
-<<<<<<< Updated upstream
-=======
-     * Test for reallocationg new reservations after lookahead - not working yet
+     * Test for reallocating new reservations after lookahead
      */
     @Test
     public void testPeriodicCapacity() throws Exception
@@ -1242,29 +1240,34 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource aliasProvider = new DeviceResource();
         aliasProvider.addTechnology(Technology.SIP);
         aliasProvider.setName("aliasProvider");
+
         aliasProvider.addCapability(new RoomProviderCapability(10));
+
+        aliasProvider.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
+
         AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
         aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{hash}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         aliasProvider.addCapability(aliasProviderCapability);
+
         aliasProvider.setAllocatable(true);
         aliasProvider.addAdministratorEmail("pavelka@cesnet.cz");
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setDescription("Alias Reservation Request");
-        permanentRoomReservationRequest.setSlot("2015-05-25T16:19", "P2Y");
+        permanentRoomReservationRequest.setSlot("2015-01-01T08:00", "P1W");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.USER);
         permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.SIP_URI));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
-        runPreprocessorAndScheduler(new Interval(new DateTime("2015-05-25T16:19+02:00"), new Period("P1Y")));
+        runPreprocessorAndScheduler(new Interval(new DateTime("2015-01-01T00:00"), new Period("P1D")));
         for (Class<? extends AbstractNotification> clazz : getNotificationTypes()) {
             Assert.assertNotSame(ReservationNotification.Deleted.class, clazz);
         }
 
-        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2015-05-25T09:20+02:00", "PT2H10M", "P1W", "2017-05-24");
+        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2015-01-01T09:00", "PT2H10M", "P1D", "2015-01-05");
         slot.setTimeZone(DateTimeZone.forID("Europe/Prague"));
 
 
@@ -1278,10 +1281,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         capacityReservationRequest.setId(capacityReservationRequestId);
 
 
-        DateTime start = new DateTime("2015-05-25T08:00");
-        Period lookahead = new Period("P1Y");
-        Period schedulerPeriod = new Period("PT5M");
-        DateTime end = new DateTime("2015-06-09T09:16");
+        DateTime start = new DateTime("2015-01-01T08:00");
+        Period lookahead = new Period("P1D");
+        Period schedulerPeriod = new Period("PT1H");
+        DateTime end = new DateTime("2015-01-01T23:59");
         while(start.isBefore(end)) {
             runPreprocessorAndScheduler(new Interval(start, lookahead));
             start = start.plus(schedulerPeriod);
@@ -1290,9 +1293,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
             }
         }
 
-        capacityReservationRequest.removeSlot(slot);
-        slot = new PeriodicDateTimeSlot("2015-06-09T10:00+02:00", "PT2H10M", "P1W", "2017-05-24");
-        capacityReservationRequest.addSlot(slot);
+//        capacityReservationRequest.removeSlot(slot);
+//        slot = new PeriodicDateTimeSlot("2015-06-09T10:00+02:00", "PT2H10M", "P1W", "2017-05-24");
+//        capacityReservationRequest.addSlot(slot);
+        RoomSpecification roomSpecification = (RoomSpecification) capacityReservationRequest.getSpecification();
+        roomSpecification.getAvailability().addServiceSpecification(new RecordingServiceSpecification(true));
         reservationService.modifyReservationRequest(SECURITY_TOKEN_USER1, capacityReservationRequest);
 
         runPreprocessorAndScheduler(new Interval(start, lookahead));
@@ -1302,7 +1307,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         Assert.assertTrue(notificationTypes.contains(ReservationNotification.Deleted.class));
         clearNotificationRecords();
 
-        end = new DateTime("2016-05-24T23:59");
+        end = new DateTime("2015-01-05T23:59");
         while(start.isBefore(end)) {
             runPreprocessorAndScheduler(new Interval(start, lookahead));
             start = start.plus(schedulerPeriod);
@@ -1313,125 +1318,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     }
 
     /**
-     * Test periodic request with future after worker lookahead.
-     *
-     * @throws Exception
-     */
-//    @Test
-//    public void testLookaheadNotificationsWithPeriod() throws Exception
-//    {
-//        DateTimeZone dateTimeZone = DateTimeZone.forID("UTC");
-//        DateTimeZone.setDefault(dateTimeZone);
-//        TimeZone.setDefault(dateTimeZone.toTimeZone());
-//
-//        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
-//        userSettings.setLocale(Locale.ENGLISH);
-//        userSettings.setUseWebService(false);
-//        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
-//
-//        ReservationService reservationService = getReservationService();
-//
-//        Resource meetingRoom = new Resource();
-//        meetingRoom.setName("Meeting room");
-//        meetingRoom.setAllocatable(true);
-//        String meetingRoomId = getResourceService().createResource(SECURITY_TOKEN_ROOT, meetingRoom);
-//
-//        ReservationRequestSet reservationRequest = new ReservationRequestSet();
-//        reservationRequest.setDescription("Meeting Room Reservation Request");
-//        reservationRequest.setSpecification(new ResourceSpecification(meetingRoomId));
-//        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2015-02-13T09:30", "PT1H30M", "P1W", "2016-12-31");
-//        slot.setTimeZone(DateTimeZone.forID("Europe/Prague"));
-//        reservationRequest.addSlot(slot);
-//        reservationRequest.setPurpose(ReservationRequestPurpose.USER);
-//
-//        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
-//
-//        AclEntry aclEntry = new AclEntry();
-//        aclEntry.setIdentityType(AclIdentityType.USER);
-//        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN_USER1));
-//        aclEntry.setRole(ObjectRole.OWNER);
-//        aclEntry.setObjectId(reservationRequestId);
-//        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, aclEntry);
-//
-//        DateTime start = new DateTime("2015-02-17T13:46");
-//        Period lookahead = new Period("P1Y");
-//        Period schedulerPeriod = new Period("PT30M");
-//        DateTime end = new DateTime("2015-02-25T12:00");
-//        while(start.isBefore(end)) {
-//            runPreprocessorAndScheduler(new Interval(start, lookahead));
-//            start = start.plus(schedulerPeriod);
-//
-//            // Should contain only 1 new notification, NO deleted
-//            Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
-//            {{
-//                add(ReservationRequestNotification.class);
-//            }}, getNotificationTypes());        }
-//    }
-
-//    @Test
-//    public void testLookaheadNotificationPeriodOnPermanentRoom() throws Exception
-//    {
-//        DateTimeZone dateTimeZone = DateTimeZone.forID("UTC");
-//        DateTimeZone.setDefault(dateTimeZone);
-//        TimeZone.setDefault(dateTimeZone.toTimeZone());
-//
-//        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
-//        userSettings.setLocale(Locale.ENGLISH);
-//        userSettings.setUseWebService(false);
-//        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
-//
-//        DeviceResource aliasProvider = new DeviceResource();
-//        aliasProvider.addTechnology(Technology.ADOBE_CONNECT);
-//        aliasProvider.setName("adobeConnect");
-//        aliasProvider.addCapability(new RoomProviderCapability(10));
-//        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
-//        aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{hash}"));
-//        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
-//        aliasProvider.addCapability(aliasProviderCapability);
-//        aliasProvider.setAllocatable(true);
-//        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
-//
-//        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
-//        permanentRoomReservationRequest.setDescription("Alias Reservation Request");
-//        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
-//        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-//        permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.ADOBE_CONNECT_URI));
-//        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
-//        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
-//        checkAllocated(permanentRoomReservationRequestId);
-//
-//        ReservationRequestSet capacityReservationRequest = new ReservationRequestSet();
-//        capacityReservationRequest.setDescription("Capacity Reservation Request");
-//        PeriodicDateTimeSlot slot = new PeriodicDateTimeSlot("2012-01-01T07:20", "PT2H10M", "P1W", "2012-12-31");
-//        capacityReservationRequest.addSlot(slot);
-//        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-//        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-//        capacityReservationRequest.setSpecification(new RoomSpecification(5));
-//
-//        String capacityReservationRequestId = getReservationService().createReservationRequest(SECURITY_TOKEN, capacityReservationRequest);
-//
-//
-//        AclEntry aclEntry = new AclEntry();
-//        aclEntry.setIdentityType(AclIdentityType.USER);
-//        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN_USER1));
-//        aclEntry.setRole(ObjectRole.OWNER);
-//        aclEntry.setObjectId(capacityReservationRequestId);
-//        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, aclEntry);
-//
-//        DateTime start = new DateTime("2012-01-01T11:00");
-//        Period lookahead = new Period("P1W");
-//        Period schedulerPeriod = new Period("PT5M");
-//        DateTime end = new DateTime("2012-12-31T12:00");
-//        while(start.isBefore(end)) {
-//            runPreprocessorAndScheduler(new Interval(start, lookahead));
-//            start = start.plus(schedulerPeriod);
-//
-//            Assert.assertFalse(getNotificationTypes().contains(ReservationNotification.Deleted.class));
-//        }
-//    }
-
-    /**
->>>>>>> Stashed changes
      * {@link NotificationExecutor} for testing.
      */
     private class TestingNotificationExecutor extends NotificationExecutor
