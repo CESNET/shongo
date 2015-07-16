@@ -342,6 +342,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             // Filter requested by foreign domain
             if (request.getDomainId() != null) {
+                searchForeign = false;
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_id FROM domain_resource "
                         + " WHERE domain_id = :domainId)", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
@@ -350,16 +351,19 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Filter user-ids
             Set<String> userIds = request.getUserIds();
             if (userIds != null && !userIds.isEmpty()) {
+                //TODO: search foreign?
                 queryFilter.addFilterIn("resource_summary.user_id", userIds);
             }
 
             // Filter name
             if (request.getName() != null) {
+                //TODO: search foreign?
                 queryFilter.addFilter("resource_summary.name = :name", "name", request.getName());
             }
 
             // Capability type
             if (request.getCapabilityClasses().size() > 0) {
+                searchForeign = false;
                 StringBuilder capabilityClassFilter = new StringBuilder();
                 for (Class<? extends Capability> capabilityClass : request.getCapabilityClasses()) {
                     if (capabilityClassFilter.length() > 0) {
@@ -386,6 +390,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Technologies
             Set<Technology> technologies = request.getTechnologies();
             if (technologies.size() > 0) {
+                searchForeign = false;
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT device_resource.id FROM device_resource "
                         + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
@@ -442,6 +447,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (searchForeign) {
                 foreignResourcesListRequest.setSecurityToken(securityToken);
                 foreignResourcesListRequest.setPermission(request.getPermission());
+                //TODO: add TagId
                 foreignResourcesListRequest.setTagName(request.getTagName());
                 ListResponse<ResourceSummary> resourceSummaries = listForeignResources(foreignResourcesListRequest);
                 response.addAll(resourceSummaries);

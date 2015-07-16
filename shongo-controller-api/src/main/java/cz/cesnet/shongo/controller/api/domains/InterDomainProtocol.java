@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.Interval;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,9 +26,9 @@ public interface InterDomainProtocol {
      */
     public DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, String type, Interval interval, Technology technology);
+    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval interval, Technology technology);
 
-    public Reservation handleAllocate(HttpServletRequest request, String type, Interval slot, String resourceId, Technology technology, String userId);
+    public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot, String resourceId, String userId, Technology technology);
 
     /**
      * Represents Inter Domain response with status code

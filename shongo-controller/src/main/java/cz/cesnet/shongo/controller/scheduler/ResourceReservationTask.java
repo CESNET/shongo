@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
@@ -60,10 +61,17 @@ public class ResourceReservationTask extends ReservationTask
         //Check permissions
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
         Authorization authorization = authorizationManager.getAuthorization();
-        if (!authorization.hasObjectPermission(schedulerContext.getUserId(),resource, ObjectPermission.RESERVE_RESOURCE)) {
-            if (!authorization.getUsersWithRole(resource,ObjectRole.RESERVATION).isEmpty()) {
-                throw new SchedulerReportSet.UserNotAllowedException(resource);
+        if (UserInformation.isLocal(schedulerContext.getUserId())) {
+            // Check permissions for local user
+            if (!authorization.hasObjectPermission(schedulerContext.getUserId(), resource, ObjectPermission.RESERVE_RESOURCE)) {
+                if (!authorization.getUsersWithRole(resource, ObjectRole.RESERVATION).isEmpty()) {
+                    throw new SchedulerReportSet.UserNotAllowedException(resource);
+                }
             }
+        }
+        else {
+            // Check permissions for reservation from foreign domain
+
         }
 
         validateReservationSlot(ResourceReservation.class);

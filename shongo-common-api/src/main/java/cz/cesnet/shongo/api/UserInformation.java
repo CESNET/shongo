@@ -6,6 +6,8 @@ import jade.content.Concept;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents {@link PersonInformation} for a Shongo user.
@@ -248,5 +250,33 @@ public class UserInformation extends AbstractComplexType implements PersonInform
                 iterator.remove();
             }
         }
+    }
+
+    /**
+     * Local identifier pattern.
+     */
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d+|\\*");
+
+    /**
+     * Local identifier pattern with type (<domain-id>:<user-id>).
+     */
+    private static Pattern FOREIGN_IDENTIFIER_PATTERN = Pattern.compile("(\\d+|\\*):(\\d+|\\*)");
+
+
+    public static boolean isLocal(String userId)
+    {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(userId).matches()) {
+            return true;
+        }
+        return false;
+    }
+
+    public static Long parseDomainId(String userId)
+    { Matcher matcher = FOREIGN_IDENTIFIER_PATTERN.matcher(userId);
+        if (matcher.matches()) {
+            return Long.parseLong(matcher.group(1));
+        }
+
+        throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
     }
 }

@@ -130,7 +130,12 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             // Get users
             if (userIds != null && userIds.size() < 3) {
                 for (String userId : userIds.getUserIds()) {
-                    users.add(authorization.getUserInformation(userId));
+                    if (UserInformation.isLocal(userId)) {
+                        users.add(authorization.getUserInformation(userId));
+                    }
+                    else {
+                        //TODO:IDP:findUser
+                    }
                 }
                 // Filter them
                 if (search != null) {
