@@ -20,7 +20,7 @@ public class InterDomainAgent {
 
     private DomainService domainService;
 
-    private ReservationService reservationService;
+    private EntityManagerFactory entityManagerFactory;
 
     private final CachedDomainsConnector connector;
 
@@ -35,6 +35,8 @@ public class InterDomainAgent {
         if (configuration == null || !configuration.isInterDomainConfigured()) {
             throw new IllegalStateException("Inter Domain connection is not configured.");
         }
+
+        this.entityManagerFactory = entityManagerFactory;
 
         domainService = new DomainService(entityManagerFactory);
         domainService.init(configuration);
@@ -76,7 +78,7 @@ public class InterDomainAgent {
         }
     }
 
-    public DomainService getDomainService() {
+    protected DomainService getDomainService() {
         return domainService;
     }
 
@@ -84,7 +86,12 @@ public class InterDomainAgent {
         return connector;
     }
 
-    public DomainAuthentication getAuthentication() {
+    protected DomainAuthentication getAuthentication() {
         return authentication;
+    }
+
+    protected EntityManagerFactory getEntityManagerFactory()
+    {
+        return entityManagerFactory;
     }
 }
