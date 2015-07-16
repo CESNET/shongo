@@ -518,12 +518,13 @@ public class LocalStorageHandler
 
     private URI constructURI(String url)
     {
-        String stringUri = "file://" + url;
-        try {
-            return new URI(stringUri);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Syntax error in directory path'" + stringUri + "'.");
-        }
+//        String stringUri = "file://" + url;
+//        try {
+//            return new URI(stringUri);
+            return new java.io.File(url).toURI();
+//        } catch (URISyntaxException e) {
+//            throw new RuntimeException("Syntax error in directory path'" + url + "'.");
+//        }
     }
 
     /**
