@@ -162,4 +162,27 @@ public abstract class ExecutableServiceSpecification extends Specification
 
         setEnabled(executableServiceSpecificationApi.isEnabled());
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExecutableServiceSpecification that = (ExecutableServiceSpecification) o;
+
+        if (enabled != that.enabled) return false;
+        if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
+        return !(executable != null ? !executable.equals(that.executable) : that.executable != null);
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = resource != null ? resource.hashCode() : 0;
+        result = 31 * result + (executable != null ? executable.hashCode() : 0);
+        result = 31 * result + (enabled ? 1 : 0);
+        return result;
+    }
 }
