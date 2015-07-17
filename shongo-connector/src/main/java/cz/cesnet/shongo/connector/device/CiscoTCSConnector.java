@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.NotEnoughSpaceException;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import cz.cesnet.shongo.util.MathHelper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -101,6 +102,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * Pattern for recording name stored on TCS (<recordingFolderId>_<alias>_<recordingFileId>).
      */
     private final Pattern RECORDING_NAME_PATTERN = Pattern.compile("^(.*[^_])_([^_].*[^_])_([^_].*)$");
+
+    /**
+     * Pattern for display name of TCS downloadavke recording with size.
+     */
+    private final Pattern TCS_DOWNLOADABLE_URL_NAME = Pattern.compile("^.*[(](.*)[)]$");
 
     /**
      * Namespace constant for Cisco TCS
@@ -264,7 +270,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 setRecordingChecking(true);
                 logger.info("Checking of recordings - starting...");
                 try {
-                    while (checkRecordingsThread != null && isConnected()) {
+                    while (checkRecordingsThread != null) {
                         try {
                             Thread.sleep(recordingsCheckTimeout);
                         }
@@ -274,7 +280,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         }
 
                         try {
-                            performCheckRecordings();
+                            if (isConnected()) {
+                                performCheckRecordings();
+                            }
+                            else {
+                                logger.error("Cannot check recording due to unavailable TCS server.");
+                            }
                         }
                         catch (Exception exception) {
                             logger.warn("Checking location of recording failed", exception);
@@ -1011,6 +1022,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         }
         if ("true".equals(recordingTcsElement.getChildText("HasDownloadableMovie"))) {
             Element downloadableMovie = recordingTcsElement.getChild("DownloadableMovies").getChild("DownloadableMovie");
+
+            String originDescription = downloadableMovie.getChildText("Display");
+            recording.setSize(parseSize(originDescription));
+
             String downloadUrl = downloadableMovie.getChildText("URL");
             String[] downloadUrlParts = downloadUrl.split("\\.");
             String extension = downloadUrlParts[downloadUrlParts.length - 1];
@@ -1019,6 +1034,24 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             recording.setState(Recording.State.PROCESSED);
         }
         return recording;
+    }
+
+    /**
+     * Parse size from TCS name of downloadable url
+     * @param originDescription
+     * @return
+     */
+    private long parseSize(String originDescription)
+    {
+        String size = "";
+        Matcher matcher = TCS_DOWNLOADABLE_URL_NAME.matcher(originDescription);
+        if (!matcher.find()) {
+            logger.error("Failed to parse size from <display>  \"" + originDescription + "\"");
+        }
+        else {
+            size = matcher.group(1);
+        }
+        return MathHelper.toBytes(size);
     }
 
     /**
@@ -1495,7 +1528,28 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             updateMetadataFiles(recordingFolderId, recordingId, recordingTcsElement);
 
             // Delete original recording on TCS
-            deleteTcsRecording(recordingTcsId);
+            if (validateRecording(file, recording)) {
+                deleteTcsRecording(recordingTcsId);
+            }
+            else {
+                NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+                notifyTarget.addMessage("en",
+                        "Downloaded recording is not complete",
+                        "Downloaded recording may have encountered some problem. Actual size does not match given on TCS.\n" +
+                        "Recording id: " + recordingId +
+                        recording.toString());
+                notifyTarget.addMessage("cs",
+                        "Stazena nahravka neni kompletni",
+                        "Velikost stažené nahrávky neodpovídá udávané velikosti na TCS.\n" +
+                        "Id nahrávky: " + recordingId +
+                        recording.toString());
+                try {
+                    performControllerAction(notifyTarget);
+                }
+                catch (CommandException notifyException) {
+                    logger.error("Failed to report that moving of recording has failed.", notifyException);
+                }
+            }
         }
         catch (Exception exception) {
             throw new CommandException("Error while moving recording " + recordingId + ".", exception);
@@ -1503,6 +1557,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         finally {
             recordingsBeingMoved.remove(recordingId);
         }
+    }
+
+    private boolean validateRecording(File file, Recording recording)
+    {
+        Long expectedSize = recording.getSize();
+        return storage.validateFile(file, expectedSize);
     }
 
     private void setFolderPermissionsFromMetadata(String recordingFolderId) throws IOException, CommandException {

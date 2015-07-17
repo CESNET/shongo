@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector.storage;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -180,7 +179,13 @@ public class ApacheStorage extends AbstractStorage
         if (!folderExists(fileUrl)) {
             return null;
         }
-        String downloadableUrl = this.getDownloadableUrlBase() + "/" + fileUrl;
+        String downloadableUrl = LocalStorageHandler.getChildUrl(this.getDownloadableUrlBase(), fileUrl);
         return downloadableUrl;
+    }
+
+    @Override
+    public boolean validateFile(File file,  long expectedSize)
+    {
+        return localStorageHandler.validateFile(file, expectedSize);
     }
 }

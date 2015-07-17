@@ -36,6 +36,11 @@ public class Recording extends IdentifiedComplexType
     private String downloadUrl;
 
     /**
+     * Size of downloadable recording in Bytes.
+     */
+    private long size;
+
+    /**
      * URL to view recording.
      */
     private String viewUrl;
@@ -217,6 +222,16 @@ public class Recording extends IdentifiedComplexType
         this.isPublic = isPublic;
     }
 
+    public long getSize()
+    {
+        return size;
+    }
+
+    public void setSize(long size)
+    {
+        this.size = size;
+    }
+
     /**
      * @return {@link #state}
      */
@@ -244,6 +259,7 @@ public class Recording extends IdentifiedComplexType
     public static final String IS_PUBLIC = "isPublic";
     public static final String FILENAME = "filename";
     public static final String STATE = "state";
+//    public static final String SIZE = "size";
 
     @Override
     public DataMap toData()
@@ -260,6 +276,7 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(IS_PUBLIC,isPublic);
         dataMap.set(FILENAME, fileName);
         dataMap.set(STATE, state);
+//        dataMap.set(SIZE, size);
         return dataMap;
     }
 
@@ -278,6 +295,7 @@ public class Recording extends IdentifiedComplexType
         isPublic = dataMap.getBoolean(IS_PUBLIC);
         fileName = dataMap.getString(FILENAME);
         state = dataMap.getEnum(STATE, State.class);
+//        size = dataMap.getLongPrimitive(SIZE);
     }
 
     @Override
@@ -294,6 +312,7 @@ public class Recording extends IdentifiedComplexType
                 ", beginDate=" + beginDate +
                 ", duration=" + duration +
                 ", state=" + state +
+                ", size=" + size +
                 '}';
     }
 

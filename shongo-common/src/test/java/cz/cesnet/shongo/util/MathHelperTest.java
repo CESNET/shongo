@@ -3,6 +3,8 @@ package cz.cesnet.shongo.util;
 import junit.framework.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+
 /**
  * Tests for {@link MathHelper}.
  *
@@ -23,5 +25,16 @@ public class MathHelperTest
             System.out.println(level + " -> " + db);
             Assert.assertEquals(level, Math.round(computedLevel * 5.0));
         }
+    }
+
+    @Test
+    public void testToBytes()
+    {
+        org.junit.Assert.assertEquals(1024*1024,MathHelper.toBytes("1MB"));
+        org.junit.Assert.assertEquals(1024 * 1024, MathHelper.toBytes("1 MB"));
+        org.junit.Assert.assertEquals(BigDecimal.valueOf(1.2 * 1024 * 1024).longValue(),MathHelper.toBytes("1.2 MB"));
+        org.junit.Assert.assertEquals(BigDecimal.valueOf(1.2 * 1024 * 1024).longValue(),MathHelper.toBytes("1,2 MB"));
+        org.junit.Assert.assertEquals(BigDecimal.valueOf(1.2 * 1024 * 1024 * 1024).longValue(),MathHelper.toBytes("1.2 GB"));
+        org.junit.Assert.assertEquals(BigDecimal.valueOf(1.2 *  1024).longValue(),MathHelper.toBytes("1.2 KB"));
     }
 }
