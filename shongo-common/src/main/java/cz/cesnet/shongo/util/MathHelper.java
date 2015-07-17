@@ -1,5 +1,11 @@
 package cz.cesnet.shongo.util;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Helper class for mathematical operations.
  *
@@ -21,17 +27,15 @@ public class MathHelper
         }
         if (percentAbsolute == 0.0) {
             return 0;
-        }
-        else if (percentAbsolute == 1.0) {
+        } else if (percentAbsolute == 1.0) {
             return percentSign * maxDb;
-        }
-        else {
+        } else {
             return percentSign * Math.abs(Math.log10(1.0 - percentAbsolute) * maxDb);
         }
     }
 
     /**
-     * @param db amount of dB
+     * @param db    amount of dB
      * @param maxDb
      * @return % from given {@code db}
      */
@@ -45,9 +49,29 @@ public class MathHelper
 
         if (dbAbsolute == maxDb) {
             return dbSign * 1.0;
-        }
-        else {
+        } else {
             return dbSign * (1.0 - Math.pow(10, -dbAbsolute / 20));
         }
+    }
+
+    public static long toBytes(String filesize)
+    {
+        long returnValue = -1;
+        // Remove all white spaces
+        filesize = filesize.replaceAll("\\s+", "").replaceAll(",", ".");
+        Pattern pattern = Pattern.compile("([\\d.]+)([GMK]B)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(filesize);
+        Map<String, Integer> powerMap = new HashMap<String, Integer>();
+        powerMap.put("GB", 3);
+        powerMap.put("MB", 2);
+        powerMap.put("KB", 1);
+        if (matcher.find()) {
+            String number = matcher.group(1);
+            int pow = powerMap.get(matcher.group(2).toUpperCase());
+            BigDecimal bytes = new BigDecimal(number);
+            bytes = bytes.multiply(BigDecimal.valueOf(1024).pow(pow));
+            returnValue = bytes.longValue();
+        }
+        return returnValue;
     }
 }

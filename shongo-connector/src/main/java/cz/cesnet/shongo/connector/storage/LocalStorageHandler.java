@@ -53,7 +53,8 @@ public class LocalStorageHandler
      * @param url sets the {@link #url}
      */
     public LocalStorageHandler(String url) throws FileNotFoundException {
-        if (url.endsWith("/")) {
+        url = new java.io.File(url).getPath();
+        if (url.endsWith("/") || url.endsWith("\\")) {
             url = url.substring(0,url.length() - 1);
         }
         this.url = url;
@@ -201,9 +202,11 @@ public class LocalStorageHandler
         String folderUrl = getUrlFromId(folderId);
         file.setFileName(mangle(file.getFileName()));
         String fileName = file.getFileName();
-        String fileUrl = getChildUrl(folderUrl, fileName);
+//        String fileUrl = getChildUrl(folderUrl, fileName);
+        java.io.File ioFile = getFileInstance(file);
+        String fileUrl = ioFile.getAbsolutePath();
 
-        if (getFileInstance(fileUrl).exists()) {
+        if (ioFile.exists()) {
             throw new RuntimeException("File '" + fileUrl + "' already exists.");
         }
 
@@ -231,7 +234,7 @@ public class LocalStorageHandler
                                 throw exception;
                             }
 
-                            String message = "Creation of file " + folderUrl + "/" + fileName + ": ";
+                            String message = "Creation of file " + getChildUrl(folderUrl, fileName) + ": ";
                             logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
 
                             // Wait before resuming
@@ -252,7 +255,7 @@ public class LocalStorageHandler
                             }
                             catch (Exception resumeException) {
                                 throw new RuntimeException("Reopening input stream failed for creation of file " +
-                                        folderUrl + "/" + fileName + ".", resumeException);
+                                        getChildUrl(folderUrl, fileName) + ".", resumeException);
                             }
                             finally {
                                 try {
@@ -265,7 +268,7 @@ public class LocalStorageHandler
                         }
                         catch (Exception exception) {
                             throw new RuntimeException("Reading input stream failed for creation of file " +
-                                    folderUrl + "/" + fileName + " at " + fileContentIndex + ".", exception);
+                                    getChildUrl(folderUrl, fileName) + " at " + fileContentIndex + ".", exception);
                         }
                     }
 
@@ -275,7 +278,7 @@ public class LocalStorageHandler
                     }
                     // Check if folder isn't already deleted
                     if (foldersBeingDeleted.contains(file.getFolderId())) {
-                        logger.warn("Creation of file " + folderUrl + "/" + fileName +
+                        logger.warn("Creation of file " + getChildUrl(folderUrl, fileName) +
                                 " has been stopped because folder " + folderId + " is being deleted.");
                         break;
                     }
@@ -462,7 +465,8 @@ public class LocalStorageHandler
             return childName;
         }
         else {
-            return parentId + "/" + childName;
+            java.io.File parent = new java.io.File("parentId");
+            return new java.io.File(parent, childName).getPath();
         }
     }
 
@@ -473,13 +477,16 @@ public class LocalStorageHandler
      */
     public static String getChildUrl(String parentUrl, String childName)
     {
-        StringBuilder childUrl = new StringBuilder();
-        childUrl.append(parentUrl);
-        if (childUrl.charAt(childUrl.length() - 1) != '/') {
-            childUrl.append("/");
-        }
-        childUrl.append(mangle(childName));
-        return childUrl.toString();
+        java.io.File path = new java.io.File(parentUrl);
+        return new java.io.File(path, mangle(childName)).getPath();
+
+//        StringBuilder childUrl = new StringBuilder();
+//        childUrl.append(parentUrl);
+//        if (childUrl.charAt(childUrl.length() - 1) != '/') {
+//            childUrl.append("/");
+//        }
+//        childUrl.append(mangle(childName));
+//        return childUrl.toString();
     }
 
     /**
@@ -516,16 +523,16 @@ public class LocalStorageHandler
         return true;
     }
 
-    private URI constructURI(String url)
-    {
-//        String stringUri = "file://" + url;
-//        try {
-//            return new URI(stringUri);
-            return new java.io.File(url).toURI();
-//        } catch (URISyntaxException e) {
-//            throw new RuntimeException("Syntax error in directory path'" + url + "'.");
-//        }
-    }
+//    private URI constructURI(String url)
+//    {
+////        String stringUri = "file://" + url;
+////        try {
+////            return new URI(stringUri);
+//            return new java.io.File(url).toURI();
+////        } catch (URISyntaxException e) {
+////            throw new RuntimeException("Syntax error in directory path'" + url + "'.");
+////        }
+//    }
 
     /**
      * Returns new instance of #link(java.io.File) for given url.
@@ -535,7 +542,37 @@ public class LocalStorageHandler
      */
     private java.io.File getFileInstance(String url)
     {
-        URI uri = constructURI(url);
-        return new java.io.File(uri.getPath());
+//        URI uri = constructURI(url);
+//        return new java.io.File(uri.getPath());
+        return new java.io.File(url);
+    }
+
+    /**
+     * Returns new instance of #link(java.io.File) for given url.
+     *
+     * @param file
+     * @return
+     */
+    private java.io.File getFileInstance(File file)
+    {
+        String folderId = file.getFolderId();
+        String folderUrl = getUrlFromId(folderId);
+        file.setFileName(mangle(file.getFileName()));
+        String fileName = file.getFileName();
+        String fileUrl = getChildUrl(folderUrl, fileName);
+
+        return new java.io.File(fileUrl);
+    }
+
+    /**
+     * Returns true if expected size differs from file size at most 10 MB
+     * @param file
+     * @param expectedSize
+     * @return
+     */
+    public boolean validateFile(File file, long expectedSize)
+    {
+        long fileSize = getFileInstance(file).length();
+        return Math.abs(fileSize - expectedSize) < (10 * 1024 * 1024);
     }
 }

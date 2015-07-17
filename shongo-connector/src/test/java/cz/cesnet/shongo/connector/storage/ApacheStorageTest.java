@@ -77,15 +77,42 @@ public class ApacheStorageTest
         Assert.assertTrue(dirExists("folder"));
 
         storage.createFile(new File(folderId, "recording"), getInputStream("<data>"));
-        Assert.assertTrue(fileExists("folder/recording"));
+        String recordingPath  = new java.io.File("folder", "recording").getPath();
+        Assert.assertTrue(fileExists(recordingPath));
+        Assert.assertEquals("<data>", getFileContent(recordingPath));
+
+        storage.setFolderPermissions(folderId, new HashMap<String, RecordingFolder.UserPermission>()
+        {{
+                put("srom", RecordingFolder.UserPermission.READ);
+            }});
+        String htaccessPath = new java.io.File("folder",".htaccess").getPath();
+        Assert.assertTrue(fileExists(htaccessPath));
+        Assert.assertEquals("Require user 208213@muni.cz\nRequire user srom@cesnet.cz", getFileContent("folder/.htaccess"));
+    }
+
+    @Test
+    public void testCreateDelete() throws Exception
+    {
+        String folderId = storage.createFolder(new Folder(null, "folder"));
+        Assert.assertTrue(dirExists("folder"));
+
+        File file = new File(folderId, "recording");
+        storage.createFile(file, getInputStream("<data>"));
+        String recordingPath  = new java.io.File("folder", "recording").getPath();
+        Assert.assertTrue(fileExists(recordingPath));
         Assert.assertEquals("<data>", getFileContent("folder/recording"));
 
         storage.setFolderPermissions(folderId, new HashMap<String, RecordingFolder.UserPermission>()
         {{
                 put("srom", RecordingFolder.UserPermission.READ);
             }});
-        Assert.assertTrue(fileExists("folder/.htaccess"));
+
+        String htaccessPath = new java.io.File("folder",".htaccess").getPath();
+        Assert.assertTrue(fileExists(htaccessPath));
         Assert.assertEquals("Require user 208213@muni.cz\nRequire user srom@cesnet.cz", getFileContent("folder/.htaccess"));
+
+        storage.deleteFile(folderId, "recording");
+        Assert.assertFalse(storage.fileExists(file));
     }
 
     @Test

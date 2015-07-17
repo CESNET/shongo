@@ -106,4 +106,12 @@ public interface Storage
      */
     String getFileDownloadableUrl(String folderId, String fileName);
 
+    /**
+     * Validate if file has given size in Bytes.
+     *
+     * @param file to be verified
+     * @param expectedSize expected file size in Bytes
+     * @return
+     */
+    boolean validateFile(File file, long expectedSize);
 }

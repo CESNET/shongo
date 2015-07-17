@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.connector;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.device.CiscoMCUConnector;
+import cz.cesnet.shongo.connector.device.CiscoTCSConnector;
 import junit.framework.Assert;
 import org.apache.log4j.Level;
 import org.apache.xmlrpc.XmlRpcException;
@@ -16,13 +18,15 @@ import org.junit.Test;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tests for {@link cz.cesnet.shongo.connector.device.CiscoTCSConnector}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ConnectionResetTest
+public class CiscoTCSConnectorTest
 {
     private static boolean invokeConnectionReset = false;
 
