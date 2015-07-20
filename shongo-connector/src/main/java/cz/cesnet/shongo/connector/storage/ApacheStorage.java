@@ -5,6 +5,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -32,7 +34,7 @@ public class ApacheStorage extends AbstractStorage
      * @param url                     sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    public ApacheStorage(String url, String permissionFormat, String downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
+    public ApacheStorage(String url, String permissionFormat, URL downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
     {
         super(url, downloadableUrlBase, userInformationProvider);
 
@@ -79,7 +81,7 @@ public class ApacheStorage extends AbstractStorage
             throws CommandException
     {
         String folderUrl = localStorageHandler.getUrlFromId(folderId);
-        String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, PERMISSION_FILE_NAME);
+        String permissionFileUrl = LocalStorageHandler.getChildPath(folderUrl, PERMISSION_FILE_NAME);
 
         StringBuilder permissionFileContent = preparePermissionFileContent(userPermissions);
 
@@ -90,7 +92,7 @@ public class ApacheStorage extends AbstractStorage
             throws CommandException
     {
         String folderUrl = localStorageHandler.getUrlFromId(folderId);
-        String permissionFileUrl = LocalStorageHandler.getChildUrl(folderUrl, PERMISSION_FILE_NAME);
+        String permissionFileUrl = LocalStorageHandler.getChildPath(folderUrl, PERMISSION_FILE_NAME);
 
         printPermissionsToFile(permissionFileUrl,permissionFileContent);
     }
@@ -173,14 +175,13 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public String getFileDownloadableUrl(String folderId, String fileName)
+    public String getFileDownloadableUrl(String folderId, String fileName) throws MalformedURLException
     {
-        String fileUrl = LocalStorageHandler.getChildUrl(folderId, fileName);
+        String fileUrl = LocalStorageHandler.getChildPath(folderId, fileName);
         if (!folderExists(fileUrl)) {
             return null;
         }
-        String downloadableUrl = LocalStorageHandler.getChildUrl(this.getDownloadableUrlBase(), fileUrl);
-        return downloadableUrl;
+        return new URL(this.getDownloadableUrlBase(), fileUrl).toString();
     }
 
     @Override

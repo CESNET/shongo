@@ -3,6 +3,8 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import org.joda.time.Duration;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -55,6 +57,24 @@ public abstract class ConnectorConfiguration
                     "Option '" + option + "' must be set in connector '" + getAgentName() + "' configuration.");
         }
         return value;
+    }
+
+    /**
+     * @param option
+     * @return value for given {@code option} which must be not null
+     */
+    public URL getOptionURLRequired(String option)
+    {
+        String value = getOptionString(option);
+        if (value == null) {
+            throw new IllegalArgumentException(
+                    "Option '" + option + "' must be set in connector '" + getAgentName() + "' configuration.");
+        }
+        try {
+            return new URL(value);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Given URL is malformed (option: " + option + ")", e);
+        }
     }
 
     /**

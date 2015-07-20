@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
@@ -104,7 +105,7 @@ public interface Storage
      *
      * @return file downloadableUrl
      */
-    String getFileDownloadableUrl(String folderId, String fileName);
+    String getFileDownloadableUrl(String folderId, String fileName) throws MalformedURLException;
 
     /**
      * Validate if file has given size in Bytes.
