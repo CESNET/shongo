@@ -1476,9 +1476,10 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
     /**
      * @param recordingId to be moved to appropriate recording folder
+     * @return true if recording has been moved successfully
      * @throws CommandException
      */
-    private void moveRecordingToAppropriateRecordingFolder(String recordingId) throws CommandException
+    private boolean moveRecordingToAppropriateRecordingFolder(String recordingId) throws CommandException
     {
         try {
             String recordingFolderId = getRecordingFolderIdFromRecordingId(recordingId);
@@ -1493,7 +1494,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
                     //Remove recording from #link{recordingsBeingMoved} till storage is accessible
                     recordingsBeingMoved.remove(recordingId, recordingFolderId);
-                    return;
+                    return false;
                 } catch (Exception e) {
                     throw new CommandException("Recreating of TCS storage folder \"" + recordingFolderId + "\" failed.",e);
                 }
@@ -1530,6 +1531,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             // Delete original recording on TCS
             if (validateRecording(file, recording)) {
                 deleteTcsRecording(recordingTcsId);
+                return true;
             }
             else {
                 NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
@@ -1549,6 +1551,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 catch (CommandException notifyException) {
                     logger.error("Failed to report that moving of recording has failed.", notifyException);
                 }
+                return false;
             }
         }
         catch (Exception exception) {
@@ -1623,20 +1626,21 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         String recordingId = recording.getId();
 
                         try {
-                            moveRecordingToAppropriateRecordingFolder(recordingId);
-                            Recording movedRecording = getRecording(recordingId);
-                            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.REC_FOLDER_OWNERS, recording.getRecordingFolderId());
-                            notifyTarget.addMessage("en",
-                                    "Your recording was successfully processed",
-                                    "Your recording is ready to be downloaded at " + movedRecording.getDownloadUrl() + ".\n");
-                            notifyTarget.addMessage("cs",
-                                    "Vaše nahrávka byla zpracována",
-                                    "Vaše nahrávka je připravena ke stažení na " + movedRecording.getDownloadUrl() + ".\n");
-                            try {
-                                performControllerAction(notifyTarget);
-                            }
-                            catch (CommandException notifyException) {
-                                logger.error("Failed to report that moving of recording has failed.", notifyException);
+                            boolean moved = moveRecordingToAppropriateRecordingFolder(recordingId);
+                            if (moved) {
+                                Recording movedRecording = getRecording(recordingId);
+                                NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.REC_FOLDER_OWNERS, recording.getRecordingFolderId());
+                                notifyTarget.addMessage("en",
+                                        "Your recording was successfully processed",
+                                        "Your recording is ready to be downloaded at " + movedRecording.getDownloadUrl() + ".\n");
+                                notifyTarget.addMessage("cs",
+                                        "Vaše nahrávka byla zpracována",
+                                        "Vaše nahrávka je připravena ke stažení na " + movedRecording.getDownloadUrl() + ".\n");
+                                try {
+                                    performControllerAction(notifyTarget);
+                                } catch (CommandException notifyException) {
+                                    logger.error("Failed to report that moving of recording has failed.", notifyException);
+                                }
                             }
 
                         }
