@@ -6,6 +6,7 @@ import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.device.CiscoMCUConnector;
 import cz.cesnet.shongo.connector.device.CiscoTCSConnector;
 import junit.framework.Assert;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Level;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -15,7 +16,8 @@ import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.webserver.WebServer;
 import org.junit.Test;
 
-import java.net.SocketException;
+import java.io.File;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -85,5 +87,12 @@ public class CiscoTCSConnectorTest
             Map<String, String> result = new HashMap<String, String>();
             return result;
         }
+    }
+
+    @Test
+    public void test() throws URISyntaxException, MalformedURLException
+    {
+        URL url = new URL("https://shongo-dev.cesnet.cz/storage/tcs1/");
+        System.out.println(new URL(url, "teco"));
     }
 }

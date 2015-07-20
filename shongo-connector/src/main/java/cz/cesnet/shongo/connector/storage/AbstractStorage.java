@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Abstract {@link Storage} implementation.
@@ -21,7 +22,7 @@ public abstract class AbstractStorage implements Storage
     /**
      *
      */
-    private String downloadableUrlBase;
+    private URL downloadableUrlBase;
 
     /**
      * @see UserInformationProvider
@@ -34,14 +35,10 @@ public abstract class AbstractStorage implements Storage
      * @param url sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    protected AbstractStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
+    protected AbstractStorage(String url, URL downloadableUrlBase, UserInformationProvider userInformationProvider) throws FileNotFoundException
     {
         this.url = url;
         this.userInformationProvider = userInformationProvider;
-
-        if (downloadableUrlBase.endsWith("/")) {
-            downloadableUrlBase = downloadableUrlBase.substring(0,downloadableUrlBase.length() - 1);
-        }
         this.downloadableUrlBase = downloadableUrlBase;
 
     }
@@ -57,7 +54,7 @@ public abstract class AbstractStorage implements Storage
     /**
      * @return {@link #downloadableUrlBase}
      */
-    public String getDownloadableUrlBase()
+    public URL getDownloadableUrlBase()
     {
         return downloadableUrlBase;
     }

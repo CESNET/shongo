@@ -48,6 +48,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -240,7 +242,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
         String storage = configuration.getOptionStringRequired("storage");
         String permission = configuration.getOptionString("storage-permission", "Require user ${userPrincipalName}");
-        String downloadableUrlBase = configuration.getOptionStringRequired("downloadable-url-base");
+        URL downloadableUrlBase = configuration.getOptionURLRequired("downloadable-url-base");
         try {
             this.storage = new ApacheStorage(storage, permission, downloadableUrlBase,
                     new AbstractStorage.UserInformationProvider() {
@@ -544,7 +546,13 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             }
             if (recording.getDownloadUrl() != null) {
                 // Set downloadable URL if file is available in storage
-                String downloadableUrl = storage.getFileDownloadableUrl(recordingFolderId, recording.getFileName());
+                String downloadableUrl = null;
+                try {
+                    downloadableUrl = storage.getFileDownloadableUrl(recordingFolderId, recording.getFileName());
+                } catch (MalformedURLException e) {
+                    String message = "Failed to format downloadable URL for recording.";
+                    logger.error(message, e);
+                }
                 if (downloadableUrl != null) {
                     recording.setState(Recording.State.AVAILABLE);
                     recording.setDownloadUrl(downloadableUrl);

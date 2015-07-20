@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.SocketException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
@@ -24,8 +25,6 @@ public class ApacheStorageTest
     private static Logger logger = LoggerFactory.getLogger(ApacheStorageTest.class);
 
     private static final String URL = "TMP";
-    //private static final String URL = "/media/test";
-    private static final String DOWNLOADABLE_URL_BASE = "https://shongo-auth-dev.cesnet.cz/tcs/";
 
     private AbstractStorage storage;
 
@@ -41,7 +40,7 @@ public class ApacheStorageTest
         }
         LocalStorageHandler.deleteContentRecursive(new java.io.File(rootFolderUrl));
 
-        storage = new ApacheStorage(rootFolderUrl, "Require user ${userPrincipalName}", DOWNLOADABLE_URL_BASE,
+        storage = new ApacheStorage(rootFolderUrl, "Require user ${userPrincipalName}", new URL("https://shongo-auth-dev.cesnet.cz/tcs/"),
                 new AbstractStorage.UserInformationProvider()
                 {
                     @Override
@@ -210,14 +209,14 @@ public class ApacheStorageTest
 
     private boolean fileExists(String fileName)
     {
-        fileName = LocalStorageHandler.getChildUrl(storage.getUrl(), fileName);
+        fileName = LocalStorageHandler.getChildPath(storage.getUrl(), fileName);
         java.io.File file = new java.io.File(fileName);
         return file.exists() && file.isFile();
     }
 
     private boolean dirExists(String dirName)
     {
-        dirName = LocalStorageHandler.getChildUrl(storage.getUrl(), dirName);
+        dirName = LocalStorageHandler.getChildPath(storage.getUrl(), dirName);
         java.io.File dir = new java.io.File(dirName);
         return dir.exists() && dir.isDirectory();
     }
@@ -229,7 +228,7 @@ public class ApacheStorageTest
 
     private String getFileContent(String fileName) throws Exception
     {
-        fileName = LocalStorageHandler.getChildUrl(storage.getUrl(), fileName);
+        fileName = LocalStorageHandler.getChildPath(storage.getUrl(), fileName);
         BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
         try {
             StringBuilder stringBuilder = new StringBuilder();

@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -202,7 +200,7 @@ public class LocalStorageHandler
         String folderUrl = getUrlFromId(folderId);
         file.setFileName(mangle(file.getFileName()));
         String fileName = file.getFileName();
-//        String fileUrl = getChildUrl(folderUrl, fileName);
+//        String fileUrl = getChildPath(folderUrl, fileName);
         java.io.File ioFile = getFileInstance(file);
         String fileUrl = ioFile.getAbsolutePath();
 
@@ -234,7 +232,7 @@ public class LocalStorageHandler
                                 throw exception;
                             }
 
-                            String message = "Creation of file " + getChildUrl(folderUrl, fileName) + ": ";
+                            String message = "Creation of file " + getChildPath(folderUrl, fileName) + ": ";
                             logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
 
                             // Wait before resuming
@@ -255,7 +253,7 @@ public class LocalStorageHandler
                             }
                             catch (Exception resumeException) {
                                 throw new RuntimeException("Reopening input stream failed for creation of file " +
-                                        getChildUrl(folderUrl, fileName) + ".", resumeException);
+                                        getChildPath(folderUrl, fileName) + ".", resumeException);
                             }
                             finally {
                                 try {
@@ -268,7 +266,7 @@ public class LocalStorageHandler
                         }
                         catch (Exception exception) {
                             throw new RuntimeException("Reading input stream failed for creation of file " +
-                                    getChildUrl(folderUrl, fileName) + " at " + fileContentIndex + ".", exception);
+                                    getChildPath(folderUrl, fileName) + " at " + fileContentIndex + ".", exception);
                         }
                     }
 
@@ -278,7 +276,7 @@ public class LocalStorageHandler
                     }
                     // Check if folder isn't already deleted
                     if (foldersBeingDeleted.contains(file.getFolderId())) {
-                        logger.warn("Creation of file " + getChildUrl(folderUrl, fileName) +
+                        logger.warn("Creation of file " + getChildPath(folderUrl, fileName) +
                                 " has been stopped because folder " + folderId + " is being deleted.");
                         break;
                     }
@@ -357,7 +355,7 @@ public class LocalStorageHandler
     public void deleteFile(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        String fileUrl = getChildUrl(folderUrl, mangle(fileName));
+        String fileUrl = getChildPath(folderUrl, mangle(fileName));
         java.io.File file = getFileInstance(fileUrl);
         if (file.exists()) {
             if (!file.delete()) {
@@ -375,7 +373,7 @@ public class LocalStorageHandler
     public boolean fileExists(File file)
     {
         String folderUrl = getUrlFromId(file.getFolderId());
-        String fileUrl = getChildUrl(folderUrl, mangle(file.getFileName()));
+        String fileUrl = getChildPath(folderUrl, mangle(file.getFileName()));
         return getFileInstance(fileUrl).exists();
     }
 
@@ -427,7 +425,7 @@ public class LocalStorageHandler
     public InputStream getFileContent(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        String fileUrl = getChildUrl(folderUrl, mangle(fileName));
+        String fileUrl = getChildPath(folderUrl, mangle(fileName));
 
         InputStream inputStream = null;
         try {
@@ -450,7 +448,7 @@ public class LocalStorageHandler
             return getUrl();
         }
         else {
-            return getChildUrl(getUrl(), id);
+            return getChildPath(getUrl(), id);
         }
     }
 
@@ -475,7 +473,7 @@ public class LocalStorageHandler
      * @param childName
      * @return childUrl from {@code parentUrl} and {@code childName}
      */
-    public static String getChildUrl(String parentUrl, String childName)
+    public static String getChildPath(String parentUrl, String childName)
     {
         java.io.File path = new java.io.File(parentUrl);
         return new java.io.File(path, mangle(childName)).getPath();
@@ -559,7 +557,7 @@ public class LocalStorageHandler
         String folderUrl = getUrlFromId(folderId);
         file.setFileName(mangle(file.getFileName()));
         String fileName = file.getFileName();
-        String fileUrl = getChildUrl(folderUrl, fileName);
+        String fileUrl = getChildPath(folderUrl, fileName);
 
         return new java.io.File(fileUrl);
     }
