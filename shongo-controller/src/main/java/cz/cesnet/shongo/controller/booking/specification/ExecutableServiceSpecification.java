@@ -17,6 +17,7 @@ import javax.persistence.*;
  */
 @Entity
 public abstract class ExecutableServiceSpecification extends Specification
+        implements ObjectHelper.SameCheckable
 {
     /**
      * {@link Resource} where the service should be allocated.
@@ -164,7 +165,7 @@ public abstract class ExecutableServiceSpecification extends Specification
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean isSame(Object o)
     {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -175,14 +176,5 @@ public abstract class ExecutableServiceSpecification extends Specification
         if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
         return !(executable != null ? !executable.equals(that.executable) : that.executable != null);
 
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = resource != null ? resource.hashCode() : 0;
-        result = 31 * result + (executable != null ? executable.hashCode() : 0);
-        result = 31 * result + (enabled ? 1 : 0);
-        return result;
     }
 }
