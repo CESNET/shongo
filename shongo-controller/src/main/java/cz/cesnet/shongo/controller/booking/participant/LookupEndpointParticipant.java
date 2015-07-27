@@ -37,7 +37,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
         LookupEndpointParticipant lookupEndpointParticipant = (LookupEndpointParticipant) participant;
 
         boolean modified = super.synchronizeFrom(participant);
-        modified |= !ObjectHelper.isSame(getTechnologies(), lookupEndpointParticipant.getTechnologies());
+        modified |= !ObjectHelper.isSameIgnoreOrder(getTechnologies(), lookupEndpointParticipant.getTechnologies());
 
         setTechnologies(lookupEndpointParticipant.getTechnologies());
 
