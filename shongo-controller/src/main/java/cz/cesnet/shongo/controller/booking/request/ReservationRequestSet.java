@@ -139,7 +139,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
 
-            modified |= !ObjectHelper.isSame(getSlots(), reservationRequestSet.getSlots());
+            modified |= !ObjectHelper.isSameIgnoreOrder(getSlots(), reservationRequestSet.getSlots());
 
             slots.clear();
             for (DateTimeSlot slot : reservationRequestSet.getSlots()) {

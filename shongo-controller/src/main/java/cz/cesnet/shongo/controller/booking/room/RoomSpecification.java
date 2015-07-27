@@ -25,7 +25,6 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -420,22 +419,22 @@ public class RoomSpecification extends Specification
         setMeetingName(roomSpecification.getMeetingName());
         setMeetingDescription(roomSpecification.getMeetingDescription());
 
-        if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
+        if (!ObjectHelper.isSameIgnoreOrder(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
             modified = true;
         }
 
-        if (!ObjectHelper.isSame(aliasSpecifications, roomSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSameIgnoreOrder(aliasSpecifications, roomSpecification.getAliasSpecifications())) {
             setAliasSpecifications(roomSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }
 
-        if (!ObjectHelper.isSame(participants, roomSpecification.getParticipants())) {
+        if (!ObjectHelper.isSameIgnoreOrder(participants, roomSpecification.getParticipants())) {
             setParticipants(roomSpecification.getParticipants());
             modified = true;
         }
 
-        if (!ObjectHelper.isSame(serviceSpecifications, roomSpecification.getServiceSpecifications())) {
+        if (!ObjectHelper.isSameIgnoreOrder(serviceSpecifications, roomSpecification.getServiceSpecifications())) {
             setServiceSpecifications(roomSpecification.getServiceSpecifications(), entityManager);
             modified = true;
         }

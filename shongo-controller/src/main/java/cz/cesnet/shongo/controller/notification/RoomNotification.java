@@ -638,7 +638,7 @@ public abstract class RoomNotification extends ConfigurableNotification
                 if (!oldRoomEndpoint.getSlot().equals(newRoomEndpoint.getSlot())) {
                     roomModified = true;
                 }
-                if (!ObjectHelper.isSame(oldRoomEndpoint.getAliases(), newRoomEndpoint.getAliases())) {
+                if (!ObjectHelper.isSameIgnoreOrder(oldRoomEndpoint.getAliases(), newRoomEndpoint.getAliases())) {
                     roomModified = true;
                 }
                 if (!ObjectHelper.isSame(oldRoomEndpoint.getRoomDescription(), newRoomEndpoint.getRoomDescription())) {

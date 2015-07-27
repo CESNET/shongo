@@ -78,7 +78,47 @@ public class ObjectHelper
     /**
      * @param object1
      * @param object2
-     * @return true if both collections contains same values,
+     * @return true if both collections contains same values, even if in another order,
+     * false otherwise
+     */
+    public static boolean isSameIgnoreOrder(Collection<?> object1, Collection<?> object2)
+    {
+        if (object1 == object2) {
+            return true;
+        }
+        if ((object1 == null) || (object2 == null)) {
+            return false;
+        }
+        if (object1.size() != object2.size()) {
+            return false;
+        }
+        Iterator iterator1 = object1.iterator();
+        while (iterator1.hasNext()) {
+            Object item1 = iterator1.next();
+
+            Iterator iterator2 = object2.iterator();
+            boolean contains = false;
+            while (iterator2.hasNext()) {
+                Object item2 = iterator2.next();
+                if (item1 == item2) {
+                    contains = true;
+                    break;
+                } else if (item1 != null && item2 != null && isSame(item1, item2)) {
+                    contains = true;
+                    break;
+                }
+            }
+            if (!contains) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param object1
+     * @param object2
+     * @return true if both collections contains same values in order,
      * false otherwise
      */
     public static boolean isSame(Collection<?> object1, Collection<?> object2)

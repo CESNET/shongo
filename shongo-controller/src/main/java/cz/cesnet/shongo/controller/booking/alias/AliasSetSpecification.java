@@ -83,7 +83,7 @@ public class AliasSetSpecification extends Specification
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
 
-        if (!ObjectHelper.isSame(aliasSpecifications, aliasSetSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSameIgnoreOrder(aliasSpecifications, aliasSetSpecification.getAliasSpecifications())) {
             setAliasSpecifications(aliasSetSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }

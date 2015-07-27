@@ -244,8 +244,8 @@ public class AliasSpecification extends Specification
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
-        modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
-                || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
+        modified |= !ObjectHelper.isSameIgnoreOrder(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
+                || !ObjectHelper.isSameIgnoreOrder(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
                 || !ObjectHelper.isSamePersistent(getAliasProviderCapability(),
                 aliasSpecification.getAliasProviderCapability());

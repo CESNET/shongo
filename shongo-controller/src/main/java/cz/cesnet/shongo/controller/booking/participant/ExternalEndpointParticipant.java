@@ -11,7 +11,6 @@ import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -123,7 +122,7 @@ public class ExternalEndpointParticipant extends EndpointParticipant implements 
 
         boolean modified = super.synchronizeFrom(participant);
 
-        if (!ObjectHelper.isSame(getAliases(), externalEndpointParticipant.getAliases())) {
+        if (!ObjectHelper.isSameIgnoreOrder(getAliases(), externalEndpointParticipant.getAliases())) {
             this.aliases.clear();
             for (Alias alias : externalEndpointParticipant.getAliases()) {
                 try {
