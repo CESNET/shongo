@@ -13,6 +13,7 @@ public class InterDomainAction {
     public final static String DOMAIN_RESOURCES_LIST = "/domain/resource/list";
     public final static String DOMAIN_CAPABILITY_LIST = "/domain/capability/list";
     public final static String DOMAIN_ALLOCATE = "/domain/allocate";
+    public final static String DOMAIN_RESERVATION_DATA = "/domain/reservation/data";
 
     public enum HttpMethod {
         GET("GET"), POST("POST"), PUT("PUT"), DELETE("DELETE");

@@ -68,7 +68,7 @@ public class RecordingServiceReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         if (executable == null) {
             throw new IllegalStateException("Executable must be set.");

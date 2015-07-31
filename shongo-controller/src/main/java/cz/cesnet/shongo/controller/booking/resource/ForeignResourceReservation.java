@@ -21,8 +21,11 @@ public class ForeignResourceReservation extends TargetedReservation
 {
     private ForeignResources foreignResources;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @Access(AccessType.FIELD)
+    private Domain domain;
+
+    private String foreignReservationRequestId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "foreign_resources_id")
     public ForeignResources getForeignResources()
     {
@@ -33,6 +36,29 @@ public class ForeignResourceReservation extends TargetedReservation
     {
         foreignResources.validateSingleResource();
         this.foreignResources = foreignResources;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "domain_id")
+    public Domain getDomain()
+    {
+        return domain;
+    }
+
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    @Column(nullable = true)
+    public String getForeignReservationRequestId()
+    {
+        return foreignReservationRequestId;
+    }
+
+    public void setForeignReservationRequestId(String foreignReservationRequestId)
+    {
+        this.foreignReservationRequestId = foreignReservationRequestId;
     }
 
     @Override
@@ -65,5 +91,14 @@ public class ForeignResourceReservation extends TargetedReservation
             foreignResources.setDomain(domain);
         }
         setSlot(reservationApi.getSlot());
+    }
+
+    @Transient
+    public boolean isAllocated()
+    {
+        if (foreignResources == null || getSlot() == null) {
+            return false;
+        }
+        return true;
     }
 }

@@ -20,6 +20,8 @@ public class Reservation
      */
     private String reservationRequestId;
 
+    private String foreignReservationId;
+
     /**
      * Slot fot which the {@link Reservation} is allocated.
      */
@@ -37,6 +39,16 @@ public class Reservation
     public void setReservationRequestId(String reservationRequestId)
     {
         this.reservationRequestId = reservationRequestId;
+    }
+
+    public String getForeignReservationId()
+    {
+        return foreignReservationId;
+    }
+
+    public void setForeignReservationId(String foreignReservationId)
+    {
+        this.foreignReservationId = foreignReservationId;
     }
 
     public Interval getSlot()
@@ -67,5 +79,13 @@ public class Reservation
     public void setType(DomainCapabilityListRequest.Type type)
     {
         this.type = type;
+    }
+
+    public boolean isAllocated()
+    {
+        if (foreignReservationId != null && slot != null) {
+            return true;
+        }
+        return false;
     }
 }

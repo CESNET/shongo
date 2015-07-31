@@ -1555,10 +1555,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 // Only for current reservation request
                 //TODO: verify - needed for history???
                 if (record.length >= 25) {
-                    String domainName = record[24].toString();
-                    Long resourceId = ((Number) record[23]).longValue();
+                    if (record[24] != null && record[23] != null) {
+                        String domainName = record[24].toString();
+                        Long resourceId = ((Number) record[23]).longValue();
                     String foreignResourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId);
                     reservationRequestSummary.setResourceId(foreignResourceId);
+                    }
                 }
             }
         }

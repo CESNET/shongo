@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -18,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.DateTime;
@@ -97,13 +100,27 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "technology", required = false) Technology technology)
     {
         //TODO alokovat
-        //TODO: vytvorit reservation request s 0:ID domeny?
         EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        ReservationManager reservationManager = new ReservationManager(entityManager);
+        ResourceManager resourceManager = new ResourceManager(entityManager);
 
+        Reservation reservation = new Reservation();
         switch (type) {
             case RESOURCE:
+                Domain domain = getDomain(request);
+                ObjectIdentifier domainIdentifier = ObjectIdentifier.parse(domain.getId(), ObjectType.DOMAIN);
+                ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseTypedId(resourceId, ObjectType.RESOURCE);
+
+                if (!resourceIdentifier.isLocal()) {
+                    //TODO: vyresit autorizaci
+                }
+                try {
+                    resourceManager.getDomainResource(domainIdentifier.getPersistenceId(), resourceIdentifier.getPersistenceId());
+                }
+                catch (CommonReportSet.ObjectNotExistsException ex) {
+                    //TODO: vyresit autorizaci
+                }
+
                 Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
 
                 cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecification = new cz.cesnet.shongo.controller.api.ResourceSpecification(resourceId);
@@ -116,15 +133,51 @@ public class InterDomainController implements InterDomainProtocol{
                 reservationRequest.setCreatedBy(domainId + ":" + userId);
                 reservationRequest.setUpdatedBy(domainId + ":" + userId);
                 reservationRequestManager.create(reservationRequest);
+
+                reservation.setReservationRequestId(ObjectIdentifier.formatId(reservationRequest));
                 break;
             case VIRTUAL_ROOM:
             default:
                 throw new TodoImplementException("!!zz!!");
         }
 
-        return null;
+        return reservation;
     }
 
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Reservation handleAllocate(HttpServletRequest request,
+                                      @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
+    {
+        Domain domain = getDomain(request);
+        ObjectIdentifier domainIdentifier = ObjectIdentifier.parse(domain.getId(), ObjectType.DOMAIN);
+        ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        if (!requestIdentifier.isLocal()) {
+            //TODO: vyresit autorizaci
+        }
+        try {
+            //TODO: overitopravneni primo k requestu
+        }
+        catch (CommonReportSet.ObjectNotExistsException ex) {
+            //TODO: vyresit autorizaci
+        }
+
+        EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationRequestId(reservationRequestId);
+//        if (currentReservation == null) {
+//            reservation.setReservationRequestId(reservationRequestId);
+//        }
+//        else {
+//        }
+        return reservation;
+    }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({NotAuthorizedException.class})

@@ -50,7 +50,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
         return new ReservationTask(schedulerContext, slot)
         {
             @Override
-            protected Reservation allocateReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
             {
                 ResourceCache resourceCache = getCache().getResourceCache();
 

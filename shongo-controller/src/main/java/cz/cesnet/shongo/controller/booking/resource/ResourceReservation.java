@@ -29,7 +29,7 @@ public class ResourceReservation extends TargetedReservation
     /**
      * @return {@link #resource}
      */
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public Resource getResource()
     {

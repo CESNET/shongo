@@ -123,7 +123,7 @@ public class AliasReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();

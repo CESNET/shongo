@@ -71,13 +71,26 @@
                 </tag:help>
             </td>
             <td>
-                <tag:help label="{{room.ownerName}}" selectable="true">
-                    <span>
-                        <strong><spring:message code="views.room.ownerEmail"/></strong>
-                        <br />
-                        <a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>
-                    </span>
-                </tag:help>
+                <span ng-show="room.ownersEmail">
+                    <tag:help label="{{room.ownerName}}" selectable="true">
+                        <span>
+                            <strong><spring:message code="views.room.ownerEmail"/></strong>
+                            <br />
+                            <a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>
+                        </span>
+                    </tag:help>
+                </span>
+                <span ng-show="room.foreignDomain">
+                    <tag:help label="{{room.foreignDomain}}" selectable="true">
+                        <%-- TODO: ziskavat uzivatele z cizi domeny --%>
+                        TODO
+                        <%--<span>--%>
+                            <%--<strong><spring:message code="views.room.ownerEmail"/></strong>--%>
+                            <%--<br />--%>
+                            <%--<a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>--%>
+                        <%--</span>--%>
+                    </tag:help>
+                </span>
             </td>
             <td>
                 <span ng-bind-html="room.earliestSlot"></span>

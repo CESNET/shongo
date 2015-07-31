@@ -123,12 +123,15 @@ public class MeetingRoomController {
         Set<String> userIds = new HashSet<String>();
         Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
-            userIds.add(reservationRequest.getUserId());
+            if (UserInformation.isLocal(reservationRequest.getUserId())) {
+                userIds.add(reservationRequest.getUserId());
+            }
             String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
         }
+        // TODO: fetch foreign users???
         cache.fetchUserInformation(securityToken, userIds);
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
@@ -166,9 +169,16 @@ public class MeetingRoomController {
             item.put("isWritable", objectPermissions.contains(ObjectPermission.WRITE));
             item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
 
-            UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
-            item.put("ownerName", user.getFullName());
-            item.put("ownerEmail",user.getPrimaryEmail());
+            if (UserInformation.isLocal(reservationRequest.getUserId())) {
+                UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
+                item.put("ownerName", user.getFullName());
+                item.put("ownerEmail", user.getPrimaryEmail());
+            }
+            else {
+                Long domainId = UserInformation.parseDomainId(reservationRequest.getUserId());
+                Domain domain = resourceService.getDomain(securityToken, domainId.toString());
+                item.put("foreignDomain", domain.getName());
+            }
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {

@@ -45,7 +45,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         EntityManager entityManager = authorizationManager.getEntityManager();
 
         String updatedBy = getReservationRequestUpdatedBy();
-        if (updatedBy != null) {
+        if (updatedBy != null && UserInformation.isLocal(updatedBy)) {
             this.user = authorizationManager.getUserInformation(updatedBy);
         }
         this.id = ObjectIdentifier.formatId(reservation);

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -293,19 +292,31 @@ public abstract class ReservationTask
     }
 
     /**
+     * Perform the {@link ReservationTask} without last reservation.
+     *
+     * @return created {@link Reservation}
+     * @throws SchedulerException
+     */
+    public final Reservation perform() throws SchedulerException
+    {
+        return perform(null);
+    }
+
+    /**
      * Perform the {@link ReservationTask}.
      *
+     * @param currentReservation which can hold identifier if not completely allocated
      * @return created {@link Reservation}
      * @throws SchedulerException when the {@link ReservationTask} failed
      */
-    public final Reservation perform() throws SchedulerException
+    public final Reservation perform(Reservation currentReservation) throws SchedulerException
     {
         Reservation reservation = null;
         SchedulerReport mainReport = createMainReport();
         if (mainReport != null) {
             beginReport(mainReport);
             try {
-                reservation = allocateReservation();
+                reservation = allocateReservation(currentReservation);
                 validateReservation(reservation);
             }
             catch (SchedulerException exception) {
@@ -323,7 +334,7 @@ public abstract class ReservationTask
             }
         }
         else {
-            reservation = allocateReservation();
+            reservation = allocateReservation(currentReservation);
             validateReservation(reservation);
         }
 
@@ -342,7 +353,7 @@ public abstract class ReservationTask
      * @return newly allocated {@link Reservation}
      * @throws SchedulerException when the {@link Reservation} cannot be allocated
      */
-    protected abstract Reservation allocateReservation() throws SchedulerException;
+    protected abstract Reservation allocateReservation(Reservation currentReservation) throws SchedulerException;
 
     /**
      * Migrate {@code oldReservation} to {@code newReservation}.

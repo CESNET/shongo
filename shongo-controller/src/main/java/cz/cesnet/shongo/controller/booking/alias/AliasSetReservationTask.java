@@ -41,7 +41,7 @@ public class AliasSetReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         validateReservationSlot(AliasReservation.class);
 
