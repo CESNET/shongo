@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
@@ -122,7 +123,7 @@ public class ResourceSpecification extends Specification implements ReservationT
         return new ReservationTask(schedulerContext, slot)
         {
             @Override
-            protected Reservation allocateReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
             {
                 Reservation reservation;
                 if (resource != null) {
@@ -131,7 +132,45 @@ public class ResourceSpecification extends Specification implements ReservationT
                     addReports(reservationTask);
                 }
                 else if (foreignResources != null) {
-                    reservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources);
+                    ForeignResourceReservation foreignResourceReservation = new ForeignResourceReservation();
+                    foreignResourceReservation.setDomain(foreignResources.getDomain());
+
+                    cz.cesnet.shongo.controller.api.domains.response.Reservation foreignReservation;
+                    boolean allocateNew = true;
+                    if (currentReservation instanceof ForeignResourceReservation) {
+                        ForeignResourceReservation previousReservation = (ForeignResourceReservation) currentReservation;
+                        allocateNew = previousReservation.getForeignReservationRequestId() == null;
+                    }
+
+                    if (allocateNew) {
+                        foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources);
+
+                        if (!foreignReservation.isAllocated()) {
+                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
+                        }
+                    }
+                    else {
+                        ForeignResourceReservation previousReservation = (ForeignResourceReservation) currentReservation;
+                        cz.cesnet.shongo.controller.api.Domain domain = foreignResources.getDomain().toApi();
+                        String requestId = previousReservation.getForeignReservationRequestId();
+
+                        foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
+
+                        if (foreignReservation.isAllocated()) {
+                            //TODO: kdyz FAIL, tak zahodit a nastavit fail pro request
+                            previousReservation.setForeignReservationRequestId(null);
+
+                            foreignResourceReservation.setSlot(foreignReservation.getSlot());
+                            foreignResourceReservation.setForeignResources(foreignResources);
+                            foreignResourceReservation.setForeignReservationRequestId(null);
+                        }
+                        else {
+                            //TODO vratit puvodni???
+                            foreignResourceReservation = (ForeignResourceReservation) currentReservation;
+//                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
+                        }
+                    }
+                    reservation = foreignResourceReservation;
                 }
                 else {
                     throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),

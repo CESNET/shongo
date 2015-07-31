@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -418,7 +419,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Allocate reservation
-        Reservation allocatedReservation = reservationTask.perform();
+        Reservation allocatedReservation = reservationTask.perform(allocation.getCurrentReservation());
 
         // Check mandatory reusable reservation
         if (reusableReservation != null && reservationRequest.isReusedAllocationMandatory()) {
@@ -452,8 +453,31 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create allocated reservation
+        boolean updateRequestState = true;
+        boolean updateReservation = false;
+        if (allocatedReservation instanceof ForeignResourceReservation) {
+            ForeignResourceReservation foreignResourceReservation = ((ForeignResourceReservation) allocatedReservation);
+            if (!foreignResourceReservation.isAllocated()) {
+                updateRequestState = false;
+            }
+        }
+
+//        Reservation previousReservation = allocation.getCurrentReservation();
+//        if (!allocatedReservation.equals(previousReservation)) {
+//            if (previousReservation == null || !previousReservation.getId().equals(allocatedReservation.getId())) {
+//
+//            }
+//
         allocatedReservation.setUserId(reservationRequest.getCreatedBy());
+//            if (!updateReservation) {
         reservationManager.create(allocatedReservation);
+//            } else {
+//                reservationManager.update(allocatedReservation);
+//            }
+//        }
+//        else {
+//            updateRequestState = false;
+//        }
 
         // Create ACL entries for new reservation
         authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
@@ -512,7 +536,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 allocatedReservation, previousReservation, authorizationManager));
 
         // Update reservation request
-        //TODO: IDP: if reservation.state#PENDING - nemen stav
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);

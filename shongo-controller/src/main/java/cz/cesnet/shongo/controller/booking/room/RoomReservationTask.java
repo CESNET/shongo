@@ -257,7 +257,7 @@ public class RoomReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         // Update specification by reused room endpoint
         if (reusedRoomEndpoint != null) {

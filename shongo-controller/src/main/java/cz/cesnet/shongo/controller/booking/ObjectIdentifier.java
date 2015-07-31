@@ -247,7 +247,7 @@ public class ObjectIdentifier
     }
 
     /**
-     * @param objectId   object local id for the identifier
+     * @param objectId   object id for the identifier
      * @param objectType object type for the identifier
      * @return parsed local identifier from given global or local identifier
      */
@@ -257,7 +257,10 @@ public class ObjectIdentifier
         if (objectType == null &&  idType == null) {
             throw new IllegalArgumentException("Object type must be specified at least in one parameter.");
         }
-        return parse(parseDomain(objectId), parseType(objectId), objectId);
+        if (objectType == null) {
+            objectType = idType;
+        }
+        return parse(parseDomain(objectId), objectType, objectId);
     }
 
     /**

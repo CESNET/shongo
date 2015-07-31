@@ -56,7 +56,7 @@ public class ResourceReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         //Check permissions
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();

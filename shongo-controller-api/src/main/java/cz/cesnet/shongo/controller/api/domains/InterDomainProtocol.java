@@ -30,6 +30,8 @@ public interface InterDomainProtocol {
 
     public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot, String resourceId, String userId, Technology technology);
 
+    public Reservation handleAllocate(HttpServletRequest request, String reservationRequestId);
+
     /**
      * Represents Inter Domain response with status code
      */

@@ -142,8 +142,8 @@
                 </tag:help>
             </td>
             <td>
-                <tag:help label="{{room.ownerName}}" selectable="true">
-                    <span>
+                <tag:help label="{{room.ownerName}}" selectable="true" >
+                    <span ng-show="room.ownersEmail">
                         <strong><spring:message code="views.room.ownerEmail"/></strong>
                         <br />
                         <a href="mailto: {{room.ownersEmail}}">{{room.ownersEmail}}</a>

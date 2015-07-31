@@ -446,11 +446,11 @@ public class DomainsConnector
     }
 
     /**
-     * Returns unmodifiable list of statuses of all foreign domains
+     *
      *
      * @return
      */
-    public cz.cesnet.shongo.controller.booking.reservation.Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources)
+    public Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources)
     {
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
@@ -462,13 +462,29 @@ public class DomainsConnector
 
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
 
-        switch (reservation.getType()) {
-            case RESOURCE:
-                return ForeignResourceReservation.createFromApi(reservation, entityManagerFactory.createEntityManager());
-            case VIRTUAL_ROOM:
-            default:
-                throw new TodoImplementException("Unsupported type of reservation for inter domain protocol.");
-        }
+        return reservation;
+    }
+
+    /**
+     *
+     *
+     * @return
+     */
+    public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId)
+    {
+        ObjectReader reader = mapper.reader(Reservation.class);
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("reservationRequestId", foreignReservationRequestId);
+
+        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parameters, domain, reader, Reservation.class);
+
+        return reservation;
+//        switch (reservation.getType()) {
+//            case RESOURCE:
+//            case VIRTUAL_ROOM:
+//            default:
+//                throw new TodoImplementException("Unsupported type of reservation for inter domain protocol.");
+//        }
     }
 
     /**

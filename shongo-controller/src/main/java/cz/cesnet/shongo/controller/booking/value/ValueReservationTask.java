@@ -53,7 +53,7 @@ public class ValueReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
     {
         validateReservationSlot(ValueReservation.class);
 

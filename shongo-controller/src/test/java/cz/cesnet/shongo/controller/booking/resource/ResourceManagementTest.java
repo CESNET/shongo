@@ -6,6 +6,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasProviderCapability;
@@ -15,11 +16,15 @@ import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import cz.cesnet.shongo.controller.api.StandaloneTerminalCapability;
 import cz.cesnet.shongo.controller.api.ValueProviderCapability;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.Resource}s.

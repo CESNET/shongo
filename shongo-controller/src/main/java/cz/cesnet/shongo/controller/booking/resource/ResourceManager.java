@@ -709,11 +709,9 @@ public class ResourceManager extends AbstractManager
         super.update(domain);
     }
 
-    public Domain getDomain(Long resourceId)
+    public Domain getDomain(Long domainId)
     {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-
-        return entityManager.find(Domain.class, resourceId);
+        return entityManager.find(Domain.class, domainId);
     }
 
     public Domain getDomainByName(String domainName)

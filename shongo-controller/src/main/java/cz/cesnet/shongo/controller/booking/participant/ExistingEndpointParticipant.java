@@ -91,7 +91,7 @@ public class ExistingEndpointParticipant extends EndpointParticipant implements 
         return new ReservationTask(schedulerContext, slot)
         {
             @Override
-            protected Reservation allocateReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
             {
                 if (!(resource instanceof DeviceResource) || !((DeviceResource) resource).isTerminal()) {
                     // Requested resource is not endpoint
