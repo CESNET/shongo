@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.DateTime;
@@ -170,12 +171,17 @@ public class InterDomainController implements InterDomainProtocol{
         cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
 
         Reservation reservation = new Reservation();
-        reservation.setReservationRequestId(reservationRequestId);
-//        if (currentReservation == null) {
-//            reservation.setReservationRequestId(reservationRequestId);
-//        }
-//        else {
-//        }
+        if (currentReservation != null) {
+            reservation.setSlot(currentReservation.getSlot());
+            if (currentReservation instanceof ResourceReservation) {
+                ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
+                String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
+                reservation.setResourceId(resourceId);
+            }
+        }
+        else {
+            reservation.setReservationRequestId(reservationRequestId);
+        }
         return reservation;
     }
 
