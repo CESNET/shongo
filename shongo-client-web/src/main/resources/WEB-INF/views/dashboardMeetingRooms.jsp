@@ -71,7 +71,7 @@
                 </tag:help>
             </td>
             <td>
-                <span ng-show="room.ownersEmail">
+                <span ng-show="room.ownerName">
                     <tag:help label="{{room.ownerName}}" selectable="true">
                         <span>
                             <strong><spring:message code="views.room.ownerEmail"/></strong>

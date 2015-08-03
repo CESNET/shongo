@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.api.domains.response;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.Interval;
 
 import java.util.LinkedList;
@@ -13,22 +15,28 @@ import java.util.List;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
+@JsonIgnoreProperties({"allocated"})
 public class Reservation
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.
      */
+    @JsonProperty("reservationRequestId")
     private String reservationRequestId;
 
+    @JsonProperty("foreignReservationId")
     private String foreignReservationId;
 
     /**
      * Slot fot which the {@link Reservation} is allocated.
      */
+    @JsonProperty("slot")
     private Interval slot;
 
+    @JsonProperty("resourceId")
     private String resourceId;
 
+    @JsonProperty("type")
     private DomainCapabilityListRequest.Type type;
 
     public String getReservationRequestId()

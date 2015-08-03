@@ -96,9 +96,9 @@ public class ForeignResourceReservation extends TargetedReservation
     @Transient
     public boolean isAllocated()
     {
-        if (foreignResources == null || getSlot() == null) {
-            return false;
+        if (foreignResources == null) {
+            return true;
         }
-        return true;
+        return false;
     }
 }
