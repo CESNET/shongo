@@ -462,22 +462,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
         }
 
-//        Reservation previousReservation = allocation.getCurrentReservation();
-//        if (!allocatedReservation.equals(previousReservation)) {
-//            if (previousReservation == null || !previousReservation.getId().equals(allocatedReservation.getId())) {
-//
-//            }
-//
         allocatedReservation.setUserId(reservationRequest.getCreatedBy());
-//            if (!updateReservation) {
-        reservationManager.create(allocatedReservation);
-//            } else {
-//                reservationManager.update(allocatedReservation);
-//            }
-//        }
-//        else {
-//            updateRequestState = false;
-//        }
+        if (!allocatedReservation.isPersisted()) {
+            reservationManager.create(allocatedReservation);
+        }
+
 
         // Create ACL entries for new reservation
         authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
@@ -536,9 +525,18 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 allocatedReservation, previousReservation, authorizationManager));
 
         // Update reservation request
-        reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
-        reservationRequest.setReports(reservationTask.getReports());
-        reservationRequestManager.update(reservationRequest);
+        boolean changeState = true;
+        if (allocatedReservation instanceof ForeignResourceReservation) {
+            ForeignResourceReservation foreignResourceReservation = (ForeignResourceReservation) allocatedReservation;
+            if (!foreignResourceReservation.isAllocated()) {
+                changeState = false;
+            }
+        }
+        if (changeState) {
+            reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
+            reservationRequest.setReports(reservationTask.getReports());
+            reservationRequestManager.update(reservationRequest);
+        }
     }
 
     /**

@@ -461,7 +461,9 @@ public class DomainsConnector
         parameters.put("userId", schedulerContext.getUserId());
 
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
-
+        if (reservation.getSlot() == null) {
+            reservation.setSlot(slot);
+        }
         return reservation;
     }
 
