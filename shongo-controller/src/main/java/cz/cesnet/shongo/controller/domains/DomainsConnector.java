@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
@@ -11,13 +14,11 @@ import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.ws.commons.util.Base64;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
+
 import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -28,9 +29,10 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -74,6 +76,7 @@ public class DomainsConnector
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
         this.notifier = new DomainAdminNotifier(emailSender, configuration);
+        mapper.registerModule(new JodaModule());
     }
 
     protected ScheduledThreadPoolExecutor getExecutor()
@@ -111,7 +114,7 @@ public class DomainsConnector
      *
      * @param method      of the request
      * @param action      to preform
-     * @param domains     for which the request will be performed and will be returend in map
+     * @param domains     for which the request will be performed and will be returned in map
      * @param reader      to parse JSON
      * @param result      collection to store the result
      * @param returnClass {@link Class<T>} of the object to return
@@ -200,8 +203,8 @@ public class DomainsConnector
 //                    while ((responseLine = bufferedReader.readLine()) != null) {
 //                        stringBuilder.append(responseLine);
 //                    }
+//                    return reader.readValue(stringBuilder.toString());
                     return reader.readValue(connection.getInputStream());
-
                 case POST:
 //                    connection.setDoOutput(true);
 //                    connection.setRequestProperty("Content-Type", "application/json");

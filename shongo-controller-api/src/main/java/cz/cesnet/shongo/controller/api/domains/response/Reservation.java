@@ -1,14 +1,10 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.joda.time.Interval;
 
-import java.util.LinkedList;
-import java.util.List;
+import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.joda.time.Interval;
 
 /**
  * Represents a reservation for foreign resource.

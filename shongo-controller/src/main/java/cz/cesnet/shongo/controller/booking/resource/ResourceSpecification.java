@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
@@ -120,20 +121,28 @@ public class ResourceSpecification extends Specification implements ReservationT
     public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot)
             throws SchedulerException
     {
-        return new ReservationTask(schedulerContext, slot)
-        {
-            @Override
-            protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
+        if (resource != null) {
+            return new ReservationTask(schedulerContext, slot)
             {
-                Reservation reservation;
-                if (resource != null) {
+                @Override
+                protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
+                {
                     ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, slot, resource);
-                    reservation = reservationTask.perform();
+                    Reservation reservation = reservationTask.perform();
                     addReports(reservationTask);
+                    return reservation;
                 }
-                else if (foreignResources != null) {
+            };
+        }
+        else if (foreignResources != null) {
+            return new ReservationTask(schedulerContext, slot)
+            {
+                @Override
+                protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
+                {
                     ForeignResourceReservation foreignResourceReservation = new ForeignResourceReservation();
                     foreignResourceReservation.setDomain(foreignResources.getDomain());
+                    schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
 
                     cz.cesnet.shongo.controller.api.domains.response.Reservation foreignReservation;
                     boolean allocateNew = true;
@@ -150,8 +159,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                         if (!foreignReservation.isAllocated()) {
                             foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
                         }
-                    }
-                    else {
+                    } else {
                         ForeignResourceReservation previousReservation = (ForeignResourceReservation) currentReservation;
                         cz.cesnet.shongo.controller.api.Domain domain = foreignResources.getDomain().toApi();
                         String requestId = previousReservation.getForeignReservationRequestId();
@@ -164,22 +172,22 @@ public class ResourceSpecification extends Specification implements ReservationT
 
                             foreignResourceReservation.setSlot(foreignReservation.getSlot());
                             foreignResourceReservation.setForeignReservationRequestId(null);
-                        }
-                        else {
+                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
+                        } else {
                             //TODO vratit puvodni???
                             foreignResourceReservation = (ForeignResourceReservation) currentReservation;
 //                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
                         }
                     }
-                    reservation = foreignResourceReservation;
+
+                    return foreignResourceReservation;
                 }
-                else {
-                    throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
-                            "Cannot allocate because resource is not set.");
-                }
-                return reservation;
-            }
-        };
+            };
+        }
+        else {
+            throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
+                    "Cannot allocate because resource is not set.");
+        }
     }
 
     @Override

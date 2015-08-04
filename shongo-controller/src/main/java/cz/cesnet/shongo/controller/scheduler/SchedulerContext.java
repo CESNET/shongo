@@ -81,6 +81,11 @@ public class SchedulerContext
     private SchedulerContextState state = new SchedulerContextState();
 
     /**
+     * State to be updated for reservation request. Default {@code ALLOCATED}.
+     */
+    private ReservationRequest.AllocationState requestWantedState = ReservationRequest.AllocationState.ALLOCATED;
+
+    /**
      * {@link ReservationRequest} by it's allocated {@link Reservation}.
      */
     private Map<Reservation, ReservationRequest> reservationRequestByReservation =
@@ -195,6 +200,19 @@ public class SchedulerContext
     public SchedulerContextState getState()
     {
         return state;
+    }
+
+    /**
+     * @return {@link #requestWantedState}
+     */
+    public ReservationRequest.AllocationState getRequestWantedState()
+    {
+        return requestWantedState;
+    }
+
+    public void setRequestWantedState(ReservationRequest.AllocationState requestWantedState)
+    {
+        this.requestWantedState = requestWantedState;
     }
 
     /**
