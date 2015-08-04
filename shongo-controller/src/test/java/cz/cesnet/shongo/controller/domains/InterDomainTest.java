@@ -22,6 +22,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -250,6 +254,26 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        ObjectWriter writer = mapper.writer();
+        Interval interval = new Interval("2012-01-01T00:00/2012-03-01T00:00");
+        Reservation reservation = new Reservation();
+        reservation.setSlot(interval);
+        byte[] bytes = writer.writeValueAsBytes(reservation);
+
+        InputStream inputStream = new ByteArrayInputStream(bytes);
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder stringBuilder = new StringBuilder();
+        String responseLine;
+        while ((responseLine = bufferedReader.readLine()) != null) {
+            stringBuilder.append(responseLine);
+        }
+
+        ObjectReader reader = mapper.reader(Reservation.class);
+        reservation = reader.readValue(stringBuilder.toString());
+
     }
 
     protected CachedDomainsConnector getConnector()
