@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.fasterxml.jackson.databind.ObjectReader;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -8,7 +9,6 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import org.codehaus.jackson.map.ObjectReader;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.*;

@@ -340,6 +340,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         SchedulerContextState contextState = context.getState();
         contextState.clearReferencedResources();
         context.setReservationRequest(reservationRequest);
+        // Set wanted reservation request state
+        context.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
 
         // Get slot
         DateTime minimumDateTime = context.getMinimumDateTime();
@@ -453,20 +455,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create allocated reservation
-        boolean updateRequestState = true;
-        boolean updateReservation = false;
-        if (allocatedReservation instanceof ForeignResourceReservation) {
-            ForeignResourceReservation foreignResourceReservation = ((ForeignResourceReservation) allocatedReservation);
-            if (!foreignResourceReservation.isAllocated()) {
-                updateRequestState = false;
-            }
-        }
-
-        allocatedReservation.setUserId(reservationRequest.getCreatedBy());
         if (!allocatedReservation.isPersisted()) {
+            allocatedReservation.setUserId(reservationRequest.getCreatedBy());
             reservationManager.create(allocatedReservation);
         }
-
 
         // Create ACL entries for new reservation
         authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
@@ -525,18 +517,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 allocatedReservation, previousReservation, authorizationManager));
 
         // Update reservation request
-        boolean changeState = true;
-        if (allocatedReservation instanceof ForeignResourceReservation) {
-            ForeignResourceReservation foreignResourceReservation = (ForeignResourceReservation) allocatedReservation;
-            if (!foreignResourceReservation.isAllocated()) {
-                changeState = false;
-            }
+        if (context.getRequestWantedState() != null) {
+            reservationRequest.setAllocationState(context.getRequestWantedState());
         }
-        if (changeState) {
-            reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
-            reservationRequest.setReports(reservationTask.getReports());
-            reservationRequestManager.update(reservationRequest);
-        }
+        reservationRequest.setReports(reservationTask.getReports());
+        reservationRequestManager.update(reservationRequest);
     }
 
     /**
