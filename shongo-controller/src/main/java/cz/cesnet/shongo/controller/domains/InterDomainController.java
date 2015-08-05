@@ -168,10 +168,13 @@ public class InterDomainController implements InterDomainProtocol{
 
         Reservation reservation = new Reservation();
         if (currentReservation != null) {
+            String reservationId = ObjectIdentifier.formatId(currentReservation);
             reservation.setSlot(currentReservation.getSlot());
+            reservation.setForeignReservationId(reservationId);
             if (currentReservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
                 String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
+
                 reservation.setResourceId(resourceId);
             }
         }

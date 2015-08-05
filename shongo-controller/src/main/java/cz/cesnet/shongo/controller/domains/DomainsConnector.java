@@ -197,14 +197,14 @@ public class DomainsConnector
                     connection.setRequestProperty("Accept", "application/json");
                     processError(connection, domain);
 //                    DEBUG:
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(responseLine);
-                    }
-                    return reader.readValue(stringBuilder.toString());
-//                    return reader.readValue(connection.getInputStream());
+//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    String responseLine;
+//                    while ((responseLine = bufferedReader.readLine()) != null) {
+//                        stringBuilder.append(responseLine);
+//                    }
+//                    return reader.readValue(stringBuilder.toString());
+                    return reader.readValue(connection.getInputStream());
                 case POST:
 //                    connection.setDoOutput(true);
 //                    connection.setRequestProperty("Content-Type", "application/json");
@@ -266,6 +266,8 @@ public class DomainsConnector
         HttpsURLConnection connection;
         try {
             connection = (HttpsURLConnection) url.openConnection();
+            connection.setConnectTimeout(COMMAND_TIMEOUT);
+            connection.setReadTimeout(COMMAND_TIMEOUT);
             // For secure connection
             if ("HTTPS".equals(url.getProtocol().toUpperCase())) {
                 TrustManagerFactory trustManagerFactory = null;
@@ -285,7 +287,6 @@ public class DomainsConnector
 
                 connection.setSSLSocketFactory(sslContext.getSocketFactory());
             }
-            connection.setConnectTimeout(COMMAND_TIMEOUT);
             return connection;
         } catch (IOException e) {
             String message = "Failed to initialize connection for action: " + url;
