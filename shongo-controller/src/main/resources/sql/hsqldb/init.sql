@@ -126,6 +126,7 @@ SELECT
     reservation.slot_start AS slot_start,
     reservation.slot_end AS slot_end,
     ISNULL(resource_reservation.resource_id, room_provider_capability.resource_id) AS resource_id,
+    foreign_resource_reservation.foreign_resources_id as foreign_resources_id,
     room_reservation.license_count AS room_license_count,
     NULL AS room_name,
     NULL AS alias_types,
@@ -133,6 +134,7 @@ SELECT
     '' AS reservation_request_description
 FROM reservation
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
+LEFT JOIN foreign_resource_reservation ON foreign_resource_reservation.id = reservation.id
 LEFT JOIN room_reservation ON room_reservation.id = reservation.id
 LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = room_reservation.room_provider_capability_id
 LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
