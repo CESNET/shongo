@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 import cz.cesnet.shongo.controller.api.Domain;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Represents domain status response
