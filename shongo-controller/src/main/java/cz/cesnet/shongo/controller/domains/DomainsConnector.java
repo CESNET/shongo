@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.domains;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
@@ -19,6 +16,9 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.ws.commons.util.Base64;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public class DomainsConnector
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
         this.notifier = new DomainAdminNotifier(emailSender, configuration);
-        mapper.registerModule(new JodaModule());
+        mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
     protected ScheduledThreadPoolExecutor getExecutor()
@@ -197,14 +197,14 @@ public class DomainsConnector
                     connection.setRequestProperty("Accept", "application/json");
                     processError(connection, domain);
 //                    DEBUG:
-//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    String responseLine;
-//                    while ((responseLine = bufferedReader.readLine()) != null) {
-//                        stringBuilder.append(responseLine);
-//                    }
-//                    return reader.readValue(stringBuilder.toString());
-                    return reader.readValue(connection.getInputStream());
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(responseLine);
+                    }
+                    return reader.readValue(stringBuilder.toString());
+//                    return reader.readValue(connection.getInputStream());
                 case POST:
 //                    connection.setDoOutput(true);
 //                    connection.setRequestProperty("Content-Type", "application/json");

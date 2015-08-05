@@ -1,33 +1,31 @@
 package cz.cesnet.shongo.controller.domains;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.DeviceAddress;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.LocalDomain;
-import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.codehaus.jackson.map.Module;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.ext.JodaSerializers;
+import org.codehaus.jackson.map.module.SimpleModule;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.datetime.joda.DateTimeFormatterFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -251,29 +249,32 @@ public class InterDomainTest extends AbstractControllerTest
         }
     }
 
+    /**
+     * Test of reservation serialization
+     * @throws Exception
+     */
+    @Test
+    public void testGetReservation() throws Exception
+    {
+        Resource meetingRoom = new Resource();
+        meetingRoom.setAllocatable(true);
+        meetingRoom.setName("meeting-room");
+        String meetingRoomId = createResource(meetingRoom);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(meetingRoomId));
+        cz.cesnet.shongo.controller.api.Reservation reservation = allocateAndCheck(reservationRequest);
+
+
+        Reservation reservationResult = getConnector().getReservationByRequest(loopbackDomain, reservation.getReservationRequestId());
+        Assert.assertEquals(true, Temporal.isIntervalEqualed(reservation.getSlot(), reservationResult.getSlot()));
+    }
+
     @Test
     public void test() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JodaModule());
-        ObjectWriter writer = mapper.writer();
-        Interval interval = new Interval("2012-01-01T00:00/2012-03-01T00:00");
-        Reservation reservation = new Reservation();
-        reservation.setSlot(interval);
-        byte[] bytes = writer.writeValueAsBytes(reservation);
-
-        InputStream inputStream = new ByteArrayInputStream(bytes);
-
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder stringBuilder = new StringBuilder();
-        String responseLine;
-        while ((responseLine = bufferedReader.readLine()) != null) {
-            stringBuilder.append(responseLine);
-        }
-
-        ObjectReader reader = mapper.reader(Reservation.class);
-        reservation = reader.readValue(stringBuilder.toString());
-
     }
 
     protected CachedDomainsConnector getConnector()

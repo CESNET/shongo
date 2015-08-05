@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.api.domains.response;
 
 
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 /**
@@ -11,7 +12,7 @@ import org.joda.time.Interval;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-@JsonIgnoreProperties({"allocated"})
+@JsonIgnoreProperties({"allocated", "slot"})
 public class Reservation
 {
     /**
@@ -24,10 +25,16 @@ public class Reservation
     private String foreignReservationId;
 
     /**
-     * Slot fot which the {@link Reservation} is allocated.
+     * Slot start for which the {@link Reservation} is allocated.
      */
-    @JsonProperty("slot")
-    private Interval slot;
+    @JsonProperty("slotStart")
+    private DateTime slotStart;
+
+    /**
+     * Slot end for which the {@link Reservation} is allocated.
+     */
+    @JsonProperty("slotEnd")
+    private DateTime slotEnd;
 
     @JsonProperty("resourceId")
     private String resourceId;
@@ -57,12 +64,33 @@ public class Reservation
 
     public Interval getSlot()
     {
-        return slot;
+        return new Interval(slotStart, slotEnd);
     }
 
     public void setSlot(Interval slot)
     {
-        this.slot = slot;
+        setSlotStart(slot.getStart());
+        setSlotEnd(slot.getEnd());
+    }
+
+    public DateTime getSlotStart()
+    {
+        return slotStart;
+    }
+
+    public void setSlotStart(DateTime slotStart)
+    {
+        this.slotStart = slotStart;
+    }
+
+    public DateTime getSlotEnd()
+    {
+        return slotEnd;
+    }
+
+    public void setSlotEnd(DateTime slotEnd)
+    {
+        this.slotEnd = slotEnd;
     }
 
     public String getResourceId()
@@ -87,7 +115,7 @@ public class Reservation
 
     public boolean isAllocated()
     {
-        if (foreignReservationId != null && slot != null) {
+        if (foreignReservationId != null) {
             return true;
         }
         return false;
