@@ -140,8 +140,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                 @Override
                 protected Reservation allocateReservation(Reservation currentReservation) throws SchedulerException
                 {
-                    ForeignResourceReservation foreignResourceReservation = new ForeignResourceReservation();
-                    foreignResourceReservation.setDomain(foreignResources.getDomain());
+                    ForeignResourceReservation foreignResourceReservation;
                     schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
 
                     cz.cesnet.shongo.controller.api.domains.response.Reservation foreignReservation;
@@ -152,6 +151,9 @@ public class ResourceSpecification extends Specification implements ReservationT
                     }
 
                     if (allocateNew) {
+                        foreignResourceReservation = new ForeignResourceReservation();
+                        foreignResourceReservation.setDomain(foreignResources.getDomain());
+
                         foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources);
                         foreignResourceReservation.setSlot(foreignReservation.getSlot());
                         foreignResourceReservation.setForeignResources(foreignResources);
@@ -159,17 +161,20 @@ public class ResourceSpecification extends Specification implements ReservationT
                         if (!foreignReservation.isAllocated()) {
                             foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
                         }
+                        else {
+                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
+                        }
                     } else {
-                        ForeignResourceReservation previousReservation = (ForeignResourceReservation) currentReservation;
-                        cz.cesnet.shongo.controller.api.Domain domain = foreignResources.getDomain().toApi();
-                        String requestId = previousReservation.getForeignReservationRequestId();
+                        foreignResourceReservation = (ForeignResourceReservation) currentReservation;
+
+//                        ForeignResourceReservation previousReservation = (ForeignResourceReservation) currentReservation;
+                        cz.cesnet.shongo.controller.api.Domain domain = foreignResourceReservation.getDomain().toApi();
+                        String requestId = foreignResourceReservation.getForeignReservationRequestId();
 
                         foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
 
                         if (foreignReservation.isAllocated()) {
                             //TODO: kdyz FAIL, tak zahodit a nastavit fail pro request
-                            previousReservation.setForeignReservationRequestId(null);
-
                             foreignResourceReservation.setSlot(foreignReservation.getSlot());
                             foreignResourceReservation.setForeignReservationRequestId(null);
                             schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
