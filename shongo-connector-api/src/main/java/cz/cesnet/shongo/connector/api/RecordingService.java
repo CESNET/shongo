@@ -85,10 +85,11 @@ public interface RecordingService
      *
      * @param recordingFolderId identifier of folder, where the recording should be stored
      * @param alias             alias of an endpoint which should be recorded (it can be a virtual room)
+     * @param recordingPrefixName          name used for the name of the recording (can be null)
      * @param recordingSettings recording settings
      * @return identifier of the recording for further reference (unique among other recordings on the device)
      */
-    public String startRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
+    public String startRecording(String recordingFolderId, Alias alias, String recordingPrefixName, RecordingSettings recordingSettings)
             throws CommandException, CommandUnsupportedException;
 
     /**

@@ -19,14 +19,17 @@ public class StartRecording extends ConnectorCommand<String>
 
     private RecordingSettings recordingSettings;
 
+    private String recordingPrefixName;
+
     public StartRecording()
     {
     }
 
-    public StartRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
+    public StartRecording(String recordingFolderId, Alias alias, String recordingPrefixName, RecordingSettings recordingSettings)
     {
         this.recordingFolderId = recordingFolderId;
         this.alias = alias;
+        this.recordingPrefixName = recordingPrefixName;
         this.recordingSettings = recordingSettings;
     }
 
@@ -50,6 +53,16 @@ public class StartRecording extends ConnectorCommand<String>
         this.alias = alias;
     }
 
+    public String getRecordingPrefixName()
+    {
+        return recordingPrefixName;
+    }
+
+    public void setRecordingPrefixName(String recordingPrefixName)
+    {
+        this.recordingPrefixName = recordingPrefixName;
+    }
+
     public RecordingSettings getRecordingSettings()
     {
         return recordingSettings;
@@ -63,7 +76,7 @@ public class StartRecording extends ConnectorCommand<String>
     @Override
     public String execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getRecording(connector).startRecording(recordingFolderId, alias, recordingSettings);
+        return getRecording(connector).startRecording(recordingFolderId, alias, recordingPrefixName, recordingSettings);
     }
 
     @Override

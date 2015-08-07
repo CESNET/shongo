@@ -1,5 +1,6 @@
     package cz.cesnet.shongo.controller.booking.room;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
@@ -231,6 +232,19 @@ public class UsedRoomEndpoint extends RoomEndpoint
         if (reusedRoomEndpoint instanceof RecordableEndpoint) {
             RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
             return recordableEndpoint.getRecordingAlias();
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Transient
+    @Override
+    public String getRecordingPrefixName()
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            return recordableEndpoint.getRecordingPrefixName();
         }
         else {
             throw new TodoImplementException(reusedRoomEndpoint.getClass());
