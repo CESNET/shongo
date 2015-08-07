@@ -13,7 +13,7 @@ import org.joda.time.Interval;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 @JsonIgnoreProperties({"allocated", "slot"})
-public class Reservation
+public class Reservation extends AbstractResponse
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.

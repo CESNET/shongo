@@ -95,7 +95,6 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "userId", required = true) String userId,
             @RequestParam(value = "technology", required = false) Technology technology)
     {
-        //TODO alokovat
         EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -143,15 +142,23 @@ public class InterDomainController implements InterDomainProtocol{
     @Override
     @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_DATA, method = RequestMethod.GET)
     @ResponseBody
-    public Reservation handleAllocate(HttpServletRequest request,
+    public Reservation handleGetReservation(HttpServletRequest request,
                                       @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
     {
         Domain domain = getDomain(request);
         ObjectIdentifier domainIdentifier = ObjectIdentifier.parse(domain.getId(), ObjectType.DOMAIN);
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
+        EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
+
+        Reservation reservation = new Reservation();
+
         if (!requestIdentifier.isLocal()) {
             //TODO: vyresit autorizaci
+
         }
         try {
             //TODO: overitopravneni primo k requestu
@@ -160,13 +167,8 @@ public class InterDomainController implements InterDomainProtocol{
             //TODO: vyresit autorizaci
         }
 
-        EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AbstractReservationRequest reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
-        cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
         //TODO get report: reservationRequest.getReportDescription()
 
-        Reservation reservation = new Reservation();
         if (currentReservation != null) {
             String reservationId = ObjectIdentifier.formatId(currentReservation);
             reservation.setSlot(currentReservation.getSlot());
