@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import com.google.common.base.Strings;
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
@@ -87,12 +88,5 @@ public class CiscoTCSConnectorTest
             Map<String, String> result = new HashMap<String, String>();
             return result;
         }
-    }
-
-    @Test
-    public void test() throws URISyntaxException, MalformedURLException
-    {
-        URL url = new URL("https://shongo-dev.cesnet.cz/storage/tcs1/");
-        System.out.println(new URL(url, "teco"));
     }
 }

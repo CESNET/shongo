@@ -164,6 +164,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
 
         // Prepare alias for starting of recording
         Alias alias = recordableEndpoint.getRecordingAlias();
+        String recordingPrefixName = recordableEndpoint.getRecordingPrefixName();
 
         // Try to reuse active recording
         String recordingId = null;
@@ -179,7 +180,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         // Start new recording
         if (recordingId == null) {
             RecordingSettings recordingSettings = getRecordingSettings(recordableEndpoint, alias);
-            StartRecording startRecording = new StartRecording(recordingFolderId, alias.toApi(), recordingSettings);
+            StartRecording startRecording = new StartRecording(recordingFolderId, alias.toApi(), recordingPrefixName, recordingSettings);
             sendLocalCommand = controllerAgent.sendCommand(agentName, startRecording);
             if (sendLocalCommand.isFailed()) {
                 if (sendLocalCommand.isJadeCommandFailed(RecordingUnavailableException.CODE)) {

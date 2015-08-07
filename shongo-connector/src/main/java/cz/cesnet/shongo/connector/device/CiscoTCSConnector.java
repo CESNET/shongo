@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.device;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -623,7 +624,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @throws CommandException
      */
     @Override
-    public String startRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
+    public String startRecording(String recordingFolderId, Alias alias, String recordingPrefixName, RecordingSettings recordingSettings)
             throws CommandException
     {
         //TODO: check if available slots
@@ -636,7 +637,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             throw new TodoImplementException("TODO: implement recording for other aliases than H.323_164.");
         }
 
-        String recordingName = formatRecordingName(recordingFolderId, alias, DateTime.now());
+        String recordingName = formatRecordingName(recordingFolderId, alias, DateTime.now(), recordingPrefixName);
         Command command = new Command("RequestConferenceID");
         command.setParameter("owner", "admin");
         command.setParameter("password", "");
@@ -1216,9 +1217,15 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @param dateTime
      * @return recordingFileId for given dateTime
      */
-    private static String formatRecordingFileId(DateTime dateTime)
+    private static String formatRecordingFileId(DateTime dateTime, String recordingPrefixName)
     {
-        return FILE_ID_DATE_TIME_FORMATTER.print(dateTime);
+        if (!Strings.isNullOrEmpty(recordingPrefixName)) {
+            recordingPrefixName += ":";
+        }
+        else {
+            recordingPrefixName = "";
+        }
+        return recordingPrefixName + FILE_ID_DATE_TIME_FORMATTER.print(dateTime);
     }
 
     /**
@@ -1269,8 +1276,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * @param recordingStartedAt
      * @return recording name for given {@code recordingFolderId}, {@code alias} and {@code dateTime}
      */
-    private String formatRecordingName(String recordingFolderId, Alias alias, DateTime recordingStartedAt) {
-        return formatRecordingName(recordingFolderId, alias.getValue(), formatRecordingFileId(recordingStartedAt));
+    private String formatRecordingName(String recordingFolderId, Alias alias, DateTime recordingStartedAt, String recordingPrefixName) {
+        return formatRecordingName(recordingFolderId, alias.getValue(), formatRecordingFileId(recordingStartedAt, recordingPrefixName));
     }
 
     /**

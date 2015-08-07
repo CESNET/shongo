@@ -38,6 +38,11 @@ public interface RecordableEndpoint
     public Alias getRecordingAlias();
 
     /**
+     * @return {@code AliasType.ROOM_NAME} as string, can be null
+     */
+    public String getRecordingPrefixName();
+
+    /**
      * @return description of the folder to which recordings will be stored
      */
     public RecordingFolder getRecordingFolderApi();

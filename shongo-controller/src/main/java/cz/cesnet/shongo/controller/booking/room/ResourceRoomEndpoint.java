@@ -301,6 +301,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint
 
     @Transient
     @Override
+    public String getRecordingPrefixName()
+    {
+        String roomName = null;
+        for (Alias alias : getAliases()) {
+            if (AliasType.ROOM_NAME.equals(alias.getType())) {
+                roomName = alias.getValue();
+            }
+        }
+        return roomName;
+    }
+
+    @Transient
+    @Override
     public RecordingFolder getRecordingFolderApi()
     {
         RecordingFolder recordingFolder = new RecordingFolder();
