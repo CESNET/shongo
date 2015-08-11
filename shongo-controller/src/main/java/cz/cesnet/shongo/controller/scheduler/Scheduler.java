@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Reporter;
@@ -261,7 +262,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        if (notificationManager != null) {
+                        // Notify users/admins only if local
+                        if (notificationManager != null && UserInformation.isLocal(reservationRequest.getUpdatedBy())) {
                             notificationManager.addNotification(new AllocationFailedNotification(
                                     reservationRequest, authorizationManager, configuration), entityManager);
                         }

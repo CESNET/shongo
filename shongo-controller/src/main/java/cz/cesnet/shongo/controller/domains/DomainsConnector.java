@@ -196,7 +196,7 @@ public class DomainsConnector
                     connection.setDoInput(true);
                     connection.setRequestProperty("Accept", "application/json");
                     processError(connection, domain);
-//                    DEBUG:
+//                  ====================DEBUG=====================
 //                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 //                    StringBuilder stringBuilder = new StringBuilder();
 //                    String responseLine;
@@ -204,6 +204,7 @@ public class DomainsConnector
 //                        stringBuilder.append(responseLine);
 //                    }
 //                    return reader.readValue(stringBuilder.toString());
+//                  ====================DEBUG=====================
                     return reader.readValue(connection.getInputStream());
                 case POST:
 //                    connection.setDoOutput(true);
@@ -463,6 +464,7 @@ public class DomainsConnector
         parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
         parameters.put("userId", schedulerContext.getUserId());
+        parameters.put("description", schedulerContext.getDescription());
 
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
         if (reservation.getSlot() == null) {
