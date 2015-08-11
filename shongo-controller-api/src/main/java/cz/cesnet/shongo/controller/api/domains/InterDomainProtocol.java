@@ -26,11 +26,16 @@ public interface InterDomainProtocol {
      */
     public DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval interval, Technology technology);
+    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
+                                                         Interval interval, Technology technology)
+            throws NotAuthorizedException;
 
-    public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot, String resourceId, String userId, Technology technology);
+    public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot,
+                                      String resourceId, String userId, Technology technology, String description)
+            throws NotAuthorizedException, ForbiddenException;
 
-    public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId);
+    public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException;
 
     /**
      * Represents Inter Domain response with status code
@@ -87,6 +92,18 @@ public interface InterDomainProtocol {
 
         public void setCode(String code) {
             this.code = code;
+        }
+    }
+
+    public class NotAuthorizedException extends Exception {
+        public NotAuthorizedException(String message) {
+            super(message);
+        }
+    }
+
+    public class ForbiddenException extends Exception {
+        public ForbiddenException(String message) {
+            super(message);
         }
     }
 }

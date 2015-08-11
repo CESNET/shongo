@@ -4,23 +4,23 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
-import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
+
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -75,7 +75,7 @@ public class InterDomainController implements InterDomainProtocol{
             HttpServletRequest request,
             @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
             @RequestParam(value = "interval", required = false) Interval interval,
-            @RequestParam(value = "technology", required = false) Technology technology)
+            @RequestParam(value = "technology", required = false) Technology technology) throws NotAuthorizedException
     {
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
         listRequest.setCapabilityType(type);
@@ -93,7 +93,8 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "slot", required = false) Interval slot,
             @RequestParam(value = "resourceId", required = false) String resourceId,
             @RequestParam(value = "userId", required = true) String userId,
-            @RequestParam(value = "technology", required = false) Technology technology)
+            @RequestParam(value = "technology", required = false) Technology technology,
+            @RequestParam(value = "description", required = false) String description) throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -107,14 +108,12 @@ public class InterDomainController implements InterDomainProtocol{
                 ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseTypedId(resourceId, ObjectType.RESOURCE);
 
                 if (!resourceIdentifier.isLocal()) {
-                    //TODO: vyresit autorizaci
+                    // Throw {@code ForbiddenException} for error 403 to return
+                    throw new ForbiddenException("Cannot allocate");
                 }
-                try {
-                    resourceManager.getDomainResource(domainIdentifier.getPersistenceId(), resourceIdentifier.getPersistenceId());
-                }
-                catch (CommonReportSet.ObjectNotExistsException ex) {
-                    //TODO: vyresit autorizaci
-                }
+                // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
+                resourceManager.getDomainResource(domainIdentifier.getPersistenceId(), resourceIdentifier.getPersistenceId());
+
 
                 Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
 
@@ -124,16 +123,16 @@ public class InterDomainController implements InterDomainProtocol{
                 reservationRequest.setSlot(slot);
                 reservationRequest.setSpecification(ResourceSpecification.createFromApi(resourceSpecification, entityManager));
                 reservationRequest.setPurpose(ReservationRequestPurpose.USER);
-                reservationRequest.setDescription("TODO");
-                reservationRequest.setCreatedBy(domainId + ":" + userId);
-                reservationRequest.setUpdatedBy(domainId + ":" + userId);
+                reservationRequest.setDescription(description);
+                reservationRequest.setCreatedBy(UserInformation.formatForeignUserId(userId, domainId));
+                reservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
                 reservationRequestManager.create(reservationRequest);
 
                 reservation.setReservationRequestId(ObjectIdentifier.formatId(reservationRequest));
                 break;
             case VIRTUAL_ROOM:
             default:
-                throw new TodoImplementException("!!zz!!");
+                throw new TodoImplementException("Allocating another type of reservation");
         }
 
         return reservation;
@@ -143,53 +142,92 @@ public class InterDomainController implements InterDomainProtocol{
     @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Reservation handleGetReservation(HttpServletRequest request,
-                                      @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
+                                      @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId) throws NotAuthorizedException, ForbiddenException
     {
         Domain domain = getDomain(request);
-        ObjectIdentifier domainIdentifier = ObjectIdentifier.parse(domain.getId(), ObjectType.DOMAIN);
+        Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AbstractReservationRequest reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationRequest reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
         cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
+
+        String updatedByUserId = reservationRequest.getUpdatedBy();
+
+        Specification specification = reservationRequest.getSpecification();
+        if (specification instanceof ResourceSpecification) {
+            ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+            Resource resource = resourceSpecification.getResource();
+            if (resource != null) {
+                // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
+                resourceManager.getDomainResource(domainId, resource.getId());
+            }
+        }
+
+        if (!domainId.equals(UserInformation.parseDomainId(updatedByUserId)) || !requestIdentifier.isLocal()) {
+            // Throw {@code ForbiddenException} for error 403 to return
+            throw new ForbiddenException("Cannot get reservation");
+        }
 
         Reservation reservation = new Reservation();
 
-        if (!requestIdentifier.isLocal()) {
-            //TODO: vyresit autorizaci
-
-        }
-        try {
-            //TODO: overitopravneni primo k requestu
-        }
-        catch (CommonReportSet.ObjectNotExistsException ex) {
-            //TODO: vyresit autorizaci
-        }
-
         //TODO get report: reservationRequest.getReportDescription()
+        switch (reservationRequest.getAllocationState()) {
+            case ALLOCATION_FAILED:
+                reservation.setReservationRequestId(reservationRequestId);
+                reservation.setStatus(AbstractResponse.Status.ERROR);
+//                SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
+                reservation.setMessage("TODO ERROR");
+                break;
+            case ALLOCATED:
+                if (currentReservation != null) {
+                    String reservationId = ObjectIdentifier.formatId(currentReservation);
+                    reservation.setSlot(currentReservation.getSlot());
+                    reservation.setForeignReservationId(reservationId);
+                    if (currentReservation instanceof ResourceReservation) {
+                        ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
+                        String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
 
-        if (currentReservation != null) {
-            String reservationId = ObjectIdentifier.formatId(currentReservation);
-            reservation.setSlot(currentReservation.getSlot());
-            reservation.setForeignReservationId(reservationId);
-            if (currentReservation instanceof ResourceReservation) {
-                ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
-                String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
+                        reservation.setResourceId(resourceId);
+                    }
+                }
+                else {
+                    reservation.setReservationRequestId(reservationRequestId);
+                }
+                break;
+            default:
+                reservation.setReservationRequestId(reservationRequestId);
+                break;
+        }
 
-                reservation.setResourceId(resourceId);
-            }
-        }
-        else {
-            reservation.setReservationRequestId(reservationRequestId);
-        }
+
         return reservation;
     }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({NotAuthorizedException.class})
-    public ResponseEntity<String> workflowExceptionCaught(NotAuthorizedException ex) {
+    public ResponseEntity<String> unauthorizedExceptionHandler(NotAuthorizedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    @ExceptionHandler({ForbiddenException.class})
+    public ResponseEntity<String> forbiddenExceptionHandler(ForbiddenException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    @ExceptionHandler({CommonReportSet.ObjectNotExistsException.class})
+    public ResponseEntity<String> notFoundExceptionHandler(CommonReportSet.ObjectNotExistsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({RuntimeException.class})
+    public ResponseEntity<String> internalExceptionHandler(RuntimeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -197,7 +235,8 @@ public class InterDomainController implements InterDomainProtocol{
      * @param request
      * @return {@link Domain}
      */
-    protected Domain getDomain(HttpServletRequest request) {
+    protected Domain getDomain(HttpServletRequest request) throws NotAuthorizedException
+    {
         Domain domain = getDomainByCert(request);
         if (domain == null) {
             domain = getDomainByAccessToken(request);
@@ -234,12 +273,6 @@ public class InterDomainController implements InterDomainProtocol{
 
     protected DomainAuthentication getAuthentication() {
         return InterDomainAgent.getInstance().getAuthentication();
-    }
-
-    private class NotAuthorizedException extends RuntimeException {
-        public NotAuthorizedException(String message) {
-            super(message);
-        }
     }
 
     public class IntervalEditor extends PropertyEditorSupport

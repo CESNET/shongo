@@ -37,7 +37,7 @@ public abstract class AbstractResponse
 
     public static enum Status
     {
-        OK,
-        ERROR
+        OK(),
+        ERROR;
     }
 }

@@ -272,11 +272,18 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     }
 
     public static Long parseDomainId(String userId)
-    { Matcher matcher = FOREIGN_IDENTIFIER_PATTERN.matcher(userId);
+    {
+        Matcher matcher = FOREIGN_IDENTIFIER_PATTERN.matcher(userId);
         if (matcher.matches()) {
             return Long.parseLong(matcher.group(1));
         }
 
-        throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
+        return null;
+//        throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
+    }
+
+    public static String formatForeignUserId(String userId, Long domainId)
+    {
+        return domainId + ":" + userId;
     }
 }
