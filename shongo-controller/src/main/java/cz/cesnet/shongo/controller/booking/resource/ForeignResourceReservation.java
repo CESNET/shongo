@@ -25,6 +25,8 @@ public class ForeignResourceReservation extends TargetedReservation
 
     private String foreignReservationRequestId;
 
+    private boolean complete;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "foreign_resources_id")
     public ForeignResources getForeignResources()
@@ -50,7 +52,7 @@ public class ForeignResourceReservation extends TargetedReservation
         this.domain = domain;
     }
 
-    @Column(nullable = true)
+    @Column
     public String getForeignReservationRequestId()
     {
         return foreignReservationRequestId;
@@ -59,6 +61,17 @@ public class ForeignResourceReservation extends TargetedReservation
     public void setForeignReservationRequestId(String foreignReservationRequestId)
     {
         this.foreignReservationRequestId = foreignReservationRequestId;
+    }
+
+    @Column
+    public boolean isComplete()
+    {
+        return complete;
+    }
+
+    public void setComplete(boolean complete)
+    {
+        this.complete = complete;
     }
 
     @Override
@@ -91,14 +104,5 @@ public class ForeignResourceReservation extends TargetedReservation
             foreignResources.setDomain(domain);
         }
         setSlot(reservationApi.getSlot());
-    }
-
-    @Transient
-    public boolean isAllocated()
-    {
-        if (foreignResources == null) {
-            return true;
-        }
-        return false;
     }
 }

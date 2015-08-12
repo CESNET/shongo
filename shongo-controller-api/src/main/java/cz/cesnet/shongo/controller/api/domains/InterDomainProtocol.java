@@ -31,69 +31,12 @@ public interface InterDomainProtocol {
             throws NotAuthorizedException;
 
     public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot,
-                                      String resourceId, String userId, Technology technology, String description)
+                                      String resourceId, String userId, Technology technology, String description,
+                                      String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
     public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
-
-    /**
-     * Represents Inter Domain response with status code
-     */
-    public static class InterDomainResponse {
-        private String responseType;
-
-        private Object response;
-
-        public String getResponseType() {
-            return responseType;
-        }
-
-        public void setResponseType(String responseType) {
-            this.responseType = responseType;
-        }
-
-        public Object getResponse() {
-            return response;
-        }
-
-        public void setResponse(Object response) {
-            this.response = response;
-        }
-    }
-
-    /**
-     * Represents status for Inter Domain response
-     */
-    public static class Status {
-        public static final String CODE_OK = "ok";
-        public static final String CODE_UNAUTHORIZED = "unauthorized";
-
-        private String code;
-
-        private String message;
-
-        public Status(String code, String message) {
-            this.code = code;
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-    }
 
     public class NotAuthorizedException extends Exception {
         public NotAuthorizedException(String message) {

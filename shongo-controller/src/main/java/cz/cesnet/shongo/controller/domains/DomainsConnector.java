@@ -455,7 +455,8 @@ public class DomainsConnector
      *
      * @return
      */
-    public Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources)
+    public Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources,
+                                        String previousReservationRequestId)
     {
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
@@ -465,6 +466,9 @@ public class DomainsConnector
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
         parameters.put("userId", schedulerContext.getUserId());
         parameters.put("description", schedulerContext.getDescription());
+        if (previousReservationRequestId != null) {
+            parameters.put("reservationRequestId", previousReservationRequestId);
+        }
 
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
         if (reservation.getSlot() == null) {

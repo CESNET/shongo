@@ -94,7 +94,8 @@ public class InterDomainController implements InterDomainProtocol{
             @RequestParam(value = "resourceId", required = false) String resourceId,
             @RequestParam(value = "userId", required = true) String userId,
             @RequestParam(value = "technology", required = false) Technology technology,
-            @RequestParam(value = "description", required = false) String description) throws NotAuthorizedException, ForbiddenException
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId) throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().getEntityManagerFactory().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
