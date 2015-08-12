@@ -183,7 +183,12 @@ public class ResourceSpecification extends Specification implements ReservationT
                             foreignResourceReservation.setSlot(foreignReservation.getSlot());
                             foreignResourceReservation.setComplete(true);
                             schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
-                        } else {
+                        }
+                        else if (foreignReservation.isFailed()) {
+                            foreignResourceReservation.setComplete(true);
+                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
+                        }
+                        else {
                             //TODO vratit puvodni???
                             foreignResourceReservation = (ForeignResourceReservation) currentReservation;
 //                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());

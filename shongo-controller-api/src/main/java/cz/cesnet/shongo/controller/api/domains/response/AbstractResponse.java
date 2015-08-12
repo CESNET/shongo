@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -7,6 +8,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
+@JsonIgnoreProperties({"failed"})
 public abstract class AbstractResponse
 {
     @JsonProperty("status")
@@ -37,7 +39,12 @@ public abstract class AbstractResponse
 
     public static enum Status
     {
-        OK(),
+        OK,
         ERROR;
+    }
+
+    public boolean isFailed()
+    {
+        return Status.ERROR.equals(status);
     }
 }
