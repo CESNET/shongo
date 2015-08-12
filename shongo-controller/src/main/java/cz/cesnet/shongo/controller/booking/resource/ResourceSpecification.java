@@ -113,6 +113,7 @@ public class ResourceSpecification extends Specification implements ReservationT
         modified |= !ObjectHelper.isSamePersistent(getResource(), resourceSpecification.getResource());
 
         setResource(resourceSpecification.getResource());
+        setForeignResources(resourceSpecification.getForeignResources());
 
         return modified;
     }
