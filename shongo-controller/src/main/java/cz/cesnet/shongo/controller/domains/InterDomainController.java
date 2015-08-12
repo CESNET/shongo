@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
@@ -13,6 +14,7 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -105,22 +107,41 @@ public class InterDomainController implements InterDomainProtocol{
         switch (type) {
             case RESOURCE:
                 Domain domain = getDomain(request);
-                ObjectIdentifier domainIdentifier = ObjectIdentifier.parse(domain.getId(), ObjectType.DOMAIN);
+                Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
                 ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseTypedId(resourceId, ObjectType.RESOURCE);
+                ObjectIdentifier reservationRequestIdentifier = null;
+                if (!Strings.isNullOrEmpty(reservationRequestId)) {
+                    reservationRequestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+                }
 
+                // Return 403 if resource Id or reserevationRequest Id is not local
                 if (!resourceIdentifier.isLocal()) {
                     // Throw {@code ForbiddenException} for error 403 to return
                     throw new ForbiddenException("Cannot allocate");
                 }
                 // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
-                resourceManager.getDomainResource(domainIdentifier.getPersistenceId(), resourceIdentifier.getPersistenceId());
+                resourceManager.getDomainResource(domainId, resourceIdentifier.getPersistenceId());
 
+                AbstractReservationRequest previousReservationRequest = null;
+                if (reservationRequestIdentifier != null) {
+                    previousReservationRequest = reservationRequestManager.get(reservationRequestIdentifier.getPersistenceId());
+                    String createdByUserId = previousReservationRequest.getCreatedBy();
 
-                Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+                    if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !reservationRequestIdentifier.isLocal()) {
+                        // Throw {@code ForbiddenException} for error 403 to return
+                        throw new ForbiddenException("Cannot get reservation");
+                    }
+                }
 
                 cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecification = new cz.cesnet.shongo.controller.api.ResourceSpecification(resourceId);
 
-                ReservationRequest reservationRequest = new ReservationRequest();
+                ReservationRequest reservationRequest = null;
+                if (reservationRequestIdentifier == null) {
+                    reservationRequest = new ReservationRequest();
+                }
+                else {
+                    reservationRequest = (ReservationRequest) previousReservationRequest;
+                }
                 reservationRequest.setSlot(slot);
                 reservationRequest.setSpecification(ResourceSpecification.createFromApi(resourceSpecification, entityManager));
                 reservationRequest.setPurpose(ReservationRequestPurpose.USER);
@@ -155,7 +176,7 @@ public class InterDomainController implements InterDomainProtocol{
         ReservationRequest reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
         cz.cesnet.shongo.controller.booking.reservation.Reservation currentReservation = reservationRequest.getAllocation().getCurrentReservation();
 
-        String updatedByUserId = reservationRequest.getUpdatedBy();
+        String createdByUserId = reservationRequest.getCreatedBy();
 
         Specification specification = reservationRequest.getSpecification();
         if (specification instanceof ResourceSpecification) {
@@ -167,7 +188,7 @@ public class InterDomainController implements InterDomainProtocol{
             }
         }
 
-        if (!domainId.equals(UserInformation.parseDomainId(updatedByUserId)) || !requestIdentifier.isLocal()) {
+        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
             // Throw {@code ForbiddenException} for error 403 to return
             throw new ForbiddenException("Cannot get reservation");
         }
