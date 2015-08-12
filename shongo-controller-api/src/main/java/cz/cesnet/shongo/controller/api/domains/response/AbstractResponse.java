@@ -8,7 +8,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-@JsonIgnoreProperties({"failed"})
 public abstract class AbstractResponse
 {
     @JsonProperty("status")
@@ -41,10 +40,5 @@ public abstract class AbstractResponse
     {
         OK,
         ERROR;
-    }
-
-    public boolean isFailed()
-    {
-        return Status.ERROR.equals(status);
     }
 }
