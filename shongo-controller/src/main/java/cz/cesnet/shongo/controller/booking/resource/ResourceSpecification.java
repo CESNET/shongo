@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -184,7 +185,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                             foreignResourceReservation.setComplete(true);
                             schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
                         }
-                        else if (foreignReservation.isFailed()) {
+                        else if (AbstractResponse.Status.ERROR.equals(foreignReservation.getStatus())) {
                             foreignResourceReservation.setComplete(true);
                             schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
                         }
