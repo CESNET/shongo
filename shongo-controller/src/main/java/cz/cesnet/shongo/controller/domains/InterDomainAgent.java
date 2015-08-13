@@ -7,7 +7,9 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -90,8 +92,8 @@ public class InterDomainAgent {
         return authentication;
     }
 
-    protected EntityManagerFactory getEntityManagerFactory()
+    protected EntityManager createEntityManager()
     {
-        return entityManagerFactory;
+        return entityManagerFactory.createEntityManager();
     }
 }
