@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
@@ -461,7 +462,7 @@ public class DomainsConnector
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("slot", slot.toString());
+        parameters.put("slot", Converter.convertToString(new Interval(slot.getStartMillis(), slot.getEndMillis())));
         parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
         parameters.put("userId", schedulerContext.getUserId());

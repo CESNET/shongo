@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
 /**
@@ -80,7 +81,7 @@ public class Reservation extends AbstractResponse
 
     public void setSlotStart(DateTime slotStart)
     {
-        this.slotStart = slotStart;
+        this.slotStart = slotStart.toDateTime(DateTimeZone.UTC);
     }
 
     public DateTime getSlotEnd()
@@ -90,7 +91,7 @@ public class Reservation extends AbstractResponse
 
     public void setSlotEnd(DateTime slotEnd)
     {
-        this.slotEnd = slotEnd;
+        this.slotEnd = slotEnd.toDateTime(DateTimeZone.UTC);
     }
 
     public String getResourceId()
