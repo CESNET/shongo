@@ -81,7 +81,7 @@ public class Reservation extends AbstractResponse
 
     public void setSlotStart(DateTime slotStart)
     {
-        this.slotStart = slotStart.toDateTime(DateTimeZone.UTC);
+        this.slotStart = slotStart;
     }
 
     public DateTime getSlotEnd()
@@ -91,7 +91,7 @@ public class Reservation extends AbstractResponse
 
     public void setSlotEnd(DateTime slotEnd)
     {
-        this.slotEnd = slotEnd.toDateTime(DateTimeZone.UTC);
+        this.slotEnd = slotEnd;
     }
 
     public String getResourceId()
