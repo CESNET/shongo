@@ -1592,10 +1592,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
      */
     private ReservationSummary getReservationSummary(Object[] record)
     {
-        if (record[7] != null) {
-            throw new TodoImplementException("Vytazeni cizi rezervace");
-//            reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
-        }
         ReservationSummary reservationSummary = new ReservationSummary();
         reservationSummary.setId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
         reservationSummary.setUserId(record[1] != null ? record[1].toString() : null);
@@ -1605,6 +1601,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         reservationSummary.setSlot(new Interval(new DateTime(record[4]), new DateTime(record[5])));
         if (record[6] != null) {
             reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
+        }
+        if (record[7] != null) {
+            ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
+            ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
+            String domain = foreignResources.getDomain().getName();
+            Long resourceId = foreignResources.getForeignResourceId();
+            reservationSummary.setResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
         }
         if (record[8] != null) {
             reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
