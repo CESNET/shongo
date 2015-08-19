@@ -163,7 +163,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignResourceReservation.setForeignResources(foreignResources);
 
                         if (!foreignReservation.isAllocated()) {
-                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
+                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getForeignReservationRequestId());
                         }
                         else {
                             foreignResourceReservation.setComplete(true);

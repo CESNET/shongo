@@ -3,13 +3,11 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
@@ -241,7 +239,7 @@ public class DomainsConnector
             action = action.substring(1, action.length());
         }
         StringBuilder parametersBuilder = new StringBuilder();
-        if (parameters != null) {
+        if (parameters != null && !parameters.isEmpty()) {
             parametersBuilder.append("?");
             boolean first = true;
             for (Map.Entry<String, String> parameter : parameters.entrySet()) {
@@ -500,6 +498,39 @@ public class DomainsConnector
 //        }
     }
 
+    public boolean deleteReservationRequest(Domain domain, String foreignReservationRequestId)
+    {
+        ObjectReader reader = mapper.reader(AbstractResponse.class);
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("reservationRequestId", foreignReservationRequestId);
+
+        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_REQUEST_DELETE, parameters, domain, reader, AbstractResponse.class);
+
+        return AbstractResponse.Status.OK.equals(response.getStatus());
+    }
+
+    public List<Reservation> listReservations(String resourceId)
+    {
+        Domain domain = domainService.findDomainByName(ObjectIdentifier.parseDomain(resourceId));
+        return listReservations(domain, resourceId);
+    }
+
+    public List<Reservation> listReservations(Domain domain, String resourceId)
+    {
+        ObjectReader reader = mapper.reader(Reservation.class);
+        Map<String, String> parameters = new HashMap<>();
+        if (resourceId != null) {
+            parameters.put("resourceId", resourceId);
+        }
+
+        List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_LIST, parameters, domain, reader, List.class);
+        for (Reservation reservation : response) {
+            Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
+            reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
+        }
+        return response;
+    }
+
     /**
      * Represents action to be called on domain. Returns result after successful call. If {@code result} or
      * {@code unavailableDomains} are set, result or failed action will be written to them (synchronized on the {@code result}).
@@ -602,7 +633,7 @@ public class DomainsConnector
             } finally {
                 // If {@code unavailableDomains} is set and request failed add it and also to {@link result}
                 // with empty {@code ArrayList} if possible.
-                // {@code unavailableDomains} is used only by CachedDomainsConnector.
+                // NOTICE: {@code unavailableDomains} is used only by CachedDomainsConnector.
                 if (unavailableDomains != null && failed) {
                     synchronized (result) {
                         if (!result.containsKey(domain.getName())) {

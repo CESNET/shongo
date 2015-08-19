@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
@@ -26,6 +27,7 @@ import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -1173,6 +1175,17 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 PersistentObject persistentObject = resourceManager.findResourcesPersistentObject(resourceId);
                 if (authorization.hasObjectPermission(securityToken, persistentObject, ObjectPermission.READ)) {
                     hasReadForAll = true;
+                }
+
+                if (!ObjectIdentifier.isLocal(resourceId)) {
+                    ListResponse<ReservationSummary> response = new ListResponse<>();
+                    //TODO: parametrizace ListResponse??
+                    for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation :
+                            InterDomainAgent.getInstance().getConnector().listForeignResourcesReservations(resourceId)) {
+                        response.addItem(reservation.toReservationSummary());
+                    }
+                    response.setCount(response.getItemCount());
+                    return response;
                 }
             }
             // List only reservations which is current user permitted to read or which allocates resource owned by the user
