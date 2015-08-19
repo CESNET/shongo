@@ -3,9 +3,9 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.codehaus.jackson.map.ObjectReader;
@@ -36,11 +36,11 @@ public class CachedDomainsConnector extends DomainsConnector
     private Set<String> unavailableResources = new HashSet<>();
 
     /**
-     * Cache for unsaved reservations by reservation request id.
+     * Cache for foreign reservations by resource id.
      *
      * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code reservations} BEFORE USE.
      */
-    private Map<String, Reservation> reservations = new HashMap<>();
+    private Map<String, List<Reservation>> reservations = new HashMap<>();
 
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
@@ -58,6 +58,29 @@ public class CachedDomainsConnector extends DomainsConnector
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
         synchronized (availableResources) {
+            for (Domain domain : listAllocatableForeignDomains()) {
+                if (!availableResources.containsKey(domain.getName())) {
+                    domains.add(domain);
+                }
+            }
+        }
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
+        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters,
+                domains, DomainCapability.class, availableResources, unavailableResources);
+    }
+
+    /**
+     * Start periodic cache of foreign domain's reservations.
+     * TODO
+     * When cache is initialized, it will add new domains. Removing from cache and {@link ScheduledThreadPoolExecutor}
+     * is handled by thread itself ({@link DomainTask}).
+     */
+    synchronized private void updateReservationCache()
+    {
+        // Init only for inactive domains
+        List<Domain> domains = new ArrayList<>();
+        synchronized (reservations) {
             for (Domain domain : listAllocatableForeignDomains()) {
                 if (!availableResources.containsKey(domain.getName())) {
                     domains.add(domain);
@@ -102,7 +125,10 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
-     * @return true if cache contains resources for all allocatable domains, false otherwise.
+     * @return true if cache contains resources for all allocatable domains
+     * (if number of cached domains equals allocatable domains), false otherwise.
+     *
+     * Submits potentially missing domains to executor (checks every time).
      */
     protected boolean checkResourcesCacheInitialized()
     {
@@ -120,11 +146,23 @@ public class CachedDomainsConnector extends DomainsConnector
         return initialized;
     }
 
-    protected boolean isResourcesCacheReady()
+    /**
+     * Check if cache is ready to be used. Does not update the cache.
+     *
+     * True if
+     * - size of the cache exact to allocatable domains
+     * - cache is bigger than number of allocatable domains
+     * - cache smaller only by 1 (except it is empty)
+     * False otherwise
+     *
+     * @param cache to be checked
+     * @return
+     */
+    private boolean isCacheReady(Map cache)
     {
         int cachedDomainsCount;
-        synchronized (availableResources) {
-            cachedDomainsCount = availableResources.size();
+        synchronized (cache) {
+            cachedDomainsCount = cache.size();
         }
         int actualDomainsCount = listAllocatableForeignDomains().size();
 
@@ -141,7 +179,32 @@ public class CachedDomainsConnector extends DomainsConnector
             isReady = true;
         }
 
+        return isReady;
+    }
+
+    /**
+     * @return true if cache contains resources for all allocatable domains
+     * (if number of cached domains equals allocatable domains +-1), false otherwise.
+     *
+     * Submits potentially missing domains to executor (checks every time).
+     */
+    protected boolean isResourcesCacheReady()
+    {
+        boolean isReady = isCacheReady(availableResources);
         updateResourceCache();
+        return isReady;
+    }
+
+    /**
+     * @return true if cache contains reservations for all allocatable domains
+     * (if number of cached domains equals allocatable domains +-1), false otherwise.
+     *
+     * Submits potentially missing domains to executor (checks every time).
+     */
+    protected boolean isReservationCacheReady()
+    {
+        boolean isReady = isCacheReady(reservations);
+        updateReservationCache();
         return isReady;
     }
 
@@ -223,5 +286,20 @@ public class CachedDomainsConnector extends DomainsConnector
             capabilities = super.listForeignCapabilities(request);
         }
         return capabilities;
+    }
+
+    /**
+     * @return {@link List<Reservation>} of resources for foreign available domains
+     */
+    public List<Reservation> listForeignResourcesReservations(String resourceId)
+    {
+        if (isReservationCacheReady()) {
+            synchronized (reservations) {
+                return Collections.unmodifiableList(reservations.get(resourceId));
+            }
+        }
+        else {
+            return super.listReservations(resourceId);
+        }
     }
 }

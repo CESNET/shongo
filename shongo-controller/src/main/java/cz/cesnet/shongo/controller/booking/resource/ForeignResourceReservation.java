@@ -95,7 +95,7 @@ public class ForeignResourceReservation extends TargetedReservation
         }
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        ObjectIdentifier resourceId = ObjectIdentifier.parseForeignId(reservationApi.getResourceId());
+        ObjectIdentifier resourceId = ObjectIdentifier.parseForeignId(reservationApi.getForeignResourceId());
         foreignResources = resourceManager.findForeignResourcesByResourceId(resourceId);
         if (foreignResources == null) {
             Domain domain = resourceManager.getDomainByName(resourceId.getDomainName());

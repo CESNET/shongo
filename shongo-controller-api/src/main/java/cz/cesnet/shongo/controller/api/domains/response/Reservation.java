@@ -1,13 +1,15 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
-
 /**
  * Represents a reservation for foreign resource.
  *
@@ -19,8 +21,8 @@ public class Reservation extends AbstractResponse
     /**
      * Reservation request for which is {@link Reservation} allocated.
      */
-    @JsonProperty("reservationRequestId")
-    private String reservationRequestId;
+    @JsonProperty("foreignReservationRequestId")
+    private String foreignReservationRequestId;
 
     @JsonProperty("foreignReservationId")
     private String foreignReservationId;
@@ -37,20 +39,26 @@ public class Reservation extends AbstractResponse
     @JsonProperty("slotEnd")
     private DateTime slotEnd;
 
-    @JsonProperty("resourceId")
-    private String resourceId;
+    @JsonProperty("foreignResourceId")
+    private String foreignResourceId;
 
     @JsonProperty("type")
     private DomainCapabilityListRequest.Type type;
 
-    public String getReservationRequestId()
+    @JsonProperty("reservationRequestDescription")
+    private String reservationRequestDescription;
+
+    @JsonProperty("userId")
+    private String userId;
+
+    public String getForeignReservationRequestId()
     {
-        return reservationRequestId;
+        return foreignReservationRequestId;
     }
 
-    public void setReservationRequestId(String reservationRequestId)
+    public void setForeignReservationRequestId(String foreignReservationRequestId)
     {
-        this.reservationRequestId = reservationRequestId;
+        this.foreignReservationRequestId = foreignReservationRequestId;
     }
 
     public String getForeignReservationId()
@@ -94,14 +102,14 @@ public class Reservation extends AbstractResponse
         this.slotEnd = slotEnd;
     }
 
-    public String getResourceId()
+    public String getForeignResourceId()
     {
-        return resourceId;
+        return foreignResourceId;
     }
 
-    public void setResourceId(String resourceId)
+    public void setForeignResourceId(String foreignResourceId)
     {
-        this.resourceId = resourceId;
+        this.foreignResourceId = foreignResourceId;
     }
 
     public DomainCapabilityListRequest.Type getType()
@@ -114,11 +122,52 @@ public class Reservation extends AbstractResponse
         this.type = type;
     }
 
+    public String getReservationRequestDescription()
+    {
+        return reservationRequestDescription;
+    }
+
+    public void setReservationRequestDescription(String reservationRequestDescription)
+    {
+        this.reservationRequestDescription = reservationRequestDescription;
+    }
+
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
     public boolean isAllocated()
     {
         if (foreignReservationId != null) {
             return true;
         }
         return false;
+    }
+
+    public ReservationSummary toReservationSummary()
+    {
+        ReservationSummary reservationSummary = new ReservationSummary();
+        reservationSummary.setId(getForeignReservationId());
+        reservationSummary.setUserId(getUserId());
+        reservationSummary.setReservationRequestId(getForeignReservationRequestId());
+        switch (getType()) {
+            case VIRTUAL_ROOM:
+                throw new TodoImplementException();
+            case RESOURCE:
+                reservationSummary.setType(ReservationSummary.Type.RESOURCE);
+                break;
+        }
+        reservationSummary.setSlot(getSlot());
+        reservationSummary.setResourceId(getForeignResourceId());
+//        reservationSummary.setRoomLicenseCount();
+//        reservationSummary.setRoomName();
+        reservationSummary.setReservationRequestDescription(getReservationRequestDescription());
+        return reservationSummary;
     }
 }

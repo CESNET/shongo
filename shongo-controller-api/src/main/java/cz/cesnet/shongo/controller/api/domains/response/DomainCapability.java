@@ -13,8 +13,8 @@ import cz.cesnet.shongo.controller.api.ResourceSummary;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-@JsonIgnoreProperties({"className"})
-public class DomainCapability extends IdentifiedComplexType
+//@JsonIgnoreProperties({"className"})
+public class DomainCapability //extends IdentifiedComplexType
 {
     @JsonProperty("id")
     private String id;
@@ -46,13 +46,13 @@ public class DomainCapability extends IdentifiedComplexType
     @JsonProperty("available")
     private Boolean available;
 
-    @Override
+//    @Override
     public void setId(String id)
     {
         this.id = id;
     }
 
-    @Override
+//    @Override
     public String getId()
     {
         return id;
@@ -174,50 +174,50 @@ public class DomainCapability extends IdentifiedComplexType
         return resource;
     }
 
-    public static final String ID = "id";
-    public static final String NAME = "name";
-    public static final String DESCRIPTION = "description";
-    public static final String TYPE = "type";
-    public static final String AVAILABLE = "available";
-    public static final String CALENDAR_PUBLIC = "calendarPublic";
-    public static final String TECHNOLOGY = "technology";
-    public static final String LICENSE_COUNT = "licenseCount";
-    public static final String PRICE = "price";
-    public static final String CALENDAR_URI_KEY = "calendarUriKey";
-
-    @Override
-    public DataMap toData()
-    {
-        DataMap dataMap = super.toData();
-        dataMap.set(ID, id);
-        dataMap.set(NAME, name);
-        dataMap.set(DESCRIPTION, description);
-        dataMap.set(TYPE, type);
-        dataMap.set(AVAILABLE, available);
-        dataMap.set(TECHNOLOGY, technology == null ? null : technology.toString());
-        dataMap.set(LICENSE_COUNT, licenseCount);
-        dataMap.set(PRICE, price);
-        dataMap.set(CALENDAR_PUBLIC, calendarPublic);
-        dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
-
-        return dataMap;
-    }
-
-    @Override
-    public void fromData(DataMap dataMap)
-    {
-        super.fromData(dataMap);
-        id = dataMap.getStringRequired(ID);
-        name = dataMap.getStringRequired(NAME);
-        description = dataMap.getString(DESCRIPTION);
-        type = dataMap.getString(TYPE);
-        available = dataMap.getBoolean(AVAILABLE);
-        technology = Technology.valueOf(dataMap.getString(TECHNOLOGY));
-        licenseCount = dataMap.getInteger(LICENSE_COUNT);
-        price = dataMap.getInteger(PRICE);
-        calendarPublic = dataMap.getBoolean(CALENDAR_PUBLIC);
-        if (calendarPublic) {
-            calendarUriKey = dataMap.getStringRequired(CALENDAR_URI_KEY);
-        }
-    }
+//    public static final String ID = "id";
+//    public static final String NAME = "name";
+//    public static final String DESCRIPTION = "description";
+//    public static final String TYPE = "type";
+//    public static final String AVAILABLE = "available";
+//    public static final String CALENDAR_PUBLIC = "calendarPublic";
+//    public static final String TECHNOLOGY = "technology";
+//    public static final String LICENSE_COUNT = "licenseCount";
+//    public static final String PRICE = "price";
+//    public static final String CALENDAR_URI_KEY = "calendarUriKey";
+//
+//    @Override
+//    public DataMap toData()
+//    {
+//        DataMap dataMap = super.toData();
+//        dataMap.set(ID, id);
+//        dataMap.set(NAME, name);
+//        dataMap.set(DESCRIPTION, description);
+//        dataMap.set(TYPE, type);
+//        dataMap.set(AVAILABLE, available);
+//        dataMap.set(TECHNOLOGY, technology == null ? null : technology.toString());
+//        dataMap.set(LICENSE_COUNT, licenseCount);
+//        dataMap.set(PRICE, price);
+//        dataMap.set(CALENDAR_PUBLIC, calendarPublic);
+//        dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
+//
+//        return dataMap;
+//    }
+//
+//    @Override
+//    public void fromData(DataMap dataMap)
+//    {
+//        super.fromData(dataMap);
+//        id = dataMap.getStringRequired(ID);
+//        name = dataMap.getStringRequired(NAME);
+//        description = dataMap.getString(DESCRIPTION);
+//        type = dataMap.getString(TYPE);
+//        available = dataMap.getBoolean(AVAILABLE);
+//        technology = Technology.valueOf(dataMap.getString(TECHNOLOGY));
+//        licenseCount = dataMap.getInteger(LICENSE_COUNT);
+//        price = dataMap.getInteger(PRICE);
+//        calendarPublic = dataMap.getBoolean(CALENDAR_PUBLIC);
+//        if (calendarPublic) {
+//            calendarUriKey = dataMap.getStringRequired(CALENDAR_URI_KEY);
+//        }
+//    }
 }

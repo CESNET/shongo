@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.api.domains.response.DomainLogin;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.domains.response.DomainStatus;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.Interval;
 
@@ -36,6 +33,12 @@ public interface InterDomainProtocol {
             throws NotAuthorizedException, ForbiddenException;
 
     public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException;
+
+    public AbstractResponse handleDeleteReservationRequest(HttpServletRequest request, String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException;
+
+    public List<Reservation> handleListReservations(HttpServletRequest request, String resourceId)
             throws NotAuthorizedException, ForbiddenException;
 
     public class NotAuthorizedException extends Exception {

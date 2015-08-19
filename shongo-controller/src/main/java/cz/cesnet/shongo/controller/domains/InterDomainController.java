@@ -167,7 +167,7 @@ public class InterDomainController implements InterDomainProtocol{
                 //TODO: create ACL for some purpose?
                 entityManager.getTransaction().commit();
 
-                reservation.setReservationRequestId(ObjectIdentifier.formatId(newReservationRequest));
+                reservation.setForeignReservationRequestId(ObjectIdentifier.formatId(newReservationRequest));
                 break;
             case VIRTUAL_ROOM:
             default:
@@ -215,7 +215,7 @@ public class InterDomainController implements InterDomainProtocol{
         //TODO get report: reservationRequest.getReportDescription()
         switch (reservationRequest.getAllocationState()) {
             case ALLOCATION_FAILED:
-                reservation.setReservationRequestId(reservationRequestId);
+                reservation.setForeignReservationRequestId(reservationRequestId);
                 reservation.setStatus(AbstractResponse.Status.ERROR);
 //                SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
                 reservation.setMessage("TODO ERROR");
@@ -229,20 +229,70 @@ public class InterDomainController implements InterDomainProtocol{
                         ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
                         String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
 
-                        reservation.setResourceId(resourceId);
+                        reservation.setForeignResourceId(resourceId);
                     }
                 }
                 else {
-                    reservation.setReservationRequestId(reservationRequestId);
+                    reservation.setForeignReservationRequestId(reservationRequestId);
                 }
                 break;
             default:
-                reservation.setReservationRequestId(reservationRequestId);
+                reservation.setForeignReservationRequestId(reservationRequestId);
                 break;
         }
 
 
         return reservation;
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
+    @ResponseBody
+    public AbstractResponse handleDeleteReservationRequest(HttpServletRequest request,
+                                            @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException
+    {
+        Domain domain = getDomain(request);
+        Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
+        ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationRequest reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
+
+        String createdByUserId = reservationRequest.getCreatedBy();
+
+        Specification specification = reservationRequest.getSpecification();
+        if (specification instanceof ResourceSpecification) {
+            ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+            Resource resource = resourceSpecification.getResource();
+            if (resource != null) {
+                // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
+                resourceManager.getDomainResource(domainId, resource.getId());
+            }
+        }
+
+        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
+            // Throw {@code ForbiddenException} for error 403 to return
+            throw new ForbiddenException("Cannot delete reservation request");
+        }
+
+        return new AbstractResponse() {};
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_LIST, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Reservation> handleListReservations(HttpServletRequest request,
+                                                    @RequestParam(value = "resourceId", required = false) String resourceId)
+            throws NotAuthorizedException, ForbiddenException
+    {
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+
+        return null;
     }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
