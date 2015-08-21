@@ -9,14 +9,17 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.api.request.ListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -27,6 +30,7 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -37,10 +41,14 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyEditorSupport;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Controller for common wizard actions.
@@ -252,8 +260,7 @@ public class InterDomainController implements InterDomainProtocol{
                                             @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException
     {
-        Domain domain = getDomain(request);
-        Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
+        Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
@@ -282,15 +289,52 @@ public class InterDomainController implements InterDomainProtocol{
     }
 
     @Override
-    @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_LIST, method = RequestMethod.GET)
+    @RequestMapping(value = InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, method = RequestMethod.GET)
     @ResponseBody
     public List<Reservation> handleListReservations(HttpServletRequest request,
                                                     @RequestParam(value = "resourceId", required = false) String resourceId)
             throws NotAuthorizedException, ForbiddenException
     {
+        Domain domain = getDomain(request);
+        Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, null);
+
+        Set<String> resourceIds = new HashSet<>();
+
+        if (resourceId != null) {
+            ObjectIdentifier resourceIdentifier = ObjectIdentifier.parseTypedId(resourceId, ObjectType.RESOURCE);
+
+            // Return 403 if resource Id or reservationRequest Id is not local
+            if (!resourceIdentifier.isLocal()) {
+                // Throw {@code ForbiddenException} for error 403 to return
+                throw new ForbiddenException("Cannot allocate");
+            }
+            // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
+            resourceManager.getDomainResource(domainId, resourceIdentifier.getPersistenceId());
+
+            resourceIds.add(resourceId);
+        }
+        else {
+            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(domain);
+            listRequest.setCapabilityType(DomainCapabilityListRequest.Type.RESOURCE);
+            listRequest.addResourcesIds(resourceManager.listResourceIdsByDomain(domainId));
+            listRequest.setDomain(domain);
+            List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
+            for (DomainCapability resource : capabilities) {
+                resourceIds.add(resource.getId());
+            }
+        }
+
+        ReservationListRequest reservationListRequest = new ReservationListRequest();
+        reservationListRequest.setResourceIds(resourceIds);
+        getDomainService().listPublicReservations(reservationListRequest);
+        //kdyz nejsou specifikovane zdroje, vytahni vsechny typu resource
+        //pro vsechny zkontrolvat zda jsou verejne (ACL pro group:0), vyfiltrovat
+        //??? vytahnout pro tyto zdroje vsechny ResourceSummary
+        //TODO: cachovat nejak pro dalsi domeny?
+
 
         return null;
     }

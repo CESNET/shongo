@@ -28,10 +28,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -523,7 +521,7 @@ public class DomainsConnector
             parameters.put("resourceId", resourceId);
         }
 
-        List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_LIST, parameters, domain, reader, List.class);
+        List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, domain, reader, List.class);
         for (Reservation reservation : response) {
             Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
             reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));

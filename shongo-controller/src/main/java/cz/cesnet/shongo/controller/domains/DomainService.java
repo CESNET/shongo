@@ -1,14 +1,25 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.acl.AclObjectClass;
+import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
+import cz.cesnet.shongo.controller.acl.AclProvider;
+import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.ReservationSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -424,6 +435,205 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         } finally {
             entityManager.close();
         }
+    }
+
+    public ListResponse<ReservationSummary> listPublicReservations(ReservationListRequest request)
+    {
+        QueryFilter queryFilter = new QueryFilter("reservation_summary");
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ListResponse<ReservationSummary> response = new ListResponse<>();
+        try {
+            // TODO: List only reservations of Resource???
+//            switch (request)
+            queryFilter.addFilter("reservation_summary.type='RESOURCE'");
+            //ROOM_PROVIDER
+
+            // List reservations for givven resource IDs or for all readable resources
+            Set<Long> resourceIds = listReadableResourcesIds(request.getResourceIds());
+            // If there is no readable resource
+            if (resourceIds.isEmpty()) {
+                return response;
+            }
+            queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
+                queryFilter.addFilterParameter("resourceIds", resourceIds);
+
+
+            // List only reservations in requested interval
+            Interval interval = request.getInterval();
+            if (interval != null) {
+                queryFilter.addFilter("reservation_summary.slot_start < :slotEnd");
+                queryFilter.addFilter("reservation_summary.slot_end > :slotStart");
+                queryFilter.addFilterParameter("slotStart", interval.getStart().toDate());
+                queryFilter.addFilterParameter("slotEnd", interval.getEnd().toDate());
+            }
+
+            // Sort query part
+            String queryOrderBy;
+            ReservationListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                switch (sort) {
+                    case SLOT:
+                        queryOrderBy = "reservation_summary.slot_start";
+                        break;
+                    default:
+                        throw new TodoImplementException(sort);
+                }
+            }
+            else {
+                queryOrderBy = "reservation_summary.slot_start";
+            }
+            Boolean sortDescending = request.getSortDescending();
+            sortDescending = (sortDescending != null ? sortDescending : false);
+            if (sortDescending) {
+                queryOrderBy = queryOrderBy + " DESC";
+            }
+
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put("filter", queryFilter.toQueryWhere());
+            parameters.put("order", queryOrderBy);
+            String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_LIST, parameters);
+
+            //TODO: chceme request???
+            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            for (Object[] record : records) {
+                ReservationSummary reservationSummary = getReservationSummary(record);
+                response.addItem(reservationSummary);
+            }
+            return response;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    private Set<Long> listReadableResourcesIds(Set<String> resourceIds)
+    {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            QueryFilter queryFilter = new QueryFilter("acl_entry", true);
+
+            // List only records which are requested
+//            if (request.getEntryIds().size() > 0) {
+//                queryFilter.addFilter("acl_entry.id IN (:aclEntryIds)");
+//                Set<Long> aclEntryIds = new HashSet<>();
+//                for (String aclEntryId : request.getEntryIds()) {
+//                    aclEntryIds.add(Long.valueOf(aclEntryId));
+//                }
+//                queryFilter.addFilterParameter("aclEntryIds", aclEntryIds);
+//            }
+
+            // List only records for entities which are requested
+            StringBuilder objectFilter = new StringBuilder();
+            if (resourceIds.size() > 0) {
+//                AclProvider aclProvider = authorization.getAclProvider();
+//                Set<Long> objectClassesIds = new HashSet<Long>();
+                Set<Long> objectIdentityIds = new HashSet<>();
+                for (String objectId : resourceIds) {
+                    ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(objectId);
+                    // TODO: delete: Check object existence
+//                    PersistentObject object = checkObjectExistence(objectIdentifier, entityManager);
+//                    AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(object);
+                    objectIdentityIds.add(objectIdentifier.getPersistenceId());
+                }
+
+                // List only given resources
+                if (objectIdentityIds.size() > 0) {
+                    if (objectFilter.length() > 0) {
+                        objectFilter.append(" OR ");
+                    }
+                    else {
+                        objectFilter.append("(");
+                    }
+                    objectFilter.append("acl_entry.object_id IN(:objectIds)");
+                    queryFilter.addFilterParameter("objectIds", objectIdentityIds);
+                }
+                if (objectIdentityIds.size() > 0) {
+                    objectFilter.append(")");
+                    objectFilter.append(" AND ");
+                }
+            }
+            objectFilter.append("acl_entry.object_class=':objectClass'");
+            queryFilter.addFilterParameter("objectClass", Resource.class);
+
+            queryFilter.addFilter(objectFilter.toString());
+
+            // ACL must exist for group EVERYONE
+            queryFilter.addFilter("acl_entry.identity_type = 'GROUP' AND acl_entry.identity_principal_id=':groupId'");
+            queryFilter.addFilterParameter("groupId", Authorization.EVERYONE_GROUP_ID);
+
+            //TODO: NOTICE: List only records with READ permissions (at this moment true by default)
+//            if (ObjectRole.values() > 0) {
+//                queryFilter.addFilter("acl_entry.role IN (:roles)");
+//                queryFilter.addFilterParameter("roles", request.getRoles());
+//            }
+
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put("filter", queryFilter.toQueryWhere());
+            String query = NativeQuery.getNativeQuery(NativeQuery.ACL_ENTRY_LIST, parameters);
+
+            Set<Long> response = new HashSet<>();
+            List<Object[]> aclEntries = performNativeListRequest(query, queryFilter, null, null, entityManager);
+
+            // Fill reservations to response
+            for (Object[] aclEntry : aclEntries) {
+//                AclEntry aclEntryApi = new AclEntry();
+//                aclEntryApi.setId(aclEntry[0].toString());
+//                aclEntryApi.setIdentityType(AclIdentityType.valueOf(aclEntry[2].toString()));
+//                aclEntryApi.setIdentityPrincipalId(aclEntry[3].toString());
+//                aclEntryApi.setObjectId(new ObjectIdentifier(
+//                        ObjectType.valueOf(aclEntry[6].toString()), ((Number) aclEntry[7]).longValue()).toId());
+//                aclEntryApi.setRole(ObjectRole.valueOf(aclEntry[8].toString()));
+//                aclEntryApi.setDeletable(((Number) aclEntry[9]).intValue() == 0);
+//                response.addItem(aclEntryApi);
+                response.add(((Number) aclEntry[7]).longValue());
+            }
+            return response;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    /**
+     * @param record
+     * @return {@link ReservationSummary} from given {@code record}
+     */
+    private ReservationSummary getReservationSummary(Object[] record)
+    {
+        ReservationSummary reservationSummary = new ReservationSummary();
+        reservationSummary.setId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
+        reservationSummary.setUserId(record[1] != null ? record[1].toString() : null);
+        reservationSummary.setReservationRequestId(record[2] != null ?
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[2].toString()) : null);
+        reservationSummary.setType(ReservationSummary.Type.valueOf(record[3].toString().trim()));
+        reservationSummary.setSlot(new Interval(new DateTime(record[4]), new DateTime(record[5])));
+        if (record[6] != null) {
+            reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
+        }
+        if (record[7] != null) {
+            ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
+            ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
+            String domain = foreignResources.getDomain().getName();
+            Long resourceId = foreignResources.getForeignResourceId();
+            reservationSummary.setResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
+        }
+        if (record[8] != null) {
+            reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
+        }
+        if (record[9] != null) {
+            reservationSummary.setRoomName(record[9] != null ? record[9].toString() : null);
+        }
+        if (record[10] != null) {
+            reservationSummary.setAliasTypes(record[10] != null ? record[10].toString() : null);
+        }
+        if (record[11] != null) {
+            reservationSummary.setValue(record[11] != null ? record[11].toString() : null);
+        }
+        if (record[12] != null) {
+            reservationSummary.setReservationRequestDescription(record[12] != null ? record[12].toString() : null);
+        }
+        return reservationSummary;
     }
 
     public cz.cesnet.shongo.controller.api.Domain getDomain(String domainId)

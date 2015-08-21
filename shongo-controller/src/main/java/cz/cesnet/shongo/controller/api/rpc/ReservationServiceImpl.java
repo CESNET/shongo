@@ -1177,15 +1177,24 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     hasReadForAll = true;
                 }
 
-                if (!ObjectIdentifier.isLocal(resourceId)) {
-                    ListResponse<ReservationSummary> response = new ListResponse<>();
-                    //TODO: parametrizace ListResponse??
-                    for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation :
-                            InterDomainAgent.getInstance().getConnector().listForeignResourcesReservations(resourceId)) {
-                        response.addItem(reservation.toReservationSummary());
+                try {
+                    if (!ObjectIdentifier.isLocal(resourceId)) {
+                        ListResponse<ReservationSummary> response = new ListResponse<>();
+                        //TODO: parametrizace ListResponse??
+                        List<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
+                        reservations = InterDomainAgent.getInstance().getConnector().listForeignResourcesReservations(resourceId);
+                        if (!reservations.isEmpty()) {
+                            for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : reservations) {
+                                response.addItem(reservation.toReservationSummary());
+                            }
+                            response.setCount(reservations.size());
+                            return response;
+                        }
                     }
-                    response.setCount(response.getItemCount());
-                    return response;
+                }
+                catch (Exception ex) {
+                    //TODO: fallback only for local reservations WHAT TO DO?
+                    // rezervace jsou cachovane v connectoru, tohle selze jen vyjimecne
                 }
             }
             // List only reservations which is current user permitted to read or which allocates resource owned by the user
@@ -1206,7 +1215,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (!ownedResourceIds.isEmpty()) {
                     filterBuilder.append(" OR reservation_summary.resource_id IN(:ownedResourceIds)");
                     queryFilter.addFilterParameter("ownedResourceIds", ownedResourceIds);
-
                 }
                 queryFilter.addFilter(filterBuilder.toString());
             }

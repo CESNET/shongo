@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import org.joda.time.Interval;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,6 +132,11 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void addResourceId(String resourceId)
     {
         this.resourceIds.add(resourceId);
+    }
+
+    public void addResourcesIds(Collection<Long> resourcesIds)
+    {
+        this.resourceIds.addAll(resourceIds);
     }
 
     public enum Type

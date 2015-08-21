@@ -6,6 +6,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
@@ -25,6 +27,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
@@ -760,7 +763,7 @@ public class ResourceManager extends AbstractManager
         }
     }
 
-    public List<Long> getResourceIdsByDomain(Long domainId)
+    public List<Long> listResourceIdsByDomain(Long domainId)
     {
         try {
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
