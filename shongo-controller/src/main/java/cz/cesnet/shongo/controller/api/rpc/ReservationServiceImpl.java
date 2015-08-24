@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import com.sun.xml.internal.bind.v2.TODO;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;

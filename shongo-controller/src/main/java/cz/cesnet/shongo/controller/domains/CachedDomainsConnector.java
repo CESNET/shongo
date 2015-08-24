@@ -293,7 +293,7 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     public List<Reservation> listForeignResourcesReservations(String resourceId)
     {
-        if (isReservationCacheReady()) {
+        if (isReservationCacheReady() && false) {
             synchronized (reservations) {
                 return Collections.unmodifiableList(reservations.get(resourceId));
             }
