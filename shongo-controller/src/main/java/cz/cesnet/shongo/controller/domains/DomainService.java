@@ -496,7 +496,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             parameters.put("order", queryOrderBy);
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_LIST, parameters);
 
-            //TODO: chceme request???
+            //TODO: chceme request??? Ano bez nej to nejde :-(
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, new ListResponse(), entityManager);
             for (Object[] record : records) {
                 Reservation reservation = getReservation(record);
