@@ -2,8 +2,6 @@ package cz.cesnet.shongo.controller.api.domains.response;
 
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.DateTime;
@@ -158,6 +156,8 @@ public class Reservation extends AbstractResponse
         reservationSummary.setReservationRequestId(getForeignReservationRequestId());
         switch (getType()) {
             case VIRTUAL_ROOM:
+//                reservationSummary.setRoomLicenseCount();
+//                reservationSummary.setRoomName();
                 throw new TodoImplementException();
             case RESOURCE:
                 reservationSummary.setType(ReservationSummary.Type.RESOURCE);
@@ -165,9 +165,27 @@ public class Reservation extends AbstractResponse
         }
         reservationSummary.setSlot(getSlot());
         reservationSummary.setResourceId(getForeignResourceId());
-//        reservationSummary.setRoomLicenseCount();
-//        reservationSummary.setRoomName();
         reservationSummary.setReservationRequestDescription(getReservationRequestDescription());
         return reservationSummary;
+    }
+
+    public Reservation fromReservationSummary(ReservationSummary reservationSummary)
+    {
+        Reservation reservation = new Reservation();
+        reservation.setForeignReservationId(reservationSummary.getId());
+        reservation.setUserId(reservationSummary.getUserId());
+        reservation.setForeignReservationRequestId(reservationSummary.getReservationRequestId());
+        switch (reservationSummary.getType()) {
+            case RESOURCE:
+                reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
+                reservation.setForeignResourceId(reservationSummary.getResourceId());
+                break;
+            case ROOM:
+            default:
+                throw new TodoImplementException();
+        }
+        reservation.setSlot(reservationSummary.getSlot());
+        reservation.setReservationRequestDescription(reservationSummary.getReservationRequestDescription());
+        return reservation;
     }
 }
