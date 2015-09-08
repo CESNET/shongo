@@ -28,8 +28,10 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -515,7 +517,7 @@ public class DomainsConnector
 
     public List<Reservation> listReservations(Domain domain, String resourceId)
     {
-        ObjectReader reader = mapper.reader(Reservation.class);
+        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
         Map<String, String> parameters = new HashMap<>();
         if (resourceId != null) {
             parameters.put("resourceId", resourceId);

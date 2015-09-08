@@ -169,23 +169,23 @@ public class Reservation extends AbstractResponse
         return reservationSummary;
     }
 
-    public Reservation fromReservationSummary(ReservationSummary reservationSummary)
-    {
-        Reservation reservation = new Reservation();
-        reservation.setForeignReservationId(reservationSummary.getId());
-        reservation.setUserId(reservationSummary.getUserId());
-        reservation.setForeignReservationRequestId(reservationSummary.getReservationRequestId());
-        switch (reservationSummary.getType()) {
-            case RESOURCE:
-                reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
-                reservation.setForeignResourceId(reservationSummary.getResourceId());
-                break;
-            case ROOM:
-            default:
-                throw new TodoImplementException();
-        }
-        reservation.setSlot(reservationSummary.getSlot());
-        reservation.setReservationRequestDescription(reservationSummary.getReservationRequestDescription());
-        return reservation;
-    }
+//    public Reservation fromReservationSummary(ReservationSummary reservationSummary)
+//    {
+//        Reservation reservation = new Reservation();
+//        reservation.setForeignReservationId(reservationSummary.getId());
+//        reservation.setUserId(reservationSummary.getUserId());
+//        reservation.setForeignReservationRequestId(reservationSummary.getReservationRequestId());
+//        switch (reservationSummary.getType()) {
+//            case RESOURCE:
+//                reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
+//                reservation.setForeignResourceId(reservationSummary.getResourceId());
+//                break;
+//            case ROOM:
+//            default:
+//                throw new TodoImplementException();
+//        }
+//        reservation.setSlot(reservationSummary.getSlot());
+//        reservation.setReservationRequestDescription(reservationSummary.getReservationRequestDescription());
+//        return reservation;
+//    }
 }
