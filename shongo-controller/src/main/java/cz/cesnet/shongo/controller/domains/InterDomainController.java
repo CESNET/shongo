@@ -329,14 +329,14 @@ public class InterDomainController implements InterDomainProtocol{
 
         ReservationListRequest reservationListRequest = new ReservationListRequest();
         reservationListRequest.setResourceIds(resourceIds);
-        getDomainService().listPublicReservations(reservationListRequest);
+        List<Reservation> reservations = getDomainService().listPublicReservations(reservationListRequest);
         //kdyz nejsou specifikovane zdroje, vytahni vsechny typu resource
         //pro vsechny zkontrolvat zda jsou verejne (ACL pro group:0), vyfiltrovat
         //??? vytahnout pro tyto zdroje vsechny ResourceSummary
         //TODO: cachovat nejak pro dalsi domeny?
 
 
-        return null;
+        return reservations;
     }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)

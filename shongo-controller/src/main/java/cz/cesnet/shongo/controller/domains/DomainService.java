@@ -11,10 +11,12 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -437,12 +439,12 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
-    public ListResponse<ReservationSummary> listPublicReservations(ReservationListRequest request)
+    public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
         QueryFilter queryFilter = new QueryFilter("reservation_summary");
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ListResponse<ReservationSummary> response = new ListResponse<>();
+        List<Reservation> response = new ArrayList<>();
         try {
             // TODO: List only reservations of Resource???
 //            switch (request)
@@ -495,10 +497,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_LIST, parameters);
 
             //TODO: chceme request???
-            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            List<Object[]> records = performNativeListRequest(query, queryFilter, request, new ListResponse(), entityManager);
             for (Object[] record : records) {
-                ReservationSummary reservationSummary = getReservationSummary(record);
-                response.addItem(reservationSummary);
+                Reservation reservation = getReservation(record);
+                response.add(reservation);
             }
             return response;
         }
@@ -541,8 +543,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 if (objectIdentityIds.size() > 0) {
                     if (objectFilter.length() > 0) {
                         objectFilter.append(" OR ");
-                    }
-                    else {
+                    } else {
                         objectFilter.append("(");
                     }
                     objectFilter.append("acl_entry.object_id IN(:objectIds)");
@@ -553,13 +554,13 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                     objectFilter.append(" AND ");
                 }
             }
-            objectFilter.append("acl_entry.object_class=':objectClass'");
-            queryFilter.addFilterParameter("objectClass", Resource.class);
+            objectFilter.append("acl_entry.object_class=:objectClass");
+            queryFilter.addFilterParameter("objectClass", ObjectTypeResolver.getObjectType(Resource.class).toString());
 
             queryFilter.addFilter(objectFilter.toString());
 
             // ACL must exist for group EVERYONE
-            queryFilter.addFilter("acl_entry.identity_type = 'GROUP' AND acl_entry.identity_principal_id=':groupId'");
+            queryFilter.addFilter("acl_entry.identity_type = 'GROUP' AND acl_entry.identity_principal_id=:groupId");
             queryFilter.addFilterParameter("groupId", Authorization.EVERYONE_GROUP_ID);
 
             //TODO: NOTICE: List only records with READ permissions (at this moment true by default)
@@ -573,7 +574,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             String query = NativeQuery.getNativeQuery(NativeQuery.ACL_ENTRY_LIST, parameters);
 
             Set<Long> response = new HashSet<>();
-            List<Object[]> aclEntries = performNativeListRequest(query, queryFilter, null, null, entityManager);
+            List<Object[]> aclEntries = performNativeListRequest(query, queryFilter, new ListRequest(), new ListResponse(), entityManager);
 
             // Fill reservations to response
             for (Object[] aclEntry : aclEntries) {
@@ -590,6 +591,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             }
             return response;
         }
+//        catch (Exception e) {
+//            logger.error(e.toString(), e);
+//            throw e;
+//        }
         finally {
             entityManager.close();
         }
@@ -634,6 +639,54 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             reservationSummary.setReservationRequestDescription(record[12] != null ? record[12].toString() : null);
         }
         return reservationSummary;
+    }
+
+    private Reservation getReservation(Object[] record)
+    {
+        Reservation reservation = new Reservation();
+        reservation.setForeignReservationId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
+        reservation.setUserId(record[1] != null ? record[1].toString() : null);
+        reservation.setForeignReservationRequestId(record[2] != null ?
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[2].toString()) : null);
+        switch (ReservationSummary.Type.valueOf(record[3].toString().trim())) {
+            case RESOURCE:
+                reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
+                if (record[6] != null) {
+                    reservation.setForeignResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
+                }
+//                TODO: DELETE: nesdilet cizi rezervace pres IDP??
+//                if (record[7] != null) {
+//                    ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
+//                    ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
+//                    String domain = foreignResources.getDomain().getName();
+//                    Long resourceId = foreignResources.getForeignResourceId();
+//                    reservation.setForeignResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
+//                }
+                break;
+            case ROOM:
+                reservation.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+//        if (record[8] != null) {
+//            reservation.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
+//        }
+//        if (record[9] != null) {
+//            reservation.setRoomName(record[9] != null ? record[9].toString() : null);
+//        }
+            default:
+                throw new TodoImplementException();
+        }
+        reservation.setSlot(new Interval(new DateTime(record[4]), new DateTime(record[5])));
+
+//        TODO: delete
+//        if (record[10] != null) {
+//            reservation.setAliasTypes(record[10] != null ? record[10].toString() : null);
+//        }
+//        if (record[11] != null) {
+//            reservation.setValue(record[11] != null ? record[11].toString() : null);
+//        }
+        if (record[12] != null) {
+            reservation.setReservationRequestDescription(record[12] != null ? record[12].toString() : null);
+        }
+        return reservation;
     }
 
     public cz.cesnet.shongo.controller.api.Domain getDomain(String domainId)
