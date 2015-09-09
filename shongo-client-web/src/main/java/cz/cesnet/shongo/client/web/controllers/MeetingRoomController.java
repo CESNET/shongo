@@ -279,9 +279,16 @@ public class MeetingRoomController {
             item.put("id", reservationId);
             item.put("description", reservation.getReservationRequestDescription());
 
-            UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
-            item.put("ownerName", user.getFullName());
-            item.put("ownersEmail",user.getPrimaryEmail());
+            if (UserInformation.isLocal(reservation.getUserId())) {
+                UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
+                item.put("ownerName", user.getFullName());
+                item.put("ownerEmail", user.getPrimaryEmail());
+            }
+            else {
+                Long domainId = UserInformation.parseDomainId(reservation.getUserId());
+                String domainName = resourceService.getDomainName(securityToken, domainId.toString());
+                item.put("foreignDomain", domainName);
+            }
 
             Interval slot = reservation.getSlot();
             //CALENDAR

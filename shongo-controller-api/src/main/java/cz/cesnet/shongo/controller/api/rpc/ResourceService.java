@@ -116,6 +116,9 @@ public interface ResourceService extends Service {
     public Domain getDomain(SecurityToken token, String domainId);
 
     @API
+    public String getDomainName(SecurityToken token, String domainId);
+
+    @API
     public void modifyDomain(SecurityToken token, Domain domain);
 
     @API

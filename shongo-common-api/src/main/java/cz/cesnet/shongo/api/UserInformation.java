@@ -255,12 +255,12 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     /**
      * Local identifier pattern.
      */
-    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d+|\\*");
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("^\\d+|\\*$");
 
     /**
      * Local identifier pattern with type (<domain-id>:<user-id>).
      */
-    private static Pattern FOREIGN_IDENTIFIER_PATTERN = Pattern.compile("(\\d+|\\*):(\\d+|\\*)");
+    private static Pattern FOREIGN_IDENTIFIER_PATTERN = Pattern.compile("^(\\d+|\\*):(\\d+|\\*)$");
 
 
     public static boolean isLocal(String userId)
@@ -282,8 +282,23 @@ public class UserInformation extends AbstractComplexType implements PersonInform
 //        throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
     }
 
+    public static String parseUserId(String userId)
+    {
+        Matcher matcher = FOREIGN_IDENTIFIER_PATTERN.matcher(userId);
+        if (matcher.matches()) {
+            return matcher.group(2);
+        }
+        else {
+            //TODO: check if local?
+            return userId;
+        }
+    }
+
     public static String formatForeignUserId(String userId, Long domainId)
     {
+        if (!isLocal(userId)) {
+            throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
+        }
         return domainId + ":" + userId;
     }
 }
