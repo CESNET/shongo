@@ -1035,6 +1035,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 //        }
     }
 
+    @Override
     public Domain getDomain(SecurityToken token, String domainId) {
         checkNotNull("domain-id", domainId);
         authorization.validate(token);
@@ -1050,6 +1051,24 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
 
             return domain.toApi();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public String getDomainName(SecurityToken token, String domainId) {
+        checkNotNull("domain-id", domainId);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomain(
+                    ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN));
+
+            return domain.getName();
         }
         finally {
             entityManager.close();

@@ -95,13 +95,13 @@ public class ResourceController
         resourceListRequest.setPermission(ObjectPermission.RESERVE_RESOURCE);
         ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
         for (ResourceSummary resourceSummary : accessibleResources) {
-                Map<String, Object> resource = new HashMap<String, Object>();
-                resource.put("id", resourceSummary.getId());
+            Map<String, Object> resource = new HashMap<String, Object>();
+            resource.put("id", resourceSummary.getId());
             resource.put("name", resourceSummary.getName());
-                resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
-                resource.put("description", resourceSummary.getDescription());
-                resource.put("domainName", resourceSummary.getDomainName());
-                resources.add(resource);
+            resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
+            resource.put("description", resourceSummary.getDescription());
+            resource.put("domainName", resourceSummary.getDomainName());
+            resources.add(resource);
         }
         return resources;
     }

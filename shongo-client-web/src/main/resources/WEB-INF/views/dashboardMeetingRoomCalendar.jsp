@@ -187,11 +187,13 @@
                 var events = [];
                 data.items.forEach(function (event) {
                     var descriptionTitle = "<spring:message code="views.room.description"/>";
+                    var none = "<spring:message code="views.reservationRequest.description.none"/>";
                     events.push({
                         title: event.description,
-                        description: event.description,
-                        createdBy: event.ownerName,
-                        ownersEmail: event.ownersEmail,
+                        description: event.description ? event.description : none,
+                        bookedBy: event.ownerName,
+                        ownersEmail: event.ownerEmail,
+                        foreignDomain: event.foreignDomain,
                         start: event.start,
                         end: event.end
                     });
@@ -207,10 +209,11 @@
         };
         $scope.eventRender = function(event, element, view) {
             var descriptionTitle = "<spring:message code="views.room.description"/>";
-            var createdBy = "<spring:message code="views.reservationRequest.createdBy"/>";
+            var bookedByTitle = "<spring:message code="views.room.bookedBy"/>";
+            var bookedBy = event.bookedBy ? (event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)") : event.foreignDomain;
             element.qtip({
                 content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
-                "<strong>" + createdBy + ":</strong><br /><span>" + event.createdBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)</span>",
+                "<strong>" + bookedByTitle + ":</strong><br /><span>" + bookedBy + "</span>",
                 position: {
                     my: 'left top',
                     at: 'top right'

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
@@ -455,8 +456,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             Set<Long> resourceIds = listReadableResourcesIds(request.getResourceIds());
             // If there is no readable resource
             if (resourceIds.isEmpty()) {
+                logger.debug("No resources readable for foreign domain.");
                 return response;
             }
+            logger.debug("Readable resources used for reservation lists: " + Arrays.toString(resourceIds.toArray()));
             queryFilter.addFilter("reservation_summary.resource_id IN(:resourceIds)");
                 queryFilter.addFilterParameter("resourceIds", resourceIds);
 
@@ -496,7 +499,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             parameters.put("order", queryOrderBy);
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_LIST, parameters);
 
-            //TODO: chceme request??? Ano bez nej to nejde :-(
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, new ListResponse(), entityManager);
             for (Object[] record : records) {
                 Reservation reservation = getReservation(record);
@@ -641,11 +643,16 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         return reservationSummary;
     }
 
+    /**
+     * @param record
+     * @return {@link Reservation} from given {@code record}
+     */
     private Reservation getReservation(Object[] record)
     {
         Reservation reservation = new Reservation();
         reservation.setForeignReservationId(ObjectIdentifier.formatId(ObjectType.RESERVATION, record[0].toString()));
-        reservation.setUserId(record[1] != null ? record[1].toString() : null);
+        String userId = record[1] != null ? record[1].toString() : null;
+        reservation.setUserId(UserInformation.parseUserId(userId));
         reservation.setForeignReservationRequestId(record[2] != null ?
                 ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[2].toString()) : null);
         switch (ReservationSummary.Type.valueOf(record[3].toString().trim())) {
@@ -654,14 +661,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 if (record[6] != null) {
                     reservation.setForeignResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
                 }
-//                TODO: DELETE: nesdilet cizi rezervace pres IDP??
-//                if (record[7] != null) {
-//                    ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
-//                    ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
-//                    String domain = foreignResources.getDomain().getName();
-//                    Long resourceId = foreignResources.getForeignResourceId();
-//                    reservation.setForeignResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
-//                }
                 break;
             case ROOM:
                 reservation.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
