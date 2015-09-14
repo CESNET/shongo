@@ -28,10 +28,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -81,6 +79,11 @@ public class DomainsConnector
     protected ScheduledThreadPoolExecutor getExecutor()
     {
         return executor;
+    }
+
+    protected DomainService getDomainService()
+    {
+        return this.domainService;
     }
 
     public ControllerConfiguration getConfiguration()
@@ -509,10 +512,9 @@ public class DomainsConnector
         return AbstractResponse.Status.OK.equals(response.getStatus());
     }
 
-    public List<Reservation> listReservations(String resourceId)
+    public List<Reservation> listReservations(Domain domain)
     {
-        Domain domain = domainService.findDomainByName(ObjectIdentifier.parseDomain(resourceId));
-        return listReservations(domain, resourceId);
+        return listReservations(domain, null);
     }
 
     public List<Reservation> listReservations(Domain domain, String resourceId)
@@ -524,11 +526,15 @@ public class DomainsConnector
         }
 
         List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, domain, reader, List.class);
+        List<Reservation> reservations = new ArrayList<>();
         for (Reservation reservation : response) {
-            Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
-            reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
+            if (resourceId == null || resourceId.equals(reservation.getForeignResourceId())) {
+                Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
+                reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
+                reservations.add(reservation);
+            }
         }
-        return response;
+        return reservations;
     }
 
     /**
@@ -599,11 +605,12 @@ public class DomainsConnector
          * @return
          */
         @Override
-        public T call()
+        synchronized public T call()
         {
             if (!Thread.currentThread().getName().contains("domainTask")) {
                 Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
             }
+            logger.debug("callable action in thread starting (" + Thread.currentThread().getName() + "; " + this.action + ")");
             boolean failed = true;
             try {
                 if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {
@@ -621,11 +628,12 @@ public class DomainsConnector
                 }
                 return response;
             } catch (IllegalStateException e) {
+                logger.debug("Scheduled command has ended (should be ok), action: " + action + " on domain: " + domain.getName());
                 // Thread will be terminated (in {@link ScheduledThreadPoolExecutor}).
                 throw e;
             } catch (Exception e) {
                 try {
-                    notifier.notifyDomainAdmin("Failed to perform request to domain " + domain.getName(), e);
+                    notifier.notifyDomainAdmins("Failed to perform request to domain " + domain.getName(), e);
                 } catch (Exception notifyEx) {
                     logger.error("Notification has failed.", notifyEx);
                 }
@@ -654,11 +662,13 @@ public class DomainsConnector
          * Runnable will be terminated (throws {@link IllegalStateException}) if domain does not exist or is no allocatable.
          */
         @Override
-        public void run()
+        synchronized public void run()
         {
+
             if (!Thread.currentThread().getName().contains("domainTask")) {
                 Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
             }
+            logger.debug("runnable action in thread starting (" + Thread.currentThread().getName() + "; " + this.action + ")");
             Domain internalDomain = InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId());
             if (internalDomain == null || !internalDomain.isAllocatable()) {
                 terminateDomainTask();

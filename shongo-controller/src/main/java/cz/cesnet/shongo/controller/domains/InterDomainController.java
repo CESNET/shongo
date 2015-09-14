@@ -30,7 +30,6 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 
-import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -43,6 +42,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.beans.PropertyEditorSupport;
 import java.security.cert.X509Certificate;
 import java.util.Collections;

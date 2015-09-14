@@ -3,11 +3,13 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 
 import javax.persistence.EntityManagerFactory;
@@ -29,7 +31,7 @@ public class CachedDomainsConnector extends DomainsConnector
     private Map<String, List<DomainCapability>> availableResources = new HashMap<>();
 
     /**
-     * Cache of unavailable domains, supplement to {#code availableResources} on foreign domains
+     * Cache of unavailable domains, additional for {#code availableResources}.
      *
      * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code availableResources} BEFORE USE.
      */
@@ -42,10 +44,18 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     private Map<String, List<Reservation>> reservations = new HashMap<>();
 
+    /**
+     * Cache of domains, additional for {#code reservations}.
+     *
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code reservations} BEFORE USE.
+     */
+    private Set<String> unavailableReservationsDomains = new HashSet<>();
+
     public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
     {
         super(entityManagerFactory, configuration, emailSender);
         updateResourceCache();
+        updateReservationCache();
     }
 
     /**
@@ -61,6 +71,8 @@ public class CachedDomainsConnector extends DomainsConnector
             for (Domain domain : listAllocatableForeignDomains()) {
                 if (!availableResources.containsKey(domain.getName())) {
                     domains.add(domain);
+                    // Make sure no other thread start task before result is stored
+//                    availableResources.put(domain.getName(), null);
                 }
             }
         }
@@ -82,15 +94,15 @@ public class CachedDomainsConnector extends DomainsConnector
         List<Domain> domains = new ArrayList<>();
         synchronized (reservations) {
             for (Domain domain : listAllocatableForeignDomains()) {
-                if (!availableResources.containsKey(domain.getName())) {
+                if (!reservations.containsKey(domain.getName())) {
                     domains.add(domain);
+                    // Make sure no other thread start task before result is stored
+//                    reservations.put(domain.getName(), null);
                 }
             }
         }
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
-        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters,
-                domains, DomainCapability.class, availableResources, unavailableResources);
+        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, null,
+                domains, Reservation.class, reservations, unavailableReservationsDomains);
     }
 
     private <T> void submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
@@ -113,13 +125,13 @@ public class CachedDomainsConnector extends DomainsConnector
      * @param returnClass class of result object(s)
      * @param <T>
      */
-    protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
+    synchronized protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
                                             Map<String, String> parameters, Collection<Domain> domains,
                                             ObjectReader reader, Map<String, ?> result,
                                             Set<String> unavailableDomainsCache, Class<T> returnClass)
     {
         for (final Domain domain : domains) {
-            Runnable task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, unavailableDomainsCache);
+            Runnable task = new DomainTask<>(method, action, parameters, domain, reader, returnClass, result, unavailableDomainsCache);
             getExecutor().scheduleWithFixedDelay(task, 0, getConfiguration().getInterDomainCacheRefreshRate(), TimeUnit.SECONDS);
         }
     }
@@ -129,6 +141,8 @@ public class CachedDomainsConnector extends DomainsConnector
      * (if number of cached domains equals allocatable domains), false otherwise.
      *
      * Submits potentially missing domains to executor (checks every time).
+     *
+     * NOTE: used only in tests
      */
     protected boolean checkResourcesCacheInitialized()
     {
@@ -291,15 +305,30 @@ public class CachedDomainsConnector extends DomainsConnector
     /**
      * @return {@link List<Reservation>} of resources for foreign available domains
      */
-    public List<Reservation> listForeignResourcesReservations(String resourceId)
+    public List<ReservationSummary> listForeignDomainReservations(String resourceId)
     {
-        if (isReservationCacheReady() && false) {
+        List<Reservation> response;
+        List<ReservationSummary> result = new ArrayList<>();
+        String domainName = ObjectIdentifier.parseDomain(resourceId);
+        if (isReservationCacheReady()) {
             synchronized (reservations) {
-                return Collections.unmodifiableList(reservations.get(resourceId));
+                response = this.reservations.get(domainName);
+                for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : response) {
+                    if (resourceId.equals(reservation.getForeignResourceId())) {
+                        result.add(reservation.toReservationSummary());
+                    }
+                }
             }
         }
         else {
-            return super.listReservations(resourceId);
+            Domain domain = getDomainService().findDomainByName(domainName);
+            response = super.listReservations(domain, resourceId);
+            for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : response) {
+                result.add(reservation.toReservationSummary());
+            }
         }
+
+
+        return result;
     }
 }
