@@ -106,6 +106,34 @@ case "$1" in
         fi
         exit 0
         ;;
+    force-stop)
+        if [ ! -f $PID_FILE ]; then
+            echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is not started."
+            exit 0
+        fi
+        PID=$(cat $PID_FILE)
+        # Stop process
+        if ps -p $PID > /dev/null; then
+            if ! touch $PID_FILE; then
+                exit 1
+            fi
+            echo Stopping $NAME $VERSION...
+            # Stop process
+            if ! kill -9 $PID; then
+                exit 1
+            fi
+            # Wait for process to end
+            while ps -p $PID > /dev/null; do sleep 1; done;
+            echo -e "[${COLOR_GREEN}OK${COLOR_DEFAULT}] The $NAME was killed."
+        else
+            echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is not started."
+        fi
+        # Delete pid file
+        if ! rm $PID_FILE; then
+            exit 1
+        fi
+        exit 0
+        ;;
     restart)
         cd $ORIGINAL_DIR
         $0 stop
@@ -125,7 +153,7 @@ case "$1" in
         fi
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart}"
+        echo "Usage: $0 {start|stop|force-stop|restart|status}"
         exit 1
         ;;
 esac
