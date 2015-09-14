@@ -186,6 +186,17 @@ case "\$1" in
             $SERVICE_DIR/shongo-client-web stop
         fi
         ;;
+    force-stop)
+        if [ "$SHONGO_CONTROLLER" = true ] ; then
+            $SERVICE_DIR/shongo-controller force-stop
+        fi
+        if [ "$SHONGO_CONNECTOR" = true ] ; then
+            $SERVICE_DIR/shongo-connector force-stop
+        fi
+        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
+            $SERVICE_DIR/shongo-client-web force-stop
+        fi
+        ;;
     restart)
         \$0 stop
         \$0 start
@@ -202,7 +213,7 @@ case "\$1" in
         fi
         ;;
     *)
-        echo "Usage: \$0 {start|stop|restart|status}"
+        echo "Usage: \$0 {start|stop|force-stop|restart|status}"
         exit 1
         ;;
 esac
