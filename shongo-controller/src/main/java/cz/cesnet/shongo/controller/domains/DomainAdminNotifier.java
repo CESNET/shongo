@@ -20,7 +20,8 @@ public class DomainAdminNotifier {
 
     private final ControllerConfiguration configuration;
 
-    public DomainAdminNotifier(EmailSender emailSender, ControllerConfiguration configuration) {
+    public DomainAdminNotifier(EmailSender emailSender, ControllerConfiguration configuration)
+    {
         if (emailSender == null) {
             logger.warn("Inter domain agent is not set properly, thus will not sent notifications.");
         }
@@ -28,7 +29,8 @@ public class DomainAdminNotifier {
         this.configuration = configuration;
     }
 
-    public void notifyDomainAdmin(String message, Throwable exception) {
+    public void notifyDomainAdmins(String message, Throwable exception)
+    {
         if (emailSender == null) {
             return;
         }
@@ -46,5 +48,11 @@ public class DomainAdminNotifier {
         } catch (MessagingException e) {
             logger.error("Failed to send error to domain admins.", e);
         }
+    }
+
+    public void logAndNotifyDomainAdmins(String message, Throwable exception)
+    {
+        logger.error(message, exception);
+        notifyDomainAdmins(message, exception);
     }
 }

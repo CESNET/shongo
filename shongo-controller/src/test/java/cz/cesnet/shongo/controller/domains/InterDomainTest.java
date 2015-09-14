@@ -283,7 +283,6 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-
     }
 
     protected CachedDomainsConnector getConnector()

@@ -19,6 +19,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
+import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -1181,17 +1182,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         ListResponse<ReservationSummary> response = new ListResponse<>();
                         //TODO: parametrizace ListResponse??
                         List<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
-                        reservations = InterDomainAgent.getInstance().getConnector().listForeignResourcesReservations(resourceId);
-                        if (!reservations.isEmpty()) {
-                            for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : reservations) {
-                                response.addItem(reservation.toReservationSummary());
-                            }
-                            response.setCount(reservations.size());
-                            return response;
-                        }
+                        response.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId));
+                        response.setCount(response.getItemCount());
+                        return response;
                     }
                 }
                 catch (Exception ex) {
+                    String message = "Listing of foreign resources reservations has failed.";
+                    InterDomainAgent.getInstance().logAndNotifyDomainAdmins(message, ex);
                     //TODO: fallback only for local reservations WHAT TO DO?
                     // rezervace jsou cachovane v connectoru, tohle selze jen vyjimecne
                 }

@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.domains;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.commons.lang.RandomStringUtils;
 import org.joda.time.DateTime;
@@ -17,7 +15,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.persistence.EntityManagerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
@@ -43,12 +40,12 @@ public class DomainAuthentication {
 
     private final ExpirationMap<String, String> domainsAccessTokens = new ExpirationMap<>();
 
-    public DomainAuthentication(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender) {
+    public DomainAuthentication(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, DomainAdminNotifier notifier) {
         domainsAccessTokens.setExpiration(Duration.standardDays(1));
         this.configuration = configuration;
         domainService = new DomainService(entityManagerFactory);
         domainService.init(configuration);
-        this.notifier = new DomainAdminNotifier(emailSender, configuration);
+        this.notifier = notifier;
         try {
             KeyStore keyStore = KeyStore.getInstance(configuration.getInterDomainSslKeyStoreType());
             FileInputStream keyStoreFile = new FileInputStream(configuration.getInterDomainSslKeyStore());
@@ -77,7 +74,7 @@ public class DomainAuthentication {
                     String message = "Cannot connect to domain " + domain.getName()
                             + ", certificate file does not exist or is not configured.";
                     logger.error(message);
-                    notifier.notifyDomainAdmin(message, null);
+                    notifier.notifyDomainAdmins(message, null);
                 }
                 continue;
             }
@@ -86,11 +83,11 @@ public class DomainAuthentication {
             } catch (CertificateException e) {
                 String message = "Failed to load certificate file " + certificate;
                 logger.error(message, e);
-                notifier.notifyDomainAdmin(message, e);
+                notifier.notifyDomainAdmins(message, e);
             } catch (IOException e) {
                 String message = "Cannot read certificate file " + certificate;
                 logger.error(message, e);
-                notifier.notifyDomainAdmin(message, e);
+                notifier.notifyDomainAdmins(message, e);
             }
         }
         return domainsByCert;

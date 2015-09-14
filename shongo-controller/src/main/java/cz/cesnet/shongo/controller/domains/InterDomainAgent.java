@@ -1,13 +1,7 @@
 package cz.cesnet.shongo.controller.domains;
 
-import com.google.common.base.Strings;
-import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -20,13 +14,15 @@ import javax.persistence.EntityManagerFactory;
 public class InterDomainAgent {
     private static InterDomainAgent instance;
 
-    private DomainService domainService;
+    private final DomainService domainService;
 
-    private EntityManagerFactory entityManagerFactory;
+    private final EntityManagerFactory entityManagerFactory;
 
     private final CachedDomainsConnector connector;
 
     private final DomainAuthentication authentication;
+
+    private final DomainAdminNotifier notifier;
 
     /**
      * Constructor
@@ -43,13 +39,13 @@ public class InterDomainAgent {
         domainService = new DomainService(entityManagerFactory);
         domainService.init(configuration);
 
-
-        this.authentication = new DomainAuthentication(entityManagerFactory, configuration, emailSender);
+        this.notifier = new DomainAdminNotifier(emailSender, configuration);
+        this.authentication = new DomainAuthentication(entityManagerFactory, configuration, notifier);
         this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);
 //        this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
     }
 
-    public static synchronized InterDomainAgent create(EntityManagerFactory entityManagerFactory,
+    synchronized public static InterDomainAgent create(EntityManagerFactory entityManagerFactory,
                                                        ControllerConfiguration configuration, EmailSender emailSender) {
         if (instance != null) {
             throw new IllegalStateException("Another instance of InterDomainAgent already exists.");
@@ -58,7 +54,7 @@ public class InterDomainAgent {
         return instance;
     }
 
-    public static InterDomainAgent getInstance() {
+    synchronized public static InterDomainAgent getInstance() {
         if (instance == null) {
             throw new IllegalStateException("Cannot get instance of a domain controller, "
                     + "because no InterDomainAgent instance has been created yet.");
@@ -66,14 +62,14 @@ public class InterDomainAgent {
         return instance;
     }
 
-    public static Boolean isInitialized() {
+    synchronized public static Boolean isInitialized() {
         if (instance != null) {
             return true;
         }
         return false;
     }
 
-    public static void destroy() {
+    synchronized public static void destroy() {
         if (instance != null) {
             instance.getConnector().getExecutor().shutdownNow();
             instance = null;
@@ -95,5 +91,15 @@ public class InterDomainAgent {
     protected EntityManager createEntityManager()
     {
         return entityManagerFactory.createEntityManager();
+    }
+
+    public void notifyDomainAdmins(String message, Throwable exception)
+    {
+        this.notifier.notifyDomainAdmins(message, exception);
+    }
+
+    public void logAndNotifyDomainAdmins(String message, Throwable exception)
+    {
+        this.notifier.logAndNotifyDomainAdmins(message, exception);
     }
 }

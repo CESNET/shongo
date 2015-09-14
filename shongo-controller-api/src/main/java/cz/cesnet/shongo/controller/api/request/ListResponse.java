@@ -108,6 +108,11 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
         this.items.addAll(items.getItems());
     }
 
+    public void addAll(List<T> items)
+    {
+        this.items.addAll(items);
+    }
+
     @Override
     public Iterator<T> iterator()
     {
