@@ -1246,7 +1246,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
-
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();

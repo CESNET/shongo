@@ -631,11 +631,17 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             reservationSummary.setResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
         }
         if (record[7] != null) {
-            ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
-            ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
-            String domain = foreignResources.getDomain().getName();
-            Long resourceId = foreignResources.getForeignResourceId();
-            reservationSummary.setResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            try {
+                ForeignResources foreignResources = resourceManager.getForeignResources(((Number) record[7]).longValue());
+                String domain = foreignResources.getDomain().getName();
+                Long resourceId = foreignResources.getForeignResourceId();
+                reservationSummary.setResourceId(ObjectIdentifier.formatId(domain, ObjectType.RESOURCE, resourceId));
+            }
+            finally {
+                entityManager.close();
+            }
         }
         if (record[8] != null) {
             reservationSummary.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
@@ -719,9 +725,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             }
             return domain.toApi();
         } finally {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
             entityManager.close();
         }
     }
@@ -737,9 +740,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
             return domain.toApi();
         } finally {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
             entityManager.close();
         }
     }
