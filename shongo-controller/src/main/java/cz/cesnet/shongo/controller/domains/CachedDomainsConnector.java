@@ -170,10 +170,13 @@ public class CachedDomainsConnector extends DomainsConnector
      * @param cache to be checked
      * @return
      */
-    private boolean isCacheReady(Map cache)
+    private boolean isCacheReady(Map cache, String domainName)
     {
         int cachedDomainsCount;
         synchronized (cache) {
+            if (domainName != null && !cache.containsKey(domainName)) {
+                return false;
+            }
             cachedDomainsCount = cache.size();
         }
         int actualDomainsCount = listAllocatableForeignDomains().size();
@@ -200,9 +203,9 @@ public class CachedDomainsConnector extends DomainsConnector
      *
      * Submits potentially missing domains to executor (checks every time).
      */
-    protected boolean isResourcesCacheReady()
+    protected boolean isResourcesCacheReady(String domainName)
     {
-        boolean isReady = isCacheReady(availableResources);
+        boolean isReady = isCacheReady(availableResources, domainName);
         updateResourceCache();
         return isReady;
     }
@@ -213,9 +216,9 @@ public class CachedDomainsConnector extends DomainsConnector
      *
      * Submits potentially missing domains to executor (checks every time).
      */
-    protected boolean isReservationCacheReady()
+    protected boolean isReservationCacheReady(String domainName)
     {
-        boolean isReady = isCacheReady(reservations);
+        boolean isReady = isCacheReady(reservations, domainName);
         updateReservationCache();
         return isReady;
     }
@@ -239,6 +242,8 @@ public class CachedDomainsConnector extends DomainsConnector
 
     /**
      * Returns cached allocatable resources for now or will perform synchronized request to all foreign domains (can be slow, depending on {@code DomainsConnector.THREAD_TIMEOUT}).
+     * TODO: allows only capabilities from one domain, when resources is specified so must be domain
+     *
      * @param request
      * @return
      */
@@ -246,21 +251,24 @@ public class CachedDomainsConnector extends DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         Map<String, List<DomainCapability>> capabilities;
-        if (request.getInterval() == null && request.getTechnology() == null && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType()) && isResourcesCacheReady()) {
+        if (request.getInterval() == null && request.getTechnology() == null
+                && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())
+                && isResourcesCacheReady(request.getDomainName())) {
             capabilities = new HashMap<>();
             // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
             synchronized (availableResources) {
                 // Filter domains for which resources will be returned.
                 Map<String, List<DomainCapability>> requestedResources = new HashMap<>();
-                if (!request.getResourceIds().isEmpty()) {
-                    for (String requestResourceId : request.getResourceIds()) {
-                        String domainName = ObjectIdentifier.parseDomain(requestResourceId);
-                        requestedResources.put(domainName, availableResources.get(domainName));
-                    }
-                }
-                else if (request.getDomainName() != null) {
+                if (request.getDomainName() != null) {
                     String domainName = request.getDomainName();
                     requestedResources.put(domainName, availableResources.get(domainName));
+
+                    for (String requestResourceId : request.getResourceIds()) {
+                        if (!domainName.equals(ObjectIdentifier.parseDomain(requestResourceId))) {
+                            throw new IllegalArgumentException("Requested resource is not from requested domain (domain: " + domainName + ", resource: " + requestResourceId + ")");
+                        }
+                        requestedResources.put(domainName, availableResources.get(domainName));
+                    }
                 }
                 else {
                     requestedResources = availableResources;
@@ -308,7 +316,7 @@ public class CachedDomainsConnector extends DomainsConnector
         List<Reservation> response;
         List<ReservationSummary> result = new ArrayList<>();
         String domainName = ObjectIdentifier.parseDomain(resourceId);
-        if (isReservationCacheReady()) {
+        if (isReservationCacheReady(domainName)) {
             synchronized (reservations) {
                 response = this.reservations.get(domainName);
                 for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : response) {
