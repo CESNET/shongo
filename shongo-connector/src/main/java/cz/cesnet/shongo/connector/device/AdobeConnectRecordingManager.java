@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,17 +87,17 @@ public class AdobeConnectRecordingManager
     /**
      * Thread for checking recordings.
      */
-    private Thread checkRecordingsThread;
+    private final AtomicReference<Thread> checkRecordingsThreadReference;
 
     /**
      * Constructor.
      *
-     * @param connector sets the {@link #connector}
+     * @param mainConnector sets the {@link #connector}
      */
-    public AdobeConnectRecordingManager(final AdobeConnectConnector connector) throws CommandException
+    public AdobeConnectRecordingManager(final AdobeConnectConnector mainConnector) throws CommandException
     {
-        ConnectorConfiguration connectorConfiguration = connector.getConfiguration();
-        this.connector = connector;
+        ConnectorConfiguration connectorConfiguration = mainConnector.getConfiguration();
+        this.connector = mainConnector;
         this.recordingsCheckTimeout = (int) connectorConfiguration.getOptionDuration(
                 AdobeConnectConnector.RECORDINGS_CHECK_PERIOD,
                 AdobeConnectConnector.RECORDINGS_CHECK_PERIOD_DEFAULT).getMillis();
@@ -106,7 +107,8 @@ public class AdobeConnectRecordingManager
                 AdobeConnectConnector.RECORDINGS_FOLDER_NAME);
         this.recordingsFolderId = getRecordingsFolderId();
 
-        this.checkRecordingsThread = new Thread()
+        final AtomicReference<Thread> threadReference = new AtomicReference<>();
+        threadReference.set(new Thread()
         {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -114,27 +116,31 @@ public class AdobeConnectRecordingManager
             public void run()
             {
                 logger.info("Checking of recordings - starting...");
-                while (checkRecordingsThread != null && connector.isConnected()) {
+                while (threadReference.get() != null) {
                     try {
                         Thread.sleep(recordingsCheckTimeout);
-                    }
-                    catch (InterruptedException exception) {
+                    } catch (InterruptedException exception) {
                         Thread.currentThread().interrupt();
                         continue;
                     }
 
                     try {
-                        checkRecordings();
-                    }
-                    catch (Exception exception) {
-                        logger.warn("Checking location of recording failed", exception);
+                        if (mainConnector.isConnected()) {
+                            checkRecordings();
+                        }
+                        else {
+                            logger.info("Checking of recording skipped, connector is disconnected.");
+                        }
+                    } catch (Exception exception) {
+                        logger.warn("Checking of recording failed", exception);
                     }
                 }
                 logger.info("Checking of recordings - exiting...");
             }
-        };
-        this.checkRecordingsThread.setName(Thread.currentThread().getName() + "-recordings");
-        this.checkRecordingsThread.start();
+        });
+        threadReference.get().setName(Thread.currentThread().getName() + "-recordings");
+        threadReference.get().start();
+        this.checkRecordingsThreadReference = threadReference;
     }
 
     /**
@@ -142,7 +148,7 @@ public class AdobeConnectRecordingManager
      */
     public void destroy()
     {
-        this.checkRecordingsThread = null;
+        this.checkRecordingsThreadReference.set(null);
     }
 
     /**

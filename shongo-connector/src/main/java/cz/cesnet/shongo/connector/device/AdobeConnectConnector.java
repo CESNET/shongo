@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,7 +106,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     /**
      * Thread for capacity checking.
      */
-    private Thread capacityCheckThread;
+    private AtomicReference<Thread> capacityCheckThreadReference;
 
     /**
      * If capacity check is running.
@@ -131,6 +132,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         this.login();
 
+        if (this.recordingManager != null) {
+            this.recordingManager.destroy();
+        }
         this.recordingManager = new AdobeConnectRecordingManager(this);
     }
 
@@ -150,7 +154,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void disconnect() throws CommandException
     {
-        this.capacityCheckThread = null;
+        this.capacityCheckThreadReference.set(null);
         this.recordingManager.destroy();
         this.connectionState = ConnectionState.DISCONNECTED;
         this.logout();
@@ -311,7 +315,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     protected void setRoomAccessMode(String roomId, AdobeConnectPermissions roomAccessMode) throws CommandException
     {
         AdobeConnectPermissions.checkIfUsableByMeetings(roomAccessMode);
-        setScoPermissions(roomId,roomAccessMode);
+        setScoPermissions(roomId, roomAccessMode);
     }
 
     /**
@@ -339,7 +343,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void makeRoomPrivate(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,AdobeConnectPermissions.PRIVATE);
+        setRoomAccessMode(roomId, AdobeConnectPermissions.PRIVATE);
     }
 
     /**
@@ -1099,7 +1103,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     protected String getScoByUrl(String url) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("url-path",url);
+        attributes.add("url-path", url);
 
         return execApi("sco-by-url", attributes).getChild("sco").getAttributeValue("sco-id");
     }
@@ -1254,15 +1258,17 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
         this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
-        this.capacityCheckThread = new Thread() {
+        final AtomicReference<Thread> threadReference = new AtomicReference<>();
+        threadReference.set(new Thread()
+        {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
             @Override
             public void run()
             {
                 setCapacityChecking(true);
-                logger.info("Checking of rooms capacity - starting...");
-                while (capacityCheckThread != null && isConnected()) {
+                logger.info("Check of rooms capacity - starting...");
+                while (threadReference.get() != null) {
                     try {
                         Thread.sleep(capacityCheckTimeout);
                     } catch (InterruptedException e) {
@@ -1271,19 +1277,24 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     }
 
                     try {
-                        checkAllRoomsCapacity();
+                        if (isConnected()) {
+                            checkAllRoomsCapacity();
+                        }
+                        else {
+                            logger.info("Check of rooms capacity skipped, connector is disconnected.");
+                        }
                     } catch (Exception exception) {
-                        logger.warn("Capacity check failed", exception);
+                        logger.warn("Check of rooms capacity failed", exception);
                     }
                 }
-                logger.info("Checking of rooms capacity - exiting...");
+                logger.info("Check of rooms capacity - exiting...");
                 setCapacityChecking(false);
             }
-        };
-        this.capacityCheckThread.setName(Thread.currentThread().getName() + "-capacities");
+        });
+        this.capacityCheckThreadReference.get().setName(Thread.currentThread().getName() + "-capacities");
         synchronized (this) {
             if (!this.capacityChecking) {
-                this.capacityCheckThread.start();
+                this.capacityCheckThreadReference.get().start();
             }
         }
     }
