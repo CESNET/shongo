@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -24,6 +26,8 @@ public class InterDomainAgent {
 
     private final DomainAdminNotifier notifier;
 
+    private final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
+
     /**
      * Constructor
      * @param configuration
@@ -39,9 +43,9 @@ public class InterDomainAgent {
         domainService = new DomainService(entityManagerFactory);
         domainService.init(configuration);
 
-        this.notifier = new DomainAdminNotifier(emailSender, configuration);
+        this.notifier = new DomainAdminNotifier(logger, emailSender, configuration);
         this.authentication = new DomainAuthentication(entityManagerFactory, configuration, notifier);
-        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, emailSender);
+        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, notifier);
 //        this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
     }
 
@@ -96,6 +100,11 @@ public class InterDomainAgent {
     public void notifyDomainAdmins(String message, Throwable exception)
     {
         this.notifier.notifyDomainAdmins(message, exception);
+    }
+
+    public Logger getLogger()
+    {
+        return this.logger;
     }
 
     public void logAndNotifyDomainAdmins(String message, Throwable exception)
