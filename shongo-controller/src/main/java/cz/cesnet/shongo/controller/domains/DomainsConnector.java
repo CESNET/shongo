@@ -66,13 +66,13 @@ public class DomainsConnector
 
     private final int THREAD_TIMEOUT = 500;
 
-    public DomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, EmailSender emailSender)
+    public DomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, DomainAdminNotifier notifier)
     {
         this.entityManagerFactory = entityManagerFactory;
         domainService = new DomainService(entityManagerFactory);
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
-        this.notifier = new DomainAdminNotifier(emailSender, configuration);
+        this.notifier = notifier;
         mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
@@ -610,7 +610,6 @@ public class DomainsConnector
             if (!Thread.currentThread().getName().contains("domainTask")) {
                 Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
             }
-            logger.debug("callable action in thread starting (" + Thread.currentThread().getName() + "; " + this.action + ")");
             boolean failed = true;
             try {
                 if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {
@@ -668,7 +667,6 @@ public class DomainsConnector
             if (!Thread.currentThread().getName().contains("domainTask")) {
                 Thread.currentThread().setName(Thread.currentThread().getName() + "-domainTask-" + domain.getName());
             }
-            logger.debug("runnable action in thread starting (" + Thread.currentThread().getName() + "; " + this.action + ")");
             Domain internalDomain = InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId());
             if (internalDomain == null || !internalDomain.isAllocatable()) {
                 terminateDomainTask();

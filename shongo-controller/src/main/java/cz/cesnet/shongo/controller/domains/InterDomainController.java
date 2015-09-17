@@ -299,8 +299,7 @@ public class InterDomainController implements InterDomainProtocol{
         Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, null);
-
+//        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, null);
         Set<String> resourceIds = new HashSet<>();
 
         if (resourceId != null) {
@@ -334,7 +333,6 @@ public class InterDomainController implements InterDomainProtocol{
         //pro vsechny zkontrolvat zda jsou verejne (ACL pro group:0), vyfiltrovat
         //??? vytahnout pro tyto zdroje vsechny ResourceSummary
         //TODO: cachovat nejak pro dalsi domeny?
-
 
         return reservations;
     }

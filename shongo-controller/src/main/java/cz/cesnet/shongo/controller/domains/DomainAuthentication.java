@@ -65,8 +65,8 @@ public class DomainAuthentication {
      * Returns
      * @return
      */
-    protected Map<X509Certificate, Domain> listForeignDomainCertificates() {
-        Map<X509Certificate, Domain> domainsByCert = new HashMap<X509Certificate, Domain>();
+    synchronized protected Map<X509Certificate, Domain> listForeignDomainCertificates() {
+        Map<X509Certificate, Domain> domainsByCert = new HashMap<>();
         for (Domain domain : domainService.listForeignDomains()) {
             String certificate = domain.getCertificatePath();
             if (Strings.isNullOrEmpty(certificate)) {
@@ -98,29 +98,33 @@ public class DomainAuthentication {
      * @param domain
      * @return
      */
-    protected synchronized String generateAccessToken(Domain domain) {
+    protected String generateAccessToken(Domain domain) {
         String accessToken = null;
-        while (accessToken == null) {
-            String generatedToken = RandomStringUtils.random(8, true, true) + DateTime.now().getMillis() + RandomStringUtils.random(8, true, true);
-            if (!domainsAccessTokens.contains(generatedToken)) {
-                accessToken = generatedToken;
+        synchronized (domainsAccessTokens) {
+            while (accessToken == null) {
+                String generatedToken = RandomStringUtils.random(8, true, true) + DateTime.now().getMillis() + RandomStringUtils.random(8, true, true);
+                if (!domainsAccessTokens.contains(generatedToken)) {
+                    accessToken = generatedToken;
+                }
             }
+            domainsAccessTokens.put(accessToken, domain.getName());
         }
-        domainsAccessTokens.put(accessToken, domain.getName());
         return accessToken;
     }
 
     protected Domain getDomain(String accessToken) {
-        domainsAccessTokens.clearExpired(DateTime.now());
-        String domainName = domainsAccessTokens.get(accessToken);
-        return (domainName == null ? null : domainService.findDomainByName(domainName));
+        synchronized (domainsAccessTokens) {
+            domainsAccessTokens.clearExpired(DateTime.now());
+            String domainName = domainsAccessTokens.get(accessToken);
+            return (domainName == null ? null : domainService.findDomainByName(domainName));
+        }
     }
 
     protected Domain getDomain(X509Certificate certificate) {
         return listForeignDomainCertificates().get(certificate);
     }
 
-    protected KeyManagerFactory getKeyManagerFactory() {
+    synchronized protected KeyManagerFactory getKeyManagerFactory() {
         return keyManagerFactory;
     }
 }

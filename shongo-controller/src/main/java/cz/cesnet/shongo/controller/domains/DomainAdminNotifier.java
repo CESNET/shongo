@@ -14,14 +14,15 @@ import javax.mail.MessagingException;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 public class DomainAdminNotifier {
-    private final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
+    private final Logger logger;
 
     private final EmailSender emailSender;
 
     private final ControllerConfiguration configuration;
 
-    public DomainAdminNotifier(EmailSender emailSender, ControllerConfiguration configuration)
+    public DomainAdminNotifier(Logger logger, EmailSender emailSender, ControllerConfiguration configuration)
     {
+        this.logger = logger;
         if (emailSender == null) {
             logger.warn("Inter domain agent is not set properly, thus will not sent notifications.");
         }
@@ -54,5 +55,10 @@ public class DomainAdminNotifier {
     {
         logger.error(message, exception);
         notifyDomainAdmins(message, exception);
+    }
+
+    public void logDomainAdmins(String message, Throwable exception)
+    {
+        logger.error(message, exception);
     }
 }
