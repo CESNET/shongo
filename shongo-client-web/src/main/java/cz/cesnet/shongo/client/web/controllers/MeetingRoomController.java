@@ -208,6 +208,7 @@ public class MeetingRoomController {
                     "views.reservationRequest.specification." + specificationType, null, locale));
 
             String resourceId = reservationRequest.getResourceId();
+            //TODO: handle if domain is no longer allocatable OR resource is not available any more
             cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
             item.put("resourceName",resource.getName());
             item.put("resourceDescription",resource.getDescription());
