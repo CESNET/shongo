@@ -128,6 +128,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             }
             return Collections.unmodifiableList(domainList);
         } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
@@ -436,6 +439,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             }
             return response;
         } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
@@ -507,6 +513,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             return response;
         }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
@@ -598,6 +607,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            throw e;
 //        }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
@@ -707,6 +719,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             }
             return domain.toApi();
         } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
@@ -722,6 +737,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
             return domain.toApi();
         } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
