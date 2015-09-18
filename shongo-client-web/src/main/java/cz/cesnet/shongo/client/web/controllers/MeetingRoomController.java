@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
@@ -209,9 +210,18 @@ public class MeetingRoomController {
 
             String resourceId = reservationRequest.getResourceId();
             //TODO: handle if domain is no longer allocatable OR resource is not available any more
-            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
-            item.put("resourceName",resource.getName());
-            item.put("resourceDescription",resource.getDescription());
+            String resourceName = "TODO";
+            String resourceDescription = "domain not available";
+            try {
+                cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
+                resourceName = resource.getName();
+                resourceDescription = resource.getDescription();
+            }
+            catch (CommonReportSet.ObjectNotExistsException ex) {
+                //TODO: cache resource description and name
+            }
+            item.put("resourceName", resourceName);
+            item.put("resourceDescription", resourceDescription);
         }
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
