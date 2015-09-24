@@ -396,6 +396,19 @@ public class DomainsConnector
     }
 
     /**
+     * @return all foreign domains
+     */
+    public List<Domain> listForeignDomains(boolean onlyAllocatable)
+    {
+        if (onlyAllocatable) {
+            return listAllocatableForeignDomains();
+        }
+        else {
+            return listForeignDomains();
+        }
+    }
+
+    /**
      * Test if domain by given name exists and is allocatable.
      * @param domainName
      * @return
@@ -440,7 +453,7 @@ public class DomainsConnector
         }
         List<Domain> domains;
         if (request.getDomain() == null) {
-            domains = listAllocatableForeignDomains();
+            domains = listForeignDomains(request.getOnlyAllocatable());
         }
         else {
             domains = new ArrayList<>();
@@ -659,6 +672,7 @@ public class DomainsConnector
 
         /**
          * Runnable will be terminated (throws {@link IllegalStateException}) if domain does not exist or is no allocatable.
+         * Allows only request for allocatable domains.
          */
         @Override
         synchronized public void run()

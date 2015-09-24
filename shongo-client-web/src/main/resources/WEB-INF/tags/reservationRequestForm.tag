@@ -427,10 +427,13 @@
                 if (resource.domainName) {
                     domain = " (" + resource.domainName + ")";
                 }
-                resources.push({
-                    id: resource.id,
-                    text: "<strong>" + resource.name + "</strong>" + description + domain
-                });
+                //TODO: show resource but, dont allow allocating
+                if (resource.allocatable) {
+                    resources.push({
+                        id: resource.id,
+                        text: "<strong>" + resource.name + "</strong>" + description + domain,
+                    });
+                }
             }
             callback(resources);
         })

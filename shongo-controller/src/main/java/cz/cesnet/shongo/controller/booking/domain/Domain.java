@@ -47,7 +47,8 @@ public class Domain extends SimplePersistentObject {
     private String passwordHash;
 
     /**
-     * Is this domain used for local allocations
+     * Is this domain used for local allocations.
+     * Allocatable domains are also cached. See {@link cz.cesnet.shongo.controller.domains.CachedDomainsConnector}
      */
     private boolean allocatable;
 
