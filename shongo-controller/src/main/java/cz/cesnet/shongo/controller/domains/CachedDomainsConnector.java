@@ -250,39 +250,66 @@ public class CachedDomainsConnector extends DomainsConnector
     @Override
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
-        Map<String, List<DomainCapability>> capabilities;
-        if (request.getInterval() == null && request.getTechnology() == null
-                && DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())
-                && isResourcesCacheReady(request.getDomainName())) {
-            capabilities = new HashMap<>();
-            // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
-            synchronized (availableResources) {
-                // Filter domains for which resources will be returned.
-                Map<String, List<DomainCapability>> requestedResources = new HashMap<>();
-                if (request.getDomainName() != null) {
-                    String domainName = request.getDomainName();
-                    requestedResources.put(domainName, availableResources.get(domainName));
-
-                    for (String requestResourceId : request.getResourceIds()) {
-                        if (!domainName.equals(ObjectIdentifier.parseDomain(requestResourceId))) {
-                            throw new IllegalArgumentException("Requested resource is not from requested domain (domain: " + domainName + ", resource: " + requestResourceId + ")");
-                        }
+        Map<String, List<DomainCapability>> capabilities = new HashMap<>();
+        try {
+            if (useResourcesCache(request)) {
+                // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
+                synchronized (availableResources) {
+                    // Filter domains for which resources will be returned.
+                    Map<String, List<DomainCapability>> requestedResources = new HashMap<>();
+                    if (request.getDomainName() != null) {
+                        String domainName = request.getDomainName();
                         requestedResources.put(domainName, availableResources.get(domainName));
+
+                        for (String requestResourceId : request.getResourceIds()) {
+                            if (!domainName.equals(ObjectIdentifier.parseDomain(requestResourceId))) {
+                                throw new IllegalArgumentException("Requested resource does not belong to requested domain (domain: " + domainName + ", resource: " + requestResourceId + ")");
+                            }
+                            requestedResources.put(domainName, availableResources.get(domainName));
+                        }
+                    } else {
+                        requestedResources = availableResources;
+                    }
+
+                    // Filter requested resources and set unavailable resources
+                    for (Map.Entry<String, List<DomainCapability>> entry : requestedResources.entrySet()) {
+                        String domainName = entry.getKey();
+                        List<DomainCapability> capabilityList = entry.getValue();
+                        if (capabilityList == null) {
+                            continue;
+                        }
+                        // If domain exists and is allocatable
+                        //TODO: delete - neni potreba, non-allocatable nejsou vubec cachovane
+                        if (isDomainAllocatable(domainName)) {
+                            List<DomainCapability> resources = new ArrayList<>();
+                            for (DomainCapability resource : capabilityList) {
+                                // Filter by ids
+                                if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
+                                    // Filter by type
+                                    if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
+                                        if (unavailableResources.contains(domainName)) {
+                                            resource.setAvailable(false);
+                                        }
+                                        resources.add(resource);
+                                    }
+                                }
+                            }
+                            if (!resources.isEmpty()) {
+                                capabilities.put(entry.getKey(), resources);
+                            }
+                        }
                     }
                 }
-                else {
-                    requestedResources = availableResources;
-                }
-
-                // Filter requested resources and set unavailable resources
-                for (Map.Entry<String, List<DomainCapability>> entry : requestedResources.entrySet()) {
+            } else {
+                capabilities = super.listForeignCapabilities(request);
+                for (Map.Entry<String, List<DomainCapability>> entry : capabilities.entrySet()) {
                     String domainName = entry.getKey();
                     List<DomainCapability> capabilityList = entry.getValue();
                     if (capabilityList == null) {
                         continue;
                     }
-                    // If domain exists and is allocatable
-                    if (isDomainAllocatable(domainName)) {
+                    //TODO If domain exists and is allocatable  ???VERIFY/CHANGE???
+                    if (Boolean.FALSE.equals(request.getOnlyAllocatable()) || isDomainAllocatable(domainName)) {
                         List<DomainCapability> resources = new ArrayList<>();
                         for (DomainCapability resource : capabilityList) {
                             // Filter by ids
@@ -302,10 +329,48 @@ public class CachedDomainsConnector extends DomainsConnector
                     }
                 }
             }
-        } else {
-            capabilities = super.listForeignCapabilities(request);
+        }
+        catch (IllegalArgumentException ex) {
+            // Cache exception from {@code useResourcesCache()} if request is not valid
         }
         return capabilities;
+    }
+
+    /**
+     * Check the {@code request} if resource cache should be used - {@code availableResources}.
+     * @param request to be checked
+     * @throws IllegalArgumentException when only allocatable domains are required, but given domain is not
+     * @return
+     */
+    private boolean useResourcesCache(DomainCapabilityListRequest request)
+    {
+        if (Boolean.FALSE.equals(request.getOnlyAllocatable())) {
+            if (request.getDomain() == null || !request.getDomain().isAllocatable()) {
+                return false;
+            }
+        }
+        else if (request.getOnlyAllocatable() == null) {
+            if (request.getDomain() != null && !request.getDomain().isAllocatable()) {
+                return false;
+            }
+        }
+        else {
+            if (request.getDomain() != null && !request.getDomain().isAllocatable()) {
+                throw new IllegalArgumentException("Domain \"" + request.getDomainName() + "\" is not allocatable, but only allocatable was required.");
+            }
+        }
+        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())) {
+            return false;
+        }
+        //TODO: better validate interval
+        if (request.getInterval() != null || request.getTechnology() != null) {
+            return false;
+        }
+        if (!isResourcesCacheReady(request.getDomainName())) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

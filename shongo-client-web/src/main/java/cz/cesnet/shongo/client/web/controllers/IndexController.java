@@ -66,6 +66,7 @@ public class IndexController
             ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
             Set<String> tagNames = new HashSet<>(Arrays.asList(ClientWebConfiguration.getInstance().getMeetingRoomTagName()));
             resourceListRequest.setTagNames(tagNames);
+            resourceListRequest.setAllocatable(false);
             for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
                 resourceSummaries.add(resourceSummary);
             }

@@ -16,6 +16,8 @@ public class ForeignResourcesListRequest extends AbstractRequest
 
     private String tagName;
 
+    private Boolean onlyAllocatable;
+
     /**
      * For filtering resources by ids.
      */
@@ -54,5 +56,15 @@ public class ForeignResourcesListRequest extends AbstractRequest
     public void addResourceId(String resourceId)
     {
         this.resourceIds.add(resourceId);
+    }
+
+    public Boolean getOnlyAllocatable()
+    {
+        return onlyAllocatable;
+    }
+
+    public void setOnlyAllocatable(Boolean onlyAllocatable)
+    {
+        this.onlyAllocatable = onlyAllocatable;
     }
 }

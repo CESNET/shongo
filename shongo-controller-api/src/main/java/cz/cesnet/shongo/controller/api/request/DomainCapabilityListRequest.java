@@ -44,6 +44,8 @@ public class DomainCapabilityListRequest extends AbstractRequest
      */
     private String resourceType;
 
+    private Boolean onlyAllocatable;
+
     public DomainCapabilityListRequest(Type capabilityType)
     {
         this.capabilityType = capabilityType;
@@ -137,6 +139,16 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void addResourcesIds(Collection<Long> resourcesIds)
     {
         this.resourceIds.addAll(resourceIds);
+    }
+
+    public Boolean getOnlyAllocatable()
+    {
+        return onlyAllocatable;
+    }
+
+    public void setOnlyAllocatable(Boolean onlyAllocatable)
+    {
+        this.onlyAllocatable = onlyAllocatable;
     }
 
     public enum Type

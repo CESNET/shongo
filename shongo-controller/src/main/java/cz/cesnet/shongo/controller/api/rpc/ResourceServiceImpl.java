@@ -449,6 +449,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 foreignResourcesListRequest.setPermission(request.getPermission());
                 //TODO: add TagId
                 foreignResourcesListRequest.setTagName(request.getTagName());
+                foreignResourcesListRequest.setOnlyAllocatable(request.isAllocatable());
                 ListResponse<ResourceSummary> resourceSummaries = listForeignResources(foreignResourcesListRequest);
                 response.addAll(resourceSummaries);
                 response.setCount(response.getCount() + resourceSummaries.getItemCount());
@@ -477,6 +478,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 for (Long foreignResourcesId : readableForeignResourcesIds) {
                     ForeignResources foreignResources = resourceManager.getForeignResources(foreignResourcesId);
                     Domain domain = foreignResources.getDomain().toApi();
+                    // Set requested domain, all resources must belong to this domain (enforced by connector)
                     if (capabilityListRequest.getDomain() == null) {
                         capabilityListRequest.setDomain(domain);
                     }
@@ -495,10 +497,21 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
 
             ListResponse<ResourceSummary> response = new ListResponse<>();
+            // Do not list all foreign resources if user is not administrator
+            if (capabilityListRequest.getResourceIds().isEmpty() && !authorization.isAdministrator(securityToken)) {
+                return response;
+            }
             if (InterDomainAgent.isInitialized()) {
                 Tag tag = null;
                 if (request.getTagName() != null) {
                     tag = findTag(securityToken, request.getTagName());
+                }
+                //TODO: list only from available domains? Parametrize?
+                if (request.getOnlyAllocatable() == null) {
+                    capabilityListRequest.setOnlyAllocatable(Boolean.TRUE);
+                }
+                else {
+                    capabilityListRequest.setOnlyAllocatable(request.getOnlyAllocatable());
                 }
                 for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAvailableForeignResources(capabilityListRequest)) {
                     if (tag != null) {
@@ -511,6 +524,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     }
                     ResourceSummary resourceSummary = resource.toResourceSummary();
                     resourceSummary.setDomainName(ObjectIdentifier.parseDomain(resource.getId()));
+                    //TODO: odlisit docasne nedostupne: resourceSummary.setAllocatable();
                     response.addItem(resourceSummary);
                 }
             }
@@ -568,6 +582,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                         request.addResourceId(objectIdentifier.formatGlobalId());
                     }
                     request.setDomain(domain.toApi());
+                    request.setOnlyAllocatable(Boolean.FALSE);
                     Map<String, List<DomainCapability>> resources = InterDomainAgent.getInstance().getConnector().listForeignCapabilities(request);
 
                     // No resource was found
@@ -938,6 +953,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 persistenceResourceId = ObjectIdentifier.parseForeignId(resourceId, ObjectType.RESOURCE);
                 foreignResources = resourceManager.findForeignResourcesByResourceId(domainName, persistenceResourceId);
                 resourceTag = resourceManager.getForeignResourceTag(foreignResources.getId(), persistenceTagId);
+                authorizationManager.deleteAclEntriesForChildEntity(resourceTag.getTag(), resourceTag.getForeignResources());
             }
 
             resourceManager.deleteResourceTag(resourceTag);

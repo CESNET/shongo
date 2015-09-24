@@ -101,6 +101,7 @@ public class ResourceController
             resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
             resource.put("description", resourceSummary.getDescription());
             resource.put("domainName", resourceSummary.getDomainName());
+            resource.put("allocatable", resourceSummary.getAllocatable());
             resources.add(resource);
         }
         return resources;

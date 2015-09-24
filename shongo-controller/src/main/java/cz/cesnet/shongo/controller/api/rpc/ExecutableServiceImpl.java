@@ -605,20 +605,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         executableToUpdate.getState();
                 // When executable slot is active or the executable is modified
                 if (executableToUpdate.getSlot().contains(dateTimeNow) ||
-                        (executableToUpdate.isModified() &&
-                                 cz.cesnet.shongo.controller.booking.executable.Executable.MODIFIABLE_STATES.contains(
-                                         executableState))) {
-                    if (Boolean.TRUE.equals(skipExecution)) {
-                        throw new TodoImplementException("Skip execution for " + executableState + ".");
-                    }
-                    // When some attempt has been already made
-                    if (executableToUpdate.getAttemptCount() > 0) {
-                        // Schedule next attempt
-                        if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
-                            executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                    (executableToUpdate.isModified() &&
+                            cz.cesnet.shongo.controller.booking.executable.Executable.MODIFIABLE_STATES.contains(
+                                    executableState))) {
+                        if (Boolean.TRUE.equals(skipExecution)) {
+                            throw new TodoImplementException("Skip execution for " + executableState + ".");
                         }
-                        executableToUpdate.setNextAttempt(dateTimeNow);
-                    }
+                        // When some attempt has been already made
+                        if (executableToUpdate.getAttemptCount() > 0) {
+                            // Schedule next attempt
+                            if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
+                                executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                            }
+                            executableToUpdate.setNextAttempt(dateTimeNow);
+                        }
                 }
                 // When executable slot is in history
                 else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
