@@ -398,9 +398,9 @@ public class DomainsConnector
     /**
      * @return all foreign domains
      */
-    public List<Domain> listForeignDomains(boolean onlyAllocatable)
+    public List<Domain> listForeignDomains(Boolean onlyAllocatable)
     {
-        if (onlyAllocatable) {
+        if (onlyAllocatable != null && onlyAllocatable) {
             return listAllocatableForeignDomains();
         }
         else {
