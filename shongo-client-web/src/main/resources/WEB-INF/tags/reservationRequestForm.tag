@@ -427,13 +427,16 @@
                 if (resource.domainName) {
                     domain = " (" + resource.domainName + ")";
                 }
-                //TODO: show resource but, dont allow allocating
-                if (resource.allocatable) {
-                    resources.push({
-                        id: resource.id,
-                        text: "<strong>" + resource.name + "</strong>" + description + domain,
-                    });
+                var disabled = "";
+                if (!resource.allocatable) {
+                    disabled = "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.disabled"/>: ";
                 }
+                //TODO: show resource but, dont allow allocating
+                resources.push({
+                    id: resource.id,
+                    text: "<strong>" + disabled + resource.name + "</strong>" + description + domain,
+                    disabled: !resource.allocatable
+                });
             }
             callback(resources);
         })
