@@ -135,4 +135,34 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         interval = dataMap.getInterval(INTERVAL);
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ReservationListRequest request = (ReservationListRequest) o;
+
+        if (reservationTypes != null ? !reservationTypes.equals(request.reservationTypes) : request.reservationTypes != null)
+            return false;
+        if (resourceIds != request.getResourceIds()) {
+            if (resourceIds == null || request.getResourceIds() == null) return false;
+            if (resourceIds.size() != request.getResourceIds().size()) return false;
+            for (String resourceId : resourceIds) {
+                if (!request.getResourceIds().contains(resourceId)) return false;
+            }
+        }
+        return !(interval != null ? !interval.equals(request.interval) : request.interval != null);
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = reservationTypes != null ? reservationTypes.hashCode() : 0;
+        result = 31 * result + (resourceIds != null ? resourceIds.hashCode() : 0);
+        result = 31 * result + (interval != null ? interval.hashCode() : 0);
+        return result;
+    }
 }
