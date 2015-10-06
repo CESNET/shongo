@@ -1,16 +1,11 @@
 package cz.cesnet.shongo.controller.domains;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.acl.AclObjectClass;
-import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
-import cz.cesnet.shongo.controller.acl.AclProvider;
-import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.*;
@@ -22,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Domain service implementation only for controller.
@@ -49,6 +47,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
      */
     private EntityManagerFactory entityManagerFactory;
 
+    private final ExpirationMap<ReservationListRequest, List<Reservation>> reservationsCache = new ExpirationMap<>();
+
+    private final ReentrantReadWriteLock reservationCacheLock = new ReentrantReadWriteLock();
+
 //    /**
 //     * @see cz.cesnet.shongo.controller.authorization.Authorization
 //     */
@@ -64,10 +66,10 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        this.cache = cache;
 //    }
 
-
     public DomainService(EntityManagerFactory entityManagerFactory)
     {
         this.entityManagerFactory = entityManagerFactory;
+        this.reservationsCache.setExpiration(Duration.standardMinutes(5));
     }
 
     @Override
@@ -448,10 +450,23 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
-        QueryFilter queryFilter = new QueryFilter("reservation_summary");
+        List<Reservation> response;
+        reservationCacheLock.readLock().lock();
+        try {
+            response = reservationsCache.get(request);
+            if (response != null) {
+                return response;
+            }
+        }
+        finally {
+            reservationCacheLock.readLock().unlock();
+        }
 
+        reservationCacheLock.writeLock().lock();
+
+        QueryFilter queryFilter = new QueryFilter("reservation_summary");
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        List<Reservation> response = new ArrayList<>();
+        response = new ArrayList<>();
         try {
             // TODO: List only reservations of Resource???
 //            switch (request)
@@ -510,6 +525,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 Reservation reservation = getReservation(record);
                 response.add(reservation);
             }
+            reservationsCache.put(request, response);
             return response;
         }
         finally {
@@ -517,6 +533,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 entityManager.getTransaction().rollback();
             }
             entityManager.close();
+            reservationCacheLock.writeLock().unlock();
         }
     }
 
