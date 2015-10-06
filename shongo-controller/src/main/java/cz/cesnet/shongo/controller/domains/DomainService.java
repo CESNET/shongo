@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -450,6 +451,8 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
+        request.setInterval(Temporal.roundIntervalToDays(request.getInterval()));
+
         List<Reservation> response;
         reservationCacheLock.readLock().lock();
         try {

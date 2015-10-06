@@ -203,4 +203,12 @@ public class Temporal
         final int roundedMinutes = ((int) Math.ceil(millisSinceHour / 60000.0 / minutes)) * minutes;
         return hour.plusMinutes(roundedMinutes);
     }
+
+    public static Interval roundIntervalToDays(final Interval interval)
+    {
+        DateTime start = new LocalDate(interval.getStartMillis()).toDateTimeAtStartOfDay();
+        DateTime end = new LocalDate(interval.getEndMillis()).toDateTimeAtStartOfDay().plusDays(1);
+
+        return new Interval(start, end);
+    }
 }

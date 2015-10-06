@@ -9,6 +9,9 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.codehaus.jackson.map.ObjectReader;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
@@ -94,8 +97,6 @@ public class CachedDomainsConnector extends DomainsConnector
             for (Domain domain : listAllocatableForeignDomains()) {
                 if (!reservations.containsKey(domain.getName())) {
                     domains.add(domain);
-                    // Make sure no other thread start task before result is stored
-//                    reservations.put(domain.getName(), null);
                 }
             }
         }
@@ -256,63 +257,31 @@ public class CachedDomainsConnector extends DomainsConnector
                 // Writing to {@code availableResources} is synchronized on result map in {@link DomainTask<T>}
                 synchronized (availableResources) {
                     // Filter domains for which resources will be returned.
-                    Map<String, List<DomainCapability>> requestedResources = new HashMap<>();
+                    Map<String, List<DomainCapability>> resourcesByDomain = new HashMap<>();
                     if (request.getDomainName() != null) {
                         String domainName = request.getDomainName();
-                        requestedResources.put(domainName, availableResources.get(domainName));
-
                         for (String requestResourceId : request.getResourceIds()) {
                             if (!domainName.equals(ObjectIdentifier.parseDomain(requestResourceId))) {
                                 throw new IllegalArgumentException("Requested resource does not belong to requested domain (domain: " + domainName + ", resource: " + requestResourceId + ")");
                             }
-                            requestedResources.put(domainName, availableResources.get(domainName));
                         }
+
+                        resourcesByDomain.put(domainName, availableResources.get(domainName));
                     } else {
-                        requestedResources = availableResources;
+                        resourcesByDomain = availableResources;
                     }
 
-                    // Filter requested resources and set unavailable resources
-                    for (Map.Entry<String, List<DomainCapability>> entry : requestedResources.entrySet()) {
+                    // Filter requested resources and set unavailable ones
+                    for (Map.Entry<String, List<DomainCapability>> entry : resourcesByDomain.entrySet()) {
                         String domainName = entry.getKey();
                         List<DomainCapability> capabilityList = entry.getValue();
                         if (capabilityList == null) {
+                            // If results are not available yet, see {@link DomainTask}
                             continue;
                         }
-                        // If domain exists and is allocatable
-                        //TODO: delete - neni potreba, non-allocatable nejsou vubec cachovane
-                        if (isDomainAllocatable(domainName)) {
-                            List<DomainCapability> resources = new ArrayList<>();
-                            for (DomainCapability resource : capabilityList) {
-                                // Filter by ids
-                                if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
-                                    // Filter by type
-                                    if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
-                                        if (unavailableResources.contains(domainName)) {
-                                            resource.setAvailable(false);
-                                        }
-                                        resources.add(resource);
-                                    }
-                                }
-                            }
-                            if (!resources.isEmpty()) {
-                                capabilities.put(entry.getKey(), resources);
-                            }
-                        }
-                    }
-                }
-            } else {
-                capabilities = super.listForeignCapabilities(request);
-                for (Map.Entry<String, List<DomainCapability>> entry : capabilities.entrySet()) {
-                    String domainName = entry.getKey();
-                    List<DomainCapability> capabilityList = entry.getValue();
-                    if (capabilityList == null) {
-                        continue;
-                    }
-                    //TODO If domain exists and is allocatable  ???VERIFY/CHANGE???
-                    if (Boolean.FALSE.equals(request.getOnlyAllocatable()) || isDomainAllocatable(domainName)) {
                         List<DomainCapability> resources = new ArrayList<>();
                         for (DomainCapability resource : capabilityList) {
-                            // Filter by ids
+                            // Filter by IDs
                             if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
                                 // Filter by type
                                 if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
@@ -324,7 +293,31 @@ public class CachedDomainsConnector extends DomainsConnector
                             }
                         }
                         if (!resources.isEmpty()) {
-                            capabilities.put(entry.getKey(), resources);
+                            capabilities.put(domainName, resources);
+                        }
+                    }
+                }
+            } else {
+                Map<String, List<DomainCapability>> resourcesByDomain = super.listForeignCapabilities(request);
+                for (Map.Entry<String, List<DomainCapability>> entry : resourcesByDomain.entrySet()) {
+                    String domainName = entry.getKey();
+                    List<DomainCapability> capabilityList = entry.getValue();
+                    if (capabilityList == null) {
+                        continue;
+                    }
+                    if (Boolean.FALSE.equals(request.getOnlyAllocatable()) || isDomainAllocatable(domainName)) {
+                        List<DomainCapability> resources = new ArrayList<>();
+                        for (DomainCapability resource : capabilityList) {
+                            // Filter by IDs
+                            if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
+                                // Filter by type
+                                if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
+                                    resources.add(resource);
+                                }
+                            }
+                        }
+                        if (!resources.isEmpty()) {
+                            capabilities.put(domainName, resources);
                         }
                     }
                 }
@@ -374,9 +367,11 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
+     * List foreign reservations for given {@code resourceId}. Returns cached reservations if available.
+     *
      * @return {@link List<Reservation>} of resources for foreign available domains
      */
-    public List<ReservationSummary> listForeignDomainReservations(String resourceId)
+    public List<ReservationSummary> listForeignDomainReservations(String resourceId, Interval interval)
     {
         List<Reservation> response;
         List<ReservationSummary> result = new ArrayList<>();
@@ -393,7 +388,7 @@ public class CachedDomainsConnector extends DomainsConnector
         }
         else {
             Domain domain = getDomainService().findDomainByName(domainName);
-            response = super.listReservations(domain, resourceId);
+            response = super.listReservations(domain, resourceId, interval);
             for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : response) {
                 result.add(reservation.toReservationSummary());
             }

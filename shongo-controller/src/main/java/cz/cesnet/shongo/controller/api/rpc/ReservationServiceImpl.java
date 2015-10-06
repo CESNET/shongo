@@ -1180,9 +1180,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 try {
                     if (!ObjectIdentifier.isLocal(resourceId)) {
                         ListResponse<ReservationSummary> response = new ListResponse<>();
-                        //TODO: parametrizace ListResponse??
                         List<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
-                        response.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId));
+                        response.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId, request.getInterval()));
                         response.setCount(response.getItemCount());
                         return response;
                     }
@@ -1190,8 +1189,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 catch (Exception ex) {
                     String message = "Listing of foreign resources reservations has failed.";
                     InterDomainAgent.getInstance().logAndNotifyDomainAdmins(message, ex);
-                    //TODO: fallback only for local reservations WHAT TO DO?
-                    // rezervace jsou cachovane v connectoru, tohle selze jen vyjimecne
                 }
             }
             // List only reservations which is current user permitted to read or which allocates resource owned by the user

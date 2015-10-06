@@ -38,7 +38,7 @@ public interface InterDomainProtocol {
     public AbstractResponse handleDeleteReservationRequest(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
-    public List<Reservation> handleListReservations(HttpServletRequest request, String resourceId)
+    public List<Reservation> handleListReservations(HttpServletRequest request, String resourceId, Interval slot)
             throws NotAuthorizedException, ForbiddenException;
 
     public class NotAuthorizedException extends Exception {
