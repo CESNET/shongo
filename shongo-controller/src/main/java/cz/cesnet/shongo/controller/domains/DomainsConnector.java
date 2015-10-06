@@ -446,7 +446,7 @@ public class DomainsConnector
         Map<String, String> parameters = new HashMap<>();
         parameters.put("type", request.getCapabilityType().toString());
         if (request.getInterval() != null) {
-            parameters.put("interval", request.getInterval().toString());
+            parameters.put("interval", Converter.convertIntervalToStringUTC(request.getInterval()));
         }
         if (request.getTechnology() != null) {
             parameters.put("technology", request.getTechnology().toString());
@@ -476,7 +476,7 @@ public class DomainsConnector
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("slot", Converter.convertToString(new Interval(slot.getStartMillis(), slot.getEndMillis())));
+        parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
         parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
         parameters.put("userId", schedulerContext.getUserId());
@@ -525,17 +525,20 @@ public class DomainsConnector
         return AbstractResponse.Status.OK.equals(response.getStatus());
     }
 
-    public List<Reservation> listReservations(Domain domain)
-    {
-        return listReservations(domain, null);
-    }
+//    public List<Reservation> listReservations(Domain domain)
+//    {
+//        return listReservations(domain, null, null);
+//    }
 
-    public List<Reservation> listReservations(Domain domain, String resourceId)
+    public List<Reservation> listReservations(Domain domain, String resourceId, Interval slot)
     {
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
         Map<String, String> parameters = new HashMap<>();
         if (resourceId != null) {
             parameters.put("resourceId", resourceId);
+        }
+        if (slot != null) {
+            parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
         }
 
         List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, domain, reader, List.class);

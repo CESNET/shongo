@@ -505,6 +505,12 @@ public class Converter
         return String.format("%s/%s", startString, endString);
     }
 
+    public static String convertIntervalToStringUTC(Interval value)
+    {
+        Interval intervalUTC = new Interval(value.getStartMillis(), value.getEndMillis());
+        return convertIntervalToString(intervalUTC);
+    }
+
     /**
      * Convert given {@code value} to {@link Interval} value.
      *

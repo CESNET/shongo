@@ -312,7 +312,8 @@ public class InterDomainController implements InterDomainProtocol{
     @RequestMapping(value = InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, method = RequestMethod.GET)
     @ResponseBody
     public List<Reservation> handleListReservations(HttpServletRequest request,
-                                                    @RequestParam(value = "resourceId", required = false) String resourceId)
+                                                    @RequestParam(value = "resourceId", required = false) String resourceId,
+                                                    @RequestParam(value = "slot", required = false) Interval slot)
             throws NotAuthorizedException, ForbiddenException
     {
         Domain domain = getDomain(request);
@@ -348,6 +349,7 @@ public class InterDomainController implements InterDomainProtocol{
 
             ReservationListRequest reservationListRequest = new ReservationListRequest();
             reservationListRequest.setResourceIds(resourceIds);
+            reservationListRequest.setInterval(slot);
             List<Reservation> reservations = getDomainService().listPublicReservations(reservationListRequest);
 
             return reservations;

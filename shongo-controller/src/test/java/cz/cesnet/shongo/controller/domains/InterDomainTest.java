@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
@@ -15,6 +16,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.ext.JodaSerializers;
 import org.codehaus.jackson.map.module.SimpleModule;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Assert;
@@ -284,6 +286,8 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
+        System.out.println(Temporal.roundIntervalToDays(new Interval(DateTime.now(), DateTime.now().plusDays(2))));
+        System.out.println(Converter.convertIntervalToString(Temporal.roundIntervalToDays(new Interval(DateTime.now(), DateTime.now().plusDays(2)))));
     }
 
     protected CachedDomainsConnector getConnector()
