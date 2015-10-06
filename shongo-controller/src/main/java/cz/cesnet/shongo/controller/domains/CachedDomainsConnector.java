@@ -292,8 +292,8 @@ public class CachedDomainsConnector extends DomainsConnector
                                 }
                             }
                         }
-                        if (!resources.isEmpty()) {
-                            capabilities.put(domainName, resources);
+                       if (domainExists(domainName)) {
+                           capabilities.put(domainName, resources);
                         }
                     }
                 }
@@ -316,9 +316,7 @@ public class CachedDomainsConnector extends DomainsConnector
                                 }
                             }
                         }
-                        if (!resources.isEmpty()) {
-                            capabilities.put(domainName, resources);
-                        }
+                        capabilities.put(domainName, resources);
                     }
                 }
             }

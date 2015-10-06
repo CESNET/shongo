@@ -28,8 +28,10 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.persistence.EntityManagerFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -418,6 +420,22 @@ public class DomainsConnector
         try {
             Domain domain = this.domainService.findDomainByName(domainName);
             return domain.isAllocatable();
+        }
+        catch (CommonReportSet.ObjectNotExistsException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Test if domain by given name exists.
+     * @param domainName
+     * @return
+     */
+    public boolean domainExists(String domainName)
+    {
+        try {
+            Domain domain = this.domainService.findDomainByName(domainName);
+            return domain != null;
         }
         catch (CommonReportSet.ObjectNotExistsException ex) {
             return false;
