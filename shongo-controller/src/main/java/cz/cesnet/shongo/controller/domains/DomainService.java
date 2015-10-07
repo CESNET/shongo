@@ -451,7 +451,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
-        request.setInterval(Temporal.roundIntervalToDays(request.getInterval()));
+        if (request.getInterval() != null) {
+            request.setInterval(Temporal.roundIntervalToDays(request.getInterval()));
+        }
 
         List<Reservation> response;
         reservationCacheLock.readLock().lock();
@@ -471,8 +473,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         response = new ArrayList<>();
         try {
-            // TODO: List only reservations of Resource???
-//            switch (request)
             queryFilter.addFilter("reservation_summary.type='RESOURCE'");
             //ROOM_PROVIDER
 
