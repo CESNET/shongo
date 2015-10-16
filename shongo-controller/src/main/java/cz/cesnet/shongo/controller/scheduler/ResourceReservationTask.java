@@ -71,7 +71,7 @@ public class ResourceReservationTask extends ReservationTask
         }
         else {
             // Check permissions for reservation from foreign domain
-
+            //TODO
         }
 
         validateReservationSlot(ResourceReservation.class);

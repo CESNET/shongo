@@ -115,7 +115,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     /**
      * TODO:MR
-     * Temporary for meeting rooms
+     * Temporary for meeting rooms,
      */
     protected String meetingRoomResourceId;
 
@@ -1340,7 +1340,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         // Create specification
-        abstractReservationRequest.setSpecification(toSpecificationApi());
+        Specification specification = toSpecificationApi();
+        abstractReservationRequest.setSpecification(specification);
+
+        // Set reservation request to be deleted by scheduler if foreign resource is specified
+        abstractReservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
 
         return abstractReservationRequest;
     }

@@ -163,6 +163,8 @@ public class InterDomainController implements InterDomainProtocol{
                     newReservationRequest.setDescription(description);
                     newReservationRequest.setCreatedBy(UserInformation.formatForeignUserId(userId, domainId));
                     newReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
+                    //TODO: when deleting, send anotation to foreign domain
+//                    newReservationRequest.setSchedulerDeleteState(AbstractReservationRequest.SchedulerDeleteState.DELETE);
                     if (previousReservationRequest == null) {
                         reservationRequestManager.create(newReservationRequest);
                     } else {
@@ -290,11 +292,17 @@ public class InterDomainController implements InterDomainProtocol{
                     resourceManager.getDomainResource(domainId, resource.getId());
                 }
             }
+            else {
+                throw new ForbiddenException("Unsupported specification");
+            }
 
             if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
                 // Throw {@code ForbiddenException} for error 403 to return
                 throw new ForbiddenException("Cannot delete reservation request");
             }
+
+            //Delete local reservation request
+            reservationRequestManager.delete(reservationRequest, false);
 
             return new AbstractResponse()
             {

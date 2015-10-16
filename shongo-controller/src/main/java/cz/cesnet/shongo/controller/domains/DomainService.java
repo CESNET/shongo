@@ -449,6 +449,12 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
+    /**
+     * List reservations for given resources or all readable resources (@see listReadableResourcesIds())
+     *
+     * @param request
+     * @return
+     */
     public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
         if (request.getInterval() != null) {
@@ -476,7 +482,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             queryFilter.addFilter("reservation_summary.type='RESOURCE'");
             //ROOM_PROVIDER
 
-            // List reservations for givven resource IDs or for all readable resources
+            // List reservations for given resource IDs or for all readable resources
             Set<Long> resourceIds = listReadableResourcesIds(request.getResourceIds());
             // If there is no readable resource
             if (resourceIds.isEmpty()) {
@@ -529,6 +535,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 response.add(reservation);
             }
             reservationsCache.put(request, response);
+            reservationsCache.clearExpired(DateTime.now());
             return response;
         }
         finally {
@@ -540,6 +547,12 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
+    /**
+     * List resources with at least read permissions for group everyone.
+     *
+     * @param resourceIds to verify if readable
+     * @return set of resources IDs
+     */
     private Set<Long> listReadableResourcesIds(Set<String> resourceIds)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();

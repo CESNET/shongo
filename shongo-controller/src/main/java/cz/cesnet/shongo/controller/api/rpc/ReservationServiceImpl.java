@@ -603,7 +603,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestManager.update(modifiedReservationRequest);
 
             // Revert the modification
-            reservationRequestManager.delete(abstractReservationRequest, authorizationManager, true);
+            reservationRequestManager.delete(abstractReservationRequest, true);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

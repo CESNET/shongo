@@ -60,7 +60,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private String calendarUriKey;
 
     /**
-     * Name of the resource {@link Domain}
+     * Name of the resource {@link Domain}, should be null when resource is local.
      */
     private String domainName;
 

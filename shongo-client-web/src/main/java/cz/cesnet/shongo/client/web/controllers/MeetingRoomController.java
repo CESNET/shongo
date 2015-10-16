@@ -209,7 +209,7 @@ public class MeetingRoomController {
                     "views.reservationRequest.specification." + specificationType, null, locale));
 
             String resourceId = reservationRequest.getResourceId();
-            //TODO: handle if domain is no longer allocatable OR resource is not available any more
+            //TODO: what if domain is not available NOW?
             String resourceName = "TODO";
             String resourceDescription = "domain not available";
             try {

@@ -1,10 +1,22 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.ReservationNotification;
+import cz.cesnet.shongo.controller.notification.RoomNotification;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;

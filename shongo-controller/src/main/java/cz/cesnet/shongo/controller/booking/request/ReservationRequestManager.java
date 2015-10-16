@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
@@ -18,6 +19,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -131,7 +133,7 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         // Soft delete the reservation request
-        delete(reservationRequest, authorizationManager, false);
+        delete(reservationRequest, false);
 
         transaction.commit();
     }
@@ -168,7 +170,7 @@ public class ReservationRequestManager extends AbstractManager
 
         List<AbstractReservationRequest> versions = listVersions(reservationRequest);
         for (AbstractReservationRequest version : versions) {
-            delete(version, authorizationManager, true);
+            delete(version, true);
         }
         allocation.setReservationRequest(null);
 
@@ -217,11 +219,9 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
-     * @param authorizationManager       to be used for deleting ACL entries
      * @param hardDelete                 specifies whether request should be really deleted or only marked as deleted
      */
-    public void delete(AbstractReservationRequest abstractReservationRequest,
-            AuthorizationManager authorizationManager, boolean hardDelete)
+    public void delete(AbstractReservationRequest abstractReservationRequest, boolean hardDelete)
     {
         // Clear preprocessor state
         PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
@@ -425,7 +425,7 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @return list of {@link ReservationRequest}s which should be deleted
      */
-    public List<ReservationRequest> getReservationRequestsForDeletion()
+    public List<ReservationRequest> getOrphanReservationRequestsForDeletion()
     {
         return entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
@@ -439,17 +439,17 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @return list of {@link Allocation}s which should be deleted
-     */
+    * @return list of {@link Allocation}s which should be deleted
+    */
     public List<Allocation> getAllocationsForDeletion()
     {
-        return entityManager.createQuery(
-                "SELECT allocation FROM Allocation allocation"
-                        + " WHERE allocation.state = :stateDeleted AND allocation NOT IN ("
-                        + " SELECT reservationRequest.allocation FROM AbstractReservationRequest reservationRequest)",
-                Allocation.class)
-                .setParameter("stateDeleted", Allocation.State.DELETED)
-                .getResultList();
+    return entityManager.createQuery(
+        "SELECT allocation FROM Allocation allocation"
+        + " WHERE allocation.state = :stateDeleted AND allocation NOT IN ("
+        + " SELECT reservationRequest.allocation FROM AbstractReservationRequest reservationRequest)",
+        Allocation.class)
+        .setParameter("stateDeleted", Allocation.State.DELETED)
+        .getResultList();
     }
 
     /**

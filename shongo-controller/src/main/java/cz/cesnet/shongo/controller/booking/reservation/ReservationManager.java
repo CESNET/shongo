@@ -25,6 +25,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -330,6 +331,80 @@ public class ReservationManager extends AbstractManager
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS)
                 .getResultList();
+    }
+
+    /**
+     * @return list of {@link Reservation}s which should be deleted
+     */
+    public List<Reservation> getOrphanReservationsForDeletion()
+    {
+        return entityManager.createQuery(
+                "SELECT reservation FROM Reservation reservation"
+                        + " LEFT JOIN reservation.allocation allocation"
+                        + " WHERE reservation.parentReservation IS NULL"
+                        + " AND allocation IS NULL",
+                Reservation.class)
+                .getResultList();
+    }
+
+    /**TODO
+     * Main use for inter domain deletion.
+     *
+     * @return list of {@link AbstractReservationRequest}s which should be deleted
+     */
+    public List<Allocation> getReservationRequestsForDeletion()
+    {
+        TypedQuery<Allocation> query = entityManager.createQuery(
+                "SELECT allocation FROM Allocation allocation"
+                        + " WHERE ((allocation.state = :stateDeleted)"
+                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))"
+//                        + " AND allocation.childReservationRequests.size = 0"
+                ,
+                Allocation.class)
+                .setParameter("stateDeleted", Allocation.State.DELETED)
+                .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);
+
+        List<Allocation> resultList = query.getResultList();
+
+        return resultList;
+    }
+
+    /**
+     * Main use for inter domain deletion.
+     *
+     * @return list of {@link AbstractReservationRequest}s which should be deleted
+     */
+    public List<Allocation> getAllocationsWithReservationsForDeletion()
+    {
+        TypedQuery<Allocation> query = entityManager.createQuery(
+                "SELECT reservationRequest FROM Reservation reservation"
+                        + " LEFT JOIN reservation.allocation allocation"
+                        + " LEFT JOIN allocation.reservationRequest reservationRequest"
+                        + " WHERE reservation.parentReservation IS NULL"
+                        + " AND (allocation IS NULL OR"
+                        + "      allocation.state = :stateDeleted OR"
+                        + "      allocation.state = :stateWithoutReservations)",
+                Allocation.class)
+                .setParameter("stateDeleted", Allocation.State.DELETED)
+                .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);
+
+        List<Allocation> resultList = query.getResultList();
+        List<ReservationRequest> requests = new ArrayList<>();
+//        for (AbstractReservationRequest request : resultList) {
+//            if (request instanceof ReservationRequest) {
+//                requests.add((ReservationRequest) request);
+//            }
+//        }
+
+        return resultList;
+//        return entityManager.createQuery(
+//                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+//                        + " WHERE state = :stateDeleted"
+//                        + " AND schedulerDeleteState = :schedulerDeletedState",
+//                ReservationRequest.class)
+//                .setParameter("stateDeleted", AbstractReservationRequest.State.DELETED)
+//                .setParameter("schedulerDeletedState", AbstractReservationRequest.SchedulerDeleteState.DELETE)
+//                .getResultList();
     }
 
     /**

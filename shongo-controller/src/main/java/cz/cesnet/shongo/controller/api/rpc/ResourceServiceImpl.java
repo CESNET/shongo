@@ -506,7 +506,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 if (request.getTagName() != null) {
                     tag = findTag(securityToken, request.getTagName());
                 }
-                //TODO: list only from available domains? Parametrize?
                 if (request.getOnlyAllocatable() == null) {
                     capabilityListRequest.setOnlyAllocatable(Boolean.TRUE);
                 }
@@ -524,7 +523,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     }
                     ResourceSummary resourceSummary = resource.toResourceSummary();
                     resourceSummary.setDomainName(ObjectIdentifier.parseDomain(resource.getId()));
-                    //TODO: odlisit docasne nedostupne: resourceSummary.setAllocatable();
                     response.addItem(resourceSummary);
                 }
             }
@@ -585,7 +583,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     request.setOnlyAllocatable(Boolean.FALSE);
                     Map<String, List<DomainCapability>> resources = InterDomainAgent.getInstance().getConnector().listForeignCapabilities(request);
 
-                    // No resource was found
+                    // No resource was found - should not happened
                     if (resources.isEmpty()) {
                         ControllerReportSetHelper.throwObjectNotExistFault(domainName, cz.cesnet.shongo.controller.booking.resource.Resource.class, objectIdentifier.getPersistenceId());
                     }
@@ -1273,6 +1271,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
+            //TODO: find if there is some reservations for this doman-resource
             // Delete the domainResource
             Long persistenceDomainId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
             Long persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
