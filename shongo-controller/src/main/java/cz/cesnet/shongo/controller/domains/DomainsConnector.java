@@ -483,11 +483,6 @@ public class DomainsConnector
         return domainResources;
     }
 
-    /**
-     *
-     *
-     * @return
-     */
     public Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources,
                                         String previousReservationRequestId)
     {
@@ -532,7 +527,7 @@ public class DomainsConnector
 //        }
     }
 
-    public boolean deleteReservationRequest(Domain domain, String foreignReservationRequestId)
+    public boolean deallocateReservation(Domain domain, String foreignReservationRequestId)
     {
         ObjectReader reader = mapper.reader(AbstractResponse.class);
         Map<String, String> parameters = new HashMap<>();

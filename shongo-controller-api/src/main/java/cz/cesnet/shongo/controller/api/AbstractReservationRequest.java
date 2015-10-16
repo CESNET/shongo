@@ -71,6 +71,11 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private ReservationRequestReusement reusement;
 
     /**
+     * If AbstractReservationRequest will be deleted by scheduler.
+     */
+    private boolean isSchedulerDeleted = false;
+
+    /**
      * Constructor.
      */
     public AbstractReservationRequest()
@@ -270,6 +275,22 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         return null;
     }
 
+    /**
+     * @return if reservation request will be deleted by scheduler
+     */
+    public boolean isSchedulerDeleted()
+    {
+        return isSchedulerDeleted;
+    }
+
+    /**
+     * @param isSchedulerDeleted sets the {@link #isSchedulerDeleted}
+     */
+    public void setIsSchedulerDeleted(boolean isSchedulerDeleted)
+    {
+        this.isSchedulerDeleted = isSchedulerDeleted;
+    }
+
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
     private static final String USER_ID = "userId";
@@ -281,6 +302,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String REUSED_RESERVATION_REQUEST_MANDATORY = "reusedReservationRequestMandatory";
     private static final String REUSEMENT = "reusement";
+    private static final String IS_SCHEDULER_DELETED = "isSchedulerDeleted";
 
     @Override
     public DataMap toData()
@@ -297,6 +319,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(REUSED_RESERVATION_REQUEST_MANDATORY, reusedReservationRequestMandatory);
         dataMap.set(REUSEMENT, reusement);
+        dataMap.set(IS_SCHEDULER_DELETED, isSchedulerDeleted);
         return dataMap;
     }
 
@@ -315,5 +338,6 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         reusedReservationRequestMandatory = dataMap.getBool(REUSED_RESERVATION_REQUEST_MANDATORY);
         reusement = dataMap.getEnum(REUSEMENT, ReservationRequestReusement.class);
+        isSchedulerDeleted = dataMap.getBool(IS_SCHEDULER_DELETED);
     }
 }

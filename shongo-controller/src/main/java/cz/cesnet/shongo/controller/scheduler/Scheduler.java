@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.Reporter;
-import cz.cesnet.shongo.controller.SwitchableComponent;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -18,7 +16,6 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -113,41 +110,83 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            // Delete all reservations which should be deleted
-            List<AbstractNotification> reservationNotifications = new LinkedList<AbstractNotification>();
-            List<Reservation> reservationsForDeletion = reservationManager.getReservationsForDeletion();
-            // Get all referenced reservations from reservations from deletion
-            List<Reservation> referencedReservations = new LinkedList<Reservation>();
-            for (Reservation reservationForDeletion : reservationsForDeletion) {
-                ReservationNotification.Deleted reservationNotificationDeleted =
-                        new ReservationNotification.Deleted(reservationForDeletion, authorizationManager);
-                reservationNotifications.add(reservationNotificationDeleted);
-                getReferencedReservations(reservationForDeletion, referencedReservations);
+//            // Delete all reservations which should be deleted
+//            List<AbstractNotification> reservationNotifications = new LinkedList<AbstractNotification>();
+//            List<Reservation> reservationsForDeletion = reservationManager.getReservationsForDeletion();
+//            // Get all referenced reservations from reservations from deletion
+//            List<Reservation> referencedReservations = new LinkedList<Reservation>();
+//            for (Reservation reservationForDeletion : reservationsForDeletion) {
+//                ReservationNotification.Deleted reservationNotificationDeleted =
+//                        new ReservationNotification.Deleted(reservationForDeletion, authorizationManager);
+//                reservationNotifications.add(reservationNotificationDeleted);
+//                getReferencedReservations(reservationForDeletion, referencedReservations);
+//            }
+//            // Move all referenced reservations to the end
+//            for (Reservation referencedReservation : referencedReservations) {
+//                Reservation topReferencedReservation = referencedReservation.getTopReservation();
+//                if (reservationsForDeletion.contains(topReferencedReservation)) {
+//                    reservationsForDeletion.remove(topReferencedReservation);
+//                    reservationsForDeletion.add(topReferencedReservation);
+//                }
+//            }
+//            for (Reservation reservation : reservationsForDeletion) {
+//                reservation.setAllocation(null);
+//                if (reservation.getSlotEnd().isAfter(start)) {
+//                    reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
+//                }
+//                reservationManager.delete(reservation, start, authorizationManager);
+//                result.deletedReservations++;
+//            }
+//
+//
+//            // Delete all allocations which should be deleted
+//            for (Allocation allocation : reservationRequestManager.getAllocationsForDeletion()) {
+//                entityManager.remove(allocation);
+//            }
+
+            List<AbstractNotification> reservationNotifications = new ArrayList<>();
+            List<Allocation> allocationForDeletion = reservationManager.getReservationRequestsForDeletion();
+
+            List<Allocation> referencedAllocations = new LinkedList<>();
+            for (Allocation allocation : allocationForDeletion) {
+                getReferencedAllocations(allocation, referencedAllocations);
             }
             // Move all referenced reservations to the end
-            for (Reservation referencedReservation : referencedReservations) {
-                Reservation topReferencedReservation = referencedReservation.getTopReservation();
-                if (reservationsForDeletion.contains(topReferencedReservation)) {
-                    reservationsForDeletion.remove(topReferencedReservation);
-                    reservationsForDeletion.add(topReferencedReservation);
+            for (Allocation allocation : referencedAllocations) {
+                if (allocationForDeletion.contains(allocation)) {
+                    allocationForDeletion.remove(allocation);
+                    allocationForDeletion.add(allocation);
                 }
             }
-            for (Reservation reservation : reservationsForDeletion) {
-                reservation.setAllocation(null);
-                if (reservation.getSlotEnd().isAfter(start)) {
-                    reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
+            for (Allocation allocation : allocationForDeletion) {
+                List<Reservation> reservations = new LinkedList<>(allocation.getReservations());
+                for (Reservation reservation : reservations) {
+                    DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
+                    try {
+                        List<AbstractNotification> notifications = deallocateTask.deallocate(interval, result, entityManager, reservationManager, authorizationManager);
+                        reservationNotifications.addAll(notifications);
+                    } catch (ForeignDomainConnectException e) {
+                        // When deallocate of foreign reservation fails, try again next time
+                        //TODO: log exception??
+                        System.out.println("expected");
+                    } catch (Exception e) {
+                        System.out.println("TSG " + e);
+                    }
                 }
-                reservationManager.delete(reservation, start, authorizationManager);
-                result.deletedReservations++;
+                if (Allocation.State.DELETED.equals(allocation.getState()) && allocation.getReservationRequest() == null) {
+                    if (!allocation.getReservations().isEmpty() && !allocation.getChildReservationRequests().isEmpty()) {
+                        throw new TodoImplementException();
+                    }
+                    entityManager.remove(allocation);
+                }
             }
 
-            // Delete all allocations which should be deleted
-            for (Allocation allocation : reservationRequestManager.getAllocationsForDeletion()) {
-                entityManager.remove(allocation);
+            if (!reservationManager.getOrphanReservationsForDeletion().isEmpty()) {
+                throw new TodoImplementException();
             }
 
             // Delete all reservation requests which should be deleted
-            for (ReservationRequest request : reservationRequestManager.getReservationRequestsForDeletion()) {
+            for (ReservationRequest request : reservationRequestManager.getOrphanReservationRequestsForDeletion()) {
                 reservationRequestManager.hardDelete(request, authorizationManager);
             }
 
@@ -301,25 +340,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             });
         }
         return result;
-    }
-
-    /**
-     * Fill {@link Reservation}s which are referenced (e.g., by {@link ExistingReservation})
-     * from given {@code reservation} to given {@code referencedReservations}.
-     *
-     * @param reservation
-     * @param referencedReservations
-     */
-    private void getReferencedReservations(Reservation reservation, List<Reservation> referencedReservations)
-    {
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            Reservation referencedReservation = existingReservation.getReusedReservation();
-            referencedReservations.add(referencedReservation);
-        }
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            getReferencedReservations(childReservation, referencedReservations);
-        }
     }
 
     /**
@@ -569,6 +589,51 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
         }
         return notifications;
+    }
+
+    //TODO
+    private void getReferencedAllocations(Allocation allocation, List<Allocation> referencedAllocations)
+    {
+        for (Reservation reservation : allocation.getReservations()) {
+            getReferencedAllocations(reservation, referencedAllocations);
+        }
+    }
+
+    private void getReferencedAllocations(Reservation reservation, List<Allocation> referencedAllocations)
+    {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            Reservation referencedReservation = existingReservation.getReusedReservation();
+            if (referencedReservation.getAllocation() != null) {
+                referencedAllocations.add(referencedReservation.getAllocation());
+            }
+            else {
+                //TODO
+                throw new TodoImplementException();
+            }
+        }
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            getReferencedAllocations(childReservation, referencedAllocations);
+        }
+    }
+
+    /**
+     * Fill {@link Reservation}s which are referenced (e.g., by {@link ExistingReservation})
+     * from given {@code reservation} to given {@code referencedReservations}.
+     *
+     * @param reservation
+     * @param referencedReservations
+     */
+    private void getReferencedReservations(Reservation reservation, List<Reservation> referencedReservations)
+    {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            Reservation referencedReservation = existingReservation.getReusedReservation();
+            referencedReservations.add(referencedReservation);
+        }
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            getReferencedReservations(childReservation, referencedReservations);
+        }
     }
 
     /**

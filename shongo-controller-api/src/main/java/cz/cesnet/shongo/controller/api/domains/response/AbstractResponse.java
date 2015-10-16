@@ -8,7 +8,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public abstract class AbstractResponse
+public class AbstractResponse
 {
     @JsonProperty("status")
     private Status status = Status.OK;
