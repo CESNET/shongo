@@ -244,7 +244,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         // Initialize Inter Domain agent
         if (getConfiguration().isInterDomainConfigured()) {
-            InterDomainAgent.create(getEntityManagerFactory(), getConfiguration(), controller.getEmailSender());
+            InterDomainAgent.create(getEntityManagerFactory(), getConfiguration(), authorization, controller.getEmailSender());
         }
 
         controller.addRpcService(new AuthorizationServiceImpl());

@@ -40,11 +40,11 @@ public class DomainAuthentication {
 
     private final ExpirationMap<String, String> domainsAccessTokens = new ExpirationMap<>();
 
-    public DomainAuthentication(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, DomainAdminNotifier notifier) {
+    public DomainAuthentication(ControllerConfiguration configuration,
+                                DomainService domainService, DomainAdminNotifier notifier) {
         domainsAccessTokens.setExpiration(Duration.standardDays(1));
         this.configuration = configuration;
-        domainService = new DomainService(entityManagerFactory);
-        domainService.init(configuration);
+        this.domainService = domainService;
         this.notifier = notifier;
         try {
             KeyStore keyStore = KeyStore.getInstance(configuration.getInterDomainSslKeyStoreType());

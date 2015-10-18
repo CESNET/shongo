@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ import javax.persistence.EntityManagerFactory;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class InterDomainAgent {
+public class InterDomainAgent{
     private static InterDomainAgent instance;
 
     private final DomainService domainService;
@@ -33,28 +34,31 @@ public class InterDomainAgent {
      * @param configuration
      */
     protected InterDomainAgent(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration,
-                               EmailSender emailSender) {
+                               Authorization authorization, EmailSender emailSender) {
         if (configuration == null || !configuration.isInterDomainConfigured()) {
             throw new IllegalStateException("Inter Domain connection is not configured.");
         }
 
         this.entityManagerFactory = entityManagerFactory;
 
-        domainService = new DomainService(entityManagerFactory);
+        domainService = new DomainService(entityManagerFactory, authorization);
         domainService.init(configuration);
 
         this.notifier = new DomainAdminNotifier(logger, emailSender, configuration);
-        this.authentication = new DomainAuthentication(entityManagerFactory, configuration, notifier);
-        this.connector = new CachedDomainsConnector(entityManagerFactory, configuration, notifier);
-//        this.connector = new DomainsConnector(entityManagerFactory, configuration, emailSender);
+        this.authentication = new DomainAuthentication(configuration, domainService, notifier);
+        this.connector = new CachedDomainsConnector(configuration, domainService, notifier);
+//        =========== for direct request without cache ===========
+//        this.connector = new DomainsConnector(entityManagerFactory, configuration, authorization, domainService, emailSender);
+//        =========== END ===========
     }
 
     synchronized public static InterDomainAgent create(EntityManagerFactory entityManagerFactory,
-                                                       ControllerConfiguration configuration, EmailSender emailSender) {
+                                                       ControllerConfiguration configuration,
+                                                       Authorization authorization, EmailSender emailSender) {
         if (instance != null) {
             throw new IllegalStateException("Another instance of InterDomainAgent already exists.");
         }
-        instance = new InterDomainAgent(entityManagerFactory, configuration, emailSender);
+        instance = new InterDomainAgent(entityManagerFactory, configuration, authorization, emailSender);
         return instance;
     }
 

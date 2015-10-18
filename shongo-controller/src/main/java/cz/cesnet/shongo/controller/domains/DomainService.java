@@ -12,8 +12,13 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -34,7 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class DomainService extends AbstractServiceImpl implements Component.EntityManagerFactoryAware
+public class DomainService extends AbstractServiceImpl implements Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(DomainService.class);
 
@@ -52,24 +57,15 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
     private final ReentrantReadWriteLock reservationCacheLock = new ReentrantReadWriteLock();
 
-//    /**
-//     * @see cz.cesnet.shongo.controller.authorization.Authorization
-//     */
-//    private Authorization authorization;
+    /**
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
+     */
+    private Authorization authorization;
 
-//    /**
-//     * Constructor.
-//     *
-//     * @param cache sets the {@link #cache}
-//     */
-//    public DomainService(Cache cache)
-//    {
-//        this.cache = cache;
-//    }
-
-    public DomainService(EntityManagerFactory entityManagerFactory)
+    public DomainService(EntityManagerFactory entityManagerFactory, Authorization authorization)
     {
         this.entityManagerFactory = entityManagerFactory;
+        this.authorization = authorization;
         this.reservationsCache.setExpiration(Duration.standardMinutes(5));
     }
 
@@ -79,18 +75,18 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         this.entityManagerFactory = entityManagerFactory;
     }
 
-//    @Override
-//    public void setAuthorization(Authorization authorization)
-//    {
-//        this.authorization = authorization;
-//    }
+    @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
 
     @Override
     public void init(ControllerConfiguration configuration)
     {
 //        checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
-//        checkDependency(authorization, Authorization.class);
+        checkDependency(authorization, Authorization.class);
         //TODO: overit zda tu configuration potrebuji
 //        super.init(configuration);
     }
@@ -739,6 +735,46 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         return reservation;
     }
 
+    public void deleteReservationRequest(ReservationRequest reservationRequest)
+    {
+        checkNotNull("reservationRequest", reservationRequest);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            String reservationRequestId = ObjectIdentifier.formatId(reservationRequest);
+            switch (reservationRequest.getState()) {
+                case MODIFIED:
+                    throw new ControllerReportSet.ReservationRequestNotDeletableException(reservationRequestId);
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(reservationRequestId);
+            }
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            if (!isReservationRequestDeletable(reservationRequest, reservationManager)) {
+                throw new ControllerReportSet.ReservationRequestNotDeletableException(
+                        ObjectIdentifier.formatId(reservationRequest));
+            }
+
+            reservationRequestManager.softDelete(reservationRequest, authorizationManager);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
     public cz.cesnet.shongo.controller.api.Domain getDomain(String domainId)
     {
         checkNotNull("domain-id", domainId);
@@ -775,5 +811,42 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         } finally {
             entityManager.close();
         }
+    }
+
+    /**
+     * Check whether {@code abstractReservationRequest} can be deleted.
+     *
+     * @param abstractReservationRequest
+     * @return true when the given {@code abstractReservationRequest} can be deleted, otherwise false
+     */
+    private boolean isReservationRequestDeletable(
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest,
+            ReservationManager reservationManager)
+    {
+        Allocation allocation = abstractReservationRequest.getAllocation();
+
+        // Check if reservation request is not created by controller
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequestImpl =
+                    (ReservationRequest) abstractReservationRequest;
+            if (reservationRequestImpl.getParentAllocation() != null) {
+                return false;
+            }
+        }
+
+        // Check allocated reservations
+        if (reservationManager.isAllocationReused(allocation)) {
+            return false;
+        }
+
+        // Check child reservation requests
+        for (ReservationRequest reservationRequestImpl :
+                allocation.getChildReservationRequests()) {
+            if (isReservationRequestDeletable(reservationRequestImpl, reservationManager)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

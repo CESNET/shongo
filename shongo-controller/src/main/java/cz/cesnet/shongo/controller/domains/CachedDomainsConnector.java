@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.codehaus.jackson.map.ObjectReader;
 import org.joda.time.DateTime;
@@ -52,9 +53,10 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     private Set<String> unavailableReservationsDomains = new HashSet<>();
 
-    public CachedDomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, DomainAdminNotifier notifier)
+    public CachedDomainsConnector(ControllerConfiguration configuration, DomainService domainService,
+                                  DomainAdminNotifier notifier)
     {
-        super(entityManagerFactory, configuration, notifier);
+        super(configuration, domainService, notifier);
         updateResourceCache();
         updateReservationCache();
     }

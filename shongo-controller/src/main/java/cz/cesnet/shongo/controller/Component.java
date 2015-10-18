@@ -105,4 +105,15 @@ public abstract class Component
     {
         public Thread getThread();
     }
+
+    /**
+     * Class extending {@link Component} can implement this interface to be aware of {@link cz.cesnet.shongo.controller.authorization.Authorization}.
+     */
+    public static interface WithEmailSender
+    {
+        /**
+         * @param emailSender {@link EmailSender} which can be used by implementing {@link Component}
+         */
+        public void setEmailSender(EmailSender emailSender);
+    }
 }
