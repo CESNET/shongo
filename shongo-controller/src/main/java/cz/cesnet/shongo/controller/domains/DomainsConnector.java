@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
@@ -56,8 +57,6 @@ public class DomainsConnector
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
-    private final EntityManagerFactory entityManagerFactory;
-
     private final ControllerConfiguration configuration;
 
     private final DomainService domainService;
@@ -68,10 +67,9 @@ public class DomainsConnector
 
     private final int THREAD_TIMEOUT = 500;
 
-    public DomainsConnector(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration, DomainAdminNotifier notifier)
+    public DomainsConnector(ControllerConfiguration configuration, DomainService domainService, DomainAdminNotifier notifier)
     {
-        this.entityManagerFactory = entityManagerFactory;
-        domainService = new DomainService(entityManagerFactory);
+        this.domainService = domainService;
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
         this.notifier = notifier;

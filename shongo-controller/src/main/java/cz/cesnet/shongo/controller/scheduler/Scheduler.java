@@ -167,10 +167,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                         reservationNotifications.addAll(notifications);
                     } catch (ForeignDomainConnectException e) {
                         // When deallocate of foreign reservation fails, try again next time
-                        //TODO: log exception??
-                        System.out.println("expected");
-                    } catch (Exception e) {
-                        System.out.println("TSG " + e);
+                        logger.error("Deallocation of foreign reservation has failed", e);
                     }
                 }
                 if (Allocation.State.DELETED.equals(allocation.getState()) && allocation.getReservationRequest() == null) {

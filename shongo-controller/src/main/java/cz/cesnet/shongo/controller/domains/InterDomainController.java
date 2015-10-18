@@ -219,6 +219,9 @@ public class InterDomainController implements InterDomainProtocol{
                     resourceManager.getDomainResource(domainId, resource.getId());
                 }
             }
+            else {
+                throw new ForbiddenException("Unsupported specification");
+            }
 
             if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
                 // Throw {@code ForbiddenException} for error 403 to return
@@ -270,7 +273,7 @@ public class InterDomainController implements InterDomainProtocol{
     @ResponseBody
     public AbstractResponse handleDeleteReservationRequest(HttpServletRequest request,
                                             @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
-            throws NotAuthorizedException, ForbiddenException
+    throws NotAuthorizedException, ForbiddenException
     {
         Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
@@ -279,7 +282,17 @@ public class InterDomainController implements InterDomainProtocol{
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ResourceManager resourceManager = new ResourceManager(entityManager);
-            ReservationRequest reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
+            ReservationRequest reservationRequest;
+            try {
+                reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
+            }
+            catch (CommonReportSet.ObjectNotExistsException ex) {
+                //TODO
+                // Return success - reservation request is already deleted?
+                return new AbstractResponse()
+                {
+                };
+            }
 
             String createdByUserId = reservationRequest.getCreatedBy();
 
@@ -302,7 +315,8 @@ public class InterDomainController implements InterDomainProtocol{
             }
 
             //Delete local reservation request
-            reservationRequestManager.delete(reservationRequest, false);
+            //TODO: nefunguje, nesmaze rezervaci
+            getDomainService().deleteReservationRequest(reservationRequest);
 
             return new AbstractResponse()
             {
