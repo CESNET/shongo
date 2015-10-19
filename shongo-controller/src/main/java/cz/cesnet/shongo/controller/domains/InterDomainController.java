@@ -316,7 +316,12 @@ public class InterDomainController implements InterDomainProtocol{
 
             //Delete local reservation request
             //TODO: nefunguje, nesmaze rezervaci
-            getDomainService().deleteReservationRequest(reservationRequest);
+            try {
+                getDomainService().deleteReservationRequest(reservationRequest);
+            }
+            catch (ControllerReportSet.ReservationRequestDeletedException ex) {
+                // continue - ReservationRequest already deleted
+            }
 
             return new AbstractResponse()
             {
