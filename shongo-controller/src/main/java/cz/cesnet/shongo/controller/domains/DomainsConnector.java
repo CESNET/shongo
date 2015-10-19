@@ -171,7 +171,9 @@ public class DomainsConnector
      * @param clazz  {@link Class<T>} of the object to return
      * @return result object as instance of given {@code clazz}
      */
-    private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, final ObjectReader reader, Class<T> clazz)
+    private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters,
+                                 final Domain domain, final ObjectReader reader, Class<T> clazz)
+    throws ForeignDomainConnectException
     {
         if (action == null || domain == null || reader == null) {
             throw new IllegalArgumentException("Action, domain and reader cannot be null.");

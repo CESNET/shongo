@@ -110,48 +110,14 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-//            // Delete all reservations which should be deleted
-//            List<AbstractNotification> reservationNotifications = new LinkedList<AbstractNotification>();
-//            List<Reservation> reservationsForDeletion = reservationManager.getReservationsForDeletion();
-//            // Get all referenced reservations from reservations from deletion
-//            List<Reservation> referencedReservations = new LinkedList<Reservation>();
-//            for (Reservation reservationForDeletion : reservationsForDeletion) {
-//                ReservationNotification.Deleted reservationNotificationDeleted =
-//                        new ReservationNotification.Deleted(reservationForDeletion, authorizationManager);
-//                reservationNotifications.add(reservationNotificationDeleted);
-//                getReferencedReservations(reservationForDeletion, referencedReservations);
-//            }
-//            // Move all referenced reservations to the end
-//            for (Reservation referencedReservation : referencedReservations) {
-//                Reservation topReferencedReservation = referencedReservation.getTopReservation();
-//                if (reservationsForDeletion.contains(topReferencedReservation)) {
-//                    reservationsForDeletion.remove(topReferencedReservation);
-//                    reservationsForDeletion.add(topReferencedReservation);
-//                }
-//            }
-//            for (Reservation reservation : reservationsForDeletion) {
-//                reservation.setAllocation(null);
-//                if (reservation.getSlotEnd().isAfter(start)) {
-//                    reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
-//                }
-//                reservationManager.delete(reservation, start, authorizationManager);
-//                result.deletedReservations++;
-//            }
-//
-//
-//            // Delete all allocations which should be deleted
-//            for (Allocation allocation : reservationRequestManager.getAllocationsForDeletion()) {
-//                entityManager.remove(allocation);
-//            }
-
             List<AbstractNotification> reservationNotifications = new ArrayList<>();
-            List<Allocation> allocationForDeletion = reservationManager.getReservationRequestsForDeletion();
+            List<Allocation> allocationForDeletion = reservationManager.getAllocationsReservationsForDeletion();
 
             List<Allocation> referencedAllocations = new LinkedList<>();
             for (Allocation allocation : allocationForDeletion) {
                 getReferencedAllocations(allocation, referencedAllocations);
             }
-            // Move all referenced reservations to the end
+            // Move all referenced allocations to the end
             for (Allocation allocation : referencedAllocations) {
                 if (allocationForDeletion.contains(allocation)) {
                     allocationForDeletion.remove(allocation);
@@ -163,10 +129,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 for (Reservation reservation : reservations) {
                     DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
                     try {
-                        List<AbstractNotification> notifications = deallocateTask.deallocate(interval, result, entityManager, reservationManager, authorizationManager);
+                        List<AbstractNotification> notifications = deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
                         reservationNotifications.addAll(notifications);
                     } catch (ForeignDomainConnectException e) {
                         // When deallocate of foreign reservation fails, try again next time
+                        //TODO: delay for some time
                         logger.error("Deallocation of foreign reservation has failed", e);
                     }
                 }
@@ -588,7 +555,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         return notifications;
     }
 
-    //TODO
+    /**
+     * Sets {@code referencedAllocations} by given {@code allocation} (recursively)
+     * @param allocation
+     * @param referencedAllocations
+     */
     private void getReferencedAllocations(Allocation allocation, List<Allocation> referencedAllocations)
     {
         for (Reservation reservation : allocation.getReservations()) {
@@ -596,6 +567,12 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
     }
 
+    /**
+     * Sets {@code referencedAllocations} by given {@code reservation} (recursively)
+     *
+     * @param reservation
+     * @param referencedAllocations
+     */
     private void getReferencedAllocations(Reservation reservation, List<Allocation> referencedAllocations)
     {
         if (reservation instanceof ExistingReservation) {
@@ -605,8 +582,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 referencedAllocations.add(referencedReservation.getAllocation());
             }
             else {
-                //TODO
-                throw new TodoImplementException();
+                throw new TodoImplementException("Reservation without allocation");
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {

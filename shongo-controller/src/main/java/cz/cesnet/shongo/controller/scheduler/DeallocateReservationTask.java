@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -16,25 +15,37 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-//TODO
+/**
+ * Represents a {@link Scheduler} task for deallocating {@link Reservation}.
+ *
+ * @author Ondrej Pavelka <pavelka@cesnet.cz>
+ */
 public class DeallocateReservationTask
 {
+    /**
+     * {@link Reservation} to deallocate
+     */
     private final Reservation reservation;
 
+    /**
+     * Constructor
+     */
     public DeallocateReservationTask(Reservation reservation)
     {
         this.reservation = reservation;
     }
 
     /**
-     * @return newly allocated {@link Reservation}
-     * @throws SchedulerException when the {@link Reservation} cannot be allocated
+     * Perform the {@link DeallocateReservationTask}.
+     *
+     * @return generated {@link AbstractNotification}
      */
-    protected List<AbstractNotification> deallocate(Interval slot, Scheduler.Result result,
+    protected List<AbstractNotification> perform(Interval slot, Scheduler.Result result,
                                                     EntityManager entityManager, ReservationManager reservationManager,
-                                                    AuthorizationManager authorizationManager) throws SchedulerException
+                                                    AuthorizationManager authorizationManager)
     {
-        // Delete all reservations which should be deleted
+        Reservation reservation = this.reservation;
+
         List<AbstractNotification> reservationNotifications = new LinkedList<>();
         ReservationNotification.Deleted reservationNotificationDeleted =
                 new ReservationNotification.Deleted(reservation, authorizationManager);
@@ -62,7 +73,10 @@ public class DeallocateReservationTask
         return reservationNotifications;
     }
 
-    public Reservation getReservation()
+    /**
+     * @return reservation for this {@link DeallocateReservationTask}
+     */
+    protected Reservation getReservation()
     {
         return reservation;
     }
