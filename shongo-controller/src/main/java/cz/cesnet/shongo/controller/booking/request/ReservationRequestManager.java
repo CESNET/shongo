@@ -212,7 +212,7 @@ public class ReservationRequestManager extends AbstractManager
             }
         }
 
-        entityManager.persist(allocation);
+        update(allocation);
         return true;
     }
 
