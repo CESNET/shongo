@@ -352,14 +352,12 @@ public class ReservationManager extends AbstractManager
      *
      * @return list of {@link AbstractReservationRequest}s which should be deleted
      */
-    public List<Allocation> getReservationRequestsForDeletion()
+    public List<Allocation> getAllocationsReservationsForDeletion()
     {
         TypedQuery<Allocation> query = entityManager.createQuery(
                 "SELECT allocation FROM Allocation allocation"
                         + " WHERE ((allocation.state = :stateDeleted)"
-                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))"
-//                        + " AND allocation.childReservationRequests.size = 0"
-                ,
+                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))",
                 Allocation.class)
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);
@@ -367,44 +365,6 @@ public class ReservationManager extends AbstractManager
         List<Allocation> resultList = query.getResultList();
 
         return resultList;
-    }
-
-    /**
-     * Main use for inter domain deletion.
-     *
-     * @return list of {@link AbstractReservationRequest}s which should be deleted
-     */
-    public List<Allocation> getAllocationsWithReservationsForDeletion()
-    {
-        TypedQuery<Allocation> query = entityManager.createQuery(
-                "SELECT reservationRequest FROM Reservation reservation"
-                        + " LEFT JOIN reservation.allocation allocation"
-                        + " LEFT JOIN allocation.reservationRequest reservationRequest"
-                        + " WHERE reservation.parentReservation IS NULL"
-                        + " AND (allocation IS NULL OR"
-                        + "      allocation.state = :stateDeleted OR"
-                        + "      allocation.state = :stateWithoutReservations)",
-                Allocation.class)
-                .setParameter("stateDeleted", Allocation.State.DELETED)
-                .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);
-
-        List<Allocation> resultList = query.getResultList();
-        List<ReservationRequest> requests = new ArrayList<>();
-//        for (AbstractReservationRequest request : resultList) {
-//            if (request instanceof ReservationRequest) {
-//                requests.add((ReservationRequest) request);
-//            }
-//        }
-
-        return resultList;
-//        return entityManager.createQuery(
-//                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-//                        + " WHERE state = :stateDeleted"
-//                        + " AND schedulerDeleteState = :schedulerDeletedState",
-//                ReservationRequest.class)
-//                .setParameter("stateDeleted", AbstractReservationRequest.State.DELETED)
-//                .setParameter("schedulerDeletedState", AbstractReservationRequest.SchedulerDeleteState.DELETE)
-//                .getResultList();
     }
 
     /**
