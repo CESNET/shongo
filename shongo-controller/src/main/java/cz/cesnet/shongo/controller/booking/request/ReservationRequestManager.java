@@ -212,7 +212,6 @@ public class ReservationRequestManager extends AbstractManager
             }
         }
 
-        update(allocation);
         return true;
     }
 
