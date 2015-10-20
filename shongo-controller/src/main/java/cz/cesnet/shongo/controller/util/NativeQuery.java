@@ -43,6 +43,7 @@ public class NativeQuery
     public static final String ACL_ENTRY_LIST = "acl_entry_list.sql";
     public static final String REFERENCED_USER_LIST = "referenced_user_list.sql";
     public static final String MODIFY_USER_ID = "modify_user_id.sql";
+    public static final String COUNT_RESERVATIONS = "count_reservations.sql";
 
     /**
      * Cached native queries (not targeted for any specific {@link EntityManagerFactory}).

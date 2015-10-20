@@ -2,6 +2,9 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.ResourceReservation;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -26,6 +29,10 @@ public class ForeignResourceReservation extends TargetedReservation
     private String foreignReservationRequestId;
 
     private boolean complete;
+
+    private String resourceName;
+
+    private String resourceDescription;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "foreign_resources_id")
@@ -61,6 +68,28 @@ public class ForeignResourceReservation extends TargetedReservation
     public void setForeignReservationRequestId(String foreignReservationRequestId)
     {
         this.foreignReservationRequestId = foreignReservationRequestId;
+    }
+
+    @Column
+    public String getResourceName()
+    {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName)
+    {
+        this.resourceName = resourceName;
+    }
+
+    @Column
+    public String getResourceDescription()
+    {
+        return resourceDescription;
+    }
+
+    public void setResourceDescription(String resourceDescription)
+    {
+        this.resourceDescription = resourceDescription;
     }
 
     @Column
@@ -104,5 +133,17 @@ public class ForeignResourceReservation extends TargetedReservation
             foreignResources.setDomain(domain);
         }
         setSlot(reservationApi.getSlot());
+    }
+
+    @Override
+    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(EntityManager entityManager, boolean administrator)
+    {
+        ResourceReservation reservation = (ResourceReservation) super.toApi(entityManager, administrator);
+        String resourceId = ObjectIdentifier.formatId(getDomain().getName(), ObjectType.RESOURCE, getForeignResources().getForeignResourceId());
+        reservation.setResourceId(resourceId);
+        reservation.setResourceName(resourceName);
+        reservation.setResourceDescription(resourceDescription);
+
+        return reservation;
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -208,17 +209,25 @@ public class MeetingRoomController {
             item.put("typeMessage", messageSource.getMessage(
                     "views.reservationRequest.specification." + specificationType, null, locale));
 
-            String resourceId = reservationRequest.getResourceId();
-            //TODO: what if domain is not available NOW?
-            String resourceName = "TODO";
-            String resourceDescription = "domain not available";
+            // Set meeting room name and description.
+            String resourceName;
+            String resourceDescription;
             try {
+                String resourceId = reservationRequest.getResourceId();
                 cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, resourceId);
                 resourceName = resource.getName();
                 resourceDescription = resource.getDescription();
             }
             catch (CommonReportSet.ObjectNotExistsException ex) {
-                //TODO: cache resource description and name
+                Reservation reservation = reservationService.getReservation(securityToken, reservationRequest.getLastReservationId());
+                if (reservation instanceof ResourceReservation) {
+                    ResourceReservation resourceReservation = (ResourceReservation) reservation;
+                    resourceName = resourceReservation.getResourceName();
+                    resourceDescription = resourceReservation.getResourceDescription();
+                }
+                else {
+                    throw new TodoImplementException();
+                }
             }
             item.put("resourceName", resourceName);
             item.put("resourceDescription", resourceDescription);

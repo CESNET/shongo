@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -20,12 +21,16 @@ import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
+import org.eclipse.jetty.server.UserIdentity;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
 /**
@@ -347,10 +352,10 @@ public class ReservationManager extends AbstractManager
                 .getResultList();
     }
 
-    /**TODO
-     * Main use for inter domain deletion.
+    /**
+     * List all allocations which were been set for deletion of reservations
      *
-     * @return list of {@link AbstractReservationRequest}s which should be deleted
+     * @return list of {@link Allocation}s for which reservation should be deleted
      */
     public List<Allocation> getAllocationsReservationsForDeletion()
     {
@@ -365,6 +370,23 @@ public class ReservationManager extends AbstractManager
         List<Allocation> resultList = query.getResultList();
 
         return resultList;
+    }
+
+    public Long countReservations(Long domainId, Long resourceId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        Root<ResourceReservation> domainRoot = query.from(ResourceReservation.class);
+        query.select(criteriaBuilder.count(domainRoot));
+
+        javax.persistence.criteria.Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("resource").get("id"), resourceId);
+        javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        query.where(resourceParam, domainParam);
+
+        TypedQuery<Long> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
     }
 
     /**
