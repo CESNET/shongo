@@ -49,6 +49,12 @@ public class Reservation extends AbstractResponse
     @JsonProperty("userId")
     private String userId;
 
+    @JsonProperty("resourceName")
+    private String resourceName;
+
+    @JsonProperty("resourceDescription")
+    private String resourceDescription;
+
     public String getForeignReservationRequestId()
     {
         return foreignReservationRequestId;
@@ -138,6 +144,26 @@ public class Reservation extends AbstractResponse
     public void setUserId(String userId)
     {
         this.userId = userId;
+    }
+
+    public String getResourceName()
+    {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName)
+    {
+        this.resourceName = resourceName;
+    }
+
+    public String getResourceDescription()
+    {
+        return resourceDescription;
+    }
+
+    public void setResourceDescription(String resourceDescription)
+    {
+        this.resourceDescription = resourceDescription;
     }
 
     public boolean isAllocated()

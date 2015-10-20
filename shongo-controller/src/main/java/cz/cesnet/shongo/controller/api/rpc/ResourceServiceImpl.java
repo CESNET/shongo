@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
@@ -36,6 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
 /**
@@ -1265,13 +1269,24 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
+            ObjectIdentifier resourceIdentifier = ObjectIdentifier.parse(resourceId);
             //TODO: find if there is some reservations for this doman-resource
+
+            // Has still reservations for foreign domain
+
+            Long domainPersistenceId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
+            Long resourcePersistenceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
+            if (reservationManager.countReservations(domainPersistenceId, resourcePersistenceId) != 0) {
+                ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(cz.cesnet.shongo.controller.booking.reservation.Reservation.class, resourceIdentifier.getPersistenceId());
+            }
+
             // Delete the domainResource
             Long persistenceDomainId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
             Long persistenceResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);

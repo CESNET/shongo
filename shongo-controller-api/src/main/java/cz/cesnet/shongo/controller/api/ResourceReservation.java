@@ -20,6 +20,11 @@ public class ResourceReservation extends Reservation
     private String resourceName;
 
     /**
+     * Description of the resource.
+     */
+    private String resourceDescription;
+
+    /**
      * @return {@link #resourceId}
      */
     public String getResourceId()
@@ -44,6 +49,22 @@ public class ResourceReservation extends Reservation
     }
 
     /**
+     * @return {@link #resourceDescription}
+     */
+    public String getResourceDescription()
+    {
+        return resourceDescription;
+    }
+
+    /**
+     * @param resourceDescription sets the {@link #resourceDescription}
+     */
+    public void setResourceDescription(String resourceDescription)
+    {
+        this.resourceDescription = resourceDescription;
+    }
+
+    /**
      * @param resourceName sets the {@link #resourceName}
      */
     public void setResourceName(String resourceName)
@@ -53,6 +74,7 @@ public class ResourceReservation extends Reservation
 
     private static final String RESOURCE_ID = "resourceId";
     private static final String RESOURCE_NAME = "resourceName";
+    private static final String RESOURCE_DESCRIPTION = "resourceDescription";
 
     @Override
     public DataMap toData()
@@ -60,6 +82,7 @@ public class ResourceReservation extends Reservation
         DataMap dataMap = super.toData();
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(RESOURCE_NAME, resourceName);
+        dataMap.set(RESOURCE_DESCRIPTION, resourceDescription);
         return dataMap;
     }
 
@@ -69,5 +92,6 @@ public class ResourceReservation extends Reservation
         super.fromData(dataMap);
         resourceId = dataMap.getString(RESOURCE_ID);
         resourceName = dataMap.getString(RESOURCE_NAME);
+        resourceDescription = dataMap.getString(RESOURCE_DESCRIPTION);
     }
 }

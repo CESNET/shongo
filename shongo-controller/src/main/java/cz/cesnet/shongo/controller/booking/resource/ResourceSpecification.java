@@ -161,6 +161,8 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources, previousReservationRequestId);
                         foreignResourceReservation.setSlot(foreignReservation.getSlot());
                         foreignResourceReservation.setForeignResources(foreignResources);
+                        foreignResourceReservation.setResourceName(foreignReservation.getResourceName());
+                        foreignResourceReservation.setResourceDescription(foreignReservation.getResourceDescription());
 
                         foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getForeignReservationRequestId());
                         if (foreignReservation.isAllocated()) {

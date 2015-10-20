@@ -299,6 +299,11 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         if (!isLocal(userId)) {
             throw new IllegalArgumentException("Wrong format of userId '" + userId + "'.");
         }
+        return formatForeignUnknownUserId(userId, domainId);
+    }
+
+    public static String formatForeignUnknownUserId(String userId, Long domainId)
+    {
         return domainId + ":" + userId;
     }
 }
