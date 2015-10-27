@@ -4,8 +4,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.Interval;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +25,7 @@ public class DomainCapabilityListRequest extends AbstractRequest
      */
     private Type capabilityType;
 
-    private Technology technology;
+    private List<Set<Technology>> technologyVariants;
 
     private Interval interval;
 
@@ -103,12 +105,14 @@ public class DomainCapabilityListRequest extends AbstractRequest
         this.interval = interval;
     }
 
-    public Technology getTechnology() {
-        return technology;
+    public List<Set<Technology>> getTechnologyVariants()
+    {
+        return technologyVariants;
     }
 
-    public void setTechnology(Technology technology) {
-        this.technology = technology;
+    public void setTechnologyVariants(List<Set<Technology>> technologyVariants)
+    {
+        this.technologyVariants = technologyVariants;
     }
 
     public ObjectPermission getPermission()
@@ -149,6 +153,17 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void setOnlyAllocatable(Boolean onlyAllocatable)
     {
         this.onlyAllocatable = onlyAllocatable;
+    }
+
+    public String formatTechnologyVariantsJSON()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(technologyVariants);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public enum Type

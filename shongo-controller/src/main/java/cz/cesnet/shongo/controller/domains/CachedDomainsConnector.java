@@ -177,7 +177,7 @@ public class CachedDomainsConnector extends DomainsConnector
     {
         int cachedDomainsCount;
         synchronized (cache) {
-            if (domainName != null && !cache.containsKey(domainName)) {
+            if (domainName != null && cache.get(domainName) == null) {
                 return false;
             }
             cachedDomainsCount = cache.size();
@@ -356,7 +356,10 @@ public class CachedDomainsConnector extends DomainsConnector
             return false;
         }
         //TODO: better validate interval
-        if (request.getInterval() != null || request.getTechnology() != null) {
+        if (request.getInterval() != null) {
+            return false;
+        }
+        if (request.getTechnologyVariants() == null && !request.getTechnologyVariants().isEmpty()) {
             return false;
         }
         if (!isResourcesCacheReady(request.getDomainName())) {

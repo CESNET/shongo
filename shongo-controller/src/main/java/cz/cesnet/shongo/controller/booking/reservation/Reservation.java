@@ -373,7 +373,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     @PreUpdate
     protected void onUpdate()
     {
-        if (slotStart.isAfter(slotEnd)) {
+        if (slotStart != null && slotEnd!= null && slotStart.isAfter(slotEnd)) {
             throw new RuntimeException("Slot start can't be after slot end.");
         }
     }

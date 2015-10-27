@@ -618,6 +618,22 @@ public class ObjectIdentifier
      * @param objectId    object id for the identifier
      * @return object domain
      */
+    public static String parseForeignDomain(String objectId)
+    {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches() || LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
+            throw new ControllerReportSet.IdentifierInvalidException(objectId);
+        }
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(objectId);
+        if (!matcher.matches()) {
+            throw new ControllerReportSet.IdentifierInvalidException(objectId);
+        }
+        return matcher.group(1);
+    }
+
+    /**
+     * @param objectId    object id for the identifier
+     * @return object domain
+     */
     public static ObjectType parseType(String objectId)
     {
         Matcher localMatcher = LOCAL_IDENTIFIER_PATTERN.matcher(objectId);

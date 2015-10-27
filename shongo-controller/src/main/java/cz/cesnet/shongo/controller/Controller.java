@@ -129,6 +129,11 @@ public class Controller
     protected Server restServer;
 
     /**
+     * If {@code restServer} is running and {@link InterDomainAgent} is initialized.
+     */
+    protected boolean interDomainInitialized = false;
+
+    /**
      * List of threads which are started for the controller.
      */
     private List<Thread> threads = new ArrayList<Thread>();
@@ -340,7 +345,7 @@ public class Controller
     public static boolean isInterDomainAgentRunning()
     {
         try {
-            return getInstance().restServer.isRunning();
+            return getInstance().isInterDomainInitialized() && getInstance().restServer.isRunning();
         } catch (Exception e) {
             return false;
         }
@@ -539,15 +544,6 @@ public class Controller
             final ServerConnector httpsConnector = new ServerConnector(rpcServer,
                     new SslConnectionFactory(sslContextFactory, "http/1.1"),
                     new HttpConnectionFactory(https_config));
-//            TODO ================DELETE=================
-//            httpsConnector.setIdleTimeout(50000);
-
-//            final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
-//                    new org.eclipse.jetty.util.ssl.SslContextFactory(sslKeyStore);
-//            sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
-//            final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
-//                    new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
-//            TODO =================================
             if (rpcHost != null) {
                 httpsConnector.setHost(rpcHost);
             }
@@ -679,7 +675,7 @@ public class Controller
                 throw new RuntimeException(exception);
             }
 
-
+            this.interDomainInitialized = true;
             return restServer;
         }
         return null;
@@ -864,6 +860,11 @@ public class Controller
     public static boolean hasInstance()
     {
         return instance != null;
+    }
+
+    public static boolean isInterDomainInitialized()
+    {
+        return getInstance().interDomainInitialized;
     }
 
     /**

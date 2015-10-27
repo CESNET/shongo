@@ -7,6 +7,7 @@ import org.joda.time.Interval;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface to Inter Domain protocol for Shongo domains
@@ -24,12 +25,15 @@ public interface InterDomainProtocol {
     public DomainStatus handleDomainStatus(HttpServletRequest request);
 
     public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
-                                                         Interval interval, Technology technology)
+                                                         Interval interval, List<Set<Technology>> technologyVariants)
             throws NotAuthorizedException;
 
-    public Reservation handleAllocate(HttpServletRequest request, DomainCapabilityListRequest.Type type, Interval slot,
-                                      String resourceId, String userId, Technology technology, String description,
-                                      String reservationRequestId)
+    public Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
+                                              String userId, String description, String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException;
+
+    public Reservation handleAllocateRoom(HttpServletRequest request, Interval slot, Technology technology,
+                                          String userId, String description, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
     public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)

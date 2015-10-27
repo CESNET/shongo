@@ -318,13 +318,13 @@ public class MeetingRoomController {
             item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
-            String reservationResourceId = reservation.getResourceId();
-            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
+//            String reservationResourceId = reservation.getResourceId();
+//            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
             //CALENDAR
-            item.put("title",resource.getName());
+//            item.put("title",resource.getName());
             //LIST
-            item.put("resourceName",resource.getName());
-            item.put("resourceDescription",resource.getDescription());
+//            item.put("resourceName",resource.getName());
+//            item.put("resourceDescription",resource.getDescription());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();

@@ -109,9 +109,9 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th>
-                <spring:message code="views.reservationRequestList.resourceName"/>
-            </th>
+            <%--<th>--%>
+                <%--<spring:message code="views.reservationRequestList.resourceName"/>--%>
+            <%--</th>--%>
             <th width="200px">
                 <spring:message code="views.room.bookedBy"/>
             </th>
@@ -132,15 +132,15 @@
         </thead>
         <tbody>
         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
-            <td>
-                <tag:help label="{{room.resourceName}}" selectable="true">
-                    <span>
-                        <strong><spring:message code="views.room.roomDescription"/></strong>
-                        <br />
-                        {{room.resourceDescription}}
-                    </span>
-                </tag:help>
-            </td>
+            <%--<td>--%>
+                <%--<tag:help label="{{room.resourceName}}" selectable="true">--%>
+                    <%--<span>--%>
+                        <%--<strong><spring:message code="views.room.roomDescription"/></strong>--%>
+                        <%--<br />--%>
+                        <%--{{room.resourceDescription}}--%>
+                    <%--</span>--%>
+                <%--</tag:help>--%>
+            <%--</td>--%>
             <td>
                 <tag:help label="{{room.ownerName}}" selectable="true" >
                     <span ng-show="room.ownersEmail">

@@ -133,10 +133,10 @@
             </tab>
 
             <%-- Your meeting rooms reservation request tab --%>
-            <%--spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
-            <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
-                <%@ include file="dashboardMeetingRoomReservations.jsp" %>
-            </tab--%>
+            <%--<spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>--%>
+            <%--<tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">--%>
+                <%--<%@ include file="dashboardMeetingRoomReservations.jsp" %>--%>
+            <%--</tab>--%>
 
             <%-- Your meeting rooms reservation request tab (calendar view) --%>
             <spring:message code="views.index.meetingRoomsCalendar" var="meetingRoomTitle"/>

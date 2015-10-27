@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -21,6 +20,21 @@ public class AbstractResponse
         return status;
     }
 
+    public boolean success()
+    {
+        return Status.OK.equals(status);
+    }
+
+    public boolean failed()
+    {
+        return Status.FAILED.equals(status);
+    }
+
+    public boolean error()
+    {
+        return Status.ERROR.equals(status);
+    }
+
     public void setStatus(Status status)
     {
         this.status = status;
@@ -39,6 +53,7 @@ public class AbstractResponse
     public static enum Status
     {
         OK,
+        FAILED,
         ERROR;
     }
 }
