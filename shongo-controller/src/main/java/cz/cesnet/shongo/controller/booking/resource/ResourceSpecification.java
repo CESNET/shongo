@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
@@ -165,10 +166,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignResourceReservation.setResourceDescription(foreignReservation.getResourceDescription());
 
                         foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getForeignReservationRequestId());
-                        if (foreignReservation.isAllocated()) {
-                            foreignResourceReservation.setComplete(true);
-                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
-                        }
+                        foreignResourceReservation.setCompletedByState(schedulerContext, foreignReservation);
                     } else {
                         foreignResourceReservation = (ForeignResourceReservation) currentReservation;
 
@@ -179,21 +177,24 @@ public class ResourceSpecification extends Specification implements ReservationT
                         //TODO: try-catch?
                         foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
 
-                        if (foreignReservation.isAllocated()) {
+                        foreignResourceReservation.setCompletedByState(schedulerContext, foreignReservation);
+//                        if (foreignReservation.isAllocated()) {
                             //TODO: kdyz FAIL, tak zahodit a nastavit fail pro request
-                            foreignResourceReservation.setSlot(foreignReservation.getSlot());
-                            foreignResourceReservation.setComplete(true);
-                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
-                        }
-                        else if (AbstractResponse.Status.ERROR.equals(foreignReservation.getStatus())) {
-                            foreignResourceReservation.setComplete(true);
-                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
-                        }
-                        else {
+//                            foreignResourceReservation.setSlot(foreignReservation.getSlot());
+//                            foreignResourceReservation.setComplete(true);
+//                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
+//                        }
+//                        else if (!foreignReservation.success()) {
+//                            foreignResourceReservation.setComplete(true);
+//                            foreignResourceReservation.setSlotStart(null);
+//                            foreignResourceReservation.setSlotEnd(null);
+//                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
+//                        }
+//                        else {
                             //TODO vratit puvodni???
-                            foreignResourceReservation = (ForeignResourceReservation) currentReservation;
+//                            foreignResourceReservation = (ForeignResourceReservation) currentReservation;
 //                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
-                        }
+//                        }
                     }
 
                     return foreignResourceReservation;

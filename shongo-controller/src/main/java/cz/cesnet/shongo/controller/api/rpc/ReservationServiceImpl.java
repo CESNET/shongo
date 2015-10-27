@@ -1179,11 +1179,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
                 try {
                     if (!ObjectIdentifier.isLocal(resourceId)) {
-                        ListResponse<ReservationSummary> response = new ListResponse<>();
-                        List<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
-                        response.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId, request.getInterval()));
-                        response.setCount(response.getItemCount());
-                        return response;
+                        ListResponse<ReservationSummary> reservations = new ListResponse<>();
+                        reservations.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId, request.getInterval()));
+                        reservations.setCount(reservations.getItemCount());
+                        return reservations;
                     }
                 }
                 catch (Exception ex) {
@@ -1202,6 +1201,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         cz.cesnet.shongo.controller.booking.resource.Resource.class, ObjectRole.OWNER);
                 StringBuilder filterBuilder = new StringBuilder();
                 filterBuilder.append("1=0");
+                //TODO: except reservations without slot (see AbstractForeingReservation)
                 if (!readableReservationIds.isEmpty()) {
                     filterBuilder.append(" OR reservation_summary.id IN(:readableReservationIds)");
                     queryFilter.addFilterParameter("readableReservationIds", readableReservationIds);

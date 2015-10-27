@@ -29,6 +29,8 @@ public class InterDomainAgent{
 
     private final Logger logger = LoggerFactory.getLogger(InterDomainAgent.class);
 
+    private final ControllerConfiguration configuration;
+
     /**
      * Constructor
      * @param configuration
@@ -38,6 +40,8 @@ public class InterDomainAgent{
         if (configuration == null || !configuration.isInterDomainConfigured()) {
             throw new IllegalStateException("Inter Domain connection is not configured.");
         }
+
+        this.configuration = configuration;
 
         this.entityManagerFactory = entityManagerFactory;
 
@@ -84,7 +88,7 @@ public class InterDomainAgent{
         }
     }
 
-    protected DomainService getDomainService() {
+    public DomainService getDomainService() {
         return domainService;
     }
 

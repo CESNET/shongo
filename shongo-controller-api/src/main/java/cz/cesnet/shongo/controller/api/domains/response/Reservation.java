@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
+import com.sun.jmx.remote.util.OrderClassLoaders;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -14,7 +15,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 @JsonIgnoreProperties({"allocated", "slot"})
-public class Reservation extends AbstractResponse
+public class Reservation extends AbstractResponse implements Comparable<Reservation>
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.
@@ -54,6 +55,9 @@ public class Reservation extends AbstractResponse
 
     @JsonProperty("resourceDescription")
     private String resourceDescription;
+
+    @JsonProperty("price")
+    private int price;
 
     public String getForeignReservationRequestId()
     {
@@ -166,6 +170,19 @@ public class Reservation extends AbstractResponse
         this.resourceDescription = resourceDescription;
     }
 
+    public int getPrice()
+    {
+        if (!success() || price < 0) {
+            return -1;
+        }
+        return price;
+    }
+
+    public void setPrice(int price)
+    {
+        this.price = price;
+    }
+
     public boolean isAllocated()
     {
         if (foreignReservationId != null) {
@@ -195,7 +212,22 @@ public class Reservation extends AbstractResponse
         return reservationSummary;
     }
 
-//    public Reservation fromReservationSummary(ReservationSummary reservationSummary)
+    @Override
+    public int compareTo(Reservation o)
+    {
+        if (this.getPrice() == -1 && o.getPrice() == -1) {
+            return 0;
+        }
+        if (this.getPrice() == -1) {
+            return Integer.MAX_VALUE;
+        }
+        if (o.getPrice() == -1) {
+            return Integer.MIN_VALUE;
+        }
+        return this.getPrice() - o.getPrice();
+    }
+
+    //    public Reservation fromReservationSummary(ReservationSummary reservationSummary)
 //    {
 //        Reservation reservation = new Reservation();
 //        reservation.setForeignReservationId(reservationSummary.getId());

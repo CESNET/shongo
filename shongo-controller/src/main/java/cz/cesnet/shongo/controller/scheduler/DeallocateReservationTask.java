@@ -52,7 +52,7 @@ public class DeallocateReservationTask
         reservationNotifications.add(reservationNotificationDeleted);
 
         reservation.setAllocation(null);
-        if (reservation.getSlotEnd().isAfter(slot.getStart())) {
+        if (reservation.getSlotEnd() != null && reservation.getSlotEnd().isAfter(slot.getStart())) {
             Collection<Reservation> reservationItems = new LinkedList<>();
             ReservationManager.getAllReservations(reservation, reservationItems);
             List<AbstractNotification> notifications = new LinkedList<>();

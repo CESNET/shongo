@@ -28,9 +28,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Tests for Inter Domain Protocol.
@@ -166,12 +164,24 @@ public class InterDomainTest extends AbstractControllerTest
         Assert.assertEquals(1, resources.get(loopbackDomain.getName()).size());
 
         DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
-        listRequest2.setTechnology(Technology.H323);
+
+        List<Set<Technology>> technologyVariants = new ArrayList<>();
+        Set<Technology> technologies = new HashSet<>();
+        technologies.add(Technology.H323);
+        technologyVariants.add(technologies);
+
+        listRequest2.setTechnologyVariants(technologyVariants);
         Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
         Assert.assertEquals(1, resources2.get(loopbackDomain.getName()).size());
 
         DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
-        listRequest3.setTechnology(Technology.ADOBE_CONNECT);
+
+        List<Set<Technology>> technologyVariantsAC = new ArrayList<>();
+        Set<Technology> technologiesAC = new HashSet<>();
+        technologies.add(Technology.ADOBE_CONNECT);
+        technologyVariants.add(technologiesAC);
+
+        listRequest3.setTechnologyVariants(technologyVariantsAC);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
         Assert.assertEquals(0, resources3.get(loopbackDomain.getName()).size());
     }
@@ -286,8 +296,14 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-        System.out.println(Temporal.roundIntervalToDays(new Interval(DateTime.now(), DateTime.now().plusDays(2))));
-        System.out.println(Converter.convertIntervalToString(Temporal.roundIntervalToDays(new Interval(DateTime.now(), DateTime.now().plusDays(2)))));
+        DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+        List<Set<Technology>> variants = new ArrayList<>();
+        Set<Technology> technologies = new HashSet<>();
+        technologies.add(Technology.H323);
+        technologies.add(Technology.SIP);
+        variants.add(technologies);
+        request.setTechnologyVariants(variants);
+        System.out.println(request.formatTechnologyVariantsJSON());
     }
 
     protected CachedDomainsConnector getConnector()

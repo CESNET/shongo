@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.UserInformation;
@@ -8,10 +9,11 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.response.*;
+import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
+import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.ws.commons.util.Base64;
@@ -28,11 +30,8 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import javax.persistence.EntityManagerFactory;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -111,6 +110,15 @@ public class DomainsConnector
         return resultMap;
     }
 
+    protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                      final Map<Domain, Map<String, String>> parametersByDomain, Class<T> objectClass)
+    {
+        final Map<String, T> resultMap = new HashMap<>();
+        ObjectReader reader = mapper.reader(objectClass);
+        performRequests(method, action, parametersByDomain, reader, resultMap, objectClass);
+        return resultMap;
+    }
+
     /**
      * Returns map of given domains with positive result, or does not add it at all to the map.
      *
@@ -131,6 +139,46 @@ public class DomainsConnector
 
         for (final Domain domain : domains) {
             Callable<T> task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, null);
+            futureTasks.put(domain.getName(), executor.submit(task));
+        }
+
+        while (!futureTasks.isEmpty()) {
+            try {
+                Iterator<Map.Entry<String, Future<T>>> i = futureTasks.entrySet().iterator();
+                while (i.hasNext()) {
+                    Map.Entry<String, Future<T>> entry = i.next();
+                    if (entry.getValue().isDone()) {
+                        futureTasks.remove(entry.getKey());
+                    }
+                }
+                Thread.sleep(THREAD_TIMEOUT);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                continue;
+            }
+        }
+    }
+
+    /**
+     * Returns map of given domains with positive result, or does not add it at all to the map.
+     *
+     * @param method      of the request
+     * @param action      to preform
+     * @param parametersByDomain    that will be send to given domain
+     * @param reader      to parse JSON
+     * @param result      collection to store the result
+     * @param returnClass {@link Class<T>} of the object to return
+     * @return result object as instance of given {@code clazz}
+     */
+    protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                    final Map<Domain, Map<String, String>> parametersByDomain,
+                                                    final ObjectReader reader, final Map<String, ?> result,
+                                                    final Class<T> returnClass)
+    {
+        final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
+
+        for (final Domain domain : parametersByDomain.keySet()) {
+            Callable<T> task = new DomainTask<T>(method, action, parametersByDomain.get(domain), domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
@@ -466,8 +514,10 @@ public class DomainsConnector
         if (request.getInterval() != null) {
             parameters.put("interval", Converter.convertIntervalToStringUTC(request.getInterval()));
         }
-        if (request.getTechnology() != null) {
-            parameters.put("technology", request.getTechnology().toString());
+        if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(request.getCapabilityType())) {
+            if (request.getTechnologyVariants() != null) {
+                parameters.put("technologyVariants", request.formatTechnologyVariantsJSON());
+            }
         }
         List<Domain> domains;
         if (request.getDomain() == null) {
@@ -498,18 +548,29 @@ public class DomainsConnector
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
 
-        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE, parameters, domain, reader, Reservation.class);
+        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, domain, reader, Reservation.class);
         if (reservation.getSlot() == null) {
             reservation.setSlot(slot);
         }
         return reservation;
     }
 
-    /**
-     *
-     *
-     * @return
-     */
+    public List<Reservation> allocateRoom(Set<Domain> domains, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext)
+    {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
+        parameters.put("type", DomainCapabilityListRequest.Type.VIRTUAL_ROOM.toString());
+        parameters.put("userId", schedulerContext.getUserId());
+        parameters.put("description", schedulerContext.getDescription());
+//        parameters.put("")
+        //TODO: room name
+        //TODO: technology
+
+        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, domains, Reservation.class);
+        //TODO: set userIds
+        return new ArrayList<>(reservations.values());
+    }
+
     public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId)
     {
         ObjectReader reader = mapper.reader(Reservation.class);
@@ -519,12 +580,33 @@ public class DomainsConnector
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parameters, domain, reader, Reservation.class);
 
         return reservation;
-//        switch (reservation.getType()) {
-//            case RESOURCE:
-//            case VIRTUAL_ROOM:
-//            default:
-//                throw new TodoImplementException("Unsupported type of reservation for inter domain protocol.");
-//        }
+    }
+
+    public List<Reservation> getReservationsByRequests(Set<String> foreignReservationRequestIds)
+    {
+        Map<Domain, Map<String, String>> parametersByDomain = new HashMap<>();
+        for (String reservationRequestId : foreignReservationRequestIds) {
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put("reservationRequestId", reservationRequestId);
+
+            String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestId);
+            Domain domain = getDomainService().findDomainByName(domainName);
+            parametersByDomain.put(domain, parameters);
+        }
+
+        Map<String, Reservation> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parametersByDomain, Reservation.class);
+        List<Reservation> reservations = new ArrayList<>();
+        for (String domainName : response.keySet()) {
+            Domain domain = getDomainService().findDomainByName(domainName);
+            Reservation reservation = response.get(domainName);
+
+            Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
+            reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
+
+            reservations.add(reservation);
+        }
+
+        return reservations;
     }
 
     public boolean deallocateReservation(Domain domain, String foreignReservationRequestId)

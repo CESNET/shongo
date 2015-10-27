@@ -1,15 +1,12 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 
 /**
- * Represents domain login response
+ * Represents TODO
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
