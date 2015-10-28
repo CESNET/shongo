@@ -516,7 +516,15 @@ public class DomainsConnector
         }
         if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(request.getCapabilityType())) {
             if (request.getTechnologyVariants() != null) {
-                parameters.put("technologyVariants", request.formatTechnologyVariantsJSON());
+                if (request.getTechnologyVariants().isEmpty()) {
+                    throw new IllegalArgumentException("Some technology must be set.");
+                }
+                if (request.getTechnologyVariants().size() > 1) {
+                    throw new TodoImplementException();
+                }
+                for (Technology technology : request.getTechnologyVariants().get(0)) {
+                    parameters.put("technologies", technology.toString());
+                }
             }
         }
         List<Domain> domains;

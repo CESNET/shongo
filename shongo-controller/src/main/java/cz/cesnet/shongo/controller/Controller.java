@@ -844,7 +844,7 @@ public class Controller
     /**
      * @return {@link #instance}
      */
-    public static Controller getInstance()
+    public static synchronized Controller getInstance()
     {
         if (instance == null) {
             throw new IllegalStateException("Cannot get instance of a domain controller, "
@@ -864,7 +864,13 @@ public class Controller
 
     public static boolean isInterDomainInitialized()
     {
-        return getInstance().interDomainInitialized;
+        try {
+            return getInstance().interDomainInitialized;
+        }
+        catch (IllegalStateException ex) {
+            // Controller is not initialized (in tests)
+            return false;
+        }
     }
 
     /**

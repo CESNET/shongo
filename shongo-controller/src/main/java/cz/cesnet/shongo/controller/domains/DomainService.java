@@ -382,42 +382,27 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //                queryFilter.addFilter(capabilityClassFilter.toString());
 //            }
 
-            //TODO vylistovat podle technologie
-            if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
-                StringBuilder technologiesFilterBuilder = new StringBuilder();
-                boolean firstVariant = true;
-                for (Set<Technology> technologies : request.getTechnologyVariants()) {
-                    if (!firstVariant) {
-                        firstVariant = false;
-                        technologiesFilterBuilder.append(" OR ");
-                    }
-                    technologiesFilterBuilder.append("device_resource_technologies.id IN ("
-                            + " SELECT device_resource_technologies.id FROM device_resource_technologies "
-                            + " WHERE");
-                    boolean firstTechnology = true;
-                    for (Technology technology : technologies) {
-                        if (!firstTechnology) {
-                            firstTechnology = false;
-                            technologiesFilterBuilder.append(" AND");
-                        }
-                        technologiesFilterBuilder.append(" device_resource_technologies.technologies = '" + technology + "'");
-                    }
-                    technologiesFilterBuilder.append(")");
-
-                }
-                queryFilter.addFilter(technologiesFilterBuilder.toString());
-            }
-            //
             // Technologies
-//            Set<Technology> technologies = request.getTechnology();
-//            if (technologies.size() > 0) {
-//                queryFilter.addFilter("resource_summary.id IN ("
-//                        + " SELECT device_resource.id FROM device_resource "
-//                        + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
-//                        + " WHERE device_resource_technologies.technologies IN(:technologies))");
-//                queryFilter.addFilterParameter("technologies", technologies);
-//            }
-
+            if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
+                int noOfVariant = 1;
+                StringBuilder variantsBuilder = new StringBuilder();
+                variantsBuilder.append("( ");
+                for (Set<Technology> technologies : request.getTechnologyVariants()) {
+                    if (technologies.size() > 0) {
+                        if (noOfVariant != 1) {
+                            noOfVariant++;
+                            variantsBuilder.append(" OR ");
+                        }
+                        variantsBuilder.append("resource_summary.id IN ("
+                                + " SELECT device_resource.id FROM device_resource "
+                                + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
+                                + " WHERE device_resource_technologies.technologies IN(:technologies" + noOfVariant + " ))");
+                        queryFilter.addFilterParameter("technologies" + noOfVariant, technologies);
+                    }
+                }
+                variantsBuilder.append(" )");
+                queryFilter.addFilter(variantsBuilder.toString());
+            }
             // Allocatable
             queryFilter.addFilter("resource_summary.allocatable = TRUE");
 

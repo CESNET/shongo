@@ -25,7 +25,7 @@ public interface InterDomainProtocol {
     public DomainStatus handleDomainStatus(HttpServletRequest request);
 
     public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
-                                                         Interval interval, List<Set<Technology>> technologyVariants)
+                                                         Interval interval, List<Technology> technologies)
             throws NotAuthorizedException;
 
     public Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
