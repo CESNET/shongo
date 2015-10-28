@@ -155,17 +155,6 @@ public class DomainCapabilityListRequest extends AbstractRequest
         this.onlyAllocatable = onlyAllocatable;
     }
 
-    public String formatTechnologyVariantsJSON()
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(technologyVariants);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public enum Type
     {
         /**

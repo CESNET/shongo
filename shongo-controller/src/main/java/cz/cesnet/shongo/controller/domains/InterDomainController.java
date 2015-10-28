@@ -38,6 +38,7 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyEditorSupport;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,7 @@ public class InterDomainController implements InterDomainProtocol{
     public void initBinder(WebDataBinder binder)
     {
         binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new TypeEditor());
+        binder.registerCustomEditor(Technology.class, new TechnologyEditor());
         binder.registerCustomEditor(Interval.class, new IntervalEditor());
     }
 
@@ -81,12 +83,15 @@ public class InterDomainController implements InterDomainProtocol{
             HttpServletRequest request,
             @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
             @RequestParam(value = "interval", required = false) Interval interval,
-            @RequestParam(value = "technologyVariants", required = false) List<Set<Technology>> technologyVariants) throws NotAuthorizedException
+            @RequestParam(value = "technologies", required = false) List<Technology> technologies) throws NotAuthorizedException
     {
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
         listRequest.setCapabilityType(type);
         listRequest.setInterval(interval);
-//        listRequest.setTechnology(technology);
+        if (technologies != null && !technologies.isEmpty()) {
+            listRequest.setTechnologyVariants(new ArrayList<Set<Technology>>());
+            listRequest.getTechnologyVariants().add(new HashSet<>(technologies));
+        }
         List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
         return capabilities;
     }
@@ -179,7 +184,7 @@ public class InterDomainController implements InterDomainProtocol{
     }
 
     @Override
-    @RequestMapping(value = InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, method = RequestMethod.GET)
+    @RequestMapping(value = InterDomainAction.DOMAIN_ALLOCATE_ROOM, method = RequestMethod.GET)
     @ResponseBody
     public Reservation handleAllocateRoom(HttpServletRequest request,
                                               @RequestParam(value = "slot", required = false) Interval slot,
@@ -588,6 +593,37 @@ public class InterDomainController implements InterDomainProtocol{
             }
             else {
                 setValue(DomainCapabilityListRequest.Type.valueOf(text));
+            }
+        }
+    }
+
+    public class TechnologyEditor extends PropertyEditorSupport
+    {
+        public TechnologyEditor()
+        {
+        }
+
+        @Override
+        public String getAsText()
+        {
+            if (getValue() == null) {
+                return "";
+            }
+            Technology value = (Technology) getValue();
+            if (value == null) {
+                return "";
+            }
+            return value.toString();
+        }
+
+        @Override
+        public void setAsText(String text) throws IllegalArgumentException
+        {
+            if (!StringUtils.hasText(text)) {
+                setValue(null);
+            }
+            else {
+                setValue(Technology.valueOf(text));
             }
         }
     }

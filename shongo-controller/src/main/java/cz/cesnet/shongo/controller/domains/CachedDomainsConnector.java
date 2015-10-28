@@ -359,7 +359,7 @@ public class CachedDomainsConnector extends DomainsConnector
         if (request.getInterval() != null) {
             return false;
         }
-        if (request.getTechnologyVariants() == null && !request.getTechnologyVariants().isEmpty()) {
+        if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
             return false;
         }
         if (!isResourcesCacheReady(request.getDomainName())) {

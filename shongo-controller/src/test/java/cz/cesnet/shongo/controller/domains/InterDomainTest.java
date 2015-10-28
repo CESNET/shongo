@@ -139,6 +139,7 @@ public class InterDomainTest extends AbstractControllerTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("firstMcu");
         mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setAllocationOrder(2);
@@ -168,6 +169,7 @@ public class InterDomainTest extends AbstractControllerTest
         List<Set<Technology>> technologyVariants = new ArrayList<>();
         Set<Technology> technologies = new HashSet<>();
         technologies.add(Technology.H323);
+        technologies.add(Technology.SIP);
         technologyVariants.add(technologies);
 
         listRequest2.setTechnologyVariants(technologyVariants);
@@ -178,8 +180,8 @@ public class InterDomainTest extends AbstractControllerTest
 
         List<Set<Technology>> technologyVariantsAC = new ArrayList<>();
         Set<Technology> technologiesAC = new HashSet<>();
-        technologies.add(Technology.ADOBE_CONNECT);
-        technologyVariants.add(technologiesAC);
+        technologiesAC.add(Technology.ADOBE_CONNECT);
+        technologyVariantsAC.add(technologiesAC);
 
         listRequest3.setTechnologyVariants(technologyVariantsAC);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
@@ -303,7 +305,7 @@ public class InterDomainTest extends AbstractControllerTest
         technologies.add(Technology.SIP);
         variants.add(technologies);
         request.setTechnologyVariants(variants);
-        System.out.println(request.formatTechnologyVariantsJSON());
+//        System.out.println(request.formatTechnologyVariantsJSON());
     }
 
     protected CachedDomainsConnector getConnector()

@@ -284,7 +284,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Find room provider variants
         Set<cz.cesnet.shongo.controller.api.Domain> foreignDomainsWithRoomProvider = null;
-        List<RoomProviderVariant> roomProviderVariants = null;
+        List<RoomProviderVariant> roomProviderVariants = new ArrayList<>();
         try {
             roomProviderVariants = getRoomProviderVariants();
         }
