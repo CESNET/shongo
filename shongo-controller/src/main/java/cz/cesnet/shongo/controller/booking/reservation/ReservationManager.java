@@ -396,7 +396,7 @@ public class ReservationManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public <T extends Reservation> long countRoomProviderLicenses(Long domainId, Long resourceId)
+    public <T extends Reservation> long countUsedRoomProviderLicenses(Long domainId, Long resourceId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
@@ -410,7 +410,8 @@ public class ReservationManager extends AbstractManager
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);
 
-        return typedQuery.getSingleResult();
+        Long licenses = typedQuery.getSingleResult();
+        return licenses == null ? 0 : licenses;
     }
 
     /**
