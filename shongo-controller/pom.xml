@@ -181,6 +181,12 @@
             <version>2.1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.0</version>
+        </dependency>
+
         <!-- Support for iCalendar specification -->
         <dependency>
             <groupId>org.mnode.ical4j</groupId>

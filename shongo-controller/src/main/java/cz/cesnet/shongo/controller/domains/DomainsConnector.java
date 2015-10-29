@@ -13,9 +13,10 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
-import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
+import org.apache.commons.collections4.MultiMap;
+import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.ws.commons.util.Base64;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -30,8 +31,10 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -91,7 +94,7 @@ public class DomainsConnector
     }
 
     protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                      final Map<String, String> parameters, final Collection<Domain> domains,
+                                                      final MultiMap<String, String> parameters, final Collection<Domain> domains,
                                                       Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
@@ -101,7 +104,7 @@ public class DomainsConnector
     }
 
     protected <T> Map<String, List<T>> performTypedListRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                                final Map<String, String> parameters, final Collection<Domain> domains,
+                                                                final MultiMap<String, String> parameters, final Collection<Domain> domains,
                                                                 Class<T> objectClass)
     {
         final Map<String, List<T>> resultMap = new HashMap<>();
@@ -111,7 +114,7 @@ public class DomainsConnector
     }
 
     protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                      final Map<Domain, Map<String, String>> parametersByDomain, Class<T> objectClass)
+                                                      final Map<Domain, MultiMap<String, String>> parametersByDomain, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(objectClass);
@@ -131,7 +134,7 @@ public class DomainsConnector
      * @return result object as instance of given {@code clazz}
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                    final Map<String, String> parameters, final Collection<Domain> domains,
+                                                    final MultiMap<String, String> parameters, final Collection<Domain> domains,
                                                     final ObjectReader reader, final Map<String, ?> result,
                                                     final Class<T> returnClass)
     {
@@ -171,7 +174,7 @@ public class DomainsConnector
      * @return result object as instance of given {@code clazz}
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                    final Map<Domain, Map<String, String>> parametersByDomain,
+                                                    final Map<Domain, MultiMap<String, String>> parametersByDomain,
                                                     final ObjectReader reader, final Map<String, ?> result,
                                                     final Class<T> returnClass)
     {
@@ -219,7 +222,7 @@ public class DomainsConnector
      * @param clazz  {@link Class<T>} of the object to return
      * @return result object as instance of given {@code clazz}
      */
-    private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters,
+    private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final MultiMap<String, String> parameters,
                                  final Domain domain, final ObjectReader reader, Class<T> clazz)
     throws ForeignDomainConnectException
     {
@@ -285,7 +288,7 @@ public class DomainsConnector
         }
     }
 
-    protected URL buildRequestUrl(final Domain domain, String action, Map<String, String> parameters)
+    protected URL buildRequestUrl(final Domain domain, String action, MultiMap<String, String> parameters)
     {
         action = action.trim();
         while (action.startsWith("/")) {
@@ -295,13 +298,15 @@ public class DomainsConnector
         if (parameters != null && !parameters.isEmpty()) {
             parametersBuilder.append("?");
             boolean first = true;
-            for (Map.Entry<String, String> parameter : parameters.entrySet()) {
-                if (first) {
-                    first = false;
-                } else {
-                    parametersBuilder.append("&");
+            for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+                for (String value : (List<String>) parameter.getValue()) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        parametersBuilder.append("&");
+                    }
+                    parametersBuilder.append(parameter.getKey() + "=" + value);
                 }
-                parametersBuilder.append(parameter.getKey() + "=" + parameter.getValue());
             }
         }
         String actionUrl = domain.getDomainAddress().getFullUrl() + "/" + action + parametersBuilder.toString();
@@ -509,7 +514,7 @@ public class DomainsConnector
 
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("type", request.getCapabilityType().toString());
         if (request.getInterval() != null) {
             parameters.put("interval", Converter.convertIntervalToStringUTC(request.getInterval()));
@@ -546,7 +551,7 @@ public class DomainsConnector
     {
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
         parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
@@ -563,13 +568,16 @@ public class DomainsConnector
         return reservation;
     }
 
-    public List<Reservation> allocateRoom(Set<Domain> domains, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext)
+    public List<Reservation> allocateRoom(Set<Domain> domains, int participantCount, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext)
     {
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
-        parameters.put("type", DomainCapabilityListRequest.Type.VIRTUAL_ROOM.toString());
+        parameters.put("participantCount", participantCount);
         parameters.put("userId", schedulerContext.getUserId());
         parameters.put("description", schedulerContext.getDescription());
+//        parameters.put("roomPin", );
+//        parameters.put("roomAccessMode", );
+//        parameters.put("roomRecorded", );
         if (technologyVariants == null  || technologyVariants.isEmpty()) {
             throw new IllegalArgumentException("Some technology must be set.");
         }
@@ -582,14 +590,14 @@ public class DomainsConnector
         //TODO: participants
         //TODO: room name
 
-        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, domains, Reservation.class);
+        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, domains, Reservation.class);
         return new ArrayList<>(reservations.values());
     }
 
     public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId)
     {
         ObjectReader reader = mapper.reader(Reservation.class);
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
         Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parameters, domain, reader, Reservation.class);
@@ -599,9 +607,9 @@ public class DomainsConnector
 
     public List<Reservation> getReservationsByRequests(Set<String> foreignReservationRequestIds)
     {
-        Map<Domain, Map<String, String>> parametersByDomain = new HashMap<>();
+        Map<Domain, MultiMap<String, String>> parametersByDomain = new HashMap<>();
         for (String reservationRequestId : foreignReservationRequestIds) {
-            Map<String, String> parameters = new HashMap<>();
+            MultiMap<String, String> parameters = new MultiValueMap<>();
             parameters.put("reservationRequestId", reservationRequestId);
 
             String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestId);
@@ -627,7 +635,7 @@ public class DomainsConnector
     public boolean deallocateReservation(Domain domain, String foreignReservationRequestId)
     {
         ObjectReader reader = mapper.reader(AbstractResponse.class);
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
         AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_REQUEST_DELETE, parameters, domain, reader, AbstractResponse.class);
@@ -643,7 +651,7 @@ public class DomainsConnector
     public List<Reservation> listReservations(Domain domain, String resourceId, Interval slot)
     {
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         if (resourceId != null) {
             parameters.put("resourceId", resourceId);
         }
@@ -683,7 +691,7 @@ public class DomainsConnector
         /**
          * GET parameters of the action
          */
-        private Map<String, String> parameters;
+        private MultiMap<String, String> parameters;
 
         /**
          * Domain for which will the action be called
@@ -711,7 +719,7 @@ public class DomainsConnector
         private Set<String> unavailableDomains;
 
         public DomainTask(final InterDomainAction.HttpMethod method, final String action,
-                          final Map<String, String> parameters, final Domain domain,
+                          final MultiMap<String, String> parameters, final Domain domain,
                           final ObjectReader reader, final Class<T> returnClass,
                           final Map<String, ?> result, final Set<String> unavailableDomains)
         {

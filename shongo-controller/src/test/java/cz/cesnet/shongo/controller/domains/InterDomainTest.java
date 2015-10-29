@@ -264,6 +264,65 @@ public class InterDomainTest extends AbstractControllerTest
         }
     }
 
+    @Test
+    public void testListLocalResources()
+    {
+        DeviceResource firstMcu = new DeviceResource();
+        firstMcu.setName("firstMcu");
+        firstMcu.addTechnology(Technology.H323);
+        firstMcu.addTechnology(Technology.SIP);
+        firstMcu.addCapability(new RoomProviderCapability(10));
+        firstMcu.setAllocatable(true);
+        firstMcu.setAllocationOrder(2);
+        String firstMcuId = createResource(firstMcu);
+
+        DeviceResource secondMcu = new DeviceResource();
+        secondMcu.setName("firstMcu");
+        secondMcu.addTechnology(Technology.H323);
+        secondMcu.addTechnology(Technology.SIP);
+        secondMcu.addCapability(new RoomProviderCapability(5));
+        secondMcu.setAllocatable(true);
+        secondMcu.setAllocationOrder(1);
+        String secondMcuId = createResource(secondMcu);
+
+        DomainResource mrDomainResource = new DomainResource();
+        mrDomainResource.setPrice(1);
+        mrDomainResource.setLicenseCount(3);
+        mrDomainResource.setPriority(1);
+
+        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), firstMcuId);
+
+        DomainCapabilityListRequest request = new DomainCapabilityListRequest(loopbackDomain);
+
+        List<Set<Technology>> technologyVariants = new ArrayList<>();
+        Set<Technology> technologies = new HashSet<>();
+        technologies.add(Technology.H323);
+        technologies.add(Technology.SIP);
+        technologyVariants.add(technologies);
+        request.setTechnologyVariants(technologyVariants);
+
+        request.setCapabilityType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+
+        List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(request);
+        Assert.assertEquals(1, capabilities.size());
+        Assert.assertEquals(firstMcuId, capabilities.get(0).getId());
+
+        Domain unavailableDomain = new Domain();
+        unavailableDomain.setName(LocalDomain.getLocalDomainName() + ".unavailable");
+        unavailableDomain.setOrganization("CESNET z.s.p.o.");
+        unavailableDomain.setAllocatable(true);
+        DeviceAddress deviceAddress = new DeviceAddress("none", INTERDOMAIN_LOCAL_PORT);
+        unavailableDomain.setDomainAddress(deviceAddress);
+        unavailableDomain.setPasswordHash("none");
+        String unavailableDomainId = getResourceService().createDomain(SECURITY_TOKEN_ROOT, unavailableDomain);
+        unavailableDomain.setId(unavailableDomainId);
+
+        request.setDomain(unavailableDomain);
+
+        capabilities = getDomainService().listLocalResourcesByDomain(request);
+        Assert.assertEquals(0, capabilities.size());
+    }
+
     /**
      * Test of reservation serialization
      * @throws Exception
