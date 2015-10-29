@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.response.*;
@@ -23,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
+import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 
 import cz.cesnet.shongo.ssl.SSLCommunication;
@@ -320,6 +322,9 @@ public class InterDomainController implements InterDomainProtocol
                     // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
                     resourceManager.getDomainResource(domainId, resource.getId());
                 }
+            }
+            else if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
+                // RoomSpecification supported
             } else {
                 throw new ForbiddenException("Unsupported specification");
             }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservatio
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
 import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +14,7 @@ import java.util.Set;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
+@Entity
 public class ForeignRoomReservation extends AbstractForeignReservation
 {
     private Set<String> foreignReservationRequestsIds = new HashSet<>();
