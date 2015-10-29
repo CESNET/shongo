@@ -361,8 +361,10 @@ public class RoomReservationTask extends ReservationTask
 
             Map<String, List<DomainCapability>> capabilities = InterDomainAgent.getInstance().getConnector().listForeignCapabilities(listRequest);
             for (String domainName : capabilities.keySet()) {
-                cz.cesnet.shongo.controller.api.Domain domain = InterDomainAgent.getInstance().getDomainService().findDomainByName(domainName);
-                domains.add(domain);
+                if (!capabilities.get(domainName).isEmpty()) {
+                    cz.cesnet.shongo.controller.api.Domain domain = InterDomainAgent.getInstance().getDomainService().findDomainByName(domainName);
+                    domains.add(domain);
+                }
             }
             return domains;
         }
@@ -378,10 +380,10 @@ public class RoomReservationTask extends ReservationTask
             cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = null;
             try {
                 List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
-                result = InterDomainAgent.getInstance().getConnector().allocateRoom(domainsWithRoomProvider, technologyVariants, slot, schedulerContext);
+                result = InterDomainAgent.getInstance().getConnector().allocateRoom(domainsWithRoomProvider, participantCount, technologyVariants, slot, schedulerContext);
                 SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
                 reservations = new TreeSet<>(result);
-                if (!reservationsPending(reservations)) {
+                if (!reservationsPending(reservations) && !reservations.isEmpty()) {
                     bestReservation = reservations.first();
                 }
                 for (cz.cesnet.shongo.controller.api.domains.response.Reservation candidateReservation : reservations) {
@@ -928,12 +930,15 @@ public class RoomReservationTask extends ReservationTask
     }
 
     /**
-     * TODO
-     * @param resource
-     * @param userId
-     * @return
+     * Returns remaining license count for given {@code resource} (must be room provider)
+     * by given {@link Domain} (specified in {@code userId}).
+     *
+     * @param resource for which to look for reservations
+     * @param userId which should contain {@link Domain}'s id
+     *
+     * @return remaining license count or -1 when resource is not assigned to the domain
      */
-    private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.Resource resource, String userId)
+    private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.DeviceResource resource, String userId)
     {
         EntityManager entityManager = schedulerContext.getEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -950,7 +955,7 @@ public class RoomReservationTask extends ReservationTask
             }
         }
         catch (CommonReportSet.ObjectNotExistsException ex) {
-            // when resource is not set
+            // when resource is not assigned
             return -1;
         }
         return -1;

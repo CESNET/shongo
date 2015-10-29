@@ -9,6 +9,8 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import org.apache.commons.collections4.MultiMap;
+import org.apache.commons.collections4.map.MultiValueMap;
 import org.codehaus.jackson.map.ObjectReader;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -79,7 +81,7 @@ public class CachedDomainsConnector extends DomainsConnector
                 }
             }
         }
-        Map<String, String> parameters = new HashMap<>();
+        MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
         submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters,
                 domains, DomainCapability.class, availableResources, unavailableResources);
@@ -107,7 +109,7 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     private <T> void submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
-                                                                    final Map<String, String> parameters, final Collection<Domain> domains,
+                                                                    final MultiMap<String, String> parameters, final Collection<Domain> domains,
                                                                     Class<T> objectClass, Map<String, ?> cache, Set<String> unavailableDomainsCache)
     {
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
@@ -127,7 +129,7 @@ public class CachedDomainsConnector extends DomainsConnector
      * @param <T>
      */
     synchronized protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
-                                            Map<String, String> parameters, Collection<Domain> domains,
+                                            MultiMap<String, String> parameters, Collection<Domain> domains,
                                             ObjectReader reader, Map<String, ?> result,
                                             Set<String> unavailableDomainsCache, Class<T> returnClass)
     {

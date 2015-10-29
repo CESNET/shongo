@@ -386,20 +386,33 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 
             // Technologies
             if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
-                int noOfVariant = 1;
+                int noOfVariant = 0;
                 StringBuilder variantsBuilder = new StringBuilder();
                 variantsBuilder.append("( ");
                 for (Set<Technology> technologies : request.getTechnologyVariants()) {
                     if (technologies.size() > 0) {
+                        noOfVariant++;
                         if (noOfVariant != 1) {
-                            noOfVariant++;
                             variantsBuilder.append(" OR ");
                         }
-                        variantsBuilder.append("resource_summary.id IN ("
-                                + " SELECT device_resource.id FROM device_resource "
-                                + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
-                                + " WHERE device_resource_technologies.technologies IN(:technologies" + noOfVariant + " ))");
-                        queryFilter.addFilterParameter("technologies" + noOfVariant, technologies);
+
+//                        variantsBuilder.append("resource_summary.id IN ("
+//                                + " SELECT device_resource.id FROM device_resource "
+//                                + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
+//                                + " WHERE device_resource_technologies.technologies IN(:technologies" + noOfVariant + " ))");
+//                        queryFilter.addFilterParameter("technologies" + noOfVariant, technologies);
+                        int noOfTechnology = 0;
+                        for (Technology technology : technologies) {
+                            noOfTechnology++;
+                            if (noOfTechnology != 1) {
+                                variantsBuilder.append(" AND ");
+                            }
+                            variantsBuilder.append("resource_summary.id IN ("
+                                    + " SELECT device_resource.id FROM device_resource "
+                                    + " LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id"
+                                    + " WHERE device_resource_technologies.technologies = :technology" + noOfVariant + "_" + noOfTechnology + " )");
+                            queryFilter.addFilterParameter("technology" + noOfVariant + "_" + noOfTechnology, technology.toString());
+                        }
                     }
                 }
                 variantsBuilder.append(" )");
