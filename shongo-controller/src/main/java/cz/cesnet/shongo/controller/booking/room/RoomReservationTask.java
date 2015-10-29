@@ -290,8 +290,13 @@ public class RoomReservationTask extends ReservationTask
             roomProviderVariants = getRoomProviderVariants();
         }
         catch (SchedulerReportSet.ResourceNotFoundException ex) {
-            foreignDomainsWithRoomProvider = foreignDomainsWithRoomProvider();
-            if (foreignDomainsWithRoomProvider.isEmpty()) {
+            if (schedulerContext.isLocalByUser()) {
+                foreignDomainsWithRoomProvider = foreignDomainsWithRoomProvider();
+                if (foreignDomainsWithRoomProvider.isEmpty()) {
+                    throw ex;
+                }
+            }
+            else {
                 throw ex;
             }
         }
@@ -373,7 +378,7 @@ public class RoomReservationTask extends ReservationTask
 
     private ForeignRoomReservation tryAllocateInForeignDomains(Set<cz.cesnet.shongo.controller.api.Domain> domainsWithRoomProvider)
     {
-        if (Controller.isInterDomainInitialized()) {
+        if (schedulerContext.isLocalByUser() && Controller.isInterDomainInitialized()) {
             schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
 
             ForeignRoomReservation reservation = new ForeignRoomReservation();
@@ -603,7 +608,7 @@ public class RoomReservationTask extends ReservationTask
                     AvailableRoom availableRoom = roomProvider.getAvailableRoom();
                     int availableLicenseCount = availableRoom.getAvailableLicenseCount();
                     // Check allowed licence count for foreign requests
-                    if (!UserInformation.isLocal(schedulerContext.getUserId())) {
+                    if (!schedulerContext.isLocalByUser()) {
                         int leftForeignLicenseCount = getRemainingLicenseCount(availableRoom.getDeviceResource(), schedulerContext.getUserId());
                         if (leftForeignLicenseCount > -1) {
                             availableLicenseCount = leftForeignLicenseCount < availableLicenseCount ? leftForeignLicenseCount : availableLicenseCount;
@@ -904,26 +909,24 @@ public class RoomReservationTask extends ReservationTask
      */
     private void filterCapabilitiesByUser(Collection<RoomProviderCapability> capabilities, String userId)
     {
-        if (capabilities != null && !capabilities.isEmpty() && Controller.isInterDomainInitialized()) {
-            if (!UserInformation.isLocal(userId)) {
-                cz.cesnet.shongo.controller.api.Domain domain = new cz.cesnet.shongo.controller.api.Domain();
-                domain.setId(UserInformation.parseDomainId(userId));
-                DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(domain);
-                listRequest.setCapabilityType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
-                listRequest.setTechnologyVariants(technologyVariants);
-                List<DomainCapability> resources = InterDomainAgent.getInstance().getDomainService().listLocalResourcesByDomain(listRequest);
+        if (!schedulerContext.isLocalByUser() && capabilities != null && !capabilities.isEmpty() && Controller.isInterDomainInitialized()) {
+            cz.cesnet.shongo.controller.api.Domain domain = new cz.cesnet.shongo.controller.api.Domain();
+            domain.setId(UserInformation.parseDomainId(userId));
+            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(domain);
+            listRequest.setCapabilityType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+            listRequest.setTechnologyVariants(technologyVariants);
+            List<DomainCapability> resources = InterDomainAgent.getInstance().getDomainService().listLocalResourcesByDomain(listRequest);
 
-                Set<Long> resourcesIds = new HashSet<>();
-                for (DomainCapability resource : resources) {
-                    resourcesIds.add(ObjectIdentifier.parseLocalId(resource.getId(), ObjectType.RESOURCE));
-                }
+            Set<Long> resourcesIds = new HashSet<>();
+            for (DomainCapability resource : resources) {
+                resourcesIds.add(ObjectIdentifier.parseLocalId(resource.getId(), ObjectType.RESOURCE));
+            }
 
-                Iterator<RoomProviderCapability> iterator = capabilities.iterator();
-                while (iterator.hasNext()) {
-                    RoomProviderCapability capability = iterator.next();
-                    if (!resourcesIds.contains(capability.getResource().getId())) {
-                        capabilities.remove(capability);
-                    }
+            Iterator<RoomProviderCapability> iterator = capabilities.iterator();
+            while (iterator.hasNext()) {
+                RoomProviderCapability capability = iterator.next();
+                if (!resourcesIds.contains(capability.getResource().getId())) {
+                    capabilities.remove(capability);
                 }
             }
         }
