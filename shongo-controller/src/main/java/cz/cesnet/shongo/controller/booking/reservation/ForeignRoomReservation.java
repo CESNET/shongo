@@ -15,28 +15,28 @@ import java.util.Set;
  */
 public class ForeignRoomReservation extends AbstractForeignReservation
 {
-    private Set<String> foreignReservationRequestsId = new HashSet<>();
+    private Set<String> foreignReservationRequestsIds = new HashSet<>();
 
     @ElementCollection
     @Column
-    public Set<String> getForeignReservationRequestsId()
+    public Set<String> getForeignReservationRequestsIds()
     {
-        return foreignReservationRequestsId;
+        return foreignReservationRequestsIds;
     }
 
-    protected void setForeignReservationRequestsId(Set<String> foreignReservationRequestsId)
+    protected void setForeignReservationRequestsIds(Set<String> foreignReservationRequestsIds)
     {
-        this.foreignReservationRequestsId = foreignReservationRequestsId;
+        this.foreignReservationRequestsIds = foreignReservationRequestsIds;
     }
 
     public void addForeignReservationRequestId(String reservationRequestId)
     {
-        this.foreignReservationRequestsId.add(reservationRequestId);
+        this.foreignReservationRequestsIds.add(reservationRequestId);
     }
 
     public void removeForeignReservationRequestId(String reservationRequestId)
     {
-        this.foreignReservationRequestsId.remove(reservationRequestId);
+        this.foreignReservationRequestsIds.remove(reservationRequestId);
     }
 
     @Override

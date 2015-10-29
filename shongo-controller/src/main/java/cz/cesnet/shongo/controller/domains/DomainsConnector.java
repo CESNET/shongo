@@ -570,12 +570,19 @@ public class DomainsConnector
         parameters.put("type", DomainCapabilityListRequest.Type.VIRTUAL_ROOM.toString());
         parameters.put("userId", schedulerContext.getUserId());
         parameters.put("description", schedulerContext.getDescription());
-//        parameters.put("")
+        if (technologyVariants == null  || technologyVariants.isEmpty()) {
+            throw new IllegalArgumentException("Some technology must be set.");
+        }
+        if (technologyVariants.size() > 1) {
+            throw new TodoImplementException();
+        }
+        for (Technology technology : technologyVariants.get(0)) {
+            parameters.put("technologies", technology.toString());
+        }
+        //TODO: participants
         //TODO: room name
-        //TODO: technology
 
         Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, domains, Reservation.class);
-        //TODO: set userIds
         return new ArrayList<>(reservations.values());
     }
 

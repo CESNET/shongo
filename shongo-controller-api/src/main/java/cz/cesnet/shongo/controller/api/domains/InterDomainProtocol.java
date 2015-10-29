@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AdobeConnectPermissions;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.Interval;
@@ -16,42 +17,43 @@ import java.util.Set;
  */
 public interface InterDomainProtocol {
 
-    public DomainLogin handleLogin(HttpServletRequest request);
+    DomainLogin handleLogin(HttpServletRequest request);
     /**
      *
      * @param request
      * @return status of local domain
      */
-    public DomainStatus handleDomainStatus(HttpServletRequest request);
+    DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    public List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
+    List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
                                                          Interval interval, List<Technology> technologies)
             throws NotAuthorizedException;
 
-    public Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
+    Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
                                               String userId, String description, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
-    public Reservation handleAllocateRoom(HttpServletRequest request, Interval slot, Technology technology,
-                                          String userId, String description, String reservationRequestId)
+    Reservation handleAllocateRoom(HttpServletRequest request, Interval slot, int participantCount, List<Technology> technologies,
+                                          String userId, String description, String roomPin, AdobeConnectPermissions roomAccessMode,
+                                          Boolean roomRecorded, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
-    public Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
+    Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
-    public AbstractResponse handleDeleteReservationRequest(HttpServletRequest request, String reservationRequestId)
+    AbstractResponse handleDeleteReservationRequest(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
-    public List<Reservation> handleListReservations(HttpServletRequest request, String resourceId, Interval slot)
+    List<Reservation> handleListReservations(HttpServletRequest request, String resourceId, Interval slot)
             throws NotAuthorizedException, ForbiddenException;
 
-    public class NotAuthorizedException extends Exception {
+    class NotAuthorizedException extends Exception {
         public NotAuthorizedException(String message) {
             super(message);
         }
     }
 
-    public class ForbiddenException extends Exception {
+    class ForbiddenException extends Exception {
         public ForbiddenException(String message) {
             super(message);
         }
