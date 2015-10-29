@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -136,6 +137,11 @@ public class SchedulerContext
 
     public String getUserId() {
         return userId;
+    }
+
+    public boolean isLocalByUser()
+    {
+        return UserInformation.isLocal(userId);
     }
 
     public void setUserId(String userId) {
