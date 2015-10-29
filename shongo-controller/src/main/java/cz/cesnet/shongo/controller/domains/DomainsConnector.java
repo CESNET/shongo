@@ -299,7 +299,7 @@ public class DomainsConnector
             parametersBuilder.append("?");
             boolean first = true;
             for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
-                for (String value : (List<String>) parameter.getValue()) {
+                for (Object value : (List<?>) parameter.getValue()) {
                     if (first) {
                         first = false;
                     } else {
@@ -766,7 +766,7 @@ public class DomainsConnector
                 throw e;
             } catch (Exception e) {
                 try {
-                    notifier.notifyDomainAdmins("Failed to perform request to domain " + domain.getName(), e);
+                    notifier.logAndNotifyDomainAdmins("Failed to perform request to domain " + domain.getName(), e);
                 } catch (Exception notifyEx) {
                     logger.error("Notification has failed.", notifyEx);
                 }
