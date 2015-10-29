@@ -37,9 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.util.*;
 
 /**
@@ -1283,7 +1280,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             Long domainPersistenceId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
             Long resourcePersistenceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
-            if (reservationManager.countReservations(domainPersistenceId, resourcePersistenceId) != 0) {
+            if (reservationManager.countResourceReservations(domainPersistenceId, resourcePersistenceId) != 0) {
                 ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(cz.cesnet.shongo.controller.booking.reservation.Reservation.class, resourceIdentifier.getPersistenceId());
             }
 

@@ -354,6 +354,8 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 case RESOURCE:
                     type = "RESOURCE";
                     break;
+                default:
+                    throw new TodoImplementException("Unsupported capability type.");
             }
             queryFilter.addFilter("resource_summary.type = '" + type + "'");
 

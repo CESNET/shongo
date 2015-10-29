@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.booking.room;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
+import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
+import cz.cesnet.shongo.controller.booking.domain.DomainResource;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -290,7 +291,7 @@ public class RoomReservationTask extends ReservationTask
         }
         catch (SchedulerReportSet.ResourceNotFoundException ex) {
             foreignDomainsWithRoomProvider = foreignDomainsWithRoomProvider();
-            if (!foreignDomainsWithRoomProvider.isEmpty()) {
+            if (foreignDomainsWithRoomProvider.isEmpty()) {
                 throw ex;
             }
         }
@@ -305,13 +306,13 @@ public class RoomReservationTask extends ReservationTask
 
                 // Return finished foreign reservation
                 if (foreignRoomReservation != null) {
-                    Iterator<String> iterator = foreignRoomReservation.getForeignReservationRequestsId().iterator();
+                    Iterator<String> iterator = foreignRoomReservation.getForeignReservationRequestsIds().iterator();
                     while (iterator.hasNext()) {
                         String reservationRequestId = iterator.next();
                         if (!reservationRequestId.equals(foreignRoomReservation.getForeignReservationRequestId())) {
                             createReservationForDeletion(reservationRequestId);
                         }
-                        foreignRoomReservation.getForeignReservationRequestsId().remove(reservationRequestId);
+                        foreignRoomReservation.getForeignReservationRequestsIds().remove(reservationRequestId);
                     }
                 }
                 return foreignRoomReservation;
@@ -413,7 +414,7 @@ public class RoomReservationTask extends ReservationTask
     {
         if (Controller.isInterDomainInitialized()) {
             List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
-            result = InterDomainAgent.getInstance().getConnector().getReservationsByRequests(currentReservation.getForeignReservationRequestsId());
+            result = InterDomainAgent.getInstance().getConnector().getReservationsByRequests(currentReservation.getForeignReservationRequestsIds());
             SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
             reservations = new TreeSet<>(result);
             // Test if all any request is still pending (if request is processed it must be failed or success with reservation)
@@ -544,6 +545,9 @@ public class RoomReservationTask extends ReservationTask
             roomProviderCapabilities = resourceCache.getCapabilities(RoomProviderCapability.class);
         }
 
+        // Filter capabilities for foreign domains
+        filterCapabilitiesByUser(roomProviderCapabilities, schedulerContext.getUserId());
+
         // Available room endpoints
         Collection<AvailableExecutable<RoomEndpoint>> availableRoomEndpoints =
                 schedulerContextState.getAvailableExecutables(RoomEndpoint.class);
@@ -596,6 +600,13 @@ public class RoomReservationTask extends ReservationTask
                     // Check available license count
                     AvailableRoom availableRoom = roomProvider.getAvailableRoom();
                     int availableLicenseCount = availableRoom.getAvailableLicenseCount();
+                    // Check allowed licence count for foreign requests
+                    if (!UserInformation.isLocal(schedulerContext.getUserId())) {
+                        int leftForeignLicenseCount = getRemainingLicenseCount(availableRoom.getDeviceResource(), schedulerContext.getUserId());
+                        if (leftForeignLicenseCount > -1) {
+                            availableLicenseCount = leftForeignLicenseCount < availableLicenseCount ? leftForeignLicenseCount : availableLicenseCount;
+                        }
+                    }
                     int requestedLicenseCount = roomProviderVariant.getLicenseCount();
                     if (availableLicenseCount < requestedLicenseCount) {
                         addReport(new SchedulerReportSet.ResourceRoomCapacityExceededReport(
@@ -881,6 +892,68 @@ public class RoomReservationTask extends ReservationTask
             endReportError(exception.getReport());
             throw exception;
         }
+    }
+
+    /**
+     * Filters given {@code capabilities}. Removes capabilities which are not shared for foreign {@link Domain}, specified in {@code userId}.
+     *
+     * @param capabilities to filter
+     * @param userId which should contain {@link Domain}'s id
+     */
+    private void filterCapabilitiesByUser(Collection<RoomProviderCapability> capabilities, String userId)
+    {
+        if (capabilities != null && !capabilities.isEmpty() && Controller.isInterDomainInitialized()) {
+            if (!UserInformation.isLocal(userId)) {
+                cz.cesnet.shongo.controller.api.Domain domain = new cz.cesnet.shongo.controller.api.Domain();
+                domain.setId(UserInformation.parseDomainId(userId));
+                DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(domain);
+                listRequest.setCapabilityType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+                listRequest.setTechnologyVariants(technologyVariants);
+                List<DomainCapability> resources = InterDomainAgent.getInstance().getDomainService().listLocalResourcesByDomain(listRequest);
+
+                Set<Long> resourcesIds = new HashSet<>();
+                for (DomainCapability resource : resources) {
+                    resourcesIds.add(ObjectIdentifier.parseLocalId(resource.getId(), ObjectType.RESOURCE));
+                }
+
+                Iterator<RoomProviderCapability> iterator = capabilities.iterator();
+                while (iterator.hasNext()) {
+                    RoomProviderCapability capability = iterator.next();
+                    if (!resourcesIds.contains(capability.getResource().getId())) {
+                        capabilities.remove(capability);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * TODO
+     * @param resource
+     * @param userId
+     * @return
+     */
+    private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.Resource resource, String userId)
+    {
+        EntityManager entityManager = schedulerContext.getEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        try {
+            if (!UserInformation.isLocal(userId)) {
+                Long domainId = UserInformation.parseDomainId(userId);
+                DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
+                int availableLicenseCount = domainResource.getLicenseCount();
+
+                int usedLicenseCount = (int) reservationManager.countRoomProviderLicenses(domainId, resource.getId());
+
+                return availableLicenseCount - usedLicenseCount;
+            }
+        }
+        catch (CommonReportSet.ObjectNotExistsException ex) {
+            // when resource is not set
+            return -1;
+        }
+        return -1;
     }
 
     /**

@@ -372,7 +372,14 @@ public class ReservationManager extends AbstractManager
         return resultList;
     }
 
-    public Long countReservations(Long domainId, Long resourceId)
+    /**
+     * Returns number of existing {@link ResourceReservation} for given resource and domain.
+     *
+     * @param domainId
+     * @param resourceId
+     * @return number of existing reservations
+     */
+    public long countResourceReservations(Long domainId, Long resourceId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
@@ -382,6 +389,23 @@ public class ReservationManager extends AbstractManager
 
         javax.persistence.criteria.Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("resource").get("id"), resourceId);
         javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        query.where(resourceParam, domainParam);
+
+        TypedQuery<Long> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public <T extends Reservation> long countRoomProviderLicenses(Long domainId, Long resourceId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        Root<RoomReservation> domainRoot = query.from(RoomReservation.class);
+        query.select(criteriaBuilder.sumAsLong(domainRoot.<Integer>get("licenseCount")));
+
+        javax.persistence.criteria.Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
+                javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
         query.where(resourceParam, domainParam);
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);

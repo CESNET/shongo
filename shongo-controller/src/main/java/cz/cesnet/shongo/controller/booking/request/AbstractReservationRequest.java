@@ -20,6 +20,7 @@ import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.annotations.Index;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -44,6 +45,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * User-id of an user who created the {@link AbstractReservationRequest}.
      */
+    @Index(name = "created_by_idx")
     private String createdBy;
 
     /**
@@ -134,6 +136,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         return createdAt;
     }
 
+    private void setCreatedAt(DateTime createdAt)
+    {
+        this.createdAt = createdAt;
+    }
+
     /**
      * @return {@link #createdBy}
      */
@@ -160,6 +167,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     public DateTime getUpdatedAt()
     {
         return updatedAt;
+    }
+
+    private void setUpdatedAt(DateTime updatedAt)
+    {
+        this.updatedAt = updatedAt;
     }
 
     /**
