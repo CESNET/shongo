@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.ObjectType;
-import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -952,7 +951,7 @@ public class RoomReservationTask extends ReservationTask
                 DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
                 int availableLicenseCount = domainResource.getLicenseCount();
 
-                int usedLicenseCount = (int) reservationManager.countRoomProviderLicenses(domainId, resource.getId());
+                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId());
 
                 return availableLicenseCount - usedLicenseCount;
             }
