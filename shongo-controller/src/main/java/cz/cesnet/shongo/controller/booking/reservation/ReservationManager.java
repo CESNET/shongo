@@ -396,7 +396,7 @@ public class ReservationManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public <T extends Reservation> long countUsedRoomProviderLicenses(Long domainId, Long resourceId)
+    public <T extends Reservation> long countUsedRoomProviderLicenses(Long domainId, Long resourceId, Interval interval)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
@@ -405,8 +405,10 @@ public class ReservationManager extends AbstractManager
         query.select(criteriaBuilder.sumAsLong(domainRoot.<Integer>get("licenseCount")));
 
         javax.persistence.criteria.Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
-                javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
-        query.where(resourceParam, domainParam);
+        javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        javax.persistence.criteria.Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
+        javax.persistence.criteria.Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
+        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);
 

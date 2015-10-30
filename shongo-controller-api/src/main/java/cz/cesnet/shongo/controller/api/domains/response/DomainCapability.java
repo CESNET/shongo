@@ -5,6 +5,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Represents TODO
  *
@@ -21,9 +24,6 @@ public class DomainCapability //extends IdentifiedComplexType
 
     @JsonProperty("description")
     private String description;
-
-    @JsonProperty("technology")
-    private Technology technology;
 
     @JsonProperty("calendarPublic")
     private boolean calendarPublic;
@@ -42,6 +42,9 @@ public class DomainCapability //extends IdentifiedComplexType
 
     @JsonProperty("available")
     private Boolean available;
+
+    @JsonProperty("technologies")
+    private Set<Technology> technologies;
 
 //    @Override
     public void setId(String id)
@@ -63,11 +66,6 @@ public class DomainCapability //extends IdentifiedComplexType
     public void setDescription(String description)
     {
         this.description = description;
-    }
-
-    public void setTechnology(Technology technology)
-    {
-        this.technology = technology;
     }
 
     public void setCalendarPublic(boolean calendarPublic)
@@ -110,11 +108,6 @@ public class DomainCapability //extends IdentifiedComplexType
         return description;
     }
 
-    public Technology getTechnology()
-    {
-        return technology;
-    }
-
     public boolean isCalendarPublic()
     {
         return calendarPublic;
@@ -145,6 +138,24 @@ public class DomainCapability //extends IdentifiedComplexType
         return (available == null ? true : available);
     }
 
+    public Set<Technology> getTechnologies()
+    {
+        return technologies;
+    }
+
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    public void addTechnology(Technology technology)
+    {
+        if (technologies == null) {
+            technologies = new HashSet<>();
+        }
+        this.technologies.add(technology);
+    }
+
     public ResourceSummary toResourceSummary()
     {
         ResourceSummary resourceSummary = new ResourceSummary();
@@ -154,6 +165,7 @@ public class DomainCapability //extends IdentifiedComplexType
         resourceSummary.setAllocatable(available);
         resourceSummary.setCalendarPublic(calendarPublic);
         resourceSummary.setCalendarUriKey(calendarUriKey);
+        resourceSummary.setTechnologies(technologies);
 
         return resourceSummary;
     }

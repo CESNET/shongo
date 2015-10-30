@@ -162,7 +162,7 @@ public class DomainCapabilityListRequest extends AbstractRequest
         return licenseCount;
     }
 
-    public void setLicenseCount(int licenseCount)
+    public void setLicenseCount(Integer licenseCount)
     {
         this.licenseCount = licenseCount;
     }

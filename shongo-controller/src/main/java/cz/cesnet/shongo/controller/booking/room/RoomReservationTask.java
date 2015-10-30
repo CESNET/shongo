@@ -290,7 +290,7 @@ public class RoomReservationTask extends ReservationTask
         }
         catch (SchedulerReportSet.ResourceNotFoundException ex) {
             if (schedulerContext.isLocalByUser()) {
-                // TODO: pridat licence a slot
+                // TODO more thorough check in foreign domain
                 foreignDomainsWithRoomProvider = foreignDomainsWithRoomProvider();
                 if (foreignDomainsWithRoomProvider.isEmpty()) {
                     throw ex;
@@ -950,7 +950,7 @@ public class RoomReservationTask extends ReservationTask
                 DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
                 int availableLicenseCount = domainResource.getLicenseCount();
 
-                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId());
+                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId(), slot);
 
                 return availableLicenseCount - usedLicenseCount;
             }

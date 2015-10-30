@@ -11,7 +11,8 @@ SELECT
     resource_summary.calendar_public AS calendar_public,
     resource_summary.calendar_uri_key AS calendar_uri_key,
     domain_resource.license_count AS license_count,
-    domain_resource.price AS price
+    domain_resource.price AS price,
+    resource_summary.technologies
 FROM resource_summary inner join domain_resource ON resource_summary.id = domain_resource.resource_id
 WHERE ${filter}
 ORDER BY ${order}

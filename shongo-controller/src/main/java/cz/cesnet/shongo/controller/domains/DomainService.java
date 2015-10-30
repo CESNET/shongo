@@ -439,20 +439,20 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 domainCapability.setId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[0].toString()));
                 domainCapability.setName(record[1].toString());
                 domainCapability.setDescription(record[2] != null ? record[2].toString() : "");
-//                if (record[6] != null) {
-//                    String recordTechnologies = record[6].toString();
-//                    if (!recordTechnologies.isEmpty()) {
-//                        for (String technology : recordTechnologies.split(",")) {
-//                            domainResource.addTechnology(Technology.valueOf(technology.trim()));
-//                        }
-//                    }
-//                }
                 domainCapability.setCalendarPublic((Boolean) record[3]);
                 if ((Boolean) record[3]) {
                     domainCapability.setCalendarUriKey(record[4].toString());
                 }
                 domainCapability.setLicenseCount((Integer) record[5]);
                 domainCapability.setPrice((Integer) record[6]);
+                if (record[7] != null) {
+                    String recordTechnologies = record[7].toString();
+                    if (!recordTechnologies.isEmpty()) {
+                        for (String technology : recordTechnologies.split(",")) {
+                            domainCapability.addTechnology(Technology.valueOf(technology.trim()));
+                        }
+                    }
+                }
                 response.add(domainCapability);
             }
             return response;
