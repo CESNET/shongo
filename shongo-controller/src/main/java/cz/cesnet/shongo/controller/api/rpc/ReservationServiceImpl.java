@@ -318,6 +318,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         if (specification instanceof ReservationTaskProvider) {
                             entityManager.getTransaction().begin();
                             try {
+                                schedulerContext.setAvailabilityCheck(true);
                                 ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
                                 ReservationTask reservationTask =
                                         reservationTaskProvider.createReservationTask(schedulerContext, slot);

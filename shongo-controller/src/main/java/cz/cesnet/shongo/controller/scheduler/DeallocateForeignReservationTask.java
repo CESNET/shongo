@@ -30,14 +30,17 @@ public class DeallocateForeignReservationTask extends DeallocateReservationTask
     protected List<AbstractNotification> perform(Interval slot, Scheduler.Result result, EntityManager entityManager, ReservationManager reservationManager, AuthorizationManager authorizationManager)
     {
         AbstractForeignReservation reservation = getReservation();
-        Domain domain = reservation.getDomain().toApi();
-        Allocation allocation = getReservation().getAllocation();
+        Allocation allocation = reservation.getAllocation();
 
         // Perform foreign deallocate only for the latest reservation request
         if (allocation == null || reservation.equals(allocation.getCurrentReservation())) {
-            if (!InterDomainAgent.getInstance().getConnector().deallocateReservation(domain, reservation.getForeignReservationRequestId())) {
-                // Process error
-                throw new TodoImplementException("process returned error");
+            // Check if foreign reservation even exists
+            if (reservation.getForeignReservationRequestId() != null) {
+                Domain domain = reservation.getDomain().toApi();
+                if (!InterDomainAgent.getInstance().getConnector().deallocateReservation(domain, reservation.getForeignReservationRequestId())) {
+                    // Process error
+                    throw new TodoImplementException("process returned error");
+                }
             }
         }
         return super.perform(slot, result, entityManager, reservationManager, authorizationManager);

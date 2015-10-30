@@ -93,6 +93,11 @@ public class SchedulerContext
             new HashMap<Reservation, ReservationRequest>();
 
     /**
+     * If perform of {@link ReservationTask} is just availability check.
+     */
+    private boolean availabilityCheck = false;
+
+    /**
      * Constructor.
      *
      * @param minimumDateTime      sets the {@link #minimumDateTime}
@@ -254,6 +259,16 @@ public class SchedulerContext
     public boolean isMaximumFutureAndDurationRestricted()
     {
         return purpose != null && !purpose.isByOwner();
+    }
+
+    public boolean isAvailabilityCheck()
+    {
+        return availabilityCheck;
+    }
+
+    public void setAvailabilityCheck(boolean availabilityCheck)
+    {
+        this.availabilityCheck = availabilityCheck;
     }
 
     /**

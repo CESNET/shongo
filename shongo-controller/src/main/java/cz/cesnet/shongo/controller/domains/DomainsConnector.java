@@ -519,6 +519,9 @@ public class DomainsConnector
         if (request.getInterval() != null) {
             parameters.put("interval", Converter.convertIntervalToStringUTC(request.getInterval()));
         }
+        if (request.getLicenseCount() != null) {
+            parameters.put("licenseCount", request.getLicenseCount());
+        }
         if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(request.getCapabilityType())) {
             if (request.getTechnologyVariants() != null) {
                 if (request.getTechnologyVariants().isEmpty()) {
