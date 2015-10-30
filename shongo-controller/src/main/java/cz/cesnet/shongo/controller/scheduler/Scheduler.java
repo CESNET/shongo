@@ -145,8 +145,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
 
-            if (!reservationManager.getOrphanReservationsForDeletion().isEmpty()) {
-                throw new TodoImplementException();
+            for (Reservation reservation : reservationManager.getOrphanReservationsForDeletion()) {
+                DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
+                deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
             }
 
             // Delete all reservation requests which should be deleted
