@@ -363,9 +363,8 @@ public class InterDomainController implements InterDomainProtocol
 
                             reservation.setForeignResourceId(resourceId);
                         }
-                    } else {
-                        reservation.setForeignReservationRequestId(reservationRequestId);
                     }
+                    reservation.setForeignReservationRequestId(reservationRequestId);
                     break;
                 default:
                     reservation.setForeignReservationRequestId(reservationRequestId);
