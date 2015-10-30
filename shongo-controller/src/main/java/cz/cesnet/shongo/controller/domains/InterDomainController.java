@@ -345,9 +345,9 @@ public class InterDomainController implements InterDomainProtocol
             Reservation reservation = new Reservation();
 
             //TODO get report: reservationRequest.getReportDescription()
+            reservation.setForeignReservationRequestId(reservationRequestId);
             switch (reservationRequest.getAllocationState()) {
                 case ALLOCATION_FAILED:
-                    reservation.setForeignReservationRequestId(reservationRequestId);
                     reservation.setStatus(AbstractResponse.Status.FAILED);
 //                SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
                     reservation.setMessage("TODO ERROR");
@@ -364,10 +364,9 @@ public class InterDomainController implements InterDomainProtocol
                             reservation.setForeignResourceId(resourceId);
                         }
                     }
-                    reservation.setForeignReservationRequestId(reservationRequestId);
                     break;
+                //TODO: rozlisovat mistnosti
                 default:
-                    reservation.setForeignReservationRequestId(reservationRequestId);
                     break;
             }
 
