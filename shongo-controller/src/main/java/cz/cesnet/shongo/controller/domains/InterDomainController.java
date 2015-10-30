@@ -101,6 +101,12 @@ public class InterDomainController implements InterDomainProtocol
             listRequest.getTechnologyVariants().add(new HashSet<>(technologies));
         }
         List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
+        if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(type)) {
+            // Erase resource ID's for virtual rooms.
+            for (DomainCapability capability : capabilities) {
+                capability.setId(null);
+            }
+        }
         return capabilities;
     }
 
