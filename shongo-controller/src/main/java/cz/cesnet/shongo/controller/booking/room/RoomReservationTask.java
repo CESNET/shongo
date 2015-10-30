@@ -905,7 +905,7 @@ public class RoomReservationTask extends ReservationTask
      * @param capabilities to filter
      * @param userId which should contain {@link Domain}'s id
      */
-    private void filterCapabilitiesByUser(Collection<RoomProviderCapability> capabilities, String userId)
+    private synchronized void filterCapabilitiesByUser(Collection<RoomProviderCapability> capabilities, String userId)
     {
         if (!schedulerContext.isLocalByUser() && capabilities != null && !capabilities.isEmpty() && Controller.isInterDomainInitialized()) {
             cz.cesnet.shongo.controller.api.Domain domain = new cz.cesnet.shongo.controller.api.Domain();
