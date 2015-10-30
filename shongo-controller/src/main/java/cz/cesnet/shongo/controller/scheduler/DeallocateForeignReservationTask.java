@@ -4,6 +4,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
@@ -18,9 +19,9 @@ import java.util.List;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class DeallocateForeignResourceReservationTask extends DeallocateReservationTask
+public class DeallocateForeignReservationTask extends DeallocateReservationTask
 {
-    public DeallocateForeignResourceReservationTask(ForeignResourceReservation reservation)
+    public DeallocateForeignReservationTask(AbstractForeignReservation reservation)
     {
         super(reservation);
     }
@@ -28,7 +29,7 @@ public class DeallocateForeignResourceReservationTask extends DeallocateReservat
     @Override
     protected List<AbstractNotification> perform(Interval slot, Scheduler.Result result, EntityManager entityManager, ReservationManager reservationManager, AuthorizationManager authorizationManager)
     {
-        ForeignResourceReservation reservation = getReservation();
+        AbstractForeignReservation reservation = getReservation();
         Domain domain = reservation.getDomain().toApi();
         Allocation allocation = getReservation().getAllocation();
 
@@ -43,8 +44,8 @@ public class DeallocateForeignResourceReservationTask extends DeallocateReservat
     }
 
     @Override
-    protected ForeignResourceReservation getReservation()
+    protected AbstractForeignReservation getReservation()
     {
-        return (ForeignResourceReservation) super.getReservation();
+        return (AbstractForeignReservation) super.getReservation();
     }
 }

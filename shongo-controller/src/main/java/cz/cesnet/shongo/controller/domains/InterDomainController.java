@@ -408,6 +408,8 @@ public class InterDomainController implements InterDomainProtocol
                     // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
                     resourceManager.getDomainResource(domainId, resource.getId());
                 }
+            } else if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
+                // RoomSpecification supported
             } else {
                 throw new ForbiddenException("Unsupported specification");
             }

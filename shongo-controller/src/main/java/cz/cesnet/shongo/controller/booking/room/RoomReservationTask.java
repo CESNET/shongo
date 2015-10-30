@@ -448,14 +448,7 @@ public class RoomReservationTask extends ReservationTask
 
         String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestsId);
 
-        AbstractForeignReservation reservation = new AbstractForeignReservation()
-        {
-            @Override
-            public Long getTargetId()
-            {
-                return null;
-            }
-        };
+        ForeignRoomReservation reservation = new ForeignRoomReservation();
         reservation.setUserId(Authorization.ROOT_USER_ID);
         reservation.setComplete(true);
         reservation.setDomain(resourceManager.getDomainByName(domainName));

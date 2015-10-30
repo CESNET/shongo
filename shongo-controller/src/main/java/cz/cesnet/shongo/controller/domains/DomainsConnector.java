@@ -620,11 +620,11 @@ public class DomainsConnector
         Map<String, Reservation> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parametersByDomain, Reservation.class);
         List<Reservation> reservations = new ArrayList<>();
         for (String domainName : response.keySet()) {
-            Domain domain = getDomainService().findDomainByName(domainName);
+//            Domain domain = getDomainService().findDomainByName(domainName);
             Reservation reservation = response.get(domainName);
 
-            Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
-            reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
+//            Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
+//            reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
 
             reservations.add(reservation);
         }
