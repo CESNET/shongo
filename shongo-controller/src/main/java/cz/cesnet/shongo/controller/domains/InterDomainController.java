@@ -89,11 +89,13 @@ public class InterDomainController implements InterDomainProtocol
             HttpServletRequest request,
             @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
             @RequestParam(value = "interval", required = false) Interval interval,
+            @RequestParam(value = "licenseCount", required = false) Integer licenseCount,
             @RequestParam(value = "technologies", required = false) List<Technology> technologies) throws NotAuthorizedException
     {
         DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
         listRequest.setCapabilityType(type);
         listRequest.setInterval(interval);
+        listRequest.setLicenseCount(licenseCount);
         if (technologies != null && !technologies.isEmpty()) {
             listRequest.setTechnologyVariants(new ArrayList<Set<Technology>>());
             listRequest.getTechnologyVariants().add(new HashSet<>(technologies));

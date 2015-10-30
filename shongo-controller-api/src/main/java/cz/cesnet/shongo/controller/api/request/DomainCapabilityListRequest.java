@@ -29,6 +29,8 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private Interval interval;
 
+    private Integer licenseCount;
+
     private ObjectPermission permission;
 
     /**
@@ -153,6 +155,16 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void setOnlyAllocatable(Boolean onlyAllocatable)
     {
         this.onlyAllocatable = onlyAllocatable;
+    }
+
+    public Integer getLicenseCount()
+    {
+        return licenseCount;
+    }
+
+    public void setLicenseCount(int licenseCount)
+    {
+        this.licenseCount = licenseCount;
     }
 
     public enum Type

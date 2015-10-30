@@ -290,9 +290,14 @@ public class RoomReservationTask extends ReservationTask
         }
         catch (SchedulerReportSet.ResourceNotFoundException ex) {
             if (schedulerContext.isLocalByUser()) {
+                // TODO: pridat licence a slot
                 foreignDomainsWithRoomProvider = foreignDomainsWithRoomProvider();
                 if (foreignDomainsWithRoomProvider.isEmpty()) {
                     throw ex;
+                }
+                else if (schedulerContext.isAvailabilityCheck()) {
+                    // Skip allocation when availability check, when only available resources are in foreign domain
+                    return null;
                 }
             }
             else {
@@ -357,6 +362,7 @@ public class RoomReservationTask extends ReservationTask
         if (Controller.isInterDomainInitialized()) {
             DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
             listRequest.setInterval(slot);
+            listRequest.setLicenseCount(participantCount);
             listRequest.setOnlyAllocatable(Boolean.TRUE);
             if (technologyVariants.isEmpty()) {
                 throw new IllegalStateException("Technologies must be set for room reservation.");
@@ -431,8 +437,8 @@ public class RoomReservationTask extends ReservationTask
             cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = reservations.first();
             if (bestReservation.isAllocated()) {
                 currentReservation.setForeignReservationRequestId(bestReservation.getForeignReservationRequestId());
-                currentReservation.setCompletedByState(schedulerContext, bestReservation);
             }
+            currentReservation.setCompletedByState(schedulerContext, bestReservation);
 
             return  currentReservation;
             //TODO: do not wait for everyone???
