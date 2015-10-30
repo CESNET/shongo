@@ -110,7 +110,9 @@ public class ResourceSummary extends IdentifiedComplexType
     public void setTechnologies(Set<Technology> technologies)
     {
         this.technologies.clear();
-        this.technologies.addAll(technologies);
+        if (technologies != null) {
+            this.technologies.addAll(technologies);
+        }
     }
 
     /**
