@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.ObjectType;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -26,6 +26,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingServiceSpecificati
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.*;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
@@ -399,12 +400,7 @@ public class RoomReservationTask extends ReservationTask
             if (bestReservation != null) {
                 // Sets reservation only if it was successfully allocated
                 if (bestReservation.isAllocated()) {
-                    reservation.setForeignReservationRequestId(bestReservation.getForeignReservationRequestId());
-
-                    String domainName = ObjectIdentifier.parseForeignDomain(bestReservation.getForeignReservationRequestId());
-                    ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
-                    Domain domain = resourceManager.getDomainByName(domainName);
-                    reservation.setDomain(domain);
+                    updateAllocatedForeignReservation(reservation, bestReservation);
                 }
                 reservation.setCompletedByState(schedulerContext, bestReservation);
             }
@@ -428,7 +424,7 @@ public class RoomReservationTask extends ReservationTask
 
             cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = reservations.first();
             if (bestReservation.isAllocated()) {
-                currentReservation.setForeignReservationRequestId(bestReservation.getForeignReservationRequestId());
+                updateAllocatedForeignReservation(currentReservation, bestReservation);
             }
             currentReservation.setCompletedByState(schedulerContext, bestReservation);
 
@@ -570,6 +566,17 @@ public class RoomReservationTask extends ReservationTask
             //TODO: do not wait for everyone???
         }
         return null;
+    }
+
+    private void updateAllocatedForeignReservation(ForeignRoomReservation reservationToUpdate,
+                                                   cz.cesnet.shongo.controller.api.domains.response.Reservation reservationResponse)
+    {
+        reservationToUpdate.setForeignReservationRequestId(reservationResponse.getForeignReservationRequestId());
+
+        String domainName = ObjectIdentifier.parseForeignDomain(reservationResponse.getForeignReservationRequestId());
+        ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
+        Domain domain = resourceManager.getDomainByName(domainName);
+        reservationToUpdate.setDomain(domain);
     }
 
     private void createReservationForDeletion(String reservationRequestsId)

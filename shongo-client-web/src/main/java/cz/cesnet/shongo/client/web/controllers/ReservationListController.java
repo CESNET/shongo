@@ -130,7 +130,9 @@ public class ReservationListController
             }
         }
         if (userId != null) {
-            request.setUserId(userId);
+            if (UserInformation.isLocal(userId)) {
+                request.setUserId(userId);
+            }
         }
         if (participantUserId != null) {
             request.setParticipantUserId(participantUserId);
@@ -186,8 +188,15 @@ public class ReservationListController
             item.put("isWritable", objectPermissions.contains(ObjectPermission.WRITE));
             item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
 
-            UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
-            item.put("user", user.getFullName());
+            if (UserInformation.isLocal(reservationRequest.getUserId())) {
+                UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
+                item.put("user", user.getFullName());
+            }
+            else {
+                Long domainId = UserInformation.parseDomainId(userId);
+                String domainName = resourceService.getDomainName(securityToken, domainId.toString());
+                item.put("user", domainName);
+            }
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
