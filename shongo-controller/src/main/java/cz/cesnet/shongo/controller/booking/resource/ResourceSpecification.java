@@ -160,12 +160,16 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignResourceReservation.setDomain(foreignResources.getDomain());
 
                         foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources, previousReservationRequestId);
-                        cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
-                        resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) foreignReservation.getSpecification();
                         foreignResourceReservation.setSlot(foreignReservation.getSlot());
                         foreignResourceReservation.setForeignResources(foreignResources);
-                        foreignResourceReservation.setResourceName(resourceSpecification.getResourceName());
-                        foreignResourceReservation.setResourceDescription(resourceSpecification.getResourceDescription());
+
+                        cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                        resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) foreignReservation.getSpecification();
+
+                        if (resourceSpecification != null) {
+                            foreignResourceReservation.setResourceName(resourceSpecification.getResourceName());
+                            foreignResourceReservation.setResourceDescription(resourceSpecification.getResourceDescription());
+                        }
 
                         foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getForeignReservationRequestId());
                         foreignResourceReservation.setCompletedByState(schedulerContext, foreignReservation);
@@ -179,24 +183,16 @@ public class ResourceSpecification extends Specification implements ReservationT
                         //TODO: try-catch?
                         foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
 
+                        cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                        resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) foreignReservation.getSpecification();
+
+                        if (resourceSpecification != null) {
+                            foreignResourceReservation.setResourceName(resourceSpecification.getResourceName());
+                            foreignResourceReservation.setResourceDescription(resourceSpecification.getResourceDescription());
+                        }
+
                         foreignResourceReservation.setCompletedByState(schedulerContext, foreignReservation);
-//                        if (foreignReservation.isAllocated()) {
-                            //TODO: kdyz FAIL, tak zahodit a nastavit fail pro request
-//                            foreignResourceReservation.setSlot(foreignReservation.getSlot());
-//                            foreignResourceReservation.setComplete(true);
-//                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
-//                        }
-//                        else if (!foreignReservation.success()) {
-//                            foreignResourceReservation.setComplete(true);
-//                            foreignResourceReservation.setSlotStart(null);
-//                            foreignResourceReservation.setSlotEnd(null);
-//                            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
-//                        }
-//                        else {
-                            //TODO vratit puvodni???
-//                            foreignResourceReservation = (ForeignResourceReservation) currentReservation;
-//                            foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getReservationRequestId());
-//                        }
+
                     }
 
                     return foreignResourceReservation;
