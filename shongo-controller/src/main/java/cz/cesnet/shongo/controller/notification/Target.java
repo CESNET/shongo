@@ -10,9 +10,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.*;
@@ -564,6 +562,9 @@ public abstract class Target
         }
         else if (reservation instanceof RecordingServiceReservation) {
             return new RecordingService((RecordingServiceReservation) reservation, entityManager);
+        }
+        else if (reservation instanceof AbstractForeignReservation) {
+            return null;
         }
         else {
             Executable executable = reservation.getExecutable();

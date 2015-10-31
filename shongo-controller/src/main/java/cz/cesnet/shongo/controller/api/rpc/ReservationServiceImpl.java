@@ -19,7 +19,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
-import cz.cesnet.shongo.controller.booking.domain.*;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -1181,7 +1180,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 try {
                     if (!ObjectIdentifier.isLocal(resourceId)) {
                         ListResponse<ReservationSummary> reservations = new ListResponse<>();
-                        reservations.addAll(InterDomainAgent.getInstance().getConnector().listForeignDomainReservations(resourceId, request.getInterval()));
+                        reservations.addAll(InterDomainAgent.getInstance().getConnector().listForeignResourcesReservations(resourceId, request.getInterval()));
                         reservations.setCount(reservations.getItemCount());
                         return reservations;
                     }

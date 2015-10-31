@@ -8,8 +8,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
+import cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AbstractServiceImpl;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -725,11 +725,14 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             case RESOURCE:
                 reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
                 if (record[6] != null) {
-                    reservation.setForeignResourceId(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
+                    cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                    resourceSpecification = new ResourceSpecification(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
+                    reservation.setSpecification(resourceSpecification);
                 }
                 break;
             case ROOM:
                 reservation.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+                //TODO: add RoomSpecification
 //        if (record[8] != null) {
 //            reservation.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);
 //        }

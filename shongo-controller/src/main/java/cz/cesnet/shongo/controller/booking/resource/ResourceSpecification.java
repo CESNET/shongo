@@ -160,10 +160,12 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignResourceReservation.setDomain(foreignResources.getDomain());
 
                         foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources, previousReservationRequestId);
+                        cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                        resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) foreignReservation.getSpecification();
                         foreignResourceReservation.setSlot(foreignReservation.getSlot());
                         foreignResourceReservation.setForeignResources(foreignResources);
-                        foreignResourceReservation.setResourceName(foreignReservation.getResourceName());
-                        foreignResourceReservation.setResourceDescription(foreignReservation.getResourceDescription());
+                        foreignResourceReservation.setResourceName(resourceSpecification.getResourceName());
+                        foreignResourceReservation.setResourceDescription(resourceSpecification.getResourceDescription());
 
                         foreignResourceReservation.setForeignReservationRequestId(foreignReservation.getForeignReservationRequestId());
                         foreignResourceReservation.setCompletedByState(schedulerContext, foreignReservation);

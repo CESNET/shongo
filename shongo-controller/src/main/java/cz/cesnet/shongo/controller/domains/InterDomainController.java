@@ -363,7 +363,10 @@ public class InterDomainController implements InterDomainProtocol
                             ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
                             String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
 
-                            reservation.setForeignResourceId(resourceId);
+                            cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                            resourceSpecification = new cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification(resourceId);
+
+                            reservation.setSpecification(resourceSpecification);
                         }
                         else if (currentReservation instanceof RoomReservation) {
                             RoomReservation roomReservation = (RoomReservation) currentReservation;
@@ -371,12 +374,13 @@ public class InterDomainController implements InterDomainProtocol
                             cz.cesnet.shongo.controller.booking.room.RoomSpecification roomSpecification;
                             roomSpecification = (cz.cesnet.shongo.controller.booking.room.RoomSpecification) specification;
 
-                            reservation.setLicenseCount(roomReservation.getLicenseCount());
-                            reservation.setTechnologies(new HashSet<Technology>(roomSpecification.getTechnologies()));
+                            cz.cesnet.shongo.controller.api.domains.response.RoomSpecification foreignRoomSpecification;
+                            foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
+                            foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
+                            foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
+
+                            reservation.setSpecification(foreignRoomSpecification);
                         }
-                    }
-                    if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
-                        //TODO: nastavit cislo a dalsi
                     }
                     break;
                 default:

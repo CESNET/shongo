@@ -77,4 +77,10 @@ public abstract class AbstractForeignReservation extends TargetedReservation
                 throw new TodoImplementException();
         }
     }
+
+    @Override
+    public cz.cesnet.shongo.controller.api.Reservation toApi(EntityManager entityManager, boolean administrator)
+    {
+        return super.toApi(entityManager, administrator);
+    }
 }

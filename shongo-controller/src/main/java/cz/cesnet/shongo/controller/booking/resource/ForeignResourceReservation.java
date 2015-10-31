@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
@@ -81,7 +81,9 @@ public class ForeignResourceReservation extends AbstractForeignReservation
         }
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        ObjectIdentifier resourceId = ObjectIdentifier.parseForeignId(reservationApi.getForeignResourceId());
+        cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+        resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) reservationApi.getSpecification();
+        ObjectIdentifier resourceId = ObjectIdentifier.parseForeignId(resourceSpecification.getForeignResourceId());
         foreignResources = resourceManager.findForeignResourcesByResourceId(resourceId);
         if (foreignResources == null) {
             Domain domain = resourceManager.getDomainByName(resourceId.getDomainName());

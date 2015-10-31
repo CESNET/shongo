@@ -1,15 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.api.RoomSetting;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a room in a device.
