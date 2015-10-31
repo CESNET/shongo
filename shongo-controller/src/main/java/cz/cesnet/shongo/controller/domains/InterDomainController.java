@@ -25,8 +25,10 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.*;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -349,8 +351,8 @@ public class InterDomainController implements InterDomainProtocol
             switch (reservationRequest.getAllocationState()) {
                 case ALLOCATION_FAILED:
                     reservation.setStatus(AbstractResponse.Status.FAILED);
-//                SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
-                    reservation.setMessage("TODO ERROR");
+                    SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
+                    reservation.setMessage("TODO: " + report.toString());
                     break;
                 case ALLOCATED:
                     if (currentReservation != null) {
@@ -363,9 +365,20 @@ public class InterDomainController implements InterDomainProtocol
 
                             reservation.setForeignResourceId(resourceId);
                         }
+                        else if (currentReservation instanceof RoomReservation) {
+                            RoomReservation roomReservation = (RoomReservation) currentReservation;
+
+                            cz.cesnet.shongo.controller.booking.room.RoomSpecification roomSpecification;
+                            roomSpecification = (cz.cesnet.shongo.controller.booking.room.RoomSpecification) specification;
+
+                            reservation.setLicenseCount(roomReservation.getLicenseCount());
+                            reservation.setTechnologies(roomSpecification.getTechnologies());
+                        }
+                    }
+                    if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
+                        //TODO: nastavit cislo a dalsi
                     }
                     break;
-                //TODO: rozlisovat mistnosti
                 default:
                     break;
             }
