@@ -1,17 +1,14 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 
 /**
  * Represents a reservation for foreign resource.
@@ -19,7 +16,7 @@ import java.util.Set;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 @JsonIgnoreProperties({"allocated", "slot"})
-public class Reservation extends AbstractResponse implements Comparable<Reservation>
+public class Reservation<T extends ForeignSpecification> extends AbstractResponse implements Comparable<Reservation>
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.
@@ -56,6 +53,8 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
 
     @JsonProperty("specification")
     private ForeignSpecification specification;
+
+    private Class<? extends ForeignSpecification> aClass;
 
     public String getForeignReservationRequestId()
     {
