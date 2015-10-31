@@ -372,7 +372,7 @@ public class InterDomainController implements InterDomainProtocol
                             roomSpecification = (cz.cesnet.shongo.controller.booking.room.RoomSpecification) specification;
 
                             reservation.setLicenseCount(roomReservation.getLicenseCount());
-                            reservation.setTechnologies(roomSpecification.getTechnologies());
+                            reservation.setTechnologies(new HashSet<Technology>(roomSpecification.getTechnologies()));
                         }
                     }
                     if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
