@@ -365,7 +365,6 @@ public class InterDomainController implements InterDomainProtocol
 
                             cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
                             resourceSpecification = new cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification(resourceId);
-
                             reservation.setSpecification(resourceSpecification);
                         }
                         else if (currentReservation instanceof RoomReservation) {
