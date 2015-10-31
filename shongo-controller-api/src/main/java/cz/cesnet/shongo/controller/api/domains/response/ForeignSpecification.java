@@ -13,8 +13,8 @@ import org.codehaus.jackson.annotate.JsonSubTypes.Type;
         include = JsonTypeInfo.As.PROPERTY,
         property = "@class")
 @JsonSubTypes({
-        @Type(value = ResourceSpecification.class, name = "resourceSpecification"),
-        @Type(value = RoomSpecification.class, name = "roomSpecification") })
+        @Type(value = ResourceSpecification.class, name = "ResourceSpecification"),
+        @Type(value = RoomSpecification.class, name = "RoomSpecification") })
 public abstract class ForeignSpecification
 {
 }

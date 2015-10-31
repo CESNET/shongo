@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.domains.response;
 
 
 import cz.cesnet.shongo.Technology;
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.HashSet;
@@ -22,6 +23,20 @@ public class RoomSpecification extends ForeignSpecification
 
     @JsonProperty("technologies")
     private Set<Technology> technologies;
+
+    @JsonCreator
+    public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
+                             @JsonProperty("meetingName") String meetingName,
+                             @JsonProperty("technologies") Set<Technology> technologies)
+    {
+        this.licenseCount = licenseCount;
+        this.meetingName = meetingName;
+        this.technologies = technologies;
+    }
+
+    public RoomSpecification()
+    {
+    }
 
     public Set<Technology> getTechnologies()
     {

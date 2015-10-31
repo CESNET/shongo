@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -17,6 +18,16 @@ public class ResourceSpecification extends ForeignSpecification
 
     @JsonProperty("resourceDescription")
     private String resourceDescription;
+
+    @JsonCreator
+    public ResourceSpecification(@JsonProperty("foreignResourceId") String foreignResourceId,
+                                 @JsonProperty("resourceName") String resourceName,
+                                 @JsonProperty("resourceDescription") String resourceDescription)
+    {
+        this.foreignResourceId = foreignResourceId;
+        this.resourceName = resourceName;
+        this.resourceDescription = resourceDescription;
+    }
 
     public ResourceSpecification(String foreignResourceId)
     {
