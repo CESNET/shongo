@@ -36,6 +36,7 @@ import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -311,20 +312,7 @@ public class RoomReservationTask extends ReservationTask
         // Check for pending foreign reservations
         if (currentReservation instanceof ForeignRoomReservation) {
             if (!((ForeignRoomReservation) currentReservation).isComplete()) {
-                ForeignRoomReservation foreignRoomReservation = checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
-
-                // Return finished foreign reservation
-                if (foreignRoomReservation != null) {
-                    Iterator<String> iterator = foreignRoomReservation.getForeignReservationRequestsIds().iterator();
-                    while (iterator.hasNext()) {
-                        String reservationRequestId = iterator.next();
-                        if (!reservationRequestId.equals(foreignRoomReservation.getForeignReservationRequestId())) {
-                            createReservationForDeletion(reservationRequestId);
-                        }
-                        foreignRoomReservation.getForeignReservationRequestsIds().remove(reservationRequestId);
-                    }
-                }
-                return foreignRoomReservation;
+                return checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
             }
         }
 
@@ -389,10 +377,14 @@ public class RoomReservationTask extends ReservationTask
             ForeignRoomReservation reservation = new ForeignRoomReservation();
             cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = null;
             try {
+                DateTime start = this.slot.getStart().minusMinutes(slotMinutesBefore);
+                DateTime end = this.slot.getEnd().plusMinutes(slotMinutesAfter);
+                Interval slot = new Interval(start, end);
+
                 List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
                 result = InterDomainAgent.getInstance().getConnector().allocateRoom(domainsWithRoomProvider, participantCount, technologyVariants, slot, schedulerContext);
-                SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
-                reservations = new TreeSet<>(result);
+
+                SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations = new TreeSet<>(result);
                 if (!reservationsPending(reservations) && !reservations.isEmpty()) {
                     bestReservation = reservations.first();
                 }
@@ -439,6 +431,140 @@ public class RoomReservationTask extends ReservationTask
                 currentReservation.setForeignReservationRequestId(bestReservation.getForeignReservationRequestId());
             }
             currentReservation.setCompletedByState(schedulerContext, bestReservation);
+
+            //=================================TODO=================================
+            // Allocated room endpoint
+            RoomEndpoint roomEndpoint = null;
+            //TODO: Je to potreba?
+            if (allocateRoomEndpoint && schedulerContext.isExecutableAllowed()) {
+                // Room configuration
+                RoomConfiguration roomConfiguration = new RoomConfiguration();
+                roomConfiguration.setTechnologies(bestReservation.getTechnologies());
+                roomConfiguration.setLicenseCount(bestReservation.getLicenseCount());
+                for (RoomSetting roomSetting : roomSettings) {
+                    try {
+                        roomConfiguration.addRoomSetting(roomSetting.clone());
+                    }
+                    catch (CloneNotSupportedException exception) {
+                        throw new RuntimeException(exception);
+                    }
+                }
+
+                if (reusedRoomEndpoint != null) {
+                    throw new TodoImplementException();
+                }
+                else {
+//                    addReport(new SchedulerReportSet.AllocatingExecutableReport());
+                    // Allocate new ResourceRoomEndpoint
+                    ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+                    resourceRoomEndpoint.setRoomProviderCapability(roomProviderCapability);
+                    resourceRoomEndpoint.setRoomConfiguration(roomConfiguration);
+                    roomEndpoint = resourceRoomEndpoint;
+                }
+
+                roomEndpoint.setSlot(slot);
+                roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
+                roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
+                roomEndpoint.setMeetingName(meetingName);
+                roomEndpoint.setMeetingDescription(meetingDescription);
+                roomEndpoint.setRoomDescription(schedulerContext.getDescription());
+                roomEndpoint.setParticipants(participants);
+                roomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);
+
+                // Allocate aliases for the room endpoint
+//                allocateAliases(roomProviderCapability, roomEndpoint);
+                roomEndpoint.clearAssignedAliases();
+
+                Alias alias = new Alias(AliasType.ROOM_NAME, "TESTovaci");
+                try {
+                    roomEndpoint.addAssignedAlias(alias);
+                } catch (SchedulerException e) {
+                    throw new TodoImplementException("necesary??", e);
+                }
+
+                // Update room endpoint state
+                if (roomEndpoint.getState() == null) {
+                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                }
+                else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
+                    roomEndpoint.setModified(true);
+                }
+
+                // Allocate services (only for rooms which are accessible)
+//                if (licenseCount > 0) {
+//                    // Allocate automatic services
+//                    RecordingService automaticRecordingService = null;
+//                    if (roomProviderCapability.isRoomRecordable()) {
+//                        automaticRecordingService = new RecordingService();
+//                        RecordingCapability recordingCapability =
+//                                deviceResource.getCapabilityRequired(RecordingCapability.class);
+//                        automaticRecordingService.setRecordingCapability(recordingCapability);
+//                        automaticRecordingService.setSlot(slot);
+//                        automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);
+//                        roomEndpoint.addService(automaticRecordingService);
+//                    }
+//
+//                    // For allocating services we must add the room reservation as allocated
+//                    schedulerContext.getState().addAllocatedReservation(reservation);
+//                    try {
+//                        // Allocate requested services
+//                        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+//                            if (serviceSpecification instanceof RecordingServiceSpecification) {
+//                                RecordingServiceSpecification recordingServiceSpecification =
+//                                        (RecordingServiceSpecification) serviceSpecification;
+//                                if (automaticRecordingService != null) {
+//                                    // Recording don't have to be allocated
+//                                    if (recordingServiceSpecification.isEnabled()) {
+//                                        // Recording should be automatically started
+//                                        automaticRecordingService.setState(ExecutableService.State.PREPARED);
+//                                    }
+//                                }
+//                                else {
+//                                    // Recording must be allocated
+//                                    RecordingServiceReservationTask recordingServiceReservationTask =
+//                                            recordingServiceSpecification.createReservationTask(schedulerContext,
+//                                                    this.slot);
+//                                    recordingServiceReservationTask.setExecutable(roomEndpoint);
+//                                    addChildReservation(recordingServiceReservationTask);
+//                                }
+//                            }
+//                            else if (serviceSpecification instanceof ReservationTaskProvider) {
+//                                ReservationTaskProvider reservationTaskProvider =
+//                                        (ReservationTaskProvider) serviceSpecification;
+//                                ReservationTask serviceReservationTask =
+//                                        reservationTaskProvider.createReservationTask(schedulerContext, this.slot);
+//                                addChildReservation(serviceReservationTask);
+//                            }
+//                            else {
+//                                throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
+//                            }
+//                        }
+//                    }
+//                    finally {
+//                        // Remove the room reservation as allocated
+//                        schedulerContextState.removeAllocatedReservation(reservation);
+//                    }
+//                }
+            }
+            //=================================TODO=================================
+
+            // Set executable to room reservation
+            currentReservation.setExecutable(roomEndpoint);
+
+            // Notify participants
+            if (roomEndpoint != null && roomEndpoint.isParticipantNotificationEnabled()) {
+                schedulerContextState.addNotification(new RoomNotification.RoomCreated(roomEndpoint));
+            }
+
+            // Delete unwanted reservation request in foreign domains
+            Iterator<String> iterator = currentReservation.getForeignReservationRequestsIds().iterator();
+            while (iterator.hasNext()) {
+                String reservationRequestId = iterator.next();
+                if (!reservationRequestId.equals(currentReservation.getForeignReservationRequestId())) {
+                    createReservationForDeletion(reservationRequestId);
+                }
+                iterator.remove();
+            }
 
             return  currentReservation;
             //TODO: do not wait for everyone???

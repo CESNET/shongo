@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.domains.response;
 
 
 import com.sun.jmx.remote.util.OrderClassLoaders;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -9,6 +10,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Represents a reservation for foreign resource.
  *
@@ -58,6 +63,12 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
 
     @JsonProperty("price")
     private int price;
+
+    @JsonProperty("licenseCount")
+    private Integer licenseCount;
+
+    @JsonProperty("technologies")
+    private Set<Technology> technologies;
 
     public String getForeignReservationRequestId()
     {
@@ -191,6 +202,34 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
         return false;
     }
 
+    public Set<Technology> getTechnologies()
+    {
+        return technologies;
+    }
+
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    public void addTechnology(Technology technology)
+    {
+        if (technologies == null) {
+            technologies = new HashSet<>();
+        }
+        this.technologies.add(technology);
+    }
+
+    public Integer getLicenseCount()
+    {
+        return licenseCount;
+    }
+
+    public void setLicenseCount(Integer licenseCount)
+    {
+        this.licenseCount = licenseCount;
+    }
+
     public ReservationSummary toReservationSummary()
     {
         ReservationSummary reservationSummary = new ReservationSummary();
@@ -199,9 +238,8 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
         reservationSummary.setReservationRequestId(getForeignReservationRequestId());
         switch (getType()) {
             case VIRTUAL_ROOM:
-//                reservationSummary.setRoomLicenseCount();
+                reservationSummary.setRoomLicenseCount(getLicenseCount());
 //                reservationSummary.setRoomName();
-                throw new TodoImplementException();
             case RESOURCE:
                 reservationSummary.setType(ReservationSummary.Type.RESOURCE);
                 break;
