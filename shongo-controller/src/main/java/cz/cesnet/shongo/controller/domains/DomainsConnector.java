@@ -131,7 +131,6 @@ public class DomainsConnector
      * @param reader      to parse JSON
      * @param result      collection to store the result
      * @param returnClass {@link Class<T>} of the object to return
-     * @return result object as instance of given {@code clazz}
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
                                                     final MultiMap<String, String> parameters, final Collection<Domain> domains,
@@ -141,23 +140,22 @@ public class DomainsConnector
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
 
         for (final Domain domain : domains) {
-            Callable<T> task = new DomainTask<T>(method, action, parameters, domain, reader, returnClass, result, null);
+            Callable<T> task = new DomainTask<>(method, action, parameters, domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
         while (!futureTasks.isEmpty()) {
             try {
-                Iterator<Map.Entry<String, Future<T>>> i = futureTasks.entrySet().iterator();
-                while (i.hasNext()) {
-                    Map.Entry<String, Future<T>> entry = i.next();
+                Iterator<Map.Entry<String, Future<T>>> iterator = futureTasks.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, Future<T>> entry = iterator.next();
                     if (entry.getValue().isDone()) {
-                        futureTasks.remove(entry.getKey());
+                        iterator.remove();
                     }
                 }
                 Thread.sleep(THREAD_TIMEOUT);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                continue;
             }
         }
     }
@@ -171,7 +169,6 @@ public class DomainsConnector
      * @param reader      to parse JSON
      * @param result      collection to store the result
      * @param returnClass {@link Class<T>} of the object to return
-     * @return result object as instance of given {@code clazz}
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
                                                     final Map<Domain, MultiMap<String, String>> parametersByDomain,
@@ -181,23 +178,22 @@ public class DomainsConnector
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
 
         for (final Domain domain : parametersByDomain.keySet()) {
-            Callable<T> task = new DomainTask<T>(method, action, parametersByDomain.get(domain), domain, reader, returnClass, result, null);
+            Callable<T> task = new DomainTask<>(method, action, parametersByDomain.get(domain), domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
         while (!futureTasks.isEmpty()) {
             try {
-                Iterator<Map.Entry<String, Future<T>>> i = futureTasks.entrySet().iterator();
-                while (i.hasNext()) {
-                    Map.Entry<String, Future<T>> entry = i.next();
+                Iterator<Map.Entry<String, Future<T>>> iterator = futureTasks.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, Future<T>> entry = iterator.next();
                     if (entry.getValue().isDone()) {
-                        futureTasks.remove(entry.getKey());
+                        iterator.remove();
                     }
                 }
                 Thread.sleep(THREAD_TIMEOUT);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                continue;
             }
         }
     }
@@ -305,7 +301,9 @@ public class DomainsConnector
                     } else {
                         parametersBuilder.append("&");
                     }
-                    parametersBuilder.append(parameter.getKey() + "=" + value);
+                    parametersBuilder.append(parameter.getKey());
+                    parametersBuilder.append("=");
+                    parametersBuilder.append(value);
                 }
             }
         }
@@ -387,7 +385,7 @@ public class DomainsConnector
 
     public static String encodeCredentials(String credentials)
     {
-        return new String(new Base64().encode(credentials.getBytes()).replaceAll("\n", ""));
+        return Base64.encode(credentials.getBytes()).replaceAll("\n", "");
     }
 
     /**
@@ -465,8 +463,8 @@ public class DomainsConnector
 
     /**
      * Test if domain by given name exists and is allocatable.
-     * @param domainName
-     * @return
+     * @param domainName to check
+     * @return if domain is allocatable
      */
     public boolean isDomainAllocatable(String domainName)
     {
@@ -481,8 +479,8 @@ public class DomainsConnector
 
     /**
      * Test if domain by given name exists.
-     * @param domainName
-     * @return
+     * @param domainName to check
+     * @return if domain exists
      */
     public boolean domainExists(String domainName)
     {
@@ -498,7 +496,7 @@ public class DomainsConnector
     /**
      * Returns unmodifiable list of statuses of all foreign domains
      *
-     * @return
+     * @return list of {@link Domain}s with statuses
      */
     public List<Domain> getForeignDomainsStatuses()
     {
@@ -509,7 +507,7 @@ public class DomainsConnector
             domain.setStatus(status == null ? Domain.Status.NOT_AVAILABLE : status.toStatus());
         }
 
-        return foreignDomains;
+        return Collections.unmodifiableList(foreignDomains);
     }
 
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
@@ -668,8 +666,7 @@ public class DomainsConnector
             ForeignSpecification specification = reservation.getSpecification();
             if (specification instanceof ResourceSpecification) {
                 ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
-
-                if (!resourceId.equals(resourceSpecification.getForeignResourceId())) {
+                if (resourceId != null && !resourceId.equals(resourceSpecification.getForeignResourceId())) {
                     throw new IllegalArgumentException("Unexpected resource id: " + resourceSpecification.getForeignResourceId());
                 }
                 Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
@@ -686,6 +683,7 @@ public class DomainsConnector
     /**
      * Represents action to be called on domain. Returns result after successful call. If {@code result} or
      * {@code unavailableDomains} are set, result or failed action will be written to them (synchronized on the {@code result}).
+     *
      * @param <T> class of the result
      */
     protected class DomainTask<T> implements Callable<T>, Runnable
@@ -693,37 +691,37 @@ public class DomainsConnector
         /**
          * Http method of the action
          */
-        private InterDomainAction.HttpMethod method;
+        private final InterDomainAction.HttpMethod method;
 
         /**
          * URL path of the action to call
          */
-        private String action;
+        private final String action;
 
         /**
          * GET parameters of the action
          */
-        private MultiMap<String, String> parameters;
+        private final MultiMap<String, String> parameters;
 
         /**
          * Domain for which will the action be called
          */
-        private Domain domain;
+        private final Domain domain;
 
         /**
          * Reader to parse the JSON result
          */
-        private ObjectReader reader;
+        private final ObjectReader reader;
 
         /**
          * Class of the result to be returned
          */
-        private Class<T> returnClass;
+        private final Class<T> returnClass;
 
         /**
          * Result map to be filled
          */
-        private Map<String, ?> result;
+        private final Map<String, ?> result;
 
         /**
          * Set of domains for which the action fails
@@ -748,7 +746,7 @@ public class DomainsConnector
         /**
          * Callable will be terminated (throws {@link IllegalStateException}) only if domains does not exist.
          *
-         * @return
+         * @return result of remote domain call
          */
         @Override
         synchronized public T call()
@@ -824,9 +822,7 @@ public class DomainsConnector
         private void terminateDomainTask() throws IllegalStateException
         {
             synchronized (result) {
-                if (result != null) {
-                    result.remove(domain.getName());
-                }
+                result.remove(domain.getName());
                 if (unavailableDomains != null) {
                     unavailableDomains.remove(domain.getName());
                 }
