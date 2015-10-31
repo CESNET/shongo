@@ -151,7 +151,7 @@ public class ReservationListController
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
         }
-        if (UserInformation.isLocal(userId)) {
+        if (userId != null && UserInformation.isLocal(userId)) {
             cache.fetchUserInformation(securityToken, userIds);
         }
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
