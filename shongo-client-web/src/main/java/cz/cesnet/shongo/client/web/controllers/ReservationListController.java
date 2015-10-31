@@ -195,7 +195,7 @@ public class ReservationListController
                 item.put("user", user.getFullName());
             }
             else {
-                Long domainId = UserInformation.parseDomainId(userId);
+                Long domainId = UserInformation.parseDomainId(reservationRequest.getUserId());
                 String domainName = resourceService.getDomainName(securityToken, domainId.toString());
                 item.put("user", domainName);
             }
