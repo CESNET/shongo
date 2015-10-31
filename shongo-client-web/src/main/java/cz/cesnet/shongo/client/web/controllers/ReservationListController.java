@@ -151,7 +151,9 @@ public class ReservationListController
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
         }
-        cache.fetchUserInformation(securityToken, userIds);
+        if (UserInformation.isLocal(userId)) {
+            cache.fetchUserInformation(securityToken, userIds);
+        }
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Get permissions for reservation requests
