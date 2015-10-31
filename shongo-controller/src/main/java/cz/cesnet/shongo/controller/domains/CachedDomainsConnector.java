@@ -1,22 +1,18 @@
 package cz.cesnet.shongo.controller.domains;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.codehaus.jackson.map.ObjectReader;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 import org.joda.time.Interval;
 
-import javax.persistence.EntityManagerFactory;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -42,16 +38,16 @@ public class CachedDomainsConnector extends DomainsConnector
     private Set<String> unavailableResources = new HashSet<>();
 
     /**
-     * Cache for foreign reservations by resource id.
+     * Cache for foreign resourceReservations by resource id.
      *
-     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code reservations} BEFORE USE.
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code resourceReservations} BEFORE USE.
      */
-    private Map<String, List<Reservation>> reservations = new HashMap<>();
+    private Map<String, List<Reservation>> resourceReservations = new HashMap<>();
 
     /**
-     * Cache of domains, additional for {#code reservations}.
+     * Cache of domains, additional for {#code resourceReservations}.
      *
-     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code reservations} BEFORE USE.
+     * THIS CACHE IS SHARED BETWEEN THREADS, LOCK ON {@code resourceReservations} BEFORE USE.
      */
     private Set<String> unavailableReservationsDomains = new HashSet<>();
 
@@ -60,7 +56,7 @@ public class CachedDomainsConnector extends DomainsConnector
     {
         super(configuration, domainService, notifier);
         updateResourceCache();
-        updateReservationCache();
+        updateResourceReservationCache();
     }
 
     /**
@@ -88,24 +84,24 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
-     * Start periodic cache of foreign domain's reservations.
+     * Start periodic cache of foreign domain's resourceReservations.
      * TODO
      * When cache is initialized, it will add new domains. Removing from cache and {@link ScheduledThreadPoolExecutor}
      * is handled by thread itself ({@link DomainTask}).
      */
-    synchronized private void updateReservationCache()
+    synchronized private void updateResourceReservationCache()
     {
         // Init only for inactive domains
         List<Domain> domains = new ArrayList<>();
-        synchronized (reservations) {
+        synchronized (resourceReservations) {
             for (Domain domain : listAllocatableForeignDomains()) {
-                if (!reservations.containsKey(domain.getName())) {
+                if (!resourceReservations.containsKey(domain.getName())) {
                     domains.add(domain);
                 }
             }
         }
         submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, null,
-                domains, Reservation.class, reservations, unavailableReservationsDomains);
+                domains, Reservation.class, resourceReservations, unavailableReservationsDomains);
     }
 
     private <T> void submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
@@ -216,15 +212,15 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
-     * @return true if cache contains reservations for all allocatable domains
+     * @return true if cache contains resourceReservations for all allocatable domains
      * (if number of cached domains equals allocatable domains +-1), false otherwise.
      *
      * Submits potentially missing domains to executor (checks every time).
      */
     protected boolean isReservationCacheReady(String domainName)
     {
-        boolean isReady = isCacheReady(reservations, domainName);
-        updateReservationCache();
+        boolean isReady = isCacheReady(resourceReservations, domainName);
+        updateResourceReservationCache();
         return isReady;
     }
 
@@ -372,21 +368,28 @@ public class CachedDomainsConnector extends DomainsConnector
     }
 
     /**
-     * List foreign reservations for given {@code resourceId}. Returns cached reservations if available.
+     * List foreign resourceReservations for given {@code resourceId}. Returns cached resourceReservations if available.
      *
      * @return {@link List<Reservation>} of resources for foreign available domains
      */
-    public List<ReservationSummary> listForeignDomainReservations(String resourceId, Interval interval)
+    public List<ReservationSummary> listForeignResourcesReservations(String resourceId, Interval interval)
     {
         List<Reservation> response;
         List<ReservationSummary> result = new ArrayList<>();
         String domainName = ObjectIdentifier.parseDomain(resourceId);
         if (isReservationCacheReady(domainName)) {
-            synchronized (reservations) {
-                response = this.reservations.get(domainName);
+            synchronized (resourceReservations) {
+                response = this.resourceReservations.get(domainName);
                 for (cz.cesnet.shongo.controller.api.domains.response.Reservation reservation : response) {
-                    if (resourceId.equals(reservation.getForeignResourceId())) {
-                        result.add(reservation.toReservationSummary());
+                    ForeignSpecification specification = reservation.getSpecification();
+                    if (specification instanceof ResourceSpecification) {
+                        ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+                        if (resourceId.equals(resourceSpecification.getForeignResourceId())) {
+                            result.add(reservation.toReservationSummary());
+                        }
+                    }
+                    else {
+                        throw new TodoImplementException("Unsupported foreign specification.");
                     }
                 }
             }

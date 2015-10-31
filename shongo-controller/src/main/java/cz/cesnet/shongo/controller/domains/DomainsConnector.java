@@ -665,10 +665,19 @@ public class DomainsConnector
         List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, domain, reader, List.class);
         List<Reservation> reservations = new ArrayList<>();
         for (Reservation reservation : response) {
-            if (resourceId == null || resourceId.equals(reservation.getForeignResourceId())) {
+            ForeignSpecification specification = reservation.getSpecification();
+            if (specification instanceof ResourceSpecification) {
+                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+
+                if (!resourceId.equals(resourceSpecification.getForeignResourceId())) {
+                    throw new IllegalArgumentException("Unexpected resource id: " + resourceSpecification.getForeignResourceId());
+                }
                 Long domainId = ObjectIdentifier.parse(domain.getId()).getPersistenceId();
                 reservation.setUserId(UserInformation.formatForeignUserId(reservation.getUserId(), domainId));
                 reservations.add(reservation);
+            }
+            else {
+                throw new TodoImplementException("Unsupported foreign specification.");
             }
         }
         return reservations;

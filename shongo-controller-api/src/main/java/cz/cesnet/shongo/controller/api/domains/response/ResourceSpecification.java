@@ -1,0 +1,56 @@
+package cz.cesnet.shongo.controller.api.domains.response;
+
+import org.codehaus.jackson.annotate.JsonProperty;
+
+/**
+ * Represents a resource specification for foreign {@link Reservation}.
+ *
+ * @author Ondrej Pavelka <pavelka@cesnet.cz>
+ */
+public class ResourceSpecification extends ForeignSpecification
+{
+    @JsonProperty("foreignResourceId")
+    private String foreignResourceId;
+
+    @JsonProperty("resourceName")
+    private String resourceName;
+
+    @JsonProperty("resourceDescription")
+    private String resourceDescription;
+
+    public ResourceSpecification(String foreignResourceId)
+    {
+        this.foreignResourceId = foreignResourceId;
+    }
+
+    public String getForeignResourceId()
+    {
+        return foreignResourceId;
+    }
+
+    public void setForeignResourceId(String foreignResourceId)
+    {
+        this.foreignResourceId = foreignResourceId;
+    }
+
+    public String getResourceName()
+    {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName)
+    {
+        this.resourceName = resourceName;
+    }
+
+    public String getResourceDescription()
+    {
+        return resourceDescription;
+    }
+
+    public void setResourceDescription(String resourceDescription)
+    {
+        this.resourceDescription = resourceDescription;
+    }
+
+}

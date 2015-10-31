@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
-import com.sun.jmx.remote.util.OrderClassLoaders;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.DateTime;
@@ -43,9 +42,6 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
     @JsonProperty("slotEnd")
     private DateTime slotEnd;
 
-    @JsonProperty("foreignResourceId")
-    private String foreignResourceId;
-
     @JsonProperty("type")
     private DomainCapabilityListRequest.Type type;
 
@@ -55,20 +51,11 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
     @JsonProperty("userId")
     private String userId;
 
-    @JsonProperty("resourceName")
-    private String resourceName;
-
-    @JsonProperty("resourceDescription")
-    private String resourceDescription;
-
     @JsonProperty("price")
     private int price;
 
-    @JsonProperty("licenseCount")
-    private Integer licenseCount;
-
-    @JsonProperty("technologies")
-    private Set<Technology> technologies;
+    @JsonProperty("specification")
+    private ForeignSpecification specification;
 
     public String getForeignReservationRequestId()
     {
@@ -121,16 +108,6 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
         this.slotEnd = slotEnd;
     }
 
-    public String getForeignResourceId()
-    {
-        return foreignResourceId;
-    }
-
-    public void setForeignResourceId(String foreignResourceId)
-    {
-        this.foreignResourceId = foreignResourceId;
-    }
-
     public DomainCapabilityListRequest.Type getType()
     {
         return type;
@@ -161,26 +138,6 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
         this.userId = userId;
     }
 
-    public String getResourceName()
-    {
-        return resourceName;
-    }
-
-    public void setResourceName(String resourceName)
-    {
-        this.resourceName = resourceName;
-    }
-
-    public String getResourceDescription()
-    {
-        return resourceDescription;
-    }
-
-    public void setResourceDescription(String resourceDescription)
-    {
-        this.resourceDescription = resourceDescription;
-    }
-
     public int getPrice()
     {
         if (!success() || price < 0) {
@@ -202,51 +159,36 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
         return false;
     }
 
-    public Set<Technology> getTechnologies()
+    public ForeignSpecification getSpecification()
     {
-        return technologies;
+        return specification;
     }
 
-    public void setTechnologies(Set<Technology> technologies)
+    public void setSpecification(ForeignSpecification specification)
     {
-        this.technologies = technologies;
-    }
-
-    public void addTechnology(Technology technology)
-    {
-        if (technologies == null) {
-            technologies = new HashSet<>();
-        }
-        this.technologies.add(technology);
-    }
-
-    public Integer getLicenseCount()
-    {
-        return licenseCount;
-    }
-
-    public void setLicenseCount(Integer licenseCount)
-    {
-        this.licenseCount = licenseCount;
+        this.specification = specification;
     }
 
     public ReservationSummary toReservationSummary()
     {
         ReservationSummary reservationSummary = new ReservationSummary();
         reservationSummary.setId(getForeignReservationId());
+        reservationSummary.setSlot(getSlot());
         reservationSummary.setUserId(getUserId());
         reservationSummary.setReservationRequestId(getForeignReservationRequestId());
+        reservationSummary.setReservationRequestDescription(getReservationRequestDescription());
         switch (getType()) {
             case VIRTUAL_ROOM:
-                reservationSummary.setRoomLicenseCount(getLicenseCount());
+                reservationSummary.setType(ReservationSummary.Type.ROOM);
+                RoomSpecification roomSpecification = (RoomSpecification) getSpecification();
+                reservationSummary.setRoomLicenseCount(roomSpecification.getLicenseCount());
 //                reservationSummary.setRoomName();
             case RESOURCE:
+                ResourceSpecification resourceSpecification = (ResourceSpecification) getSpecification();
                 reservationSummary.setType(ReservationSummary.Type.RESOURCE);
+                reservationSummary.setResourceId(resourceSpecification.getForeignResourceId());
                 break;
         }
-        reservationSummary.setSlot(getSlot());
-        reservationSummary.setResourceId(getForeignResourceId());
-        reservationSummary.setReservationRequestDescription(getReservationRequestDescription());
         return reservationSummary;
     }
 
