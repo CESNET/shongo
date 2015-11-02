@@ -54,8 +54,6 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
     @JsonProperty("specification")
     private ForeignSpecification specification;
 
-    private Class<? extends ForeignSpecification> aClass;
-
     public String getForeignReservationRequestId()
     {
         return foreignReservationRequestId;

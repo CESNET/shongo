@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.domains;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectType;
@@ -24,7 +24,6 @@ import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
-import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 
@@ -37,6 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import sun.beans.editors.EnumEditor;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
@@ -59,10 +59,12 @@ public class InterDomainController implements InterDomainProtocol
     @InitBinder
     public void initBinder(WebDataBinder binder)
     {
-        binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new TypeEditor());
-        binder.registerCustomEditor(Technology.class, new TechnologyEditor());
-        binder.registerCustomEditor(AdobeConnectPermissions.class, new AdobeConnectPermissionsEditor());
         binder.registerCustomEditor(Interval.class, new IntervalEditor());
+
+        binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new sun.beans.editors.EnumEditor(DomainCapabilityListRequest.Type.class));
+        binder.registerCustomEditor(Technology.class, new sun.beans.editors.EnumEditor(Technology.class));
+        binder.registerCustomEditor(AdobeConnectPermissions.class, new sun.beans.editors.EnumEditor(AdobeConnectPermissions.class));
+        binder.registerCustomEditor(AliasType.class, new sun.beans.editors.EnumEditor(AliasType.class));
     }
 
     @Override
@@ -359,6 +361,7 @@ public class InterDomainController implements InterDomainProtocol
                         String reservationId = ObjectIdentifier.formatId(currentReservation);
                         reservation.setSlot(currentReservation.getSlot());
                         reservation.setForeignReservationId(reservationId);
+
                         if (currentReservation instanceof ResourceReservation) {
                             ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
                             String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
@@ -377,6 +380,10 @@ public class InterDomainController implements InterDomainProtocol
                             foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
                             foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
                             foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
+
+                            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
+                                foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
+                            }
 
                             reservation.setSpecification(foreignRoomSpecification);
                         }
@@ -710,4 +717,37 @@ public class InterDomainController implements InterDomainProtocol
             }
         }
     }
+
+//    public class EnumEditor<T extends Enum<T>> extends PropertyEditorSupport
+//    {
+//        Class<T> enumType;
+//
+//        public EnumEditor(Class<T> enumType)
+//        {
+//            this.enumType = enumType;
+//        }
+//
+//        @Override
+//        public String getAsText()
+//        {
+//            if (getValue() == null) {
+//                return "";
+//            }
+//            T value = (T) getValue();
+//            if (value == null) {
+//                return "";
+//            }
+//            return value.toString();
+//        }
+//
+//        @Override
+//        public void setAsText(String text) throws IllegalArgumentException
+//        {
+//            if (!StringUtils.hasText(text)) {
+//                setValue(null);
+//            } else {
+//                setValue(T.valueOf(enumType, text));
+//            }
+//        }
+//    }
 }

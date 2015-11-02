@@ -1,24 +1,22 @@
-package cz.cesnet.shongo.api;
+package cz.cesnet.shongo.controller.api.domains.response;
 
 import cz.cesnet.shongo.AliasType;
-import jade.content.Concept;
-import org.codehaus.jackson.annotate.JsonProperty;
+
 
 /**
- * @author Martin Srom <martin.srom@cesnet.cz>
+ * Alias
+ * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class Alias extends IdentifiedComplexType
+public class Alias
 {
     /**
      * Type of alias.
      */
-    @JsonProperty("type")
     private AliasType type;
 
     /**
      * Value of alias.
      */
-    @JsonProperty("value")
     private String value;
 
     /**
@@ -106,25 +104,5 @@ public class Alias extends IdentifiedComplexType
         int result = type.hashCode();
         result = 31 * result + value.hashCode();
         return result;
-    }
-
-    private static final String TYPE = "type";
-    private static final String VALUE = "value";
-
-    @Override
-    public DataMap toData()
-    {
-        DataMap dataMap = super.toData();
-        dataMap.set(TYPE, type);
-        dataMap.set(VALUE, value);
-        return dataMap;
-    }
-
-    @Override
-    public void fromData(DataMap dataMap)
-    {
-        super.fromData(dataMap);
-        type = dataMap.getEnum(TYPE, AliasType.class);
-        value = dataMap.getString(VALUE, DEFAULT_COLUMN_LENGTH);
     }
 }

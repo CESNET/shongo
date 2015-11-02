@@ -1,11 +1,15 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,14 +28,19 @@ public class RoomSpecification extends ForeignSpecification
     @JsonProperty("technologies")
     private Set<Technology> technologies;
 
+    @JsonProperty("aliases")
+    private List<Alias> aliases;
+
     @JsonCreator
     public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
                              @JsonProperty("meetingName") String meetingName,
-                             @JsonProperty("technologies") Set<Technology> technologies)
+                             @JsonProperty("technologies") Set<Technology> technologies,
+                             @JsonProperty("aliases") List<Alias> aliases)
     {
         this.licenseCount = licenseCount;
         this.meetingName = meetingName;
         this.technologies = technologies;
+        this.aliases = aliases;
     }
 
     public RoomSpecification()
@@ -54,6 +63,24 @@ public class RoomSpecification extends ForeignSpecification
             technologies = new HashSet<>();
         }
         this.technologies.add(technology);
+    }
+
+    public List<Alias> getAliases()
+    {
+        return aliases;
+    }
+
+    public void setAliases(List<Alias> aliases)
+    {
+        this.aliases = aliases;
+    }
+
+    public void addAlias(AliasType aliasType, String value)
+    {
+        if (aliases == null) {
+            aliases = new ArrayList<>();
+        }
+        this.aliases.add(new Alias(aliasType, value));
     }
 
     public String getMeetingName()
