@@ -1113,7 +1113,7 @@ public class RoomReservationTask extends ReservationTask
         ReservationManager reservationManager = new ReservationManager(entityManager);
         try {
             if (!UserInformation.isLocal(userId)) {
-                Long reservationId = reservation.getId() != null ? reservation.getId() : null;
+                Long reservationId = reservation != null ? reservation.getId() : null;
                 Long domainId = UserInformation.parseDomainId(userId);
                 DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
                 int availableLicenseCount = domainResource.getLicenseCount();
