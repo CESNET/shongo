@@ -177,7 +177,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
-                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager, reservationManager);
+                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager);
                     SchedulerContextState contextState = context.getState();
                     allocateReservationRequest(reservationRequest, context);
 
