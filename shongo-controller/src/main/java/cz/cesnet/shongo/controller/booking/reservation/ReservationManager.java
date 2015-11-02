@@ -405,12 +405,19 @@ public class ReservationManager extends AbstractManager
         Root<RoomReservation> domainRoot = query.from(RoomReservation.class);
         query.select(criteriaBuilder.sumAsLong(domainRoot.<Integer>get("licenseCount")));
 
+        // For given resource
         Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
+        // For specified domain
         Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        // In given slot
         Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
         Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
-        Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
-        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam, notCurrentReservation);
+        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
+        // Except current reservation
+        if (currentReservationId != null) {
+            Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
+            query.where(notCurrentReservation);
+        }
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);
 
