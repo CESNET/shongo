@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
@@ -50,6 +51,11 @@ public class SchedulerContext
      * {@link AuthorizationManager} which can be used for allocating {@link Reservation}s.
      */
     private final AuthorizationManager authorizationManager;
+
+    /**
+     * {@link ReservationManager} which can be used for cleaning {@link AbstractForeignReservation}s.
+     */
+    private final ReservationManager reservationManager;
 
     /**
      * Represents a minimum date/time before which the {@link Reservation}s cannot be allocated.
@@ -96,7 +102,6 @@ public class SchedulerContext
      * If perform of {@link ReservationTask} is just availability check.
      */
     private boolean availabilityCheck = false;
-
     /**
      * Constructor.
      *
@@ -106,7 +111,22 @@ public class SchedulerContext
      * @param authorizationManager which can be used
      */
     public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
-            AuthorizationManager authorizationManager)
+                            AuthorizationManager authorizationManager)
+    {
+        this(minimumDateTime, cache, entityManager, authorizationManager, null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param minimumDateTime      sets the {@link #minimumDateTime}
+     * @param cache                sets the {@link #cache}
+     * @param entityManager        which can be used
+     * @param authorizationManager which can be used
+     * @param reservationManager   which can be used
+     */
+    public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
+            AuthorizationManager authorizationManager, ReservationManager reservationManager)
     {
         if (minimumDateTime == null) {
             throw new IllegalArgumentException("Minimum date/time must not be null.");
@@ -115,6 +135,7 @@ public class SchedulerContext
         this.cache = cache;
         this.entityManager = entityManager;
         this.authorizationManager = authorizationManager;
+        this.reservationManager = reservationManager;
     }
 
     /**
@@ -187,6 +208,14 @@ public class SchedulerContext
     public AuthorizationManager getAuthorizationManager()
     {
         return authorizationManager;
+    }
+
+    /**
+     * @return {@link #reservationManager}
+     */
+    public ReservationManager getReservationManager()
+    {
+        return reservationManager;
     }
 
     /**

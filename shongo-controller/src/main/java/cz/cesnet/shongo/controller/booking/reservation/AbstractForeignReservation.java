@@ -83,4 +83,13 @@ public abstract class AbstractForeignReservation extends TargetedReservation
     {
         return super.toApi(entityManager, administrator);
     }
+
+    @Transient
+    public boolean isEmpty()
+    {
+        if (foreignReservationRequestId != null) {
+            return false;
+        }
+        return true;
+    }
 }

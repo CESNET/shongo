@@ -47,4 +47,14 @@ public class ForeignRoomReservation extends AbstractForeignReservation
     {
         return null;
     }
+
+    @Override
+    @Transient
+    public boolean isEmpty()
+    {
+        if (!foreignReservationRequestsIds.isEmpty()) {
+            return false;
+        }
+        return super.isEmpty();
+    }
 }

@@ -330,6 +330,9 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
             queryFilter.addFilter("domain_id = :domainId", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
 
+            if (request.getLicenseCount() != null && request.getLicenseCount() > -1) {
+                queryFilter.addFilter("license_count >= :licenseCount", "licenseCount", request.getLicenseCount());
+            }
             //TODO: vytahnout zasedacky podle tagu
             // Filter requested tag-id
 //            if (request.getTagId() != null) {

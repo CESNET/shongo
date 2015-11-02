@@ -13,9 +13,7 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -179,7 +177,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
-                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager);
+                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager, reservationManager);
                     SchedulerContextState contextState = context.getState();
                     allocateReservationRequest(reservationRequest, context);
 
