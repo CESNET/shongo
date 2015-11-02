@@ -491,11 +491,14 @@ public class RoomReservationTask extends ReservationTask
 //                allocateAliases(roomProviderCapability, roomEndpoint);
             roomEndpoint.clearAssignedAliases();
 
-            Alias alias = new Alias(AliasType.H323_E164, "TESTovaci");
-            try {
-                roomEndpoint.addAssignedAlias(alias);
-            } catch (SchedulerException e) {
-                throw new TodoImplementException("necesary??", e);
+            for (cz.cesnet.shongo.controller.api.domains.response.Alias alias : roomSpecification.getAliases()) {
+                Alias persistenceAlias = new Alias(alias.getType(), alias.getValue());
+                try {
+                    roomEndpoint.addAssignedAlias(persistenceAlias);
+                } catch (SchedulerException e) {
+                    //TODO
+                    throw new TodoImplementException("necesary??", e);
+                }
             }
 
             // Update room endpoint state
