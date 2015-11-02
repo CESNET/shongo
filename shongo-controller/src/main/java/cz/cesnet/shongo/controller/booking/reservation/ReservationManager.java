@@ -412,11 +412,11 @@ public class ReservationManager extends AbstractManager
         // In given slot
         Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
         Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
-        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
+        CriteriaQuery<Long> where = query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
         // Except current reservation
         if (currentReservationId != null) {
             Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
-            query.where(notCurrentReservation);
+            where.where(notCurrentReservation);
         }
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);

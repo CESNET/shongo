@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -315,7 +316,15 @@ public class RoomReservationTask extends ReservationTask
         boolean modifyForeign = false;
         if (currentReservation instanceof ForeignRoomReservation) {
             if (!((ForeignRoomReservation) currentReservation).isComplete()) {
-                return checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
+                ForeignRoomReservation reservation = checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
+                if (!reservation.isEmpty()) {
+                    return reservation;
+                }
+                Allocation allocation = reservation.getAllocation();
+                // TODO: Delete empty (without any assigned foreign reservation requests) foreign room reservation.
+                allocation.removeReservation(reservation);
+                schedulerContext.getReservationManager().update(reservation);
+                throw new SchedulerReportSet.ResourceNotFoundException();
             }
             else {
                 modifyForeign = true;
