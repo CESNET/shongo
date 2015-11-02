@@ -53,11 +53,6 @@ public class SchedulerContext
     private final AuthorizationManager authorizationManager;
 
     /**
-     * {@link ReservationManager} which can be used for cleaning {@link AbstractForeignReservation}s.
-     */
-    private final ReservationManager reservationManager;
-
-    /**
      * Represents a minimum date/time before which the {@link Reservation}s cannot be allocated.
      */
     private final DateTime minimumDateTime;
@@ -102,19 +97,6 @@ public class SchedulerContext
      * If perform of {@link ReservationTask} is just availability check.
      */
     private boolean availabilityCheck = false;
-    /**
-     * Constructor.
-     *
-     * @param minimumDateTime      sets the {@link #minimumDateTime}
-     * @param cache                sets the {@link #cache}
-     * @param entityManager        which can be used
-     * @param authorizationManager which can be used
-     */
-    public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
-                            AuthorizationManager authorizationManager)
-    {
-        this(minimumDateTime, cache, entityManager, authorizationManager, null);
-    }
 
     /**
      * Constructor.
@@ -123,10 +105,9 @@ public class SchedulerContext
      * @param cache                sets the {@link #cache}
      * @param entityManager        which can be used
      * @param authorizationManager which can be used
-     * @param reservationManager   which can be used
      */
     public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
-            AuthorizationManager authorizationManager, ReservationManager reservationManager)
+            AuthorizationManager authorizationManager)
     {
         if (minimumDateTime == null) {
             throw new IllegalArgumentException("Minimum date/time must not be null.");
@@ -135,7 +116,6 @@ public class SchedulerContext
         this.cache = cache;
         this.entityManager = entityManager;
         this.authorizationManager = authorizationManager;
-        this.reservationManager = reservationManager;
     }
 
     /**
@@ -208,14 +188,6 @@ public class SchedulerContext
     public AuthorizationManager getAuthorizationManager()
     {
         return authorizationManager;
-    }
-
-    /**
-     * @return {@link #reservationManager}
-     */
-    public ReservationManager getReservationManager()
-    {
-        return reservationManager;
     }
 
     /**

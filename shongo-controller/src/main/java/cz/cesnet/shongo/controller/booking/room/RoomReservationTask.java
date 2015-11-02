@@ -320,11 +320,13 @@ public class RoomReservationTask extends ReservationTask
                 if (!reservation.isEmpty()) {
                     return reservation;
                 }
-                Allocation allocation = reservation.getAllocation();
-                // TODO: Delete empty (without any assigned foreign reservation requests) foreign room reservation.
-                allocation.removeReservation(reservation);
-                schedulerContext.getReservationManager().update(reservation);
-                throw new SchedulerReportSet.ResourceNotFoundException();
+                if (currentReservation.getAllocation().getReservations().size() > 1) {
+                    // TODO: nastavit reservation request z cizi domeny pred poslednim
+//                    Allocation allocation = reservation.getAllocation();
+//                    allocation.removeReservation(reservation);
+//                    schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
+                    throw new SchedulerReportSet.ResourceNotFoundException();
+                }
             }
             else {
                 modifyForeign = true;
