@@ -380,6 +380,7 @@ public class InterDomainController implements InterDomainProtocol
                             foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
                             foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
 
+                            foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
                             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
                                 foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
                             }
