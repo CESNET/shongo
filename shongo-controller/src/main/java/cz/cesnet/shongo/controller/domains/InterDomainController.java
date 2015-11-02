@@ -36,7 +36,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import sun.beans.editors.EnumEditor;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
@@ -61,10 +60,10 @@ public class InterDomainController implements InterDomainProtocol
     {
         binder.registerCustomEditor(Interval.class, new IntervalEditor());
 
-        binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new sun.beans.editors.EnumEditor(DomainCapabilityListRequest.Type.class));
-        binder.registerCustomEditor(Technology.class, new sun.beans.editors.EnumEditor(Technology.class));
-        binder.registerCustomEditor(AdobeConnectPermissions.class, new sun.beans.editors.EnumEditor(AdobeConnectPermissions.class));
-        binder.registerCustomEditor(AliasType.class, new sun.beans.editors.EnumEditor(AliasType.class));
+        binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new EnumEditor<>(DomainCapabilityListRequest.Type.class));
+        binder.registerCustomEditor(Technology.class, new EnumEditor<>(Technology.class));
+        binder.registerCustomEditor(AdobeConnectPermissions.class, new EnumEditor<>(AdobeConnectPermissions.class));
+        binder.registerCustomEditor(AliasType.class, new EnumEditor<>(AliasType.class));
     }
 
     @Override
@@ -718,36 +717,36 @@ public class InterDomainController implements InterDomainProtocol
         }
     }
 
-//    public class EnumEditor<T extends Enum<T>> extends PropertyEditorSupport
-//    {
-//        Class<T> enumType;
-//
-//        public EnumEditor(Class<T> enumType)
-//        {
-//            this.enumType = enumType;
-//        }
-//
-//        @Override
-//        public String getAsText()
-//        {
-//            if (getValue() == null) {
-//                return "";
-//            }
-//            T value = (T) getValue();
-//            if (value == null) {
-//                return "";
-//            }
-//            return value.toString();
-//        }
-//
-//        @Override
-//        public void setAsText(String text) throws IllegalArgumentException
-//        {
-//            if (!StringUtils.hasText(text)) {
-//                setValue(null);
-//            } else {
-//                setValue(T.valueOf(enumType, text));
-//            }
-//        }
-//    }
+    public class EnumEditor<T extends Enum<T>> extends PropertyEditorSupport
+    {
+        Class<T> enumType;
+
+        public EnumEditor(Class<T> enumType)
+        {
+            this.enumType = enumType;
+        }
+
+        @Override
+        public String getAsText()
+        {
+            if (getValue() == null) {
+                return "";
+            }
+            T value = (T) getValue();
+            if (value == null) {
+                return "";
+            }
+            return value.toString();
+        }
+
+        @Override
+        public void setAsText(String text) throws IllegalArgumentException
+        {
+            if (!StringUtils.hasText(text)) {
+                setValue(null);
+            } else {
+                setValue(T.valueOf(enumType, text));
+            }
+        }
+    }
 }
