@@ -567,7 +567,8 @@ public class DomainsConnector
         return reservation;
     }
 
-    public List<Reservation> allocateRoom(Set<Domain> domains, int participantCount, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext)
+    public List<Reservation> allocateRoom(Set<Domain> domains, int participantCount, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext,
+                                          String previousReservationRequestId)
     {
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
@@ -588,6 +589,9 @@ public class DomainsConnector
         }
         //TODO: participants
         //TODO: room name
+        if (previousReservationRequestId != null) {
+            parameters.put("reservationRequestId", previousReservationRequestId);
+        }
 
         Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, domains, Reservation.class);
         return new ArrayList<>(reservations.values());
