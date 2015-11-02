@@ -289,7 +289,7 @@ public class RoomReservationTask extends ReservationTask
         Set<cz.cesnet.shongo.controller.api.Domain> foreignDomainsWithRoomProvider = null;
         List<RoomProviderVariant> roomProviderVariants = new ArrayList<>();
         try {
-            roomProviderVariants = getRoomProviderVariants();
+            roomProviderVariants = getRoomProviderVariants(currentReservation);
         }
         catch (SchedulerReportSet.ResourceNotFoundException ex) {
             if (schedulerContext.isLocalByUser()) {
@@ -699,7 +699,7 @@ public class RoomReservationTask extends ReservationTask
      * @return list of possible {@link RoomProviderVariant}s
      * @throws SchedulerException when none {@link RoomProviderVariant} is found
      */
-    private List<RoomProviderVariant> getRoomProviderVariants()
+    private List<RoomProviderVariant> getRoomProviderVariants(Reservation currentReservation)
             throws SchedulerException
     {
         Cache cache = getCache();
@@ -774,7 +774,7 @@ public class RoomReservationTask extends ReservationTask
                     int availableLicenseCount = availableRoom.getAvailableLicenseCount();
                     // Check allowed licence count for foreign requests
                     if (!schedulerContext.isLocalByUser()) {
-                        int leftForeignLicenseCount = getRemainingLicenseCount(availableRoom.getDeviceResource(), schedulerContext.getUserId());
+                        int leftForeignLicenseCount = getRemainingLicenseCount(availableRoom.getDeviceResource(), schedulerContext.getUserId(), currentReservation);
                         if (leftForeignLicenseCount > -1) {
                             availableLicenseCount = leftForeignLicenseCount < availableLicenseCount ? leftForeignLicenseCount : availableLicenseCount;
                         }
@@ -1106,7 +1106,7 @@ public class RoomReservationTask extends ReservationTask
      *
      * @return remaining license count or -1 when resource is not assigned to the domain
      */
-    private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.DeviceResource resource, String userId)
+    private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.DeviceResource resource, String userId, Reservation reservation)
     {
         EntityManager entityManager = schedulerContext.getEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -1117,7 +1117,7 @@ public class RoomReservationTask extends ReservationTask
                 DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
                 int availableLicenseCount = domainResource.getLicenseCount();
 
-                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId(), slot);
+                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId(), slot, reservation.getId());
 
                 return availableLicenseCount - usedLicenseCount;
             }

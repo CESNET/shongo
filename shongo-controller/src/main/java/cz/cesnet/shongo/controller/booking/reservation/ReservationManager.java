@@ -30,6 +30,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.*;
 
@@ -396,7 +397,7 @@ public class ReservationManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public <T extends Reservation> long countUsedRoomProviderLicenses(Long domainId, Long resourceId, Interval interval)
+    public long countUsedRoomProviderLicenses(Long domainId, Long resourceId, Interval interval, Long currentReservationId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
@@ -404,11 +405,12 @@ public class ReservationManager extends AbstractManager
         Root<RoomReservation> domainRoot = query.from(RoomReservation.class);
         query.select(criteriaBuilder.sumAsLong(domainRoot.<Integer>get("licenseCount")));
 
-        javax.persistence.criteria.Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
-        javax.persistence.criteria.Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
-        javax.persistence.criteria.Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
-        javax.persistence.criteria.Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
-        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
+        Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
+        Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
+        Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
+        Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
+        query.where(resourceParam, domainParam, notAfterParam, notBeforeParam, notCurrentReservation);
 
         TypedQuery<Long> typedQuery = entityManager.createQuery(query);
 
