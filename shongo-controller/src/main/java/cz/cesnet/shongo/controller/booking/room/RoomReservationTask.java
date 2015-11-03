@@ -517,6 +517,7 @@ public class RoomReservationTask extends ReservationTask
             roomEndpoint.setRoomDescription(schedulerContext.getDescription());
             roomEndpoint.setParticipants(participants);
             roomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);
+            roomEndpoint.setState(Executable.State.valueOf(roomSpecification.getState().name()));
 
             // Allocate aliases for the room endpoint
 //                allocateAliases(roomProviderCapability, roomEndpoint);
