@@ -523,7 +523,9 @@ public class Cache
             request.setReservationRequestIds(missingReservationRequestIds);
             ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
             for (ReservationRequestSummary reservationRequest : response) {
-                reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+                if (reservationRequest.isAllowCache()) {
+                    reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+                }
             }
         }
     }
@@ -578,7 +580,9 @@ public class Cache
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
         if (response.getItemCount() > 0) {
             ReservationRequestSummary reservationRequest = response.getItem(0);
-            reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+            if (reservationRequest.isAllowCache()) {
+                reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+            }
             return reservationRequest;
         }
         throw new ObjectInaccessibleException(reservationRequestId);

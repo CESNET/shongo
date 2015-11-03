@@ -35,7 +35,8 @@ SELECT
     reservation_request_summary.future_child_count,
     resource_summary.name AS resource_name,
     foreign_resources.foreign_resource_id,
-    domain.name as domain_name
+    domain.name as domain_name,
+    reservation_request_summary.allowCache as allowCache
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id

@@ -136,6 +136,7 @@ public class Reservation extends IdentifiedComplexType
         this.executable = executable;
     }
 
+
     private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
     private static final String SLOT = "slot";
     private static final String PARENT_RESERVATION_ID = "parentReservationId";

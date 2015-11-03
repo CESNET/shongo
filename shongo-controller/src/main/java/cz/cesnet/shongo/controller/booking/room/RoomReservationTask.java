@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -316,23 +317,7 @@ public class RoomReservationTask extends ReservationTask
         boolean modifyForeign = false;
         if (currentReservation instanceof ForeignRoomReservation) {
             if (!((ForeignRoomReservation) currentReservation).isComplete()) {
-                ForeignRoomReservation reservation = checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
-
-                if (reservation != null && reservation.isEmpty()) {
-                    // When no reservation was allocated
-                    throw new SchedulerReportSet.ResourceNotFoundException();
-                }
-                return reservation;
-//                }
-//                else if (currentReservation.getAllocation().getReservations().size() > 1) {
-//                    // TODO: nastavit reservation request z cizi domeny pred poslednim
-//                }
-//                else {
-//                    Allocation allocation = reservation.getAllocation();
-//                    allocation.removeReservation(reservation);
-//                    schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
-//                    return reservation;
-//                }
+                return checkPendingForeignAllocations((ForeignRoomReservation) currentReservation);
             }
             else {
                 modifyForeign = true;
@@ -451,39 +436,87 @@ public class RoomReservationTask extends ReservationTask
         return null;
     }
 
-    private ForeignRoomReservation checkPendingForeignAllocations(ForeignRoomReservation currentReservation)
+    private ForeignRoomReservation checkPendingForeignAllocations(ForeignRoomReservation currentReservation) throws SchedulerReportSet.ResourceNotFoundException
     {
-        if (Controller.isInterDomainInitialized()) {
-            List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
-            result = InterDomainAgent.getInstance().getConnector().getReservationsByRequests(currentReservation.getForeignReservationRequestsIds());
-            SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
-            reservations = new TreeSet<>(result);
-            // Test if all any request is still pending (if request is processed it must be failed or success with reservation)
-            if (reservationsPending(reservations)) {
-                return null;
-            }
-
+        if (!Controller.isInterDomainInitialized()) {
+            throw new IllegalStateException("Inter domain controller must be running for foreign allocations.");
+        }
+        List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
+        result = InterDomainAgent.getInstance().getConnector().getReservationsByRequests(currentReservation.getForeignReservationRequestsIds());
+        SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations;
+        reservations = new TreeSet<>(result);
+        // Test if all any request is still pending (if request is processed it must be failed or success with reservation)
+        if (!reservationsPending(reservations)) {
             cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = reservations.first();
 
             updateForeignRoomReservation(currentReservation, bestReservation);
 
-            // Delete unwanted reservation request in foreign domains
-            Iterator<String> iterator = currentReservation.getForeignReservationRequestsIds().iterator();
-            while (iterator.hasNext()) {
-                String reservationRequestId = iterator.next();
-                if (!reservationRequestId.equals(currentReservation.getForeignReservationRequestId())) {
-                    createReservationForDeletion(currentReservation, reservationRequestId);
+            EntityManager entityManager = schedulerContext.getBypassEntityManager();
+            try {
+                entityManager.getTransaction().begin();
+                // Delete unwanted reservation request in foreign domains
+                Iterator<String> iterator = currentReservation.getForeignReservationRequestsIds().iterator();
+                while (iterator.hasNext()) {
+                    String reservationRequestId = iterator.next();
+                    if (!reservationRequestId.equals(currentReservation.getForeignReservationRequestId())) {
+                        createReservationForDeletion(reservationRequestId, entityManager);
+                    }
+                    iterator.remove();
                 }
-                iterator.remove();
-            }
 
-            return  currentReservation;
-            //TODO: do not wait for everyone???
+                boolean allocationFailed = false;
+                Allocation allocation = currentReservation.getAllocation();
+                // Delete reservation when it has no foreign reservation requests
+                if (currentReservation.isEmpty()) {
+                    // Detach from common entityManager
+                    schedulerContext.getEntityManager().detach(allocation);
+                    schedulerContext.getEntityManager().detach(currentReservation);
+
+                    // Fetch allocation amd reservation for bypassEntityManager
+                    Allocation allocationToUpdate = entityManager.find(allocation.getClass(), allocation.getId());
+                    Reservation reservationToDelete = entityManager.find(currentReservation.getClass(), currentReservation.getId());
+
+                    allocationToUpdate.removeReservation(reservationToDelete);
+                    entityManager.merge(allocationToUpdate);
+                    entityManager.remove(reservationToDelete);
+                    allocationFailed = true;
+                }
+                // Delete temporal reservation when modification failed and set new foreign reservation request
+                else if (!bestReservation.isAllocated()) {
+                    // Detach from common entityManager
+                    schedulerContext.getEntityManager().detach(allocation);
+                    schedulerContext.getEntityManager().detach(currentReservation);
+
+                    // Fetch allocation amd reservation for bypassEntityManager
+                    Allocation allocationToUpdate = entityManager.find(allocation.getClass(), allocation.getId());
+                    Reservation reservationToUpdate = entityManager.find(currentReservation.getClass(), currentReservation.getId());
+
+                    allocationToUpdate.removeReservation(reservationToUpdate);
+                    Reservation previousReservation = allocationToUpdate.getCurrentReservation();
+                    if (previousReservation instanceof ForeignRoomReservation) {
+                        ForeignRoomReservation foreignRoomReservation = (ForeignRoomReservation) previousReservation;
+                        foreignRoomReservation.setForeignReservationRequestId(bestReservation.getForeignReservationRequestId());
+                    }
+                    entityManager.merge(allocationToUpdate);
+                    entityManager.merge(reservationToUpdate);
+                    allocationFailed = true;
+                }
+                entityManager.getTransaction().commit();
+
+                if (allocationFailed) {
+                    throw new SchedulerReportSet.ResourceNotFoundException();
+                }
+            }
+            finally {
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+            }
         }
-        return null;
+        return  currentReservation;
     }
 
-    private void temporal(ForeignRoomReservation currentReservation, cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
+    private void allocateForeignExecutable(ForeignRoomReservation currentReservation, cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
     {
         // Allocated room endpoint
         currentReservation.setSlotStart(bestReservation.getSlotStart());
@@ -553,17 +586,17 @@ public class RoomReservationTask extends ReservationTask
    private void updateForeignRoomReservation(ForeignRoomReservation currentReservation,
                                              cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
     {
-        // Sets {@code schedulerContext} wanted allocation state and {@code currentReservation} state
-        currentReservation.setCompletedByState(schedulerContext, bestReservation);
         if (bestReservation.hasForeignReservation()) {
             // Set foreign reservation request id and domain (foreign reservation request won't be deleted)
             updateCurrentReservation(currentReservation, bestReservation);
 
             // Set {@code currentReservation} and add {@link ForeignRoomEndpoint} to it
             if (bestReservation.isAllocated()) {
-                temporal(currentReservation, bestReservation);
+                allocateForeignExecutable(currentReservation, bestReservation);
             }
         }
+        // Sets {@code schedulerContext} wanted allocation state and {@code currentReservation} state
+        currentReservation.setCompletedByState(schedulerContext, bestReservation);
     }
 
     private void updateCurrentReservation(ForeignRoomReservation reservationToUpdate,
@@ -578,30 +611,19 @@ public class RoomReservationTask extends ReservationTask
         reservationToUpdate.setDomain(domain);
     }
 
-    private void createReservationForDeletion(ForeignRoomReservation currentReservation, String reservationRequestsId)
+    private void createReservationForDeletion(String reservationRequestsId, EntityManager entityManager)
     {
-        EntityManager entityManager = schedulerContext.getBypassEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            ReservationManager reservationManager = new ReservationManager(entityManager);
+        ResourceManager resourceManager = new ResourceManager(entityManager);
 
-            String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestsId);
+        String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestsId);
 
-            ForeignRoomReservation reservation = new ForeignRoomReservation();
-            reservation.setUserId(Authorization.ROOT_USER_ID);
-            reservation.setComplete(true);
-            reservation.setDomain(resourceManager.getDomainByName(domainName));
-            reservation.setForeignReservationRequestId(reservationRequestsId);
-            //TODO: vytahnout requestid z current
-            reservationManager.create(reservation);
-            entityManager.getTransaction().commit();
-        }
-        finally {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-        }
+        ForeignRoomReservation reservation = new ForeignRoomReservation();
+        reservation.setUserId(Authorization.ROOT_USER_ID);
+        reservation.setComplete(true);
+        reservation.setDomain(resourceManager.getDomainByName(domainName));
+        reservation.setForeignReservationRequestId(reservationRequestsId);
+        //TODO: vytahnout requestid z current
+        entityManager.persist(reservation);
     }
 
 

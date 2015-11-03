@@ -71,7 +71,7 @@ public class ForeignRoomEndpoint extends RoomEndpoint
     @Override
     protected void onUpdate()
     {
-        throw new TodoImplementException("pravdepodobne jen pridavat participanty");
+        //TODO: throw new TodoImplementException("pravdepodobne jen pridavat participanty");
     }
 
     @Override

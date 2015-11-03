@@ -342,7 +342,11 @@ FROM (
             reservation_request_state.last_executable_id AS last_executable_id,
             reservation_request_active_usage.executable_state AS usage_executable_state,
             reservation_request_earliest_usage.slot_start AS usage_slot_start,
-            reservation_request_earliest_usage.slot_end AS usage_slot_end
+            reservation_request_earliest_usage.slot_end AS usage_slot_end,
+            CASE
+              WHEN last_reservation_id IN (SELECT id FROM abstract_foreign_reservation) THEN FALSE
+              ELSE TRUE
+            END AS allowCache
         FROM abstract_reservation_request
         LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
         LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
@@ -379,13 +383,13 @@ SELECT
     reservation.user_id AS user_id,
     allocation.abstract_reservation_request_id AS reservation_request_id,
     CASE
-    WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
-    WHEN foreign_resource_reservation.id IS NOT NULL THEN 'RESOURCE'
-    WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
-    WHEN alias_reservation.id IS NOT NULL THEN 'ALIAS'
-    WHEN value_reservation.id IS NOT NULL THEN 'VALUE'
-    WHEN recording_service_reservation.id IS NOT NULL THEN 'RECORDING_SERVICE'
-    ELSE 'OTHER'
+      WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
+      WHEN foreign_resource_reservation.id IS NOT NULL THEN 'RESOURCE'
+      WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
+      WHEN alias_reservation.id IS NOT NULL THEN 'ALIAS'
+      WHEN value_reservation.id IS NOT NULL THEN 'VALUE'
+      WHEN recording_service_reservation.id IS NOT NULL THEN 'RECORDING_SERVICE'
+      ELSE 'OTHER'
     END AS type,
     reservation.slot_start AS slot_start,
     reservation.slot_end AS slot_end,
