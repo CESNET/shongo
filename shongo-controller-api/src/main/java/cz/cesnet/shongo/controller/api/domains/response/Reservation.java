@@ -178,9 +178,6 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
         if (specification == null) {
             return false;
         }
-        if (type == null) {
-            return false;
-        }
         return true;
     }
 
@@ -197,7 +194,7 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
                 reservationSummary.setType(ReservationSummary.Type.ROOM);
                 RoomSpecification roomSpecification = (RoomSpecification) getSpecification();
                 reservationSummary.setRoomLicenseCount(roomSpecification.getLicenseCount());
-//                reservationSummary.setRoomName();
+                reservationSummary.setRoomName(roomSpecification.getMeetingName());
             case RESOURCE:
                 ResourceSpecification resourceSpecification = (ResourceSpecification) getSpecification();
                 reservationSummary.setType(ReservationSummary.Type.RESOURCE);

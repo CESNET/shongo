@@ -118,6 +118,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private boolean roomHasRecordings;
 
     /**
+     * Can this reservation request summary be cached
+     */
+    private boolean allowCache = true;
+
+    /**
      * @return {@link #parentReservationRequestId}
      */
     public String getParentReservationRequestId()
@@ -456,6 +461,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         this.roomHasRecordings = roomHasRecordings;
     }
 
+    /**
+     * @return {@link #allowCache}
+     */
+    public boolean isAllowCache()
+    {
+        return allowCache;
+    }
+
+    /**
+     * @param allowCache sets the {@link #allowCache}
+     */
+    public void setAllowCache(boolean allowCache)
+    {
+        this.allowCache = allowCache;
+    }
+
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
@@ -476,6 +497,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String ROOM_NAME = "roomName";
     private static final String ROOM_HAS_RECORDING_SERVICE = "roomHasRecordingService";
     private static final String ROOM_HAS_RECORDINGS = "roomHasRecordings";
+    private static final String ALLOW_CACHE = "allowCache";
 
     @Override
     public DataMap toData()
@@ -501,6 +523,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(ROOM_NAME, roomName);
         dataMap.set(ROOM_HAS_RECORDING_SERVICE, roomHasRecordingService);
         dataMap.set(ROOM_HAS_RECORDINGS, roomHasRecordings);
+        dataMap.set(ALLOW_CACHE, allowCache);
         return dataMap;
     }
 
@@ -528,6 +551,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomName = dataMap.getString(ROOM_NAME);
         roomHasRecordingService = dataMap.getBool(ROOM_HAS_RECORDING_SERVICE);
         roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
+        allowCache = dataMap.getBool(ALLOW_CACHE);
     }
 
     /**

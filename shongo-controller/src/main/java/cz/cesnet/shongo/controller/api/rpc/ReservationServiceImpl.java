@@ -1598,6 +1598,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[21] != null) {
             reservationRequestSummary.setFutureSlotCount(((Number) record[21]).intValue());
         }
+        if (record.length >= 26) {
+            if (record[25] != null) {
+                reservationRequestSummary.setAllowCache((Boolean) record[25]);
+            }
+        }
         return reservationRequestSummary;
     }
 
