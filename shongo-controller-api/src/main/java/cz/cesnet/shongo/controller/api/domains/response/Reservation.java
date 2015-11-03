@@ -148,12 +148,14 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
         this.price = price;
     }
 
-    public boolean isAllocated()
+    public boolean hasForeignReservation()
     {
-        if (foreignReservationId != null) {
-            return true;
-        }
-        return false;
+        return foreignReservationId != null;
+    }
+
+    public boolean hasForeignReservationRequest()
+    {
+        return foreignReservationRequestId != null;
     }
 
     public ForeignSpecification getSpecification()
@@ -164,6 +166,22 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
     public void setSpecification(ForeignSpecification specification)
     {
         this.specification = specification;
+    }
+
+    public boolean isAllocated() {
+        if (foreignReservationId == null || foreignReservationRequestId == null) {
+            return false;
+        }
+        if (slotStart == null || slotEnd == null) {
+            return false;
+        }
+        if (specification == null) {
+            return false;
+        }
+        if (type == null) {
+            return false;
+        }
+        return true;
     }
 
     public ReservationSummary toReservationSummary()

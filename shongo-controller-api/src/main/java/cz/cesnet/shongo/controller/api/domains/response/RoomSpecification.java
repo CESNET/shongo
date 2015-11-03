@@ -34,7 +34,7 @@ public class RoomSpecification extends ForeignSpecification
     private List<Alias> aliases;
 
     @JsonProperty("state")
-    private ExecutableState state;
+    private RoomState state;
 
     @JsonCreator
     public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
@@ -108,13 +108,86 @@ public class RoomSpecification extends ForeignSpecification
         this.licenseCount = licenseCount;
     }
 
-    public ExecutableState getState()
+    public RoomState getState()
     {
         return state;
     }
 
-    public void setState(ExecutableState state)
+    public void setState(RoomState state)
     {
         this.state = state;
+    }
+
+    /**
+     * Room state (mapped to {@link ExecutableState})
+     */
+    public enum RoomState
+    {
+        /**
+         * Room has not been started yet.
+         */
+        NOT_STARTED,
+
+        /**
+         * Room is already started.
+         */
+        STARTED,
+
+        /**
+         * Room failed to start.
+         */
+        STARTING_FAILED,
+
+        /**
+         * Room has been already stopped.
+         */
+        STOPPED,
+
+        /**
+         * Room failed to stop.
+         */
+        STOPPING_FAILED;
+
+        /**
+         * @return converted to {@link cz.cesnet.shongo.controller.api.ExecutableState}
+         */
+        public ExecutableState toApi()
+        {
+            switch (this) {
+                case NOT_STARTED:
+                    return ExecutableState.NOT_STARTED;
+                case STARTED:
+                    return ExecutableState.STARTED;
+                case STARTING_FAILED:
+                    return ExecutableState.STARTING_FAILED;
+                case STOPPED:
+                    return ExecutableState.STOPPED;
+                case STOPPING_FAILED:
+                    return ExecutableState.STOPPING_FAILED;
+                default:
+                    throw new RuntimeException("Cannot convert " + this.toString() + " to API.");
+            }
+        }
+
+        /**
+         * @return created from {@link cz.cesnet.shongo.controller.api.ExecutableState}
+         */
+        public static RoomState fromApi(ExecutableState api)
+        {
+            switch (api) {
+                case NOT_STARTED:
+                    return RoomState.NOT_STARTED;
+                case STARTED:
+                    return RoomState.STARTED;
+                case STARTING_FAILED:
+                    return RoomState.STARTING_FAILED;
+                case STOPPED:
+                    return RoomState.STOPPED;
+                case STOPPING_FAILED:
+                    return RoomState.STOPPING_FAILED;
+                default:
+                    throw new RuntimeException("Cannot create " + api.toString() + " from API.");
+            }
+        }
     }
 }

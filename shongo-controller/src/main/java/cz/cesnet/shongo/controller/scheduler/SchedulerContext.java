@@ -48,6 +48,11 @@ public class SchedulerContext
     private final EntityManager entityManager;
 
     /**
+     * {@link EntityManager} which can be used for allocating entities when something goes wrong.
+     */
+    private final EntityManager bypassEntityManager;
+
+    /**
      * {@link AuthorizationManager} which can be used for allocating {@link Reservation}s.
      */
     private final AuthorizationManager authorizationManager;
@@ -105,9 +110,10 @@ public class SchedulerContext
      * @param cache                sets the {@link #cache}
      * @param entityManager        which can be used
      * @param authorizationManager which can be used
+     * @param bypassEntityManager  which can be used when normal operation goes wrong
      */
     public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
-            AuthorizationManager authorizationManager)
+                            AuthorizationManager authorizationManager, EntityManager bypassEntityManager)
     {
         if (minimumDateTime == null) {
             throw new IllegalArgumentException("Minimum date/time must not be null.");
@@ -116,6 +122,16 @@ public class SchedulerContext
         this.cache = cache;
         this.entityManager = entityManager;
         this.authorizationManager = authorizationManager;
+        this.bypassEntityManager = bypassEntityManager;
+    }
+
+    /**
+     * Constructor.
+     */
+    public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
+                            AuthorizationManager authorizationManager)
+    {
+        this(minimumDateTime, cache, entityManager, authorizationManager, null);
     }
 
     /**
@@ -180,6 +196,14 @@ public class SchedulerContext
     public EntityManager getEntityManager()
     {
         return entityManager;
+    }
+
+    /**
+     * @return {@link #bypassEntityManager}
+     */
+    public EntityManager getBypassEntityManager()
+    {
+        return bypassEntityManager;
     }
 
     /**

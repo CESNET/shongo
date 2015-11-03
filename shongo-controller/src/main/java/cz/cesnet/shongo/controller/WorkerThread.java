@@ -155,11 +155,12 @@ public class WorkerThread extends Thread
             Interval interval = new Interval(Temporal.nowRoundedToSeconds(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
+            EntityManager bypassEntityManager = entityManagerFactory.createEntityManager();
             Reporter reporter = Reporter.getInstance();
             try {
                 // Run preprocessor, scheduler and notifications
                 preprocessor.run(interval, entityManager);
-                scheduler.run(interval, entityManager);
+                scheduler.run(interval, entityManager, bypassEntityManager);
                 notificationManager.executeNotifications(entityManager);
 
                 // Clear reporter cache once per hour
@@ -174,6 +175,7 @@ public class WorkerThread extends Thread
             }
             finally {
                 entityManager.close();
+                bypassEntityManager.close();
             }
 
             //logger.debug("Worker releasing lock...  ]]]]]");

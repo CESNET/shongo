@@ -46,17 +46,32 @@ public class ForeignRoomEndpoint extends RoomEndpoint
         return null;
     }
 
-    @Transient
     @Override
     public void modifyRoom(Room roomApi, Executor executor) throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException
     {
-        throw new TodoImplementException();
+        throw new TodoImplementException("pravdepodobne pro nahravani");
     }
 
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
+        // TODO: zjistit stav
         return State.STARTED;
+        //return State.NOT_STARTED;
+    }
+
+    @Override
+    protected State onStop(Executor executor, ExecutableManager executableManager)
+    {
+        //TODO: zjistit zastaveni
+        return State.STOPPED;
+        //return getState();
+    }
+
+    @Override
+    protected void onUpdate()
+    {
+        throw new TodoImplementException("pravdepodobne jen pridavat participanty");
     }
 
     @Override
@@ -79,7 +94,7 @@ public class ForeignRoomEndpoint extends RoomEndpoint
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;
         roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
-//        roomExecutableEndpointApi.setResourceId(ObjectIdentifier.formatId(getResource()));
+        //TODO: roomExecutableEndpointApi.setResourceId(ObjectIdentifier.formatId(getResource()));
 
         // For Adobe Connect recordings
 //        RecordingCapability resourceRecordingCapability = getResource().getCapability(RecordingCapability.class);
@@ -124,32 +139,4 @@ public class ForeignRoomEndpoint extends RoomEndpoint
         }
         return roomConfiguration.getRoomSettings();
     }
-
-//    @Override
-//    @Transient
-//    public boolean isStandalone()
-//    {
-//        return getResource().isStandaloneTerminal();
-//    }
-//
-//    @Override
-//    @Transient
-//    public List<Alias> getAliases()
-//    {
-//        List<Alias> aliases = new ArrayList<Alias>();
-//        TerminalCapability terminalCapability = getResource().getCapability(TerminalCapability.class);
-//        if (terminalCapability != null) {
-//            aliases.addAll(terminalCapability.getAliases());
-//        }
-//        aliases.addAll(super.getAssignedAliases());
-//        return aliases;
-//    }
-//
-//    @Override
-//    public void addAssignedAlias(Alias assignedAlias) throws SchedulerException
-//    {
-//        getResource().evaluateAlias(assignedAlias);
-//        super.addAssignedAlias(assignedAlias);
-//    }
-
 }
