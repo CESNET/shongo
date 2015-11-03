@@ -64,6 +64,7 @@ public class InterDomainController implements InterDomainProtocol
         binder.registerCustomEditor(Technology.class, new EnumEditor<>(Technology.class));
         binder.registerCustomEditor(AdobeConnectPermissions.class, new EnumEditor<>(AdobeConnectPermissions.class));
         binder.registerCustomEditor(AliasType.class, new EnumEditor<>(AliasType.class));
+        binder.registerCustomEditor(ExecutableState.class, new EnumEditor<>(ExecutableState.class));
     }
 
     @Override
@@ -379,6 +380,7 @@ public class InterDomainController implements InterDomainProtocol
                             foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
                             foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
                             foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
+                            foreignRoomSpecification.setState(roomReservation.getEndpoint().getState().toApi());
 
                             foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
                             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
