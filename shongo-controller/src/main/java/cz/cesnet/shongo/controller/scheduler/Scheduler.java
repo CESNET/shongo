@@ -79,13 +79,22 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     }
 
     /**
+     * Allocate reservation without bypassEntityManager.
+     */
+    public Result run(Interval interval, EntityManager entityManager)
+    {
+        return run(interval, entityManager, null);
+    }
+
+    /**
      * Allocate reservation requests which intersects given {@code interval}. Reservations are allocated in given
      * {@code interval} or more in future (and thus not before given {@code interval}).
      *
      * @param interval      only reservation requests which intersects this interval should be allocated
      * @param entityManager to be used
+     * @param bypassEntityManager to be used when persisting entity while error
      */
-    public Result run(Interval interval, EntityManager entityManager)
+    public Result run(Interval interval, EntityManager entityManager, EntityManager bypassEntityManager)
     {
         Result result = new Result();
         if (!isEnabled()) {
@@ -177,7 +186,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
-                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager);
+                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager, bypassEntityManager);
                     SchedulerContextState contextState = context.getState();
                     allocateReservationRequest(reservationRequest, context);
 

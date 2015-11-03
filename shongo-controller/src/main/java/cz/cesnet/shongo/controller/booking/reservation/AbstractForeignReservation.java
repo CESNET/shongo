@@ -61,7 +61,6 @@ public abstract class AbstractForeignReservation extends TargetedReservation
     {
         switch (reservation.getStatus()) {
             case OK:
-                setSlot(reservation.getSlotStart(), reservation.getSlotEnd());
                 if (reservation.isAllocated()) {
                     setComplete(true);
                     schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATED);
@@ -69,8 +68,10 @@ public abstract class AbstractForeignReservation extends TargetedReservation
                 break;
             case FAILED:
                 setComplete(true);
-                setSlotStart(null);
-                setSlotEnd(null);
+                // Clean {@link this} if no foreign reservation exists
+                if (!reservation.hasForeignReservation()) {
+                    clean();
+                }
                 schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
                 break;
             case ERROR:
@@ -91,5 +92,12 @@ public abstract class AbstractForeignReservation extends TargetedReservation
             return false;
         }
         return true;
+    }
+
+    @Transient
+    private void clean()
+    {
+        setSlotStart(null);
+        setSlotEnd(null);
     }
 }

@@ -26,6 +26,7 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
+import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification.RoomState;
 
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.ssl.SSLCommunication;
@@ -352,6 +353,12 @@ public class InterDomainController implements InterDomainProtocol
             reservation.setForeignReservationRequestId(reservationRequestId);
             switch (reservationRequest.getAllocationState()) {
                 case ALLOCATION_FAILED:
+                    // Set last available reservation (when modification failed)
+                    if (reservationRequest.getModifiedReservationRequest() != null) {
+                        cz.cesnet.shongo.controller.booking.reservation.Reservation lastReservation;
+                        lastReservation = reservationRequest.getAllocation().getCurrentReservation();
+                        reservation.setForeignReservationId(ObjectIdentifier.formatId(lastReservation));
+                    }
                     reservation.setStatus(AbstractResponse.Status.FAILED);
                     SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
                     reservation.setMessage("TODO: " + report.toString());
@@ -380,7 +387,8 @@ public class InterDomainController implements InterDomainProtocol
                             foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
                             foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
                             foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
-                            foreignRoomSpecification.setState(roomReservation.getEndpoint().getState().toApi());
+                            ExecutableState state = roomReservation.getEndpoint().getState().toApi();
+                            foreignRoomSpecification.setState(RoomState.fromApi(state));
 
                             foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
                             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
