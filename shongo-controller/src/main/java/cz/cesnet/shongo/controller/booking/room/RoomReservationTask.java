@@ -425,13 +425,13 @@ public class RoomReservationTask extends ReservationTask
         for (RoomSetting roomSetting : roomSettings) {
             if (roomSetting instanceof H323RoomSetting) {
                 H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
-                if (Strings.isNullOrEmpty(h323RoomSetting.getPin())) {
+                if (!Strings.isNullOrEmpty(h323RoomSetting.getPin())) {
                     allocateRoomSettings.setRoomPin(((H323RoomSetting) roomSetting).getPin());
                 }
            }
             else if (roomSetting instanceof AdobeConnectRoomSetting) {
                 AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
-                if (Strings.isNullOrEmpty(adobeConnectRoomSetting.getPin())) {
+                if (!Strings.isNullOrEmpty(adobeConnectRoomSetting.getPin())) {
                     allocateRoomSettings.setRoomPin(adobeConnectRoomSetting.getPin());
                 }
                 if (adobeConnectRoomSetting.getAccessMode() != null) {

@@ -591,9 +591,11 @@ public class DomainsConnector
         for (Technology technology : roomSettings.getFirstTechnologyVariant()) {
             parameters.put("technologies", technology.toString());
         }
-        for (cz.cesnet.shongo.controller.api.AbstractParticipant participant : roomSettings.getParticipants()) {
+        if (roomSettings.getParticipants() != null) {
+            for (cz.cesnet.shongo.controller.api.AbstractParticipant participant : roomSettings.getParticipants()) {
 //            participant.
 //            parameters.put("participants", participant);
+            }
         }
         //TODO: room name
         if (previousReservationRequestId != null) {
