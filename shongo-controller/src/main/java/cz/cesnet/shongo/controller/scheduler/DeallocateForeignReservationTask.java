@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -27,7 +28,9 @@ public class DeallocateForeignReservationTask extends DeallocateReservationTask
     }
 
     @Override
-    protected List<AbstractNotification> perform(Interval slot, Scheduler.Result result, EntityManager entityManager, ReservationManager reservationManager, AuthorizationManager authorizationManager)
+    protected List<AbstractNotification> perform(Interval slot, Scheduler.Result result, EntityManager entityManager,
+                                                 ReservationManager reservationManager, AuthorizationManager authorizationManager)
+            throws ForeignDomainConnectException
     {
         AbstractForeignReservation reservation = getReservation();
         Allocation allocation = reservation.getAllocation();

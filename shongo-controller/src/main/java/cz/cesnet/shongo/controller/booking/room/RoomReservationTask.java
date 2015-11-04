@@ -4,8 +4,8 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -32,6 +32,8 @@ import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -384,56 +386,94 @@ public class RoomReservationTask extends ReservationTask
     private ForeignRoomReservation tryAllocateInForeignDomains(Set<cz.cesnet.shongo.controller.api.Domain> domainsWithRoomProvider,
                                                                ForeignRoomReservation currentReservation)
     {
-        if (schedulerContext.isLocalByUser() && Controller.isInterDomainInitialized()) {
-            // Skip foreign allocation if no domain is available or is not modification
-            //todo validate
-            if (domainsWithRoomProvider == null || domainsWithRoomProvider.isEmpty()) {
-                if (currentReservation == null || Strings.isNullOrEmpty(currentReservation.getForeignReservationRequestId())) {
-                    return null;
-                }
-            }
-            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
-
-            ForeignRoomReservation reservation = new ForeignRoomReservation();
-            cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = null;
-            try {
-                DateTime start = this.slot.getStart().minusMinutes(slotMinutesBefore);
-                DateTime end = this.slot.getEnd().plusMinutes(slotMinutesAfter);
-                Interval slot = new Interval(start, end);
-
-                Set<cz.cesnet.shongo.controller.api.Domain> domains = domainsWithRoomProvider;
-
-                List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
-                String previousReservationRequestId = null;
-
-                // Set domain and foreign reservation request for modification
-                if (currentReservation != null) {
-                    previousReservationRequestId = currentReservation.getForeignReservationRequestId();
-                    domains.clear();
-                    domains.add(currentReservation.getDomain().toApi());
-                }
-                result = InterDomainAgent.getInstance().getConnector().allocateRoom(domains, participantCount,
-                        technologyVariants, slot, schedulerContext, previousReservationRequestId);
-
-                SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations = new TreeSet<>(result);
-                if (!reservationsPending(reservations) && !reservations.isEmpty()) {
-                    bestReservation = reservations.first();
-                }
-                for (cz.cesnet.shongo.controller.api.domains.response.Reservation candidateReservation : reservations) {
-                    // Add all created foreign reservation requests ids
-                    reservation.addForeignReservationRequestId(candidateReservation.getForeignReservationRequestId());
-                }
-            } catch (ForeignDomainConnectException ex) {
-                throw new TodoImplementException("Allocated in foreign domains has failed", ex);
-            }
-
-            if (bestReservation != null) {
-                updateForeignRoomReservation(currentReservation, bestReservation);
-            }
-            return reservation;
+        // Skip foreign allocation if no domain is specified or reservation task is not valid for it
+        if (!isValidForForeignReservation(domainsWithRoomProvider, currentReservation)) {
+            return null;
         }
 
-        return null;
+        schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
+
+        ForeignRoomReservation reservation = new ForeignRoomReservation();
+        cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation = null;
+
+        DateTime start = this.slot.getStart().minusMinutes(slotMinutesBefore);
+        DateTime end = this.slot.getEnd().plusMinutes(slotMinutesAfter);
+        Interval slot = new Interval(start, end);
+
+        Set<cz.cesnet.shongo.controller.api.Domain> domains = domainsWithRoomProvider;
+
+        List<cz.cesnet.shongo.controller.api.domains.response.Reservation> result;
+        String previousReservationRequestId = null;
+
+        // Set domain and foreign reservation request for modification
+        if (currentReservation != null) {
+            previousReservationRequestId = currentReservation.getForeignReservationRequestId();
+            domains.clear();
+            domains.add(currentReservation.getDomain().toApi());
+        }
+        RoomSettings allocateRoomSettings = new RoomSettings();
+        allocateRoomSettings.setParticipantCount(participantCount);
+        allocateRoomSettings.setSlot(slot);
+        allocateRoomSettings.setTechnologyVariants(technologyVariants);
+        allocateRoomSettings.setDescription(schedulerContext.getDescription());
+        allocateRoomSettings.setUserId(schedulerContext.getUserId());
+        for (ExecutableServiceSpecification service : serviceSpecifications) {
+            if (service instanceof RecordingServiceSpecification) {
+                allocateRoomSettings.setRecordRoom(true);
+            }
+        }
+        for (RoomSetting roomSetting : roomSettings) {
+            if (roomSetting instanceof H323RoomSetting) {
+                H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                if (Strings.isNullOrEmpty(h323RoomSetting.getPin())) {
+                    allocateRoomSettings.setRoomPin(((H323RoomSetting) roomSetting).getPin());
+                }
+           }
+            else if (roomSetting instanceof AdobeConnectRoomSetting) {
+                AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
+                if (Strings.isNullOrEmpty(adobeConnectRoomSetting.getPin())) {
+                    allocateRoomSettings.setRoomPin(adobeConnectRoomSetting.getPin());
+                }
+                if (adobeConnectRoomSetting.getAccessMode() != null) {
+                    allocateRoomSettings.setAcAccessMode(adobeConnectRoomSetting.getAccessMode());
+                }
+            }
+        }
+
+        result = InterDomainAgent.getInstance().getConnector().allocateRoom(domains, allocateRoomSettings, previousReservationRequestId);
+
+        SortedSet<cz.cesnet.shongo.controller.api.domains.response.Reservation> reservations = new TreeSet<>(result);
+        if (!reservationsPending(reservations) && !reservations.isEmpty()) {
+            bestReservation = reservations.first();
+        }
+        for (cz.cesnet.shongo.controller.api.domains.response.Reservation candidateReservation : reservations) {
+            // Add all created foreign reservation requests ids
+            reservation.addForeignReservationRequestId(candidateReservation.getForeignReservationRequestId());
+        }
+
+        if (bestReservation != null) {
+            updateForeignRoomReservation(currentReservation, bestReservation);
+        }
+        return reservation;
+    }
+
+    private boolean isValidForForeignReservation(Set<cz.cesnet.shongo.controller.api.Domain> domainsWithRoomProvider, ForeignRoomReservation currentReservation)
+    {
+        if (!schedulerContext.isLocalByUser()) {
+            return false;
+        }
+        if (!Controller.isInterDomainInitialized()) {
+            return false;
+        }
+        // Skip when no domains to call and not modification neither
+        if (domainsWithRoomProvider == null || domainsWithRoomProvider.isEmpty()) {
+            if (currentReservation == null || Strings.isNullOrEmpty(currentReservation.getForeignReservationRequestId())) {
+                return false;
+            }
+        }
+        //TODO: dalsi, probrat s Martinem
+
+        return true;
     }
 
     private ForeignRoomReservation checkPendingForeignAllocations(ForeignRoomReservation currentReservation) throws SchedulerReportSet.ResourceNotFoundException
@@ -516,7 +556,7 @@ public class RoomReservationTask extends ReservationTask
         return  currentReservation;
     }
 
-    private void allocateForeignExecutable(ForeignRoomReservation currentReservation, cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
+    private void assignForeignExecutable(ForeignRoomReservation currentReservation, cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
     {
         // Allocated room endpoint
         currentReservation.setSlotStart(bestReservation.getSlotStart());
@@ -554,6 +594,9 @@ public class RoomReservationTask extends ReservationTask
             roomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);
             String executableState = roomSpecification.getState().toApi().toString();
             roomEndpoint.setState(Executable.State.valueOf(executableState));
+            if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
+                roomEndpoint.setModified(true);
+            }
 
             for (cz.cesnet.shongo.controller.api.domains.response.Alias alias : roomSpecification.getAliases()) {
                 Alias persistenceAlias = new Alias(alias.getType(), alias.getValue());
@@ -562,14 +605,6 @@ public class RoomReservationTask extends ReservationTask
                 } catch (SchedulerException e) {
                     throw new TodoImplementException("Should not happen.", e);
                 }
-            }
-
-            // Update room endpoint state
-            if (roomEndpoint.getState() == null) {
-                roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-            }
-            else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
-                roomEndpoint.setModified(true);
             }
         }
 
@@ -592,7 +627,7 @@ public class RoomReservationTask extends ReservationTask
 
             // Set {@code currentReservation} and add {@link ForeignRoomEndpoint} to it
             if (bestReservation.isAllocated()) {
-                allocateForeignExecutable(currentReservation, bestReservation);
+                assignForeignExecutable(currentReservation, bestReservation);
             }
         }
         // Sets {@code schedulerContext} wanted allocation state and {@code currentReservation} state

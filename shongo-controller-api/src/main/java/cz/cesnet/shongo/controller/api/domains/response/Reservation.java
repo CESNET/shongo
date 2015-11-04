@@ -24,6 +24,9 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
     @JsonProperty("foreignReservationRequestId")
     private String foreignReservationRequestId;
 
+    /**
+     * Allocated reservation id. Is null when it is not allocated for the last reservation request.
+     */
     @JsonProperty("foreignReservationId")
     private String foreignReservationId;
 

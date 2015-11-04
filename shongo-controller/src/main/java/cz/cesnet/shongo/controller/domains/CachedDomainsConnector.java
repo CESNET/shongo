@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
@@ -372,7 +373,7 @@ public class CachedDomainsConnector extends DomainsConnector
      *
      * @return {@link List<Reservation>} of resources for foreign available domains
      */
-    public List<ReservationSummary> listForeignResourcesReservations(String resourceId, Interval interval)
+    public List<ReservationSummary> listForeignResourcesReservations(String resourceId, Interval interval) throws ForeignDomainConnectException
     {
         List<Reservation> response;
         List<ReservationSummary> result = new ArrayList<>();

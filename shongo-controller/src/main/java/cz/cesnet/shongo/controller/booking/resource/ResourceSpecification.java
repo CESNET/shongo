@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -159,7 +160,12 @@ public class ResourceSpecification extends Specification implements ReservationT
                         foreignResourceReservation = new ForeignResourceReservation();
                         foreignResourceReservation.setDomain(foreignResources.getDomain());
 
-                        foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources, previousReservationRequestId);
+                        try {
+                            foreignReservation = InterDomainAgent.getInstance().getConnector().allocateResource(schedulerContext, slot, foreignResources, previousReservationRequestId);
+                        }
+                        catch (ForeignDomainConnectException e) {
+                            throw new TodoImplementException("Parse returned exception");
+                        }
                         foreignResourceReservation.setSlot(foreignReservation.getSlot());
                         foreignResourceReservation.setForeignResources(foreignResources);
 
@@ -180,8 +186,13 @@ public class ResourceSpecification extends Specification implements ReservationT
                         cz.cesnet.shongo.controller.api.Domain domain = foreignResourceReservation.getDomain().toApi();
                         String requestId = foreignResourceReservation.getForeignReservationRequestId();
 
-                        //TODO: try-catch?
-                        foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
+                        try {
+                            foreignReservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(domain, requestId);
+                        }
+                        catch (ForeignDomainConnectException e) {
+                            //TODO process foreign exception
+                            throw new SchedulerException(e);
+                        }
 
                         cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
                         resourceSpecification = (cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification) foreignReservation.getSpecification();
