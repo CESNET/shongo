@@ -8,10 +8,12 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
+import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
@@ -282,7 +284,7 @@ public class DomainsConnector
         }
     }
 
-    protected URL buildRequestUrl(final Domain domain, String action, MultiMap<String, String> parameters)
+    protected URL buildRequestUrl(final Domain domain, String action, MultiMap<String, String> parameters) throws ForeignDomainConnectException
     {
         action = action.trim();
         while (action.startsWith("/")) {
@@ -315,7 +317,7 @@ public class DomainsConnector
         }
     }
 
-    protected HttpsURLConnection buildConnection(Domain domain, URL url)
+    protected HttpsURLConnection buildConnection(Domain domain, URL url) throws ForeignDomainConnectException
     {
         HttpsURLConnection connection;
         try {
@@ -353,7 +355,7 @@ public class DomainsConnector
         }
     }
 
-    protected void processError(HttpsURLConnection connection, final Domain domain)
+    protected void processError(HttpsURLConnection connection, final Domain domain) throws ForeignDomainConnectException
     {
         String actionUrl = connection.getURL().toString();
         try {
@@ -395,7 +397,7 @@ public class DomainsConnector
      *
      * @return access token
      */
-    public String login(Domain domain)
+    public String login(Domain domain) throws ForeignDomainConnectException
     {
         URL loginUrl = buildRequestUrl(domain, InterDomainAction.DOMAIN_LOGIN, null);
         HttpsURLConnection connection = buildConnection(domain, loginUrl);
@@ -546,7 +548,7 @@ public class DomainsConnector
     }
 
     public Reservation allocateResource(SchedulerContext schedulerContext, Interval slot, ForeignResources foreignResources,
-                                        String previousReservationRequestId)
+                                        String previousReservationRequestId) throws ForeignDomainConnectException
     {
         Domain domain = foreignResources.getDomain().toApi();
         ObjectReader reader = mapper.reader(Reservation.class);
@@ -567,27 +569,32 @@ public class DomainsConnector
         return reservation;
     }
 
-    public List<Reservation> allocateRoom(Set<Domain> domains, int participantCount, List<Set<Technology>> technologyVariants, Interval slot, SchedulerContext schedulerContext,
-                                          String previousReservationRequestId)
+    public List<Reservation> allocateRoom(Set<Domain> domains, RoomSettings roomSettings, String previousReservationRequestId)
     {
+        roomSettings.validate();
+
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
-        parameters.put("participantCount", participantCount);
-        parameters.put("userId", schedulerContext.getUserId());
-        parameters.put("description", schedulerContext.getDescription());
-//        parameters.put("roomPin", );
-//        parameters.put("roomAccessMode", );
-//        parameters.put("roomRecorded", );
-        if (technologyVariants == null  || technologyVariants.isEmpty()) {
-            throw new IllegalArgumentException("Some technology must be set.");
+        parameters.put("slot", Converter.convertIntervalToStringUTC(roomSettings.getSlot()));
+        parameters.put("participantCount", roomSettings.getParticipantCount());
+        parameters.put("userId", roomSettings.getUserId());
+        parameters.put("description", roomSettings.getDescription());
+        if (roomSettings.getRoomPin() != null) {
+            parameters.put("roomPin", roomSettings.getRoomPin());
         }
-        if (technologyVariants.size() > 1) {
-            throw new TodoImplementException();
+        if (roomSettings.getAcAccessMode() != null) {
+            parameters.put("acRoomAccessMode", roomSettings.getAcAccessMode());
         }
-        for (Technology technology : technologyVariants.get(0)) {
+        if (roomSettings.isRecordRoom()) {
+            parameters.put("roomRecorded", true);
+        }
+
+        for (Technology technology : roomSettings.getFirstTechnologyVariant()) {
             parameters.put("technologies", technology.toString());
         }
-        //TODO: participants
+        for (cz.cesnet.shongo.controller.api.AbstractParticipant participant : roomSettings.getParticipants()) {
+//            participant.
+//            parameters.put("participants", participant);
+        }
         //TODO: room name
         if (previousReservationRequestId != null) {
             parameters.put("reservationRequestId", previousReservationRequestId);
@@ -597,7 +604,7 @@ public class DomainsConnector
         return new ArrayList<>(reservations.values());
     }
 
-    public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId)
+    public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId) throws ForeignDomainConnectException
     {
         ObjectReader reader = mapper.reader(Reservation.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
@@ -635,7 +642,7 @@ public class DomainsConnector
         return reservations;
     }
 
-    public boolean deallocateReservation(Domain domain, String foreignReservationRequestId)
+    public boolean deallocateReservation(Domain domain, String foreignReservationRequestId) throws ForeignDomainConnectException
     {
         ObjectReader reader = mapper.reader(AbstractResponse.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
@@ -651,7 +658,7 @@ public class DomainsConnector
 //        return listReservations(domain, null, null);
 //    }
 
-    public List<Reservation> listReservations(Domain domain, String resourceId, Interval slot)
+    public List<Reservation> listReservations(Domain domain, String resourceId, Interval slot) throws ForeignDomainConnectException
     {
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
         MultiMap<String, String> parameters = new MultiValueMap<>();

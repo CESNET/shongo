@@ -2,14 +2,12 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.Domain;
 
-import java.net.URL;
-
 /**
  * Cannot connect to foreign domain.
  *
- * @author: Ondřej Pavelka <pavelka@cesnet.cz>
+ * @author: Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class ForeignDomainConnectException extends RuntimeException
+public class ForeignDomainConnectException extends Exception
 {
     /**
      * Domain

@@ -211,7 +211,7 @@ public class InterDomainController implements InterDomainProtocol
                                           @RequestParam(value = "userId", required = true) String userId,
                                           @RequestParam(value = "description", required = false) String description,
                                           @RequestParam(value = "roomPin", required = false) String roomPin,
-                                          @RequestParam(value = "roomAccessMode", required = false) AdobeConnectPermissions roomAccessMode,
+                                          @RequestParam(value = "acRoomAccessMode", required = false) AdobeConnectPermissions acRoomAccessMode,
                                           @RequestParam(value = "roomRecorded", required = false) Boolean roomRecorded,
                                           @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException
@@ -275,7 +275,7 @@ public class InterDomainController implements InterDomainProtocol
                 if (!Strings.isNullOrEmpty(roomPin)) {
                     adobeConnectRoomSetting.setPin(roomPin);
                 }
-                adobeConnectRoomSetting.setAccessMode(roomAccessMode);
+                adobeConnectRoomSetting.setAccessMode(acRoomAccessMode);
                 roomSpecification.addRoomSetting(adobeConnectRoomSetting);
             }
 
@@ -349,55 +349,56 @@ public class InterDomainController implements InterDomainProtocol
 
             Reservation reservation = new Reservation();
 
-            //TODO get report: reservationRequest.getReportDescription()
             reservation.setForeignReservationRequestId(reservationRequestId);
+            if (currentReservation != null) {
+                reservation.setSlot(currentReservation.getSlot());
+                if (currentReservation instanceof ResourceReservation) {
+                    ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
+                    String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
+
+                    cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
+                    resourceSpecification = new cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification(resourceId);
+                    reservation.setSpecification(resourceSpecification);
+                }
+                else if (currentReservation instanceof RoomReservation) {
+                    RoomReservation roomReservation = (RoomReservation) currentReservation;
+
+                    cz.cesnet.shongo.controller.booking.room.RoomSpecification roomSpecification;
+                    roomSpecification = (cz.cesnet.shongo.controller.booking.room.RoomSpecification) specification;
+
+                    cz.cesnet.shongo.controller.api.domains.response.RoomSpecification foreignRoomSpecification;
+                    foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
+                    foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
+                    foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
+                    ExecutableState state = roomReservation.getEndpoint().getState().toApi();
+                    foreignRoomSpecification.setState(RoomState.fromApi(state));
+
+                    foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
+                    for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
+                        foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
+                    }
+
+                    reservation.setSpecification(foreignRoomSpecification);
+                }
+            }
+
             switch (reservationRequest.getAllocationState()) {
                 case ALLOCATION_FAILED:
                     // Set last available reservation (when modification failed)
-                    if (reservationRequest.getModifiedReservationRequest() != null) {
-                        cz.cesnet.shongo.controller.booking.reservation.Reservation lastReservation;
-                        lastReservation = reservationRequest.getAllocation().getCurrentReservation();
-                        reservation.setForeignReservationId(ObjectIdentifier.formatId(lastReservation));
-                    }
+//                    if (reservationRequest.getModifiedReservationRequest() != null) {
+//                        cz.cesnet.shongo.controller.booking.reservation.Reservation lastReservation;
+//                        lastReservation = reservationRequest.getAllocation().getCurrentReservation();
+//                        reservation.setForeignReservationId(ObjectIdentifier.formatId(lastReservation));
+//                    }
                     reservation.setStatus(AbstractResponse.Status.FAILED);
+
+                    //TODO get report: reservationRequest.getReportDescription()
                     SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
                     reservation.setMessage("TODO: " + report.toString());
                     break;
                 case ALLOCATED:
-                    if (currentReservation != null) {
-                        String reservationId = ObjectIdentifier.formatId(currentReservation);
-                        reservation.setSlot(currentReservation.getSlot());
-                        reservation.setForeignReservationId(reservationId);
-
-                        if (currentReservation instanceof ResourceReservation) {
-                            ResourceReservation resourceReservation = (ResourceReservation) currentReservation;
-                            String resourceId = ObjectIdentifier.formatId(resourceReservation.getResource());
-
-                            cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
-                            resourceSpecification = new cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification(resourceId);
-                            reservation.setSpecification(resourceSpecification);
-                        }
-                        else if (currentReservation instanceof RoomReservation) {
-                            RoomReservation roomReservation = (RoomReservation) currentReservation;
-
-                            cz.cesnet.shongo.controller.booking.room.RoomSpecification roomSpecification;
-                            roomSpecification = (cz.cesnet.shongo.controller.booking.room.RoomSpecification) specification;
-
-                            cz.cesnet.shongo.controller.api.domains.response.RoomSpecification foreignRoomSpecification;
-                            foreignRoomSpecification = new cz.cesnet.shongo.controller.api.domains.response.RoomSpecification();
-                            foreignRoomSpecification.setLicenseCount(roomReservation.getLicenseCount());
-                            foreignRoomSpecification.setTechnologies(new HashSet<>(roomSpecification.getTechnologies()));
-                            ExecutableState state = roomReservation.getEndpoint().getState().toApi();
-                            foreignRoomSpecification.setState(RoomState.fromApi(state));
-
-                            foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
-                            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
-                                foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
-                            }
-
-                            reservation.setSpecification(foreignRoomSpecification);
-                        }
-                    }
+                    String reservationId = ObjectIdentifier.formatId(currentReservation);
+                    reservation.setForeignReservationId(reservationId);
                     break;
                 default:
                     break;

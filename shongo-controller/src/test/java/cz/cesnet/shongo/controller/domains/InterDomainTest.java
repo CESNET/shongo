@@ -1,28 +1,16 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.DomainResource;
 import cz.cesnet.shongo.controller.api.domains.response.*;
-import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.ssl.SSLCommunication;
-import org.codehaus.jackson.map.Module;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.ext.JodaSerializers;
-import org.codehaus.jackson.map.module.SimpleModule;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
-import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.datetime.joda.DateTimeFormatterFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -92,7 +80,7 @@ public class InterDomainTest extends AbstractControllerTest
      * Test of basic authentication on loopback domain
      */
     @Test
-    public void testBasicAuthLogin()
+    public void testBasicAuthLogin() throws ForeignDomainConnectException
     {
         getConnector().login(loopbackDomain);
         List<Domain> domains = getConnector().getForeignDomainsStatuses();
@@ -129,7 +117,7 @@ public class InterDomainTest extends AbstractControllerTest
      * for some types of resources/capabilities
      */
     @Test
-    public void testListForeignCapabilities()
+    public void testListForeignCapabilities() throws ForeignDomainConnectException
     {
         DomainResource mcuDomainResource = new DomainResource();
         mcuDomainResource.setPrice(1);
@@ -192,7 +180,7 @@ public class InterDomainTest extends AbstractControllerTest
      * Test of cached domain connector.
      */
     @Test
-    public void testCachedDomainResources()
+    public void testCachedDomainResources() throws ForeignDomainConnectException
     {
         try {
             Resource meetingRoom = new Resource();
