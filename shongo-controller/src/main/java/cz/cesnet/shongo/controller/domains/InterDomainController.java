@@ -270,7 +270,7 @@ public class InterDomainController implements InterDomainProtocol
                 h323RoomSetting.setPin(roomPin);
                 roomSpecification.addRoomSetting(h323RoomSetting);
             }
-            if (technologies.contains(Technology.ADOBE_CONNECT)) {
+            else if (technologies.contains(Technology.ADOBE_CONNECT)) {
                 AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
                 if (!Strings.isNullOrEmpty(roomPin)) {
                     adobeConnectRoomSetting.setPin(roomPin);
