@@ -510,11 +510,13 @@ public abstract class Target
         public ForeignRoom(ForeignRoomReservation foreignRoomReservation)
         {
             ForeignRoomEndpoint foreignRoomEndpoint = foreignRoomReservation.getForeignEndpoint();
-            this.technologies = foreignRoomEndpoint.getTechnologies();
-            this.name = foreignRoomEndpoint.getRoomName();
-            this.licenseCount = foreignRoomEndpoint.getLicenseCount();
-            this.pin = foreignRoomEndpoint.getPin();
-            this.aliases = foreignRoomEndpoint.getAliases();
+            if (foreignRoomEndpoint != null) {
+                this.technologies = foreignRoomEndpoint.getTechnologies();
+                this.name = foreignRoomEndpoint.getRoomName();
+                this.licenseCount = foreignRoomEndpoint.getLicenseCount();
+                this.pin = foreignRoomEndpoint.getPin();
+                this.aliases = foreignRoomEndpoint.getAliases();
+            }
         }
 
         public Set<Technology> getTechnologies()

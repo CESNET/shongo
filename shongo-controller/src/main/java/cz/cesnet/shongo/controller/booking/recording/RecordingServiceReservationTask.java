@@ -139,12 +139,23 @@ public class RecordingServiceReservationTask extends ReservationTask
             }
             EntityManager entityManager = schedulerContext.getEntityManager();
             ResourceManager resourceManager = new ResourceManager(entityManager);
+            ReservationManager reservationManager = new ReservationManager(entityManager);
 
             String userId = schedulerContext.getUserId();
             if (!UserInformation.isLocal(userId)) {
+                Long domainId = UserInformation.parseDomainId(userId);
+                DomainResource domainResource;
                 try {
-                    Long domainId = UserInformation.parseDomainId(userId);
-                    resourceManager.getDomainResource(domainId, deviceResource.getId());
+                    domainResource = resourceManager.getDomainResource(domainId, deviceResource.getId());
+
+                    Long reservationId = currentReservation == null ? null : currentReservation.getId();
+                    List<RecordingServiceReservation> reservations = reservationManager.getRecordingReservationsForDomain(domainId, deviceResource.getId(), slot, reservationId);
+                    int usedLicensesByDomain = schedulerContext.getLicenseCountPeak(slot, reservations, deviceResource.getCapability(RecordingCapability.class));
+
+                    if (domainResource.getLicenseCount() - usedLicensesByDomain < 1) {
+                        // Recording capability already used by this domain
+                        continue;
+                    }
                 }
                 catch (CommonReportSet.ObjectNotExistsException e) {
                     // Skip this resource, not allowed for domain (given by user id)
@@ -153,7 +164,6 @@ public class RecordingServiceReservationTask extends ReservationTask
             }
 
             // Get available recorder
-            ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RecordingServiceReservation> roomReservations =
                     reservationManager.getRecordingServiceReservations(recordingCapability, slot);
             schedulerContextState.applyReservations(
@@ -177,25 +187,6 @@ public class RecordingServiceReservationTask extends ReservationTask
             if (roomBuckets.size() > 0) {
                 RangeSet.Bucket roomBucket = roomBuckets.get(0);
                 usedLicenseCount = roomBucket.size();
-            }
-            // Update {@code userLicenceCount} for foreign domain
-            if (!UserInformation.isLocal(userId)) {
-                Long domainId = UserInformation.parseDomainId(userId);
-                boolean modification = false;
-                if (currentReservation != null) {
-                    modification = true;
-                }
-
-                DomainResource domainResource = resourceManager.getDomainResource(domainId, deviceResource.getId());
-                int availableLicenseForDomain = domainResource.getLicenseCount();
-
-                List<RecordingServiceReservation> reservations = reservationManager.getRecordingReservationsForDomain(domainId, deviceResource.getId(), slot, currentReservation.getId());
-                int usedLicensesByDomain = schedulerContext.getLicenseCountPeak(slot, reservations, deviceResource.getCapability(RecordingCapability.class));
-
-                if (availableLicenseForDomain - usedLicensesByDomain < 1) {
-                    // Recording capability already used by this domain
-                    continue;
-                }
             }
             AvailableRecorder availableRecorder = new AvailableRecorder(recordingCapability, usedLicenseCount);
             if (Integer.valueOf(0).equals(availableRecorder.getAvailableLicenseCount())) {
