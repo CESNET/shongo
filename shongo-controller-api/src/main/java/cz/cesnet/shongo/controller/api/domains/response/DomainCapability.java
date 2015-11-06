@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.RecordingCapability;
+import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import org.codehaus.jackson.annotate.JsonProperty;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Resource;
@@ -45,6 +48,9 @@ public class DomainCapability //extends IdentifiedComplexType
 
     @JsonProperty("technologies")
     private Set<Technology> technologies;
+
+    @JsonProperty("capabilityType")
+    private Type capabilityType;
 
 //    @Override
     public void setId(String id)
@@ -156,6 +162,16 @@ public class DomainCapability //extends IdentifiedComplexType
         this.technologies.add(technology);
     }
 
+    public Type getCapabilityType()
+    {
+        return capabilityType;
+    }
+
+    public void setCapabilityType(Type capabilityType)
+    {
+        this.capabilityType = capabilityType;
+    }
+
     public ResourceSummary toResourceSummary()
     {
         ResourceSummary resourceSummary = new ResourceSummary();
@@ -229,4 +245,50 @@ public class DomainCapability //extends IdentifiedComplexType
 //            calendarUriKey = dataMap.getStringRequired(CALENDAR_URI_KEY);
 //        }
 //    }
+
+    public enum Type
+    {
+        /**
+         * Used for resources, which has {@link RoomProviderCapability}.
+         */
+        VIRTUAL_ROOM,
+
+        /**
+         * Used for resources, which has {@link RecordingCapability}.
+         */
+        RECORDING_SERVICE,
+
+        /**
+         * Used for resources, that can be allocated over Inter Domain Protocol.
+         */
+        RESOURCE;
+
+        public static Type createFromDB(String type)
+        {
+            switch (type) {
+                case "ROOM_PROVIDER":
+                    return VIRTUAL_ROOM;
+                case "RECORDING_SERVICE":
+                    return RECORDING_SERVICE;
+                case "RESOURCE":
+                    return RESOURCE;
+                default:
+                    throw new TodoImplementException("Unsupported capability type.");
+            }
+        }
+
+        public String toDb()
+        {
+            switch (this) {
+                case VIRTUAL_ROOM:
+                    return "ROOM_PROVIDER";
+                case RECORDING_SERVICE:
+                    return "RECORDING_SERVICE";
+                case RESOURCE:
+                    return "RESOURCE";
+                default:
+                    throw new TodoImplementException("Unsupported capability type.");
+            }
+        }
+    }
 }

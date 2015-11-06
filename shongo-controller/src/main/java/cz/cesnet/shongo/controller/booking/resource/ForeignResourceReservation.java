@@ -76,7 +76,7 @@ public class ForeignResourceReservation extends AbstractForeignReservation
 
     public void fromApi(Reservation reservationApi, EntityManager entityManager)
     {
-        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(reservationApi.getType())) {
+        if (!DomainCapability.Type.RESOURCE.equals(reservationApi.getType())) {
             throw new IllegalArgumentException("Reservation is of type resource.");
         }
 

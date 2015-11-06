@@ -8,12 +8,12 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
@@ -94,31 +94,32 @@ public class DomainsConnector
     }
 
     protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                      final MultiMap<String, String> parameters, final Collection<Domain> domains,
-                                                      Class<T> objectClass)
+                                                      final MultiMap<String, String> parameters,  final Object data,
+                                                      final Collection<Domain> domains, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(objectClass);
-        performRequests(method, action, parameters, domains, reader, resultMap, objectClass);
+        performRequests(method, action, parameters, data, domains, reader, resultMap, objectClass);
         return resultMap;
     }
 
     protected <T> Map<String, List<T>> performTypedListRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                                final MultiMap<String, String> parameters, final Collection<Domain> domains,
-                                                                Class<T> objectClass)
+                                                                final MultiMap<String, String> parameters,  final Object data,
+                                                                final Collection<Domain> domains, Class<T> objectClass)
     {
         final Map<String, List<T>> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
-        performRequests(method, action, parameters, domains, reader, resultMap, List.class);
+        performRequests(method, action, parameters, data, domains, reader, resultMap, List.class);
         return resultMap;
     }
 
     protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                      final Map<Domain, MultiMap<String, String>> parametersByDomain, Class<T> objectClass)
+                                                      final Map<Domain, MultiMap<String, String>> parametersByDomain,
+                                                      final Object data, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
         ObjectReader reader = mapper.reader(objectClass);
-        performRequests(method, action, parametersByDomain, reader, resultMap, objectClass);
+        performRequests(method, action, parametersByDomain, data, reader, resultMap, objectClass);
         return resultMap;
     }
 
@@ -127,20 +128,22 @@ public class DomainsConnector
      *
      * @param method      of the request
      * @param action      to preform
+     * @param parameters  to send as GET parameters
+     * @param data        to send by POST
      * @param domains     for which the request will be performed and will be returned in map
      * @param reader      to parse JSON
      * @param result      collection to store the result
      * @param returnClass {@link Class<T>} of the object to return
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
-                                                    final MultiMap<String, String> parameters, final Collection<Domain> domains,
-                                                    final ObjectReader reader, final Map<String, ?> result,
-                                                    final Class<T> returnClass)
+                                                    final MultiMap<String, String> parameters, final Object data,
+                                                    final Collection<Domain> domains, final ObjectReader reader,
+                                                    final Map<String, ?> result, final Class<T> returnClass)
     {
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
 
         for (final Domain domain : domains) {
-            Callable<T> task = new DomainTask<>(method, action, parameters, domain, reader, returnClass, result, null);
+            Callable<T> task = new DomainTask<>(method, action, parameters, data, domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
@@ -166,19 +169,20 @@ public class DomainsConnector
      * @param method      of the request
      * @param action      to preform
      * @param parametersByDomain    that will be send to given domain
+     * @param data        to send by POST
      * @param reader      to parse JSON
      * @param result      collection to store the result
      * @param returnClass {@link Class<T>} of the object to return
      */
     protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
                                                     final Map<Domain, MultiMap<String, String>> parametersByDomain,
-                                                    final ObjectReader reader, final Map<String, ?> result,
-                                                    final Class<T> returnClass)
+                                                    final Object data, final ObjectReader reader,
+                                                    final Map<String, ?> result, final Class<T> returnClass)
     {
         final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
 
         for (final Domain domain : parametersByDomain.keySet()) {
-            Callable<T> task = new DomainTask<>(method, action, parametersByDomain.get(domain), domain, reader, returnClass, result, null);
+            Callable<T> task = new DomainTask<>(method, action, parametersByDomain.get(domain), data, domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
@@ -214,12 +218,14 @@ public class DomainsConnector
      *
      * @param method {@link cz.cesnet.shongo.controller.api.domains.InterDomainAction.HttpMethod}
      * @param action to perform, uses static variables from {@link InterDomainAction}
+     * @param parameters  to send as GET parameters
+     * @param data        to send by POST
      * @param domain for which perform the request
      * @param clazz  {@link Class<T>} of the object to return
      * @return result object as instance of given {@code clazz}
      */
     private <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final MultiMap<String, String> parameters,
-                                 final Domain domain, final ObjectReader reader, Class<T> clazz)
+                                 Object data, final Domain domain, final ObjectReader reader, Class<T> clazz)
     throws ForeignDomainConnectException
     {
         if (action == null || domain == null || reader == null) {
@@ -258,13 +264,13 @@ public class DomainsConnector
 //                  ====================DEBUG=====================
                     return reader.readValue(connection.getInputStream());
                 case POST:
-//                    connection.setDoOutput(true);
-//                    connection.setRequestProperty("Content-Type", "application/json");
-//                    if (jsonObject != null) {
-//                        connection.getOutputStream().write(jsonObject.toString().getBytes());
-//                    }
-//                    processError(connection, domain);
-//                    break;
+                    connection.setDoOutput(true);
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    if (data != null) {
+                        connection.getOutputStream().write(mapper.writeValueAsBytes(data));
+                    }
+                    processError(connection, domain);
+                    return reader.readValue(connection.getInputStream());
                 case PUT:
                 case DELETE:
                     throw new TodoImplementException();
@@ -316,6 +322,7 @@ public class DomainsConnector
             throw new ForeignDomainConnectException(domain, actionUrl, e);
         }
     }
+
 
     protected HttpsURLConnection buildConnection(Domain domain, URL url) throws ForeignDomainConnectException
     {
@@ -501,7 +508,7 @@ public class DomainsConnector
     public List<Domain> getForeignDomainsStatuses()
     {
         List<Domain> foreignDomains = listForeignDomains();
-        Map<String, DomainStatus> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, null, foreignDomains, DomainStatus.class);
+        Map<String, DomainStatus> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_STATUS, null, null, foreignDomains, DomainStatus.class);
         for (Domain domain : foreignDomains) {
             DomainStatus status = response.get(domain.getName());
             domain.setStatus(status == null ? Domain.Status.NOT_AVAILABLE : status.toStatus());
@@ -513,26 +520,13 @@ public class DomainsConnector
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
     {
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        parameters.put("type", request.getCapabilityType().toString());
-        if (request.getInterval() != null) {
-            parameters.put("interval", Converter.convertIntervalToStringUTC(request.getInterval()));
+
+        if (request.getSlot() != null) {
+            parameters.put("interval", Converter.convertIntervalToStringUTC(request.getSlot()));
         }
-        if (request.getLicenseCount() != null) {
-            parameters.put("licenseCount", request.getLicenseCount());
-        }
-        if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(request.getCapabilityType())) {
-            if (request.getTechnologyVariants() != null) {
-                if (request.getTechnologyVariants().isEmpty()) {
-                    throw new IllegalArgumentException("Some technology must be set.");
-                }
-                if (request.getTechnologyVariants().size() > 1) {
-                    throw new TodoImplementException();
-                }
-                for (Technology technology : request.getTechnologyVariants().get(0)) {
-                    parameters.put("technologies", technology.toString());
-                }
-            }
-        }
+//        for (CapabilityListRequest capabilityListRequest : request.getCapabilityListRequests()) {
+//            parameters.put("capabilityListRequests", capabilityListRequest);
+//        }
         List<Domain> domains;
         if (request.getDomain() == null) {
             domains = listForeignDomains(request.getOnlyAllocatable());
@@ -541,9 +535,10 @@ public class DomainsConnector
             domains = new ArrayList<>();
             domains.add(request.getDomain());
         }
+        List<CapabilityListRequest> capabilityListRequests = request.getCapabilityListRequests().isEmpty() ? null : request.getCapabilityListRequests();
         // Resource IDs are not filtered by inter domain protocol
-        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.GET,
-                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, domains, DomainCapability.class);
+        Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.POST,
+                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, capabilityListRequests, domains, DomainCapability.class);
         return domainResources;
     }
 
@@ -554,7 +549,7 @@ public class DomainsConnector
         ObjectReader reader = mapper.reader(Reservation.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
-        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
+        parameters.put("type", DomainCapability.Type.RESOURCE.toString());
         parameters.put("resourceId", ObjectIdentifier.formatId(foreignResources));
         parameters.put("userId", schedulerContext.getUserId());
         parameters.put("description", schedulerContext.getDescription());
@@ -562,7 +557,7 @@ public class DomainsConnector
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
 
-        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, domain, reader, Reservation.class);
+        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_RESOURCE, parameters, null, domain, reader, Reservation.class);
         if (reservation.getSlot() == null) {
             reservation.setSlot(slot);
         }
@@ -602,7 +597,7 @@ public class DomainsConnector
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
 
-        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, domains, Reservation.class);
+        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, null, domains, Reservation.class);
         return new ArrayList<>(reservations.values());
     }
 
@@ -612,7 +607,7 @@ public class DomainsConnector
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
-        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parameters, domain, reader, Reservation.class);
+        Reservation reservation = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parameters, null, domain, reader, Reservation.class);
 
         return reservation;
     }
@@ -629,7 +624,7 @@ public class DomainsConnector
             parametersByDomain.put(domain, parameters);
         }
 
-        Map<String, Reservation> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parametersByDomain, Reservation.class);
+        Map<String, Reservation> response = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DATA, parametersByDomain, null, Reservation.class);
         List<Reservation> reservations = new ArrayList<>();
         for (String domainName : response.keySet()) {
 //            Domain domain = getDomainService().findDomainByName(domainName);
@@ -650,7 +645,7 @@ public class DomainsConnector
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
-        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_REQUEST_DELETE, parameters, domain, reader, AbstractResponse.class);
+        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_REQUEST_DELETE, parameters, null, domain, reader, AbstractResponse.class);
 
         return AbstractResponse.Status.OK.equals(response.getStatus());
     }
@@ -671,7 +666,7 @@ public class DomainsConnector
             parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
         }
 
-        List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, domain, reader, List.class);
+        List<Reservation> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, parameters, null, domain, reader, List.class);
         List<Reservation> reservations = new ArrayList<>();
         for (Reservation reservation : response) {
             ForeignSpecification specification = reservation.getSpecification();
@@ -715,6 +710,11 @@ public class DomainsConnector
         private final MultiMap<String, String> parameters;
 
         /**
+         * POST data
+         */
+        private final Object data;
+
+        /**
          * Domain for which will the action be called
          */
         private final Domain domain;
@@ -740,13 +740,14 @@ public class DomainsConnector
         private Set<String> unavailableDomains;
 
         public DomainTask(final InterDomainAction.HttpMethod method, final String action,
-                          final MultiMap<String, String> parameters, final Domain domain,
+                          final MultiMap<String, String> parameters, final Object data, final Domain domain,
                           final ObjectReader reader, final Class<T> returnClass,
                           final Map<String, ?> result, final Set<String> unavailableDomains)
         {
             this.method = method;
             this.action = action;
             this.parameters = parameters;
+            this.data = data;
             this.domain = domain;
             this.reader = reader;
             this.returnClass = returnClass;
@@ -770,7 +771,7 @@ public class DomainsConnector
                 if (InterDomainAgent.getInstance().getDomainService().getDomain(domain.getId()) == null) {
                     terminateDomainTask();
                 }
-                T response = performRequest(method, action, parameters, domain, reader, returnClass);
+                T response = performRequest(method, action, parameters, data, domain, reader, returnClass);
                 if (result != null && response != null) {
                     synchronized (result) {
                         ((Map<String, T>) result).put(domain.getName(), response);

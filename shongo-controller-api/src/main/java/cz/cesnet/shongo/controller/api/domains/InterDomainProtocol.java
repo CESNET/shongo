@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectPermissions;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
-import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import org.joda.time.Interval;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,15 +18,10 @@ import java.util.Set;
 public interface InterDomainProtocol {
 
     DomainLogin handleLogin(HttpServletRequest request);
-    /**
-     *
-     * @param request
-     * @return status of local domain
-     */
+
     DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    List<DomainCapability> handleListCapabilities(HttpServletRequest request, DomainCapabilityListRequest.Type type,
-                                                         Interval interval, Integer licenseCount, List<Technology> technologies)
+    List<DomainCapability> handleListCapabilities(HttpServletRequest request, Interval slot, List<CapabilityListRequest> capabilityListRequests)
             throws NotAuthorizedException;
 
     Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
