@@ -1,16 +1,21 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.domain.DomainResource;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
@@ -122,7 +127,7 @@ public class RecordingServiceReservationTask extends ReservationTask
         }
 
         // Find matching recording devices
-        List<AvailableRecorder> availableRecorders = new LinkedList<AvailableRecorder>();
+        List<AvailableRecorder> availableRecorders = new LinkedList<>();
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
         for (RecordingCapability recordingCapability : resourceCache.getCapabilities(RecordingCapability.class)) {
             DeviceResource deviceResource = recordingCapability.getDeviceResource();
@@ -132,9 +137,22 @@ public class RecordingServiceReservationTask extends ReservationTask
             if (technologies.size() > 0 && !deviceResource.hasTechnologies(technologies)) {
                 continue;
             }
+            EntityManager entityManager = schedulerContext.getEntityManager();
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+
+            String userId = schedulerContext.getUserId();
+            if (!UserInformation.isLocal(userId)) {
+                try {
+                    Long domainId = UserInformation.parseDomainId(userId);
+                    resourceManager.getDomainResource(domainId, deviceResource.getId());
+                }
+                catch (CommonReportSet.ObjectNotExistsException e) {
+                    // Skip this resource, not allowed for domain (given by user id)
+                    continue;
+                }
+            }
 
             // Get available recorder
-            EntityManager entityManager = schedulerContext.getEntityManager();
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RecordingServiceReservation> roomReservations =
                     reservationManager.getRecordingServiceReservations(recordingCapability, slot);
@@ -159,6 +177,25 @@ public class RecordingServiceReservationTask extends ReservationTask
             if (roomBuckets.size() > 0) {
                 RangeSet.Bucket roomBucket = roomBuckets.get(0);
                 usedLicenseCount = roomBucket.size();
+            }
+            // Update {@code userLicenceCount} for foreign domain
+            if (!UserInformation.isLocal(userId)) {
+                Long domainId = UserInformation.parseDomainId(userId);
+                boolean modification = false;
+                if (currentReservation != null) {
+                    modification = true;
+                }
+
+                DomainResource domainResource = resourceManager.getDomainResource(domainId, deviceResource.getId());
+                int availableLicenseForDomain = domainResource.getLicenseCount();
+
+                List<RecordingServiceReservation> reservations = reservationManager.getRecordingReservationsForDomain(domainId, deviceResource.getId(), slot, currentReservation.getId());
+                int usedLicensesByDomain = schedulerContext.getLicenseCountPeak(slot, reservations, deviceResource.getCapability(RecordingCapability.class));
+
+                if (availableLicenseForDomain - usedLicensesByDomain < 1) {
+                    // Recording capability already used by this domain
+                    continue;
+                }
             }
             AvailableRecorder availableRecorder = new AvailableRecorder(recordingCapability, usedLicenseCount);
             if (Integer.valueOf(0).equals(availableRecorder.getAvailableLicenseCount())) {
