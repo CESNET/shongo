@@ -200,7 +200,7 @@ public class DomainCapabilityListRequest extends AbstractRequest
         if (this.capabilityListRequests.size() != 1) {
             throw new IllegalArgumentException("CapabilityListRequest must be set");
         }
-        if (DomainCapability.Type.RESOURCE.equals(this.capabilityListRequests.get(0).getCapabilityType())) {
+        if (!DomainCapability.Type.RESOURCE.equals(this.capabilityListRequests.get(0).getCapabilityType())) {
             throw new IllegalArgumentException("Request's type must be RESOURCE.");
         }
     }
