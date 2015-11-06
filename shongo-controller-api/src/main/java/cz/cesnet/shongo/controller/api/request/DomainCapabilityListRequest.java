@@ -17,15 +17,9 @@ import java.util.*;
 public class DomainCapabilityListRequest extends AbstractRequest
 {
     /**
-     * {@link cz.cesnet.shongo.controller.api.domains.response.DomainCapability.Type#RESOURCE} of the resources to be listed.
+     * Slot for the request.
      */
-//    private Type capabilityType;
-
-//    private List<Set<Technology>> technologyVariants;
-
     private Interval slot;
-
-//    private Integer licenseCount;
 
     /**
      * For filtering resources by ids.
@@ -94,16 +88,6 @@ public class DomainCapabilityListRequest extends AbstractRequest
         return (domain == null ? null : domain.getId());
     }
 
-//    public Type getCapabilityType()
-//    {
-//        return capabilityType;
-//    }
-//
-//    public void setCapabilityType(Type capabilityType)
-//    {
-//        this.capabilityType = capabilityType;
-//    }
-
     public String getResourceType()
     {
         return resourceType;
@@ -121,16 +105,6 @@ public class DomainCapabilityListRequest extends AbstractRequest
     public void setSlot(Interval slot) {
         this.slot = slot;
     }
-
-//    public List<Set<Technology>> getTechnologyVariants()
-//    {
-//        return technologyVariants;
-//    }
-//
-//    public void setTechnologyVariants(List<Set<Technology>> technologyVariants)
-//    {
-//        this.technologyVariants = technologyVariants;
-//    }
 
     public Set<String> getResourceIds()
     {
@@ -162,15 +136,6 @@ public class DomainCapabilityListRequest extends AbstractRequest
         this.onlyAllocatable = onlyAllocatable;
     }
 
-//    public Integer getLicenseCount()
-//    {
-//        return licenseCount;
-//    }
-//
-//    public void setLicenseCount(Integer licenseCount)
-//    {
-//        this.licenseCount = licenseCount;
-//    }
 
     public List<CapabilityListRequest> getCapabilityListRequests()
     {

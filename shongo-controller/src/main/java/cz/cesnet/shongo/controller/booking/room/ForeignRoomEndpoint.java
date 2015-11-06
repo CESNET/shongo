@@ -41,6 +41,8 @@ import java.util.List;
 @Entity
 public class ForeignRoomEndpoint extends RoomEndpoint
 {
+    private String foreignReservationRequestId;
+
     @Transient
     @Override
     public DeviceResource getResource()
