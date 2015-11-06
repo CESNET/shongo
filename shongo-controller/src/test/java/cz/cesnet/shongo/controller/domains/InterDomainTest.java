@@ -5,17 +5,15 @@ import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.DomainResource;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -32,6 +30,7 @@ public class InterDomainTest extends AbstractControllerTest
     private static final String TEST_CERT_PATH = "./shongo-controller/src/test/resources/keystore/server.crt";
 
     private Domain loopbackDomain;
+    private Long loopbackDomainId;
 
     @Override
     public void before() throws Exception
@@ -58,6 +57,7 @@ public class InterDomainTest extends AbstractControllerTest
         loopbackDomain.setPasswordHash(INTERDOMAIN_LOCAL_PASSWORD_HASH);
         String domainId = getResourceService().createDomain(SECURITY_TOKEN_ROOT, loopbackDomain);
         loopbackDomain.setId(domainId);
+        this.loopbackDomainId = ObjectIdentifier.parseLocalId(domainId, ObjectType.DOMAIN);
     }
 
     @After
@@ -107,7 +107,7 @@ public class InterDomainTest extends AbstractControllerTest
         Assert.assertEquals(2, domains.size());
 
         // Should return only one empty list of domain capabilities
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapability.Type.RESOURCE);
         Map<String, List<DomainCapability>> domainCapabilities = getConnector().listForeignCapabilities(listRequest);
         Assert.assertEquals(1, domainCapabilities.size());
     }
@@ -133,6 +133,15 @@ public class InterDomainTest extends AbstractControllerTest
         mcu.setAllocationOrder(2);
         String mcuId = createResource(mcu);
 
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new RecordingCapability(2));
+        tcs.setAllocatable(true);
+        tcs.setAllocationOrder(2);
+        String tcsId = createResource(tcs);
+
         Resource meetingRoom = new Resource();
         meetingRoom.setAllocatable(true);
         meetingRoom.setName("meeting-room");
@@ -144,15 +153,22 @@ public class InterDomainTest extends AbstractControllerTest
         mrDomainResource.setPriority(1);
         mrDomainResource.setType("mr");
 
+        DomainResource tcsForIdp = new DomainResource();
+        tcsForIdp.setPrice(1);
+        tcsForIdp.setLicenseCount(2);
+        tcsForIdp.setPriority(1);
+
         getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mcuDomainResource, loopbackDomain.getId(), mcuId);
         getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), meetingRoomId);
+        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, tcsForIdp, loopbackDomain.getId(), tcsId);
+
 
         getConnector().login(loopbackDomain);
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapability.Type.RESOURCE);
         Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
         Assert.assertEquals(1, resources.get(loopbackDomain.getName()).size());
 
-        DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+        DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapability.Type.VIRTUAL_ROOM);
 
         List<Set<Technology>> technologyVariants = new ArrayList<>();
         Set<Technology> technologies = new HashSet<>();
@@ -160,18 +176,23 @@ public class InterDomainTest extends AbstractControllerTest
         technologies.add(Technology.SIP);
         technologyVariants.add(technologies);
 
-        listRequest2.setTechnologyVariants(technologyVariants);
-        Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
-        Assert.assertEquals(1, resources2.get(loopbackDomain.getName()).size());
+        listRequest2.getCapabilityListRequests().get(0).setTechnologyVariants(technologyVariants);
+        CapabilityListRequest capabilityListRequest = new CapabilityListRequest(DomainCapability.Type.RECORDING_SERVICE);
+        capabilityListRequest.setTechnologyVariants(technologyVariants);
+        capabilityListRequest.setLicenseCount(1);
+        listRequest2.addCapabilityListRequest(capabilityListRequest);
 
-        DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+        Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
+        Assert.assertEquals(2, resources2.get(loopbackDomain.getName()).size());
+
+        DomainCapabilityListRequest listRequest3 = new DomainCapabilityListRequest(DomainCapability.Type.VIRTUAL_ROOM);
 
         List<Set<Technology>> technologyVariantsAC = new ArrayList<>();
         Set<Technology> technologiesAC = new HashSet<>();
         technologiesAC.add(Technology.ADOBE_CONNECT);
         technologyVariantsAC.add(technologiesAC);
 
-        listRequest3.setTechnologyVariants(technologyVariantsAC);
+        listRequest3.getCapabilityListRequests().get(0).setTechnologyVariants(technologyVariantsAC);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
         Assert.assertEquals(0, resources3.get(loopbackDomain.getName()).size());
     }
@@ -215,7 +236,7 @@ public class InterDomainTest extends AbstractControllerTest
 
             // Uninitialized cache should return 2 resources for loopback domain, but it could be slow
             getConnector().login(loopbackDomain);
-            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapability.Type.RESOURCE);
             Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
             Assert.assertEquals(2, resources.get(loopbackDomain.getName()).size());
 
@@ -271,27 +292,54 @@ public class InterDomainTest extends AbstractControllerTest
         secondMcu.addCapability(new RoomProviderCapability(5));
         secondMcu.setAllocatable(true);
         secondMcu.setAllocationOrder(1);
-        String secondMcuId = createResource(secondMcu);
+        createResource(secondMcu);
 
-        DomainResource mrDomainResource = new DomainResource();
-        mrDomainResource.setPrice(1);
-        mrDomainResource.setLicenseCount(3);
-        mrDomainResource.setPriority(1);
+        DeviceResource ac = new DeviceResource();
+        ac.setName("adobe connect");
+        ac.addTechnology(Technology.ADOBE_CONNECT);
+        ac.addCapability(new RoomProviderCapability(100));
+        ac.addCapability(new RecordingCapability());
+        ac.setAllocatable(true);
+        ac.setAllocationOrder(1);
+        String acId = createResource(ac);
 
-        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mrDomainResource, loopbackDomain.getId(), firstMcuId);
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new RecordingCapability(2));
+        tcs.setAllocatable(true);
+        tcs.setAllocationOrder(2);
+        String tcsId = createResource(tcs);
 
-        DomainCapabilityListRequest request = new DomainCapabilityListRequest(loopbackDomain);
+        DomainResource mcuForIdp = new DomainResource();
+        mcuForIdp.setPrice(1);
+        mcuForIdp.setLicenseCount(3);
+        mcuForIdp.setPriority(1);
+
+        DomainResource acForIdp = new DomainResource();
+        acForIdp.setPrice(-1);
+        acForIdp.setLicenseCount(200);
+        acForIdp.setPriority(1);
+
+        DomainResource tcsForIdp = new DomainResource();
+        tcsForIdp.setPrice(1);
+        tcsForIdp.setLicenseCount(2);
+        tcsForIdp.setPriority(1);
+
+        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mcuForIdp, loopbackDomain.getId(), firstMcuId);
+        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, acForIdp, loopbackDomain.getId(), acId);
+        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, tcsForIdp, loopbackDomain.getId(), tcsId);
+
 
         List<Set<Technology>> technologyVariants = new ArrayList<>();
         Set<Technology> technologies = new HashSet<>();
         technologies.add(Technology.H323);
         technologies.add(Technology.SIP);
         technologyVariants.add(technologies);
-        request.setTechnologyVariants(technologyVariants);
+        DomainCapability.Type type = DomainCapability.Type.VIRTUAL_ROOM;
 
-        request.setCapabilityType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
-
-        List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(request);
+        List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(loopbackDomainId, type, null, technologyVariants);
         Assert.assertEquals(1, capabilities.size());
         Assert.assertEquals(firstMcuId, capabilities.get(0).getId());
 
@@ -305,10 +353,15 @@ public class InterDomainTest extends AbstractControllerTest
         String unavailableDomainId = getResourceService().createDomain(SECURITY_TOKEN_ROOT, unavailableDomain);
         unavailableDomain.setId(unavailableDomainId);
 
-        request.setDomain(unavailableDomain);
+        Long persistenceUnavailableDomainId = ObjectIdentifier.parseLocalId(unavailableDomainId, ObjectType.DOMAIN);
 
-        capabilities = getDomainService().listLocalResourcesByDomain(request);
+        capabilities = getDomainService().listLocalResourcesByDomain(persistenceUnavailableDomainId, type, null, technologyVariants);
         Assert.assertEquals(0, capabilities.size());
+
+        type = DomainCapability.Type.RECORDING_SERVICE;
+        capabilities = getDomainService().listLocalResourcesByDomain(loopbackDomainId, type, null, technologyVariants);
+        Assert.assertEquals(1, capabilities.size());
+        Assert.assertEquals(tcsId, capabilities.get(0).getId());
     }
 
     /**
@@ -345,15 +398,48 @@ public class InterDomainTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-        DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
-        List<Set<Technology>> variants = new ArrayList<>();
-        Set<Technology> technologies = new HashSet<>();
-        technologies.add(Technology.H323);
-        technologies.add(Technology.SIP);
-        variants.add(technologies);
-        request.setTechnologyVariants(variants);
-//        System.out.println(request.formatTechnologyVariantsJSON());
+//        DomainResource mcuDomainResource = new DomainResource();
+//        mcuDomainResource.setPrice(1);
+//        mcuDomainResource.setLicenseCount(10);
+//        mcuDomainResource.setPriority(1);
+//
+//        DeviceResource mcu = new DeviceResource();
+//        mcu.setName("firstMcu");
+//        mcu.addTechnology(Technology.H323);
+//        mcu.addTechnology(Technology.SIP);
+//        mcu.addCapability(new RoomProviderCapability(10));
+//        mcu.setAllocatable(true);
+//        mcu.setAllocationOrder(2);
+//        String mcuId = createResource(mcu);
+//
+//
+//        DomainResource mrDomainResource = new DomainResource();
+//        mrDomainResource.setPrice(1);
+//        mrDomainResource.setLicenseCount(null);
+//        mrDomainResource.setPriority(1);
+//        mrDomainResource.setType("mr");
+//
+//        getResourceService().addDomainResource(SECURITY_TOKEN_ROOT, mcuDomainResource, loopbackDomain.getId(), mcuId);
+//
+//        getConnector().login(loopbackDomain);
+//        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+//        Map<String, List<DomainCapability>> resources = getConnector().listForeignCapabilities(listRequest);
+//        Assert.assertEquals(1, resources.get(loopbackDomain.getName()).size());
+
+//        DomainCapabilityListRequest listRequest2 = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+//
+//        List<Set<Technology>> technologyVariants = new ArrayList<>();
+//        Set<Technology> technologies = new HashSet<>();
+//        technologies.add(Technology.H323);
+//        technologies.add(Technology.SIP);
+//        technologyVariants.add(technologies);
+//
+//        listRequest2.getCapabilityListRequests().get(0).setTechnologyVariants(technologyVariants);
+//
+//        Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
+//        Assert.assertEquals(1, resources2.get(loopbackDomain.getName()).size());
     }
+
 
     protected CachedDomainsConnector getConnector()
     {

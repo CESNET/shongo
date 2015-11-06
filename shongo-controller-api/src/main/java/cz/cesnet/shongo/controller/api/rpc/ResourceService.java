@@ -109,8 +109,8 @@ public interface ResourceService extends Service {
     @API
     public String createDomain(SecurityToken token, Domain domain);
 
-    @API
-    public List<DomainCapability> listDomainCapabilities(DomainCapabilityListRequest request);
+//    @API
+//    public List<DomainCapability> listDomainCapabilities(DomainCapabilityListRequest request);
 
     @API
     public Domain getDomain(SecurityToken token, String domainId);

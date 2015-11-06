@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -79,9 +80,10 @@ public class CachedDomainsConnector extends DomainsConnector
             }
         }
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        parameters.put("type", DomainCapabilityListRequest.Type.RESOURCE.toString());
-        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters,
-                domains, DomainCapability.class, availableResources, unavailableResources);
+        CapabilityListRequest capabilityListRequest = new CapabilityListRequest(DomainCapability.Type.RESOURCE);
+        List<CapabilityListRequest> capabilityListRequestList = Collections.singletonList(capabilityListRequest);
+        submitCachedTypedListRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_CAPABILITY_LIST, null,
+                capabilityListRequestList, domains, DomainCapability.class, availableResources, unavailableResources);
     }
 
     /**
@@ -101,16 +103,16 @@ public class CachedDomainsConnector extends DomainsConnector
                 }
             }
         }
-        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST, null,
-                domains, Reservation.class, resourceReservations, unavailableReservationsDomains);
+        submitCachedTypedListRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESOURCE_RESERVATION_LIST,
+                null, null, domains, Reservation.class, resourceReservations, unavailableReservationsDomains);
     }
 
     private <T> void submitCachedTypedListRequest(final InterDomainAction.HttpMethod method, final String action,
-                                                                    final MultiMap<String, String> parameters, final Collection<Domain> domains,
+                                                                    final MultiMap<String, String> parameters, Object data, final Collection<Domain> domains,
                                                                     Class<T> objectClass, Map<String, ?> cache, Set<String> unavailableDomainsCache)
     {
         ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
-        submitCachedRequests(method, action, parameters, domains, reader, cache, unavailableDomainsCache, List.class);
+        submitCachedRequests(method, action, parameters, data, domains, reader, cache, unavailableDomainsCache, List.class);
     }
 
     /**
@@ -123,15 +125,15 @@ public class CachedDomainsConnector extends DomainsConnector
      * @param result concurrent map
      * @param unavailableDomainsCache concurrent map
      * @param returnClass class of result object(s)
-     * @param <T>
+     * @param <T> type of the returned result
      */
     synchronized protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
-                                            MultiMap<String, String> parameters, Collection<Domain> domains,
+                                            MultiMap<String, String> parameters, Object data, Collection<Domain> domains,
                                             ObjectReader reader, Map<String, ?> result,
                                             Set<String> unavailableDomainsCache, Class<T> returnClass)
     {
         for (final Domain domain : domains) {
-            Runnable task = new DomainTask<>(method, action, parameters, domain, reader, returnClass, result, unavailableDomainsCache);
+            Runnable task = new DomainTask<>(method, action, parameters, data, domain, reader, returnClass, result, unavailableDomainsCache);
             getExecutor().scheduleWithFixedDelay(task, 0, getConfiguration().getInterDomainCacheRefreshRate(), TimeUnit.SECONDS);
         }
     }
@@ -170,7 +172,7 @@ public class CachedDomainsConnector extends DomainsConnector
      * False otherwise
      *
      * @param cache to be checked
-     * @return
+     * @return true if cache is synchronized
      */
     private boolean isCacheReady(Map cache, String domainName)
     {
@@ -230,9 +232,7 @@ public class CachedDomainsConnector extends DomainsConnector
      */
     public Set<DomainCapability> listAvailableForeignResources(DomainCapabilityListRequest request)
     {
-        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())) {
-            throw new IllegalArgumentException("Type has to be RESOURCE.");
-        }
+        request.validateForResource();
         Set<DomainCapability> resources = new HashSet<>();
         for (Map.Entry<String, List<DomainCapability>> entry : listForeignCapabilities(request).entrySet()) {
             List<DomainCapability> resourceList = entry.getValue();
@@ -246,8 +246,8 @@ public class CachedDomainsConnector extends DomainsConnector
      * Returns cached allocatable resources for now or will perform synchronized request to all foreign domains (can be slow, depending on {@code DomainsConnector.THREAD_TIMEOUT}).
      * TODO: allows only capabilities from one domain, when resources is specified so must be domain
      *
-     * @param request
-     * @return
+     * @param request to filter foreign {@link DomainCapability}
+     * @return {@link DomainCapability} by their domains
      */
     @Override
     public Map<String, List<DomainCapability>> listForeignCapabilities(DomainCapabilityListRequest request)
@@ -301,6 +301,7 @@ public class CachedDomainsConnector extends DomainsConnector
             } else {
                 Map<String, List<DomainCapability>> resourcesByDomain = super.listForeignCapabilities(request);
                 for (Map.Entry<String, List<DomainCapability>> entry : resourcesByDomain.entrySet()) {
+                    List<DomainCapability.Type> requestedTypes = request.getRequestedCapabilitiesTypes();
                     String domainName = entry.getKey();
                     List<DomainCapability> capabilityList = entry.getValue();
                     if (capabilityList == null) {
@@ -311,13 +312,23 @@ public class CachedDomainsConnector extends DomainsConnector
                         for (DomainCapability resource : capabilityList) {
                             // Filter by IDs
                             if (request.getResourceIds().isEmpty() || request.getResourceIds().contains(resource.getId())) {
-                                // Filter by type
+                                // Filter by user given type
                                 if (request.getResourceType() == null || request.getResourceType().equals(resource.getType())) {
                                     resources.add(resource);
                                 }
                             }
+                            // Check if requested type is present
+                            if (requestedTypes.contains(resource.getCapabilityType())) {
+                                requestedTypes.remove(resource.getCapabilityType());
+                            }
                         }
-                        capabilities.put(domainName, resources);
+                        // If all requested types are present
+                        if (requestedTypes.isEmpty()) {
+                            capabilities.put(domainName, resources);
+                        }
+                        else {
+                            capabilities.put(domainName, Collections.<DomainCapability>emptyList());
+                        }
                     }
                 }
             }
@@ -332,7 +343,7 @@ public class CachedDomainsConnector extends DomainsConnector
      * Check the {@code request} if resource cache should be used - {@code availableResources}.
      * @param request to be checked
      * @throws IllegalArgumentException when only allocatable domains are required, but given domain is not
-     * @return
+     * @return true if resource cache has result for given request
      */
     private boolean useResourcesCache(DomainCapabilityListRequest request)
     {
@@ -351,14 +362,19 @@ public class CachedDomainsConnector extends DomainsConnector
                 throw new IllegalArgumentException("Domain \"" + request.getDomainName() + "\" is not allocatable, but only allocatable was required.");
             }
         }
-        if (!DomainCapabilityListRequest.Type.RESOURCE.equals(request.getCapabilityType())) {
+        if (request.getCapabilityListRequests().size() != 1) {
             return false;
+        } else {
+            CapabilityListRequest capabilityListRequest = request.getCapabilityListRequests().get(0);
+            if (!DomainCapability.Type.RESOURCE.equals(capabilityListRequest.getCapabilityType())) {
+                return false;
+            }
+            if (capabilityListRequest.getTechnologyVariants() != null && !capabilityListRequest.getTechnologyVariants().isEmpty()) {
+                return false;
+            }
         }
         //TODO: better validate interval
-        if (request.getInterval() != null) {
-            return false;
-        }
-        if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
+        if (request.getSlot() != null) {
             return false;
         }
         if (!isResourcesCacheReady(request.getDomainName())) {

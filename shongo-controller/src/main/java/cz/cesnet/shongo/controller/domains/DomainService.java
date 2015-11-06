@@ -8,6 +8,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.request.*;
@@ -101,7 +102,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     /**
      * List all domains without local domain. Every domain will have null status.
      *
-     * @return
+     * @return list of {@link Domain}
      */
     public List<Domain> listForeignDomains()
     {
@@ -111,15 +112,16 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     /**
      * List all domains included local domain depending on {@code onlyForeignDomains}. Every domain will have null status except local.
      * By param {@code allocatable} can be filtered only allocatable domains.
-     * @param onlyForeignDomains
-     * @return
+     *
+     * @param onlyForeignDomains will be listed
+     * @return list of {@link Domain}
      */
     public List<Domain> listDomains(boolean onlyForeignDomains, Boolean allocatable)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            List<Domain> domainList = new ArrayList<Domain>();
+            List<Domain> domainList = new ArrayList<>();
             if (!onlyForeignDomains) {
                 domainList.add(LocalDomain.getLocalDomain().toApi());
             }
@@ -317,21 +319,21 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        }
 //    }
 
-    public List<DomainCapability> listLocalResourcesByDomain(DomainCapabilityListRequest request)
+    public List<DomainCapability> listLocalResourcesByDomain(Long domainId, DomainCapability.Type capabilityType,
+                                                             Integer licenseCount, List<Set<Technology>> technologyVariants)
     {
-        checkNotNull("request", request);
-        checkNotNull("domainId", request.getDomainId());
-        checkNotNull("capabilityType", request.getCapabilityType());
+        checkNotNull("domainId", domainId);
+        checkNotNull("capabilityType", capabilityType);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
             // Filter requested by foreign domain
             QueryFilter queryFilter = new QueryFilter("resource_summary", true);
-            queryFilter.addFilter("domain_id = :domainId", "domainId", ObjectIdentifier.parseLocalId(request.getDomainId(), ObjectType.DOMAIN));
+            queryFilter.addFilter("domain_id = :domainId", "domainId", domainId);
 
-            if (request.getLicenseCount() != null && request.getLicenseCount() > -1) {
-                queryFilter.addFilter("license_count >= :licenseCount", "licenseCount", request.getLicenseCount());
+            if (licenseCount != null && licenseCount > -1) {
+                queryFilter.addFilter("license_count >= :licenseCount", "licenseCount", licenseCount);
             }
             //TODO: vytahnout zasedacky podle tagu
             // Filter requested tag-id
@@ -349,17 +351,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            }
 
             // Filter by type
-            String type = "";
-            switch (request.getCapabilityType()) {
-                case VIRTUAL_ROOM:
-                    type = "ROOM_PROVIDER";
-                    break;
-                case RESOURCE:
-                    type = "RESOURCE";
-                    break;
-                default:
-                    throw new TodoImplementException("Unsupported capability type.");
-            }
+            String type = capabilityType.toDb();
             queryFilter.addFilter("resource_summary.type = '" + type + "'");
 
             //TODO vylistovat podle capabilities
@@ -388,11 +380,11 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //            }
 
             // Technologies
-            if (request.getTechnologyVariants() != null && !request.getTechnologyVariants().isEmpty()) {
+            if (technologyVariants != null && !technologyVariants.isEmpty()) {
                 int noOfVariant = 0;
                 StringBuilder variantsBuilder = new StringBuilder();
                 variantsBuilder.append("( ");
-                for (Set<Technology> technologies : request.getTechnologyVariants()) {
+                for (Set<Technology> technologies : technologyVariants) {
                     if (technologies.size() > 0) {
                         noOfVariant++;
                         if (noOfVariant != 1) {
@@ -456,6 +448,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                         }
                     }
                 }
+                domainCapability.setCapabilityType(DomainCapability.Type.createFromDB(record[8].toString().trim()));
                 response.add(domainCapability);
             }
             return response;
@@ -471,7 +464,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
      * List reservations for given resources or all readable resources (@see listReadableResourcesIds())
      *
      * @param request
-     * @return
+     * @return list of {@link Reservation}
      */
     public List<Reservation> listPublicReservations(ReservationListRequest request)
     {
@@ -726,7 +719,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[2].toString()) : null);
         switch (ReservationSummary.Type.valueOf(record[3].toString().trim())) {
             case RESOURCE:
-                reservation.setType(DomainCapabilityListRequest.Type.RESOURCE);
+                reservation.setType(DomainCapability.Type.RESOURCE);
                 if (record[6] != null) {
                     cz.cesnet.shongo.controller.api.domains.response.ResourceSpecification resourceSpecification;
                     resourceSpecification = new ResourceSpecification(ObjectIdentifier.formatId(ObjectType.RESOURCE, record[6].toString()));
@@ -734,7 +727,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
                 }
                 break;
             case ROOM:
-                reservation.setType(DomainCapabilityListRequest.Type.VIRTUAL_ROOM);
+                reservation.setType(DomainCapability.Type.VIRTUAL_ROOM);
                 //TODO: add RoomSpecification
 //        if (record[8] != null) {
 //            reservation.setRoomLicenseCount(record[8] != null ? ((Number) record[8]).intValue() : null);

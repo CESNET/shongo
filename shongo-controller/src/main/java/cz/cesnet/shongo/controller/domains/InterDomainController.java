@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -42,10 +43,7 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import java.beans.PropertyEditorSupport;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Controller for common wizard actions.
@@ -61,7 +59,7 @@ public class InterDomainController implements InterDomainProtocol
     {
         binder.registerCustomEditor(Interval.class, new IntervalEditor());
 
-        binder.registerCustomEditor(DomainCapabilityListRequest.Type.class, new EnumEditor<>(DomainCapabilityListRequest.Type.class));
+        binder.registerCustomEditor(DomainCapability.Type.class, new EnumEditor<>(DomainCapability.Type.class));
         binder.registerCustomEditor(Technology.class, new EnumEditor<>(Technology.class));
         binder.registerCustomEditor(AdobeConnectPermissions.class, new EnumEditor<>(AdobeConnectPermissions.class));
         binder.registerCustomEditor(AliasType.class, new EnumEditor<>(AliasType.class));
@@ -88,28 +86,43 @@ public class InterDomainController implements InterDomainProtocol
     }
 
     @Override
-    @RequestMapping(value = InterDomainAction.DOMAIN_CAPABILITY_LIST, method = RequestMethod.GET)
+    @RequestMapping(value = InterDomainAction.DOMAIN_CAPABILITY_LIST, method = RequestMethod.POST)
     @ResponseBody
     public List<DomainCapability> handleListCapabilities(
             HttpServletRequest request,
-            @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
-            @RequestParam(value = "interval", required = false) Interval interval,
-            @RequestParam(value = "licenseCount", required = false) Integer licenseCount,
-            @RequestParam(value = "technologies", required = false) List<Technology> technologies) throws NotAuthorizedException
+//            @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
+            @RequestParam(value = "slot", required = false) Interval slot,
+//            @RequestParam(value = "licenseCount", required = false) Integer licenseCount,
+//            @RequestParam(value = "technologies", required = false) List<Technology> technologies,
+//            @RequestParam(value = "capabilityListRequests", required = true) List<CapabilityListRequest> capabilityListRequests
+            @RequestBody List<CapabilityListRequest> capabilityListRequests
+    ) throws NotAuthorizedException
     {
-        DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
-        listRequest.setCapabilityType(type);
-        listRequest.setInterval(interval);
-        listRequest.setLicenseCount(licenseCount);
-        if (technologies != null && !technologies.isEmpty()) {
-            listRequest.setTechnologyVariants(new ArrayList<Set<Technology>>());
-            listRequest.getTechnologyVariants().add(new HashSet<>(technologies));
-        }
-        List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
-        if (DomainCapabilityListRequest.Type.VIRTUAL_ROOM.equals(type)) {
-            // Erase resource ID's for virtual rooms.
-            for (DomainCapability capability : capabilities) {
-                capability.setId(null);
+        List<DomainCapability> capabilities = new ArrayList<>();
+        for (CapabilityListRequest capabilityListRequest : capabilityListRequests) {
+//            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
+//            listRequest.setSlot(slot);
+//            listRequest.setCapabilityListRequests(Collections.singletonList(capabilityListRequest));
+//            listRequest.setCapabilityType(capabilityListRequest.getCapabilityType());
+//            listRequest.setLicenseCount(capabilityListRequest.getLicenseCount());
+//            List<Set<Technology>> variants = capabilityListRequest.getTechnologyVariants();
+//            if (variants != null && !variants.isEmpty()) {
+//                listRequest.setTechnologyVariants(variants);
+//            }
+            Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+            DomainCapability.Type type = capabilityListRequest.getCapabilityType();
+            Integer licenses = capabilityListRequest.getLicenseCount();
+            List<Set<Technology>> variant = capabilityListRequest.getTechnologyVariants();
+
+            List<DomainCapability> resultList = getDomainService().listLocalResourcesByDomain(domainId, type, licenses, variant);
+            if (!DomainCapability.Type.RESOURCE.equals(capabilityListRequest.getCapabilityType())) {
+                // Erase resource ID's for every capability type except {@link Type.RESOURCE}.
+                for (DomainCapability capability : resultList) {
+                    capability.setId(null);
+                }
+            }
+            if (!resultList.isEmpty()) {
+                capabilities.addAll(resultList);
             }
         }
         return capabilities;
@@ -507,11 +520,8 @@ public class InterDomainController implements InterDomainProtocol
 
                 resourceIds.add(resourceId);
             } else {
-                DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(domain);
-                listRequest.setCapabilityType(DomainCapabilityListRequest.Type.RESOURCE);
-                listRequest.addResourcesIds(resourceManager.listResourceIdsByDomain(domainId));
-                listRequest.setDomain(domain);
-                List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(listRequest);
+                DomainCapability.Type type = DomainCapability.Type.RESOURCE;
+                List<DomainCapability> capabilities = getDomainService().listLocalResourcesByDomain(domainId, type, null, null);
                 for (DomainCapability resource : capabilities) {
                     resourceIds.add(resource.getId());
                 }
@@ -635,96 +645,6 @@ public class InterDomainController implements InterDomainProtocol
                 setValue(null);
             } else {
                 setValue(Converter.convertStringToInterval(text));
-            }
-        }
-    }
-
-    public class TypeEditor extends PropertyEditorSupport
-    {
-        public TypeEditor()
-        {
-        }
-
-        @Override
-        public String getAsText()
-        {
-            if (getValue() == null) {
-                return "";
-            }
-            DomainCapabilityListRequest.Type value = (DomainCapabilityListRequest.Type) getValue();
-            if (value == null) {
-                return "";
-            }
-            return value.toString();
-        }
-
-        @Override
-        public void setAsText(String text) throws IllegalArgumentException
-        {
-            if (!StringUtils.hasText(text)) {
-                setValue(null);
-            } else {
-                setValue(DomainCapabilityListRequest.Type.valueOf(text));
-            }
-        }
-    }
-
-    public class TechnologyEditor extends PropertyEditorSupport
-    {
-        public TechnologyEditor()
-        {
-        }
-
-        @Override
-        public String getAsText()
-        {
-            if (getValue() == null) {
-                return "";
-            }
-            Technology value = (Technology) getValue();
-            if (value == null) {
-                return "";
-            }
-            return value.toString();
-        }
-
-        @Override
-        public void setAsText(String text) throws IllegalArgumentException
-        {
-            if (!StringUtils.hasText(text)) {
-                setValue(null);
-            } else {
-                setValue(Technology.valueOf(text));
-            }
-        }
-    }
-
-    public class AdobeConnectPermissionsEditor extends PropertyEditorSupport
-    {
-        public AdobeConnectPermissionsEditor()
-        {
-        }
-
-        @Override
-        public String getAsText()
-        {
-            if (getValue() == null) {
-                return "";
-            }
-            AdobeConnectPermissions value = (AdobeConnectPermissions) getValue();
-            if (value == null) {
-                return "";
-            }
-            return value.toString();
-        }
-
-        @Override
-        public void setAsText(String text) throws IllegalArgumentException
-        {
-            if (!StringUtils.hasText(text)) {
-                setValue(null);
-            } else {
-                setValue(AdobeConnectPermissions.valueOf(text));
             }
         }
     }

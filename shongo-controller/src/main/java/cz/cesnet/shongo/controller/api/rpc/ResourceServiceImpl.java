@@ -471,7 +471,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            DomainCapabilityListRequest capabilityListRequest = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+            DomainCapabilityListRequest capabilityListRequest = new DomainCapabilityListRequest(DomainCapability.Type.RESOURCE);
             ObjectPermission permission = request.getPermission();
             Set<Long> readableForeignResourcesIds = authorization.getEntitiesWithPermission(securityToken,
                     cz.cesnet.shongo.controller.booking.resource.ForeignResources.class, permission == null ? ObjectPermission.READ : permission);
@@ -565,7 +565,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     break;
                 case FOREIGN_RESOURCES:
                 case DOMAIN:
-                    DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapabilityListRequest.Type.RESOURCE);
+                    DomainCapabilityListRequest request = new DomainCapabilityListRequest(DomainCapability.Type.RESOURCE);
                     String domainName = null;
                     cz.cesnet.shongo.controller.booking.domain.Domain domain = null;
                     if (ObjectType.FOREIGN_RESOURCES.equals(objectIdentifier.getObjectType())) {
@@ -1022,10 +1022,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         return ObjectIdentifier.formatId(ObjectType.DOMAIN, domain.getId());
     }
 
-    @Override
-    public List<DomainCapability> listDomainCapabilities(DomainCapabilityListRequest request)
-    {
-        throw new TodoImplementException("listDomainResources");
+//    @Override
+//    public List<DomainCapability> listDomainCapabilities(DomainCapabilityListRequest request)
+//    {
+//        throw new TodoImplementException("listDomainResources");
 //        checkNotNull("request", request);
 //        SecurityToken securityToken = request.getSecurityToken();
 //        authorization.validate(securityToken);
@@ -1055,7 +1055,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 //        finally {
 //            entityManager.close();
 //        }
-    }
+//    }
 
     @Override
     public Domain getDomain(SecurityToken token, String domainId) {

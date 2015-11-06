@@ -7,8 +7,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 
 /**
  * Represents a reservation for foreign resource.
@@ -16,7 +14,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo.As;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 @JsonIgnoreProperties({"allocated", "slot"})
-public class Reservation<T extends ForeignSpecification> extends AbstractResponse implements Comparable<Reservation>
+public class Reservation extends AbstractResponse implements Comparable<Reservation>
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.
@@ -43,7 +41,7 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
     private DateTime slotEnd;
 
     @JsonProperty("type")
-    private DomainCapabilityListRequest.Type type;
+    private DomainCapability.Type type;
 
     @JsonProperty("reservationRequestDescription")
     private String reservationRequestDescription;
@@ -108,12 +106,12 @@ public class Reservation<T extends ForeignSpecification> extends AbstractRespons
         this.slotEnd = slotEnd;
     }
 
-    public DomainCapabilityListRequest.Type getType()
+    public DomainCapability.Type getType()
     {
         return type;
     }
 
-    public void setType(DomainCapabilityListRequest.Type type)
+    public void setType(DomainCapability.Type type)
     {
         this.type = type;
     }

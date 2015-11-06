@@ -1,37 +1,31 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
-import org.codehaus.jackson.map.ObjectMapper;
+import cz.cesnet.shongo.controller.api.RecordingCapability;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import org.joda.time.Interval;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
- * List request of domain capabilities.
+ * List request for domain capabilities.
  *
  * @author Ondřej Pavelka <pavelka@cesnet.cz>
  */
 public class DomainCapabilityListRequest extends AbstractRequest
 {
     /**
-     * {@link Type#RESOURCE} of the resources to be listed.
+     * {@link cz.cesnet.shongo.controller.api.domains.response.DomainCapability.Type#RESOURCE} of the resources to be listed.
      */
-    private Type capabilityType;
+//    private Type capabilityType;
 
-    private List<Set<Technology>> technologyVariants;
+//    private List<Set<Technology>> technologyVariants;
 
-    private Interval interval;
+    private Interval slot;
 
-    private Integer licenseCount;
-
-    private ObjectPermission permission;
+//    private Integer licenseCount;
 
     /**
      * For filtering resources by ids.
@@ -50,11 +44,32 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private Boolean onlyAllocatable;
 
-    public DomainCapabilityListRequest(Type capabilityType)
+    private List<CapabilityListRequest> capabilityListRequests = new ArrayList<>();
+
+    /**
+     * Constructor
+     */
+    public DomainCapabilityListRequest()
     {
-        this.capabilityType = capabilityType;
     }
 
+    /**
+     * Constructor.
+     *
+     * Create instance with one {@link CapabilityListRequest} with {@code capabilityType} set.
+     *
+     * @param capabilityType to be set
+     */
+    public DomainCapabilityListRequest(DomainCapability.Type capabilityType)
+    {
+        addCapabilityListRequest(new CapabilityListRequest(capabilityType));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param domain specified for domain capability request
+     */
     public DomainCapabilityListRequest(Domain domain) {
         this.domain = domain;
     }
@@ -79,15 +94,15 @@ public class DomainCapabilityListRequest extends AbstractRequest
         return (domain == null ? null : domain.getId());
     }
 
-    public Type getCapabilityType()
-    {
-        return capabilityType;
-    }
-
-    public void setCapabilityType(Type capabilityType)
-    {
-        this.capabilityType = capabilityType;
-    }
+//    public Type getCapabilityType()
+//    {
+//        return capabilityType;
+//    }
+//
+//    public void setCapabilityType(Type capabilityType)
+//    {
+//        this.capabilityType = capabilityType;
+//    }
 
     public String getResourceType()
     {
@@ -99,33 +114,23 @@ public class DomainCapabilityListRequest extends AbstractRequest
         this.resourceType = resourceType;
     }
 
-    public Interval getInterval() {
-        return interval;
+    public Interval getSlot() {
+        return slot;
     }
 
-    public void setInterval(Interval interval) {
-        this.interval = interval;
+    public void setSlot(Interval slot) {
+        this.slot = slot;
     }
 
-    public List<Set<Technology>> getTechnologyVariants()
-    {
-        return technologyVariants;
-    }
-
-    public void setTechnologyVariants(List<Set<Technology>> technologyVariants)
-    {
-        this.technologyVariants = technologyVariants;
-    }
-
-    public ObjectPermission getPermission()
-    {
-        return permission;
-    }
-
-    public void setPermission(ObjectPermission permission)
-    {
-        this.permission = permission;
-    }
+//    public List<Set<Technology>> getTechnologyVariants()
+//    {
+//        return technologyVariants;
+//    }
+//
+//    public void setTechnologyVariants(List<Set<Technology>> technologyVariants)
+//    {
+//        this.technologyVariants = technologyVariants;
+//    }
 
     public Set<String> getResourceIds()
     {
@@ -157,26 +162,46 @@ public class DomainCapabilityListRequest extends AbstractRequest
         this.onlyAllocatable = onlyAllocatable;
     }
 
-    public Integer getLicenseCount()
+//    public Integer getLicenseCount()
+//    {
+//        return licenseCount;
+//    }
+//
+//    public void setLicenseCount(Integer licenseCount)
+//    {
+//        this.licenseCount = licenseCount;
+//    }
+
+    public List<CapabilityListRequest> getCapabilityListRequests()
     {
-        return licenseCount;
+        return capabilityListRequests;
     }
 
-    public void setLicenseCount(Integer licenseCount)
+    public void setCapabilityListRequests(List<CapabilityListRequest> capabilityListRequests)
     {
-        this.licenseCount = licenseCount;
+        this.capabilityListRequests = capabilityListRequests;
     }
 
-    public enum Type
+    public void addCapabilityListRequest(CapabilityListRequest capabilityListRequest)
     {
-        /**
-         * Used for resources, which has {@link RoomProviderCapability}.
-         */
-        VIRTUAL_ROOM,
+        this.capabilityListRequests.add(capabilityListRequest);
+    }
 
-        /**
-         * Used for resources, that can be allocated over Inter Domain Protocol.
-         */
-        RESOURCE
+    public List<DomainCapability.Type> getRequestedCapabilitiesTypes() {
+        List<DomainCapability.Type> types = new ArrayList<>();
+        for (CapabilityListRequest capabilityListRequest : capabilityListRequests) {
+            types.add(capabilityListRequest.getCapabilityType());
+        }
+        return types;
+    }
+
+    public void validateForResource()
+    {
+        if (this.capabilityListRequests.size() != 1) {
+            throw new IllegalArgumentException("CapabilityListRequest must be set");
+        }
+        if (DomainCapability.Type.RESOURCE.equals(this.capabilityListRequests.get(0).getCapabilityType())) {
+            throw new IllegalArgumentException("Request's type must be RESOURCE.");
+        }
     }
 }
