@@ -344,38 +344,51 @@ public class SchedulerContext
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, slot);
-            state.applyReservations(roomProviderCapability.getId(), slot, roomReservations, RoomReservation.class);
-            RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>()
-            {
-                @Override
-                protected Bucket<DateTime, RoomReservation> createBucket(DateTime rangeValue)
-                {
-                    return new RoomBucket(rangeValue);
-                }
-            };
-            for (RoomReservation roomReservation : roomReservations) {
-                rangeSet.add(roomReservation, roomReservation.getSlotStart(), roomReservation.getSlotEnd());
-            }
 
-            List<RoomBucket> roomBuckets = new LinkedList<RoomBucket>();
-            roomBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd(), RoomBucket.class));
-            Collections.sort(roomBuckets, new Comparator<RoomBucket>()
-            {
-                @Override
-                public int compare(RoomBucket roomBucket1, RoomBucket roomBucket2)
-                {
-                    return -Double.compare(roomBucket1.getLicenseCount(), roomBucket2.getLicenseCount());
-                }
-            });
-            if (roomBuckets.size() > 0) {
-                RoomBucket roomBucket = roomBuckets.get(0);
-                usedLicenseCount = roomBucket.getLicenseCount();
-            }
+            usedLicenseCount = getLicenseCountPeak(slot, roomReservations, roomProviderCapability);
         }
         else {
             usedLicenseCount = roomProviderCapability.getLicenseCount();
         }
         return new AvailableRoom(roomProviderCapability, usedLicenseCount);
+    }
+
+    /**
+     * @param slot
+     * @param roomReservations
+     * @param roomProviderCapability
+     * @return peak of licenses count used by {@code roomReservations}
+     */
+    public int getLicenseCountPeak(Interval slot, List<RoomReservation> roomReservations, RoomProviderCapability roomProviderCapability)
+    {
+        state.applyReservations(roomProviderCapability.getId(), slot, roomReservations, RoomReservation.class);
+        RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>()
+        {
+            @Override
+            protected Bucket<DateTime, RoomReservation> createBucket(DateTime rangeValue)
+            {
+                return new RoomBucket(rangeValue);
+            }
+        };
+        for (RoomReservation roomReservation : roomReservations) {
+            rangeSet.add(roomReservation, roomReservation.getSlotStart(), roomReservation.getSlotEnd());
+        }
+
+        List<RoomBucket> roomBuckets = new LinkedList<RoomBucket>();
+        roomBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd(), RoomBucket.class));
+        Collections.sort(roomBuckets, new Comparator<RoomBucket>()
+        {
+            @Override
+            public int compare(RoomBucket roomBucket1, RoomBucket roomBucket2)
+            {
+                return -Double.compare(roomBucket1.getLicenseCount(), roomBucket2.getLicenseCount());
+            }
+        });
+        if (roomBuckets.size() > 0) {
+            RoomBucket roomBucket = roomBuckets.get(0);
+            return roomBucket.getLicenseCount();
+        }
+        return 0;
     }
 
     /**

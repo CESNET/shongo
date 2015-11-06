@@ -1205,7 +1205,6 @@ public class RoomReservationTask extends ReservationTask
      */
     private int getRemainingLicenseCount(cz.cesnet.shongo.controller.booking.resource.DeviceResource resource, String userId, Reservation reservation)
     {
-        //TODO: hledat peak
         EntityManager entityManager = schedulerContext.getEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -1216,7 +1215,8 @@ public class RoomReservationTask extends ReservationTask
                 DomainResource domainResource = resourceManager.getDomainResource(domainId, resource.getId());
                 int availableLicenseCount = domainResource.getLicenseCount();
 
-                int usedLicenseCount = (int) reservationManager.countUsedRoomProviderLicenses(domainId, resource.getId(), slot, reservationId);
+                List<RoomReservation> reservations = reservationManager.getRoomReservationsForDomain(domainId, resource.getId(), slot, reservationId);
+                int usedLicenseCount = schedulerContext.getLicenseCountPeak(slot, reservations, resource.getCapability(RoomProviderCapability.class));
 
                 return availableLicenseCount - usedLicenseCount;
             }

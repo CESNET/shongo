@@ -397,13 +397,13 @@ public class ReservationManager extends AbstractManager
         return typedQuery.getSingleResult();
     }
 
-    public long countUsedRoomProviderLicenses(Long domainId, Long resourceId, Interval interval, Long currentReservationId)
+    public List<RoomReservation> getRoomReservationsForDomain(Long domainId, Long resourceId, Interval interval, Long currentReservationId)
     {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        CriteriaQuery<RoomReservation> query = criteriaBuilder.createQuery(RoomReservation.class);
         Root<RoomReservation> domainRoot = query.from(RoomReservation.class);
-        query.select(criteriaBuilder.sumAsLong(domainRoot.<Integer>get("licenseCount")));
+        query.select(domainRoot);
 
         // For given resource
         Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("roomProviderCapability").get("resource").get("id"), resourceId);
@@ -412,17 +412,16 @@ public class ReservationManager extends AbstractManager
         // In given slot
         Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
         Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
-        CriteriaQuery<Long> where = query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
+        CriteriaQuery<RoomReservation> where = query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
         // Except current reservation
         if (currentReservationId != null) {
             Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
             where.where(notCurrentReservation);
         }
 
-        TypedQuery<Long> typedQuery = entityManager.createQuery(query);
+        TypedQuery<RoomReservation> typedQuery = entityManager.createQuery(query);
 
-        Long licenses = typedQuery.getSingleResult();
-        return licenses == null ? 0 : licenses;
+        return typedQuery.getResultList();
     }
 
     /**
