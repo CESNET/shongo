@@ -3,15 +3,19 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
@@ -21,7 +25,6 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import jade.content.onto.annotations.Slot;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -491,6 +494,92 @@ public abstract class Target
         }
     }
 
+    public static class ForeignRoom extends Target
+    {
+        private Set<Technology> technologies = new HashSet<Technology>();
+
+        private String name;
+
+        private int licenseCount = 0;
+
+        private String pin;
+
+        private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
+                new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
+
+        public ForeignRoom(ForeignRoomReservation foreignRoomReservation)
+        {
+            ForeignRoomEndpoint foreignRoomEndpoint = foreignRoomReservation.getForeignEndpoint();
+            this.technologies = foreignRoomEndpoint.getTechnologies();
+            this.name = foreignRoomEndpoint.getRoomName();
+            this.licenseCount = foreignRoomEndpoint.getLicenseCount();
+            this.pin = foreignRoomEndpoint.getPin();
+            this.aliases = foreignRoomEndpoint.getAliases();
+        }
+
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
+        }
+
+        public void setTechnologies(Set<Technology> technologies)
+        {
+            this.technologies = technologies;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public void setName(String name)
+        {
+            this.name = name;
+        }
+
+        public int getLicenseCount()
+        {
+            return licenseCount;
+        }
+
+        public void setLicenseCount(int licenseCount)
+        {
+            this.licenseCount = licenseCount;
+        }
+
+        public String getPin()
+        {
+            return pin;
+        }
+
+        public void setPin(String pin)
+        {
+            this.pin = pin;
+        }
+
+        public List<cz.cesnet.shongo.controller.booking.alias.Alias> getAliases()
+        {
+            return aliases;
+        }
+
+        public void setAliases(List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases)
+        {
+            this.aliases = aliases;
+        }
+    }
+
+    public static class ForeignResource extends Target
+    {
+        private ForeignResource(ForeignResourceReservation foreignResourceReservation)
+        {
+            Long id = foreignResourceReservation.getForeignResources().getForeignResourceId();
+            Domain domain = foreignResourceReservation.getForeignResources().getDomain();
+            String  resourceId = ObjectIdentifier.formatId(domain.getName(), ObjectType.RESOURCE, id);
+            this.resourceId = resourceId;
+            this.resourceName = foreignResourceReservation.getResourceName();
+        }
+    }
+
     public static class Other extends Target
     {
         private String description;
@@ -563,8 +652,11 @@ public abstract class Target
         else if (reservation instanceof RecordingServiceReservation) {
             return new RecordingService((RecordingServiceReservation) reservation, entityManager);
         }
-        else if (reservation instanceof AbstractForeignReservation) {
-            return null;
+        else if (reservation instanceof ForeignRoomReservation) {
+            return new ForeignRoom((ForeignRoomReservation) reservation);
+        }
+        else if (reservation instanceof ForeignResourceReservation) {
+            return new ForeignResource((ForeignResourceReservation) reservation);
         }
         else {
             Executable executable = reservation.getExecutable();

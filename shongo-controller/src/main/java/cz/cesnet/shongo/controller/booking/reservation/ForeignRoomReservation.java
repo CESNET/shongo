@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.reservation;
 
 import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
+import cz.cesnet.shongo.controller.booking.room.ForeignRoomEndpoint;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -46,6 +47,12 @@ public class ForeignRoomReservation extends AbstractForeignReservation
     public Long getTargetId()
     {
         return null;
+    }
+
+    @Transient
+    public ForeignRoomEndpoint getForeignEndpoint()
+    {
+        return (ForeignRoomEndpoint) getExecutable();
     }
 
     @Override
