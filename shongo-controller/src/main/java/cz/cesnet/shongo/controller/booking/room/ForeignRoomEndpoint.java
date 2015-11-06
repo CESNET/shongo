@@ -1,37 +1,31 @@
 package cz.cesnet.shongo.controller.booking.room;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.api.domains.response.*;
-import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ForeignRoomReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.report.Report;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.persistence.Transient;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents a TODO  which acts as {@link RoomEndpoint}.
@@ -63,6 +57,26 @@ public class ForeignRoomEndpoint extends RoomEndpoint
         throw new TodoImplementException("pravdepodobne pro nahravani");
     }
 
+    /**
+     * @return {@link Alias} for given {@code type}
+     */
+    @Transient
+    private Alias getAlias(AliasType aliasType)
+    {
+        for (Alias alias : this.getAliases()) {
+            if (alias.getType() == aliasType) {
+                return alias;
+            }
+        }
+        return null;
+    }
+
+    @Transient
+    public String getRoomName()
+    {
+        return getAlias(AliasType.ROOM_NAME).getValue();
+    }
+
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
@@ -70,7 +84,8 @@ public class ForeignRoomEndpoint extends RoomEndpoint
             return getForeignState(executableManager);
         }
         catch (ForeignDomainConnectException e) {
-            ExecutionReport executionReport = new ExecutionReportSet.RoomNotStartedReport(getMeetingName());
+            String roomName = getRoomName();
+            ExecutionReport executionReport = new ExecutionReportSet.RoomNotStartedReport(roomName);
             executableManager.createExecutionReport(this, executionReport);
             return State.STARTING_FAILED;
         }

@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
@@ -386,7 +387,13 @@ public class InterDomainController implements InterDomainProtocol
                     ExecutableState state = roomReservation.getEndpoint().getState().toApi();
                     foreignRoomSpecification.setState(RoomState.fromApi(state));
 
-                    foreignRoomSpecification.setMeetingName(roomReservation.getEndpoint().getMeetingName());
+                    String roomName = null;
+                    for (Alias alias : roomReservation.getEndpoint().getAliases()) {
+                        if (alias.getType() == AliasType.ROOM_NAME) {
+                            roomName = alias.getValue();
+                        }
+                    }
+                    foreignRoomSpecification.setRoomName(roomName);
                     for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
                         foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
                     }

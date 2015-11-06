@@ -638,7 +638,7 @@ public class RoomReservationTask extends ReservationTask
         roomEndpoint.setSlot(slot);
         roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
         roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
-        roomEndpoint.setMeetingName(roomSpecification.getMeetingName());
+        roomEndpoint.setMeetingName(meetingName);
         roomEndpoint.setMeetingDescription(meetingDescription);
         roomEndpoint.setRoomDescription(schedulerContext.getDescription());
         roomEndpoint.setParticipants(participants);

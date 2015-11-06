@@ -9,11 +9,13 @@ import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.recording.RecordingBucket;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
@@ -374,7 +376,7 @@ public class SchedulerContext
             rangeSet.add(roomReservation, roomReservation.getSlotStart(), roomReservation.getSlotEnd());
         }
 
-        List<RoomBucket> roomBuckets = new LinkedList<RoomBucket>();
+        List<RoomBucket> roomBuckets = new LinkedList<>();
         roomBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd(), RoomBucket.class));
         Collections.sort(roomBuckets, new Comparator<RoomBucket>()
         {
@@ -387,6 +389,45 @@ public class SchedulerContext
         if (roomBuckets.size() > 0) {
             RoomBucket roomBucket = roomBuckets.get(0);
             return roomBucket.getLicenseCount();
+        }
+        return 0;
+    }
+
+
+    /**
+     * @param slot
+     * @param recordingReservations
+     * @param recordingCapability
+     * @return peak of licenses count used by {@code recordingReservations}
+     */
+    public int getLicenseCountPeak(Interval slot, List<RecordingServiceReservation> recordingReservations, RecordingCapability recordingCapability)
+    {
+        state.applyReservations(recordingCapability.getId(), slot, recordingReservations, RecordingServiceReservation.class);
+        RangeSet<RecordingServiceReservation, DateTime> rangeSet = new RangeSet<RecordingServiceReservation, DateTime>()
+        {
+            @Override
+            protected Bucket<DateTime, RecordingServiceReservation> createBucket(DateTime rangeValue)
+            {
+                return new RecordingBucket(rangeValue);
+            }
+        };
+        for (RecordingServiceReservation recordingReservation : recordingReservations) {
+            rangeSet.add(recordingReservation, recordingReservation.getSlotStart(), recordingReservation.getSlotEnd());
+        }
+
+        List<RecordingBucket> recordingBuckets = new LinkedList<>();
+        recordingBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd(), RecordingBucket.class));
+        Collections.sort(recordingBuckets, new Comparator<RecordingBucket>()
+        {
+            @Override
+            public int compare(RecordingBucket recordingBucket1, RecordingBucket recordingBucket2)
+            {
+                return -Double.compare(recordingBucket1.getLicenseCount(), recordingBucket2.getLicenseCount());
+            }
+        });
+        if (recordingBuckets.size() > 0) {
+            RecordingBucket recordingBucket = recordingBuckets.get(0);
+            return recordingBucket.getLicenseCount();
         }
         return 0;
     }

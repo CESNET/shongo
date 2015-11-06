@@ -195,7 +195,7 @@ public class Reservation extends AbstractResponse implements Comparable<Reservat
                 reservationSummary.setType(ReservationSummary.Type.ROOM);
                 RoomSpecification roomSpecification = (RoomSpecification) getSpecification();
                 reservationSummary.setRoomLicenseCount(roomSpecification.getLicenseCount());
-                reservationSummary.setRoomName(roomSpecification.getMeetingName());
+                reservationSummary.setRoomName(roomSpecification.getRoomName());
             case RESOURCE:
                 ResourceSpecification resourceSpecification = (ResourceSpecification) getSpecification();
                 reservationSummary.setType(ReservationSummary.Type.RESOURCE);

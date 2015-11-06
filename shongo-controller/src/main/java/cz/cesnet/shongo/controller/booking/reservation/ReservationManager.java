@@ -424,6 +424,33 @@ public class ReservationManager extends AbstractManager
         return typedQuery.getResultList();
     }
 
+    public List<RecordingServiceReservation> getRecordingReservationsForDomain(Long domainId, Long resourceId, Interval interval, Long currentReservationId)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<RecordingServiceReservation> query = criteriaBuilder.createQuery(RecordingServiceReservation.class);
+        Root<RecordingServiceReservation> domainRoot = query.from(RecordingServiceReservation.class);
+        query.select(domainRoot);
+
+        // For given resource
+        Predicate resourceParam = criteriaBuilder.equal(domainRoot.get("recordingCapability").get("resource").get("id"), resourceId);
+        // For specified domain
+        Predicate domainParam = criteriaBuilder.like(domainRoot.<String>get("userId"), UserInformation.formatForeignUnknownUserId("%", domainId));
+        // In given slot
+        Predicate notAfterParam = criteriaBuilder.lessThan(domainRoot.<DateTime>get("slotStart"), interval.getEnd());
+        Predicate notBeforeParam = criteriaBuilder.greaterThan(domainRoot.<DateTime>get("slotEnd"), interval.getStart());
+        CriteriaQuery<RecordingServiceReservation> where = query.where(resourceParam, domainParam, notAfterParam, notBeforeParam);
+        // Except current reservation
+        if (currentReservationId != null) {
+            Predicate notCurrentReservation = criteriaBuilder.notEqual(domainRoot.get("id"), currentReservationId);
+            where.where(notCurrentReservation);
+        }
+
+        TypedQuery<RecordingServiceReservation> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
+    }
+
     /**
      * @param allocation to be checked if it is reused by any {@link ReservationRequest}
      * @return true if given {@code allocation} is reused by any {@link ReservationRequest},

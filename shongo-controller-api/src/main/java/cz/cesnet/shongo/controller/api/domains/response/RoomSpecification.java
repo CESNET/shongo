@@ -24,8 +24,8 @@ public class RoomSpecification extends ForeignSpecification
     @JsonProperty("licenseCount")
     private Integer licenseCount;
 
-    @JsonProperty("meetingName")
-    private String meetingName;
+    @JsonProperty("roomName")
+    private String roomName;
 
     @JsonProperty("technologies")
     private Set<Technology> technologies;
@@ -38,12 +38,12 @@ public class RoomSpecification extends ForeignSpecification
 
     @JsonCreator
     public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
-                             @JsonProperty("meetingName") String meetingName,
+                             @JsonProperty("roomName") String roomName,
                              @JsonProperty("technologies") Set<Technology> technologies,
                              @JsonProperty("aliases") List<Alias> aliases)
     {
         this.licenseCount = licenseCount;
-        this.meetingName = meetingName;
+        this.roomName = roomName;
         this.technologies = technologies;
         this.aliases = aliases;
     }
@@ -88,14 +88,14 @@ public class RoomSpecification extends ForeignSpecification
         this.aliases.add(new Alias(aliasType, value));
     }
 
-    public String getMeetingName()
+    public String getRoomName()
     {
-        return meetingName;
+        return roomName;
     }
 
-    public void setMeetingName(String meetingName)
+    public void setRoomName(String roomName)
     {
-        this.meetingName = meetingName;
+        this.roomName = roomName;
     }
 
     public Integer getLicenseCount()
