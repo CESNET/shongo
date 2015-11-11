@@ -129,6 +129,17 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
     }
 
     @Override
+    public cz.cesnet.shongo.controller.api.PersonParticipant toApi()
+    {
+        cz.cesnet.shongo.controller.api.PersonParticipant personParticipantApi;
+        personParticipantApi = (cz.cesnet.shongo.controller.api.PersonParticipant) createApi();
+        personParticipantApi.setPerson(getPerson().toApi());
+        personParticipantApi.setRole(getRole());
+        this.toApi(personParticipantApi);
+        return personParticipantApi;
+    }
+
+    @Override
     public void toApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi)
     {
         cz.cesnet.shongo.controller.api.PersonParticipant personParticipantApi =

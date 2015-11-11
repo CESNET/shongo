@@ -23,7 +23,7 @@ import java.util.Set;
  *
  * @author Ondřej Pavelka <pavelka@cesnet.cz>
  */
-public class CapabilityListRequest
+public class CapabilitySpecificationRequest
 {
     /**
      * {@link DomainCapability.Type#RESOURCE} of the resources to be listed.
@@ -37,15 +37,15 @@ public class CapabilityListRequest
     @JsonProperty("licenseCount")
     private Integer licenseCount;
 
-    public CapabilityListRequest(DomainCapability.Type capabilityType)
+    public CapabilitySpecificationRequest(DomainCapability.Type capabilityType)
     {
         this.capabilityType = capabilityType;
     }
 
     @JsonCreator
-    public CapabilityListRequest(@JsonProperty("capabilityType") DomainCapability.Type capabilityType,
-                                 @JsonProperty("technologyVariants") List<Set<Technology>> technologyVariants,
-                                 @JsonProperty("licenseCount") Integer licenseCount)
+    public CapabilitySpecificationRequest(@JsonProperty("capabilityType") DomainCapability.Type capabilityType,
+                                          @JsonProperty("technologyVariants") List<Set<Technology>> technologyVariants,
+                                          @JsonProperty("licenseCount") Integer licenseCount)
     {
         this.capabilityType = capabilityType;
         this.technologyVariants = technologyVariants;

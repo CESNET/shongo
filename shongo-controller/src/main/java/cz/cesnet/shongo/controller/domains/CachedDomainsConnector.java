@@ -6,7 +6,7 @@ import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -80,10 +80,10 @@ public class CachedDomainsConnector extends DomainsConnector
             }
         }
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        CapabilityListRequest capabilityListRequest = new CapabilityListRequest(DomainCapability.Type.RESOURCE);
-        List<CapabilityListRequest> capabilityListRequestList = Collections.singletonList(capabilityListRequest);
+        CapabilitySpecificationRequest capabilitySpecificationRequest = new CapabilitySpecificationRequest(DomainCapability.Type.RESOURCE);
+        List<CapabilitySpecificationRequest> capabilityListRequestSpecification = Collections.singletonList(capabilitySpecificationRequest);
         submitCachedTypedListRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_CAPABILITY_LIST, null,
-                capabilityListRequestList, domains, DomainCapability.class, availableResources, unavailableResources);
+                capabilityListRequestSpecification, domains, DomainCapability.class, availableResources, unavailableResources);
     }
 
     /**
@@ -362,14 +362,14 @@ public class CachedDomainsConnector extends DomainsConnector
                 throw new IllegalArgumentException("Domain \"" + request.getDomainName() + "\" is not allocatable, but only allocatable was required.");
             }
         }
-        if (request.getCapabilityListRequests().size() != 1) {
+        if (request.getCapabilitySpecificationRequests().size() != 1) {
             return false;
         } else {
-            CapabilityListRequest capabilityListRequest = request.getCapabilityListRequests().get(0);
-            if (!DomainCapability.Type.RESOURCE.equals(capabilityListRequest.getCapabilityType())) {
+            CapabilitySpecificationRequest capabilitySpecificationRequest = request.getCapabilitySpecificationRequests().get(0);
+            if (!DomainCapability.Type.RESOURCE.equals(capabilitySpecificationRequest.getCapabilityType())) {
                 return false;
             }
-            if (capabilityListRequest.getTechnologyVariants() != null && !capabilityListRequest.getTechnologyVariants().isEmpty()) {
+            if (capabilitySpecificationRequest.getTechnologyVariants() != null && !capabilitySpecificationRequest.getTechnologyVariants().isEmpty()) {
                 return false;
             }
         }
