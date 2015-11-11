@@ -2,13 +2,12 @@ package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectPermissions;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import org.joda.time.Interval;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Interface to Inter Domain protocol for Shongo domains
@@ -21,7 +20,7 @@ public interface InterDomainProtocol {
 
     DomainStatus handleDomainStatus(HttpServletRequest request);
 
-    List<DomainCapability> handleListCapabilities(HttpServletRequest request, Interval slot, List<CapabilityListRequest> capabilityListRequests)
+    List<DomainCapability> handleListCapabilities(HttpServletRequest request, Interval slot, List<CapabilitySpecificationRequest> capabilitySpecificationRequests)
             throws NotAuthorizedException;
 
     Reservation handleAllocateResource(HttpServletRequest request, Interval slot, String resourceId,
@@ -32,6 +31,9 @@ public interface InterDomainProtocol {
                                           String userId, String description, String roomPin, AdobeConnectPermissions roomAccessMode,
                                           Boolean roomRecorded, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
+
+//    Reservation handleAddParticipants(HttpServletRequest request, String reservationRequestId, )
+//            throws NotAuthorizedException, ForbiddenException;
 
     Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;

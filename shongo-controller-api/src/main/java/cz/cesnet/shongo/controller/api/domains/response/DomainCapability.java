@@ -52,6 +52,8 @@ public class DomainCapability //extends IdentifiedComplexType
     @JsonProperty("capabilityType")
     private Type capabilityType;
 
+    //TODO: personIdType private
+
 //    @Override
     public void setId(String id)
     {

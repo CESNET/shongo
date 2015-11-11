@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.DomainResource;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -176,11 +176,11 @@ public class InterDomainTest extends AbstractControllerTest
         technologies.add(Technology.SIP);
         technologyVariants.add(technologies);
 
-        listRequest2.getCapabilityListRequests().get(0).setTechnologyVariants(technologyVariants);
-        CapabilityListRequest capabilityListRequest = new CapabilityListRequest(DomainCapability.Type.RECORDING_SERVICE);
-        capabilityListRequest.setTechnologyVariants(technologyVariants);
-        capabilityListRequest.setLicenseCount(1);
-        listRequest2.addCapabilityListRequest(capabilityListRequest);
+        listRequest2.getCapabilitySpecificationRequests().get(0).setTechnologyVariants(technologyVariants);
+        CapabilitySpecificationRequest capabilitySpecificationRequest = new CapabilitySpecificationRequest(DomainCapability.Type.RECORDING_SERVICE);
+        capabilitySpecificationRequest.setTechnologyVariants(technologyVariants);
+        capabilitySpecificationRequest.setLicenseCount(1);
+        listRequest2.addCapabilityListRequest(capabilitySpecificationRequest);
 
         Map<String, List<DomainCapability>> resources2 = getConnector().listForeignCapabilities(listRequest2);
         Assert.assertEquals(2, resources2.get(loopbackDomain.getName()).size());
@@ -192,7 +192,7 @@ public class InterDomainTest extends AbstractControllerTest
         technologiesAC.add(Technology.ADOBE_CONNECT);
         technologyVariantsAC.add(technologiesAC);
 
-        listRequest3.getCapabilityListRequests().get(0).setTechnologyVariants(technologyVariantsAC);
+        listRequest3.getCapabilitySpecificationRequests().get(0).setTechnologyVariants(technologyVariantsAC);
         Map<String, List<DomainCapability>> resources3 = getConnector().listForeignCapabilities(listRequest3);
         Assert.assertEquals(0, resources3.get(loopbackDomain.getName()).size());
     }

@@ -6,9 +6,11 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
@@ -123,6 +125,16 @@ public class DomainsConnector
         return resultMap;
     }
 
+    protected <T> Map<String, T> performTypedRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                      final MultiMap<String, String> parameters,
+                                                      final Map<Domain, Object> dataByDomain, Class<T> objectClass)
+    {
+        final Map<String, T> resultMap = new HashMap<>();
+        ObjectReader reader = mapper.reader(objectClass);
+        performRequests(method, action, parameters, dataByDomain, reader, resultMap, objectClass);
+        return resultMap;
+    }
+
     /**
      * Returns map of given domains with positive result, or does not add it at all to the map.
      *
@@ -183,6 +195,45 @@ public class DomainsConnector
 
         for (final Domain domain : parametersByDomain.keySet()) {
             Callable<T> task = new DomainTask<>(method, action, parametersByDomain.get(domain), data, domain, reader, returnClass, result, null);
+            futureTasks.put(domain.getName(), executor.submit(task));
+        }
+
+        while (!futureTasks.isEmpty()) {
+            try {
+                Iterator<Map.Entry<String, Future<T>>> iterator = futureTasks.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, Future<T>> entry = iterator.next();
+                    if (entry.getValue().isDone()) {
+                        iterator.remove();
+                    }
+                }
+                Thread.sleep(THREAD_TIMEOUT);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
+     * Returns map of given domains with positive result, or does not add it at all to the map.
+     *
+     * @param method      of the request
+     * @param action      to preform
+     * @param parameters  of the request
+     * @param dataByDomain        to send by POST to given domain
+     * @param reader      to parse JSON
+     * @param result      collection to store the result
+     * @param returnClass {@link Class<T>} of the object to return
+     */
+    protected synchronized <T> void performRequests(final InterDomainAction.HttpMethod method, final String action,
+                                                    final MultiMap<String, String> parameters,
+                                                    final Map<Domain, Object> dataByDomain, final ObjectReader reader,
+                                                    final Map<String, ?> result, final Class<T> returnClass)
+    {
+        final ConcurrentMap<String, Future<T>> futureTasks = new ConcurrentHashMap<>();
+
+        for (final Domain domain : dataByDomain.keySet()) {
+            Callable<T> task = new DomainTask<>(method, action, parameters, dataByDomain.get(domain), domain, reader, returnClass, result, null);
             futureTasks.put(domain.getName(), executor.submit(task));
         }
 
@@ -535,10 +586,10 @@ public class DomainsConnector
             domains = new ArrayList<>();
             domains.add(request.getDomain());
         }
-        List<CapabilityListRequest> capabilityListRequests = request.getCapabilityListRequests().isEmpty() ? null : request.getCapabilityListRequests();
+        List<CapabilitySpecificationRequest> capabilitySpecificationRequests = request.getCapabilitySpecificationRequests().isEmpty() ? null : request.getCapabilitySpecificationRequests();
         // Resource IDs are not filtered by inter domain protocol
         Map<String, List<DomainCapability>> domainResources = performTypedListRequests(InterDomainAction.HttpMethod.POST,
-                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, capabilityListRequests, domains, DomainCapability.class);
+                InterDomainAction.DOMAIN_CAPABILITY_LIST, parameters, capabilitySpecificationRequests, domains, DomainCapability.class);
         return domainResources;
     }
 
@@ -564,7 +615,7 @@ public class DomainsConnector
         return reservation;
     }
 
-    public List<Reservation> allocateRoom(Set<Domain> domains, RoomSettings roomSettings, String previousReservationRequestId)
+    public List<Reservation> allocateRoom(Map<Domain, List<DomainCapability>> domainCapabilities, RoomSettings roomSettings, String previousReservationRequestId)
     {
         roomSettings.validate();
 
@@ -586,18 +637,33 @@ public class DomainsConnector
         for (Technology technology : roomSettings.getFirstTechnologyVariant()) {
             parameters.put("technologies", technology.toString());
         }
-        if (roomSettings.getParticipants() != null) {
-            for (cz.cesnet.shongo.controller.api.AbstractParticipant participant : roomSettings.getParticipants()) {
-//            participant.
-//            parameters.put("participants", participant);
-            }
-        }
-        //TODO: room name
         if (previousReservationRequestId != null) {
+            if (domainCapabilities.size() != 1) {
+                throw new IllegalStateException("Previous reservation request indicates only one domain.");
+            }
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
+//        for (Map.Entry<Domain, List<DomainCapability>> entry : domainCapabilities.entrySet()) {
+//            for (DomainCapability capability : entry.getValue()) {
+//                //TODO: user id??
+//            }
+//            if (roomSettings.getParticipants() != null) {
+//                for (cz.cesnet.shongo.controller.api.PersonParticipant participant : roomSettings.getParticipants()) {
+//                    AbstractPerson abstractPerson = participant.getPerson();
+//                    if (abstractPerson instanceof UserPerson) {
+//                        parameters.put("participants", );
+//                    }
+//                    else {
+//                        throw new TodoImplementException("Unsupported type of AbstractPerson: " + abstractPerson.getClass());
+//                    }
+//                }
+//            }
+//        }
+        //TODO: room name
 
-        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, null, domains, Reservation.class);
+        //TODO:Map<Domain, Object> dataByDomains = null;
+
+        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, null, domainCapabilities.keySet(), Reservation.class);
         return new ArrayList<>(reservations.values());
     }
 
@@ -842,5 +908,7 @@ public class DomainsConnector
             logger.info("Domain '" + domain.getName() + "' does not exist or is not allocatable. Domain task terminated.");
             throw new IllegalStateException("Domain '" + domain.getName() + "' does not exist or is not allocatable.");
         }
+
+
     }
 }

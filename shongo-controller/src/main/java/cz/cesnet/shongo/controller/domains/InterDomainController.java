@@ -12,10 +12,9 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
-import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -91,32 +90,20 @@ public class InterDomainController implements InterDomainProtocol
     @ResponseBody
     public List<DomainCapability> handleListCapabilities(
             HttpServletRequest request,
-//            @RequestParam(value = "type", required = true) DomainCapabilityListRequest.Type type,
             @RequestParam(value = "slot", required = false) Interval slot,
-//            @RequestParam(value = "licenseCount", required = false) Integer licenseCount,
-//            @RequestParam(value = "technologies", required = false) List<Technology> technologies,
-//            @RequestParam(value = "capabilityListRequests", required = true) List<CapabilityListRequest> capabilityListRequests
-            @RequestBody List<CapabilityListRequest> capabilityListRequests
+            @RequestBody List<CapabilitySpecificationRequest> capabilitySpecificationRequests
     ) throws NotAuthorizedException
     {
+        //TODO: add slot
         List<DomainCapability> capabilities = new ArrayList<>();
-        for (CapabilityListRequest capabilityListRequest : capabilityListRequests) {
-//            DomainCapabilityListRequest listRequest = new DomainCapabilityListRequest(getDomain(request));
-//            listRequest.setSlot(slot);
-//            listRequest.setCapabilityListRequests(Collections.singletonList(capabilityListRequest));
-//            listRequest.setCapabilityType(capabilityListRequest.getCapabilityType());
-//            listRequest.setLicenseCount(capabilityListRequest.getLicenseCount());
-//            List<Set<Technology>> variants = capabilityListRequest.getTechnologyVariants();
-//            if (variants != null && !variants.isEmpty()) {
-//                listRequest.setTechnologyVariants(variants);
-//            }
+        for (CapabilitySpecificationRequest capabilitySpecificationRequest : capabilitySpecificationRequests) {
             Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
-            DomainCapability.Type type = capabilityListRequest.getCapabilityType();
-            Integer licenses = capabilityListRequest.getLicenseCount();
-            List<Set<Technology>> variant = capabilityListRequest.getTechnologyVariants();
+            DomainCapability.Type type = capabilitySpecificationRequest.getCapabilityType();
+            Integer licenses = capabilitySpecificationRequest.getLicenseCount();
+            List<Set<Technology>> technologyVariants = capabilitySpecificationRequest.getTechnologyVariants();
 
-            List<DomainCapability> resultList = getDomainService().listLocalResourcesByDomain(domainId, type, licenses, variant);
-            if (!DomainCapability.Type.RESOURCE.equals(capabilityListRequest.getCapabilityType())) {
+            List<DomainCapability> resultList = getDomainService().listLocalResourcesByDomain(domainId, type, licenses, technologyVariants);
+            if (!DomainCapability.Type.RESOURCE.equals(capabilitySpecificationRequest.getCapabilityType())) {
                 // Erase resource ID's for every capability type except {@link Type.RESOURCE}.
                 for (DomainCapability capability : resultList) {
                     capability.setId(null);
@@ -216,7 +203,7 @@ public class InterDomainController implements InterDomainProtocol
     }
 
     @Override
-    @RequestMapping(value = InterDomainAction.DOMAIN_ALLOCATE_ROOM, method = RequestMethod.GET)
+    @RequestMapping(value = InterDomainAction.DOMAIN_ALLOCATE_ROOM, method = RequestMethod.POST)
     @ResponseBody
     public Reservation handleAllocateRoom(HttpServletRequest request,
                                           @RequestParam(value = "slot", required = true) Interval slot,

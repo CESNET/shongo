@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.RoomProviderCapability;
-import cz.cesnet.shongo.controller.api.RecordingCapability;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilityListRequest;
+import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import org.joda.time.Interval;
 
@@ -38,7 +36,7 @@ public class DomainCapabilityListRequest extends AbstractRequest
 
     private Boolean onlyAllocatable;
 
-    private List<CapabilityListRequest> capabilityListRequests = new ArrayList<>();
+    private List<CapabilitySpecificationRequest> capabilitySpecificationRequests = new ArrayList<>();
 
     /**
      * Constructor
@@ -50,13 +48,13 @@ public class DomainCapabilityListRequest extends AbstractRequest
     /**
      * Constructor.
      *
-     * Create instance with one {@link CapabilityListRequest} with {@code capabilityType} set.
+     * Create instance with one {@link CapabilitySpecificationRequest} with {@code capabilityType} set.
      *
      * @param capabilityType to be set
      */
     public DomainCapabilityListRequest(DomainCapability.Type capabilityType)
     {
-        addCapabilityListRequest(new CapabilityListRequest(capabilityType));
+        addCapabilityListRequest(new CapabilitySpecificationRequest(capabilityType));
     }
 
     /**
@@ -137,35 +135,35 @@ public class DomainCapabilityListRequest extends AbstractRequest
     }
 
 
-    public List<CapabilityListRequest> getCapabilityListRequests()
+    public List<CapabilitySpecificationRequest> getCapabilitySpecificationRequests()
     {
-        return capabilityListRequests;
+        return capabilitySpecificationRequests;
     }
 
-    public void setCapabilityListRequests(List<CapabilityListRequest> capabilityListRequests)
+    public void setCapabilitySpecificationRequests(List<CapabilitySpecificationRequest> capabilitySpecificationRequests)
     {
-        this.capabilityListRequests = capabilityListRequests;
+        this.capabilitySpecificationRequests = capabilitySpecificationRequests;
     }
 
-    public void addCapabilityListRequest(CapabilityListRequest capabilityListRequest)
+    public void addCapabilityListRequest(CapabilitySpecificationRequest capabilitySpecificationRequest)
     {
-        this.capabilityListRequests.add(capabilityListRequest);
+        this.capabilitySpecificationRequests.add(capabilitySpecificationRequest);
     }
 
     public List<DomainCapability.Type> getRequestedCapabilitiesTypes() {
         List<DomainCapability.Type> types = new ArrayList<>();
-        for (CapabilityListRequest capabilityListRequest : capabilityListRequests) {
-            types.add(capabilityListRequest.getCapabilityType());
+        for (CapabilitySpecificationRequest capabilitySpecificationRequest : capabilitySpecificationRequests) {
+            types.add(capabilitySpecificationRequest.getCapabilityType());
         }
         return types;
     }
 
     public void validateForResource()
     {
-        if (this.capabilityListRequests.size() != 1) {
+        if (this.capabilitySpecificationRequests.size() != 1) {
             throw new IllegalArgumentException("CapabilityListRequest must be set");
         }
-        if (!DomainCapability.Type.RESOURCE.equals(this.capabilityListRequests.get(0).getCapabilityType())) {
+        if (!DomainCapability.Type.RESOURCE.equals(this.capabilitySpecificationRequests.get(0).getCapabilityType())) {
             throw new IllegalArgumentException("Request's type must be RESOURCE.");
         }
     }

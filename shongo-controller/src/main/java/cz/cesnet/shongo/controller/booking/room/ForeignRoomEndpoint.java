@@ -4,12 +4,17 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
+import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ForeignRoomReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -36,6 +41,16 @@ import javax.persistence.Transient;
 public class ForeignRoomEndpoint extends RoomEndpoint
 {
     private String foreignReservationRequestId;
+
+    public String getForeignReservationRequestId()
+    {
+        return foreignReservationRequestId;
+    }
+
+    public void setForeignReservationRequestId(String foreignReservationRequestId)
+    {
+        this.foreignReservationRequestId = foreignReservationRequestId;
+    }
 
     @Transient
     @Override
@@ -106,6 +121,11 @@ public class ForeignRoomEndpoint extends RoomEndpoint
     @Override
     protected void onUpdate()
     {
+        for (AbstractParticipant participant : this.getParticipants()) {
+            UserInformation userInformation = Authorization.getInstance().getUserInformation(((UserPerson) ((PersonParticipant) participant).getPerson()).getUserId());
+            System.out.println("kontrola participantu: " + userInformation.getPrincipalNames().toArray(new String[]{}));
+        }
+
 //        throw new TodoImplementException("pravdepodobne jen pridavat participanty");
     }
 

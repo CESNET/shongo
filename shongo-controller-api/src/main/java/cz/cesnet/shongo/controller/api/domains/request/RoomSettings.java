@@ -4,9 +4,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AdobeConnectPermissions;
 import cz.cesnet.shongo.controller.api.AbstractParticipant;
+import cz.cesnet.shongo.controller.api.PersonParticipant;
 import cz.cesnet.shongo.controller.api.Reservation;
 import org.joda.time.Interval;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -20,7 +22,7 @@ public class RoomSettings
     private Interval slot;
     private int participantCount;
     private String userId;
-    private List<AbstractParticipant> participants;
+    private List<PersonParticipant> participants;
     private List<Set<Technology>> technologyVariants;
     private String description;
     private String roomName;
@@ -58,14 +60,22 @@ public class RoomSettings
         this.userId = userId;
     }
 
-    public List<AbstractParticipant> getParticipants()
+    public List<PersonParticipant> getParticipants()
     {
         return participants;
     }
 
-    public void setParticipants(List<AbstractParticipant> participants)
+    public void setParticipants(List<PersonParticipant> participants)
     {
         this.participants = participants;
+    }
+
+    public void addParticipant(PersonParticipant participant)
+    {
+        if (this.participants == null) {
+            this.participants = new ArrayList<>();
+        }
+        this.participants.add(participant);
     }
 
     public List<Set<Technology>> getTechnologyVariants()
