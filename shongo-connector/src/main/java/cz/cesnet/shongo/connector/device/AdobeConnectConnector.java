@@ -1259,7 +1259,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
         final AtomicReference<Thread> threadReference = new AtomicReference<>();
-        threadReference.set(new Thread()
+        threadReference.set(new Thread(Thread.currentThread().getName() + "-capacities")
         {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -1291,10 +1291,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 setCapacityChecking(false);
             }
         });
-        this.capacityCheckThreadReference.get().setName(Thread.currentThread().getName() + "-capacities");
         synchronized (this) {
             if (!this.capacityChecking) {
-                this.capacityCheckThreadReference.get().start();
+                threadReference.get().start();
+                this.capacityCheckThreadReference = threadReference;
             }
         }
     }

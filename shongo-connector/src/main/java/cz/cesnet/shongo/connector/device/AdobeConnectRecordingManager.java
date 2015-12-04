@@ -108,7 +108,7 @@ public class AdobeConnectRecordingManager
         this.recordingsFolderId = getRecordingsFolderId();
 
         final AtomicReference<Thread> threadReference = new AtomicReference<>();
-        threadReference.set(new Thread()
+        threadReference.set(new Thread(Thread.currentThread().getName() + "-recordings")
         {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -138,9 +138,10 @@ public class AdobeConnectRecordingManager
                 logger.info("Checking of recordings - exiting...");
             }
         });
-        threadReference.get().setName(Thread.currentThread().getName() + "-recordings");
-        threadReference.get().start();
-        this.checkRecordingsThreadReference = threadReference;
+        synchronized (this) {
+            threadReference.get().start();
+            this.checkRecordingsThreadReference = threadReference;
+        }
     }
 
     /**
