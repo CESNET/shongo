@@ -31,9 +31,9 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private String tagId;
 
     /**
-     * Names of resource tags.
+     * Nams of resource tag.
      */
-    private Set<String> tagNames = new HashSet<>();
+    private String tagName;
 
     /**
      * Id of domain
@@ -161,19 +161,14 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         this.tagId = tagId;
     }
 
-    public Set<String> getTagNames()
+    public String getTagName()
     {
-        return tagNames;
+        return tagName;
     }
 
-    public void setTagNames(Set<String> tagNames)
+    public void setTagName(String tagName)
     {
-        this.tagNames = tagNames;
-    }
-
-    public void addTagName(String tagName)
-    {
-        this.tagNames.add(tagName);
+        this.tagName = tagName;
     }
 
     public String getDomainId() {
@@ -260,7 +255,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
 
     private static final String RESOURCE_IDS = "resourceIds";
     private static final String TAG_ID = "tagId";
-    private static final String TAG_NAMES = "tagNames";
+    private static final String TAG_NAME = "tagNames";
     private static final String DOMAIN_ID = "domainId";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
@@ -275,7 +270,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         DataMap dataMap = super.toData();
         dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(TAG_ID,tagId);
-        dataMap.set(TAG_NAMES,tagNames);
+        dataMap.set(TAG_NAME,tagName);
         dataMap.set(DOMAIN_ID, domainId);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
@@ -292,7 +287,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         super.fromData(dataMap);
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         tagId = dataMap.getString(TAG_ID);
-        tagNames = dataMap.getSet(TAG_NAMES, String.class);
+        tagName = dataMap.getString(TAG_NAME);
         domainId = dataMap.getString(DOMAIN_ID);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
