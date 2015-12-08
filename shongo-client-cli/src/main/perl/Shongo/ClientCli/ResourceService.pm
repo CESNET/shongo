@@ -314,7 +314,7 @@ sub list_resources()
         $filter->{'name'} = $options->{'name'};
     }
     if ( defined($options->{'tag'}) ) {
-        $filter->{'tagNames'} = [$options->{'tag'}];
+        $filter->{'tagName'} = $options->{'tag'};
     }
     if ( defined($options->{'domain'}) ) {
         $filter->{'domainId'} = $options->{'domain'};

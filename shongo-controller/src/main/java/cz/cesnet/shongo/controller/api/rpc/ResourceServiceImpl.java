@@ -334,11 +334,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
 
             // Filter requested tag-name
-            if (request.getTagNames() != null && !request.getTagNames().isEmpty()) {
+            if (request.getTagName() != null) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_tag.resource_id FROM resource_tag "
                         + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
-                        + " WHERE tag.name IN(:tagNames))", "tagNames", request.getTagNames());
+                        + " WHERE tag.name = :tagName)", "tagName", request.getTagName());
             }
 
             // Filter requested by foreign domain
@@ -449,7 +449,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 foreignResourcesListRequest.setSecurityToken(securityToken);
                 foreignResourcesListRequest.setPermission(request.getPermission());
                 //TODO: add TagId
-                foreignResourcesListRequest.setTagNames(request.getTagNames());
+                foreignResourcesListRequest.setTagName(request.getTagName());
                 foreignResourcesListRequest.setOnlyAllocatable(request.isAllocatable());
                 ListResponse<ResourceSummary> resourceSummaries = listForeignResources(foreignResourcesListRequest);
                 response.addAll(resourceSummaries);
@@ -503,11 +503,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 return response;
             }
             if (InterDomainAgent.isInitialized()) {
-                List<Tag> tags = new ArrayList<>();
-                if (request.getTagNames() != null) {
-                    for (String tagName : request.getTagNames()) {
-                        tags.add(findTag(securityToken, tagName));
-                    }
+                Tag tag = null;
+                if (request.getTagName() != null) {
+                    tag = findTag(securityToken, request.getTagName());
                 }
                 if (request.getOnlyAllocatable() == null) {
                     capabilityListRequest.setOnlyAllocatable(Boolean.TRUE);
@@ -516,18 +514,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     capabilityListRequest.setOnlyAllocatable(request.getOnlyAllocatable());
                 }
                 for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAvailableForeignResources(capabilityListRequest)) {
-                    if (!tags.isEmpty()) {
+                    if (tag != null) {
                         TagListRequest tagListRequest = new TagListRequest();
                         tagListRequest.setSecurityToken(securityToken);
                         tagListRequest.setResourceId(resource.getId());
-                        // Filter if resource has one of given tags
-                        boolean requiredTag = false;
-                        for (Tag tag : tags) {
-                            if (listTags(tagListRequest).contains(tag)) {
-                                requiredTag = true;
-                            }
-                        }
-                        if (!requiredTag) {
+                        if (!listTags(tagListRequest).contains(tag)) {
                             continue;
                         }
                     }

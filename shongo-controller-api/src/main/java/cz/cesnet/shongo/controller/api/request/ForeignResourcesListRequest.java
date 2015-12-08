@@ -15,9 +15,7 @@ public class ForeignResourcesListRequest extends AbstractRequest
 {
     private ObjectPermission permission;
 
-//    private String tagName;
-
-    private Set<String> tagNames;
+    private String tagName;
 
     private Boolean onlyAllocatable;
 
@@ -36,25 +34,14 @@ public class ForeignResourcesListRequest extends AbstractRequest
         return permission;
     }
 
-//    public String getTagName()
-//    {
-//        return tagName;
-//    }
-//
-//    public void setTagName(String tagName)
-//    {
-//        this.tagName = tagName;
-//    }
-
-
-    public Set<String> getTagNames()
+    public String getTagName()
     {
-        return tagNames;
+        return tagName;
     }
 
-    public void setTagNames(Set<String> tagNames)
+    public void setTagName(String tagName)
     {
-        this.tagNames = tagNames;
+        this.tagName = tagName;
     }
 
     public Set<String> getResourceIds()

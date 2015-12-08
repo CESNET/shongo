@@ -87,7 +87,7 @@ public class ResourceController
             resourceListRequest.setTechnologies(technology.getTechnologies());
         }
         if (tag != null) {
-            resourceListRequest.addTagName(tag);
+            resourceListRequest.setTagName(tag);
         }
 
         // Filter only reservable resources

@@ -64,8 +64,7 @@ public class IndexController
 
             // Get all readable resources with assigned meeting-room tag even not allocatable (previous reservations)
             ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
-            Set<String> tagNames = new HashSet<>(Arrays.asList(ClientWebConfiguration.getInstance().getMeetingRoomTagName()));
-            resourceListRequest.setTagNames(tagNames);
+            resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
             resourceListRequest.setAllocatable(false);
             for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
                 resourceSummaries.add(resourceSummary);
