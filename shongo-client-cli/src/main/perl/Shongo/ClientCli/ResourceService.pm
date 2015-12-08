@@ -314,7 +314,7 @@ sub list_resources()
         $filter->{'name'} = $options->{'name'};
     }
     if ( defined($options->{'tag'}) ) {
-        $filter->{'tagName'} = $options->{'tag'};
+        $filter->{'tagName'} = [$options->{'tag'}];
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Resource.listResources', $filter);

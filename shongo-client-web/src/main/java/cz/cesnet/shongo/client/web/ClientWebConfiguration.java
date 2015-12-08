@@ -274,8 +274,8 @@ public class ClientWebConfiguration extends CombinedConfiguration {
     /**
      * @return name of tag for meeting rooms
      */
-    public String getMeetingRoomTagName() {
-        return getString("tags.meeting-room");
+    public String[] getMeetingRoomTagName() {
+        return getStringArray("tags.meeting-room");
     }
 
     /**

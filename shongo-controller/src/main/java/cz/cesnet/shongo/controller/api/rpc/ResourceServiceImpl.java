@@ -312,11 +312,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
 
             // Filter requested tag-name
-            if (request.getTagName() != null) {
+            if (request.getTagNames() != null && !request.getTagNames().isEmpty()) {
                 queryFilter.addFilter("resource_summary.id IN ("
                         + " SELECT resource_tag.resource_id FROM resource_tag "
                         + " LEFT JOIN tag ON tag.id = resource_tag.tag_id"
-                        + " WHERE tag.name = :tagName)", "tagName", request.getTagName());
+                        + " WHERE tag.name IN(:tagNames))", "tagNames", request.getTagNames());
             }
 
             // Filter user-ids

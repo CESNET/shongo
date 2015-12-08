@@ -21,10 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Index controller.
@@ -67,7 +64,8 @@ public class IndexController
 
             // Get all resources with assigned meeting-room tag
             ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
-            resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
+            Set<String> tagNames = new HashSet<>(Arrays.asList(ClientWebConfiguration.getInstance().getMeetingRoomTagName()));
+            resourceListRequest.setTagNames(tagNames);
             for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
                 resourceSummaries.add(resourceSummary);
             }

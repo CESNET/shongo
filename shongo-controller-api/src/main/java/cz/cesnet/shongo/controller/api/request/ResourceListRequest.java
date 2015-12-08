@@ -8,7 +8,9 @@ import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,9 +31,9 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private String tagId;
 
     /**
-     * Name of resource tag.
+     * Name of resource tags.
      */
-    private String tagName;
+    private Set<String> tagNames = new HashSet<>();
 
     /**
      * User-ids of resource owners.
@@ -149,12 +151,19 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         this.tagId = tagId;
     }
 
-    public String getTagName() {
-        return tagName;
+    public Set<String> getTagNames()
+    {
+        return tagNames;
     }
 
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
+    public void setTagNames(Set<String> tagNames)
+    {
+        this.tagNames = tagNames;
+    }
+
+    public void addTagName(String tagName)
+    {
+        this.tagNames.add(tagName);
     }
 
     /**
@@ -223,7 +232,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
 
     private static final String RESOURCE_IDS = "resourceIds";
     private static final String TAG_ID = "tagId";
-    private static final String TAG_NAME = "tagName";
+    private static final String TAG_NAMES = "tagNames";
     private static final String USER_IDS = "userIds";
     private static final String NAME = "name";
     private static final String CAPABILITY_CLASSES = "capabilityClasses";
@@ -236,7 +245,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         DataMap dataMap = super.toData();
         dataMap.set(RESOURCE_IDS, resourceIds);
         dataMap.set(TAG_ID,tagId);
-        dataMap.set(TAG_NAME,tagName);
+        dataMap.set(TAG_NAMES,tagNames);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(NAME, name);
         dataMap.set(CAPABILITY_CLASSES, capabilityClasses);
@@ -251,7 +260,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         super.fromData(dataMap);
         resourceIds = dataMap.getSet(RESOURCE_IDS, String.class);
         tagId = dataMap.getString(TAG_ID);
-        tagName = dataMap.getString(TAG_NAME);
+        tagNames = dataMap.getSet(TAG_NAMES, String.class);
         userIds = dataMap.getSet(USER_IDS, String.class);
         name = dataMap.getString(NAME);
         capabilityClasses = dataMap.getClassSet(CAPABILITY_CLASSES, Capability.class);
