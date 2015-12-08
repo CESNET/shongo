@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.request;
 import cz.cesnet.shongo.controller.ObjectPermission;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -14,7 +15,9 @@ public class ForeignResourcesListRequest extends AbstractRequest
 {
     private ObjectPermission permission;
 
-    private String tagName;
+//    private String tagName;
+
+    private Set<String> tagNames;
 
     private Boolean onlyAllocatable;
 
@@ -33,14 +36,25 @@ public class ForeignResourcesListRequest extends AbstractRequest
         return permission;
     }
 
-    public String getTagName()
+//    public String getTagName()
+//    {
+//        return tagName;
+//    }
+//
+//    public void setTagName(String tagName)
+//    {
+//        this.tagName = tagName;
+//    }
+
+
+    public Set<String> getTagNames()
     {
-        return tagName;
+        return tagNames;
     }
 
-    public void setTagName(String tagName)
+    public void setTagNames(Set<String> tagNames)
     {
-        this.tagName = tagName;
+        this.tagNames = tagNames;
     }
 
     public Set<String> getResourceIds()
