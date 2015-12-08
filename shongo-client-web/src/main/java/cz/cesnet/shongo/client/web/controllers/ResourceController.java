@@ -87,7 +87,7 @@ public class ResourceController
             resourceListRequest.setTechnologies(technology.getTechnologies());
         }
         if (tag != null) {
-            resourceListRequest.setTagName(tag);
+            resourceListRequest.addTagName(tag);
         }
         List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
 
