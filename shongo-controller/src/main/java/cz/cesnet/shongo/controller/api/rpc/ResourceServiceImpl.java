@@ -449,7 +449,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 foreignResourcesListRequest.setSecurityToken(securityToken);
                 foreignResourcesListRequest.setPermission(request.getPermission());
                 //TODO: add TagId
-                foreignResourcesListRequest.setTagName(request.getTagName());
+                foreignResourcesListRequest.setTagNames(request.getTagNames());
                 foreignResourcesListRequest.setOnlyAllocatable(request.isAllocatable());
                 ListResponse<ResourceSummary> resourceSummaries = listForeignResources(foreignResourcesListRequest);
                 response.addAll(resourceSummaries);
@@ -503,9 +503,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 return response;
             }
             if (InterDomainAgent.isInitialized()) {
-                Tag tag = null;
-                if (request.getTagName() != null) {
-                    tag = findTag(securityToken, request.getTagName());
+                List<Tag> tags = new ArrayList<>();
+                if (request.getTagNames() != null) {
+                    for (String tagName : request.getTagNames()) {
+                        tags.add(findTag(securityToken, tagName));
+                    }
                 }
                 if (request.getOnlyAllocatable() == null) {
                     capabilityListRequest.setOnlyAllocatable(Boolean.TRUE);
@@ -514,11 +516,18 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     capabilityListRequest.setOnlyAllocatable(request.getOnlyAllocatable());
                 }
                 for (DomainCapability resource : InterDomainAgent.getInstance().getConnector().listAvailableForeignResources(capabilityListRequest)) {
-                    if (tag != null) {
+                    if (!tags.isEmpty()) {
                         TagListRequest tagListRequest = new TagListRequest();
                         tagListRequest.setSecurityToken(securityToken);
                         tagListRequest.setResourceId(resource.getId());
-                        if (!listTags(tagListRequest).contains(tag)) {
+                        // Filter if resource has one of given tags
+                        boolean requiredTag = false;
+                        for (Tag tag : tags) {
+                            if (listTags(tagListRequest).contains(tag)) {
+                                requiredTag = true;
+                            }
+                        }
+                        if (!requiredTag) {
                             continue;
                         }
                     }

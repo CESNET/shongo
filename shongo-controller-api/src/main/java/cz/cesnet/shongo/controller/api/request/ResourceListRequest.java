@@ -31,7 +31,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private String tagId;
 
     /**
-     * Name of resource tags.
+     * Names of resource tags.
      */
     private Set<String> tagNames = new HashSet<>();
 
@@ -43,7 +43,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     /**
      * User-ids of resource owners.
      */
-    private Set<String> userIds = new HashSet<String>();
+    private Set<String> userIds = new HashSet<>();
 
     /**
      * Name of the resource.
