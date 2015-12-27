@@ -562,6 +562,7 @@ public class InterDomainController implements InterDomainProtocol
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<String> internalExceptionHandler(RuntimeException ex)
     {
+        InterDomainAgent.getInstance().getLogger().debug("Internal error ocured during interdomain communication: ",ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
