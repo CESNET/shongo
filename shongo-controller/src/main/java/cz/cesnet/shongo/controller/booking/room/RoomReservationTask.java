@@ -467,16 +467,16 @@ public class RoomReservationTask extends ReservationTask
                 throw new TodoImplementException("Unsupported room settings: " + roomSetting);
             }
         }
-//        if (participants != null) {
-//            for (AbstractParticipant participant : participants) {
-//                if (participant instanceof PersonParticipant) {
-//                    PersonParticipant personParticipant = (PersonParticipant) participant;
-//                    allocateRoomSettings.addParticipant(personParticipant.toApi());
-//                } else {
-//                    throw new TodoImplementException("Unsupported participant type: " + participant.getClass());
-//                }
-//            }
-//        }
+        if (participants != null) {
+            for (AbstractParticipant participant : participants) {
+                if (participant instanceof PersonParticipant) {
+                    PersonParticipant personParticipant = (PersonParticipant) participant;
+                    allocateRoomSettings.addParticipant(personParticipant.toApi());
+                } else {
+                    throw new TodoImplementException("Unsupported participant type: " + participant.getClass());
+                }
+            }
+        }
 
         result = InterDomainAgent.getInstance().getConnector().allocateRoom(domainsRoomCapabilities, allocateRoomSettings, previousReservationRequestId);
 

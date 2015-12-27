@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.domains;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectPermissions;
 import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
+import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import org.joda.time.Interval;
 
@@ -29,7 +30,7 @@ public interface InterDomainProtocol {
 
     Reservation handleAllocateRoom(HttpServletRequest request, Interval slot, int participantCount, List<Technology> technologies,
                                           String userId, String description, String roomPin, AdobeConnectPermissions roomAccessMode,
-                                          Boolean roomRecorded, String reservationRequestId)
+                                          Boolean roomRecorded, String reservationRequestId, List<RoomParticipant> participants)
             throws NotAuthorizedException, ForbiddenException;
 
 //    Reservation handleAddParticipants(HttpServletRequest request, String reservationRequestId, )

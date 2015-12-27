@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
+import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
@@ -26,6 +27,7 @@ import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -35,8 +37,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -311,7 +312,11 @@ public class DomainsConnector
 //                    while ((responseLine = bufferedReader.readLine()) != null) {
 //                        stringBuilder.append(responseLine);
 //                    }
-//                    return reader.readValue(stringBuilder.toString());
+//                    String jsonResponse = stringBuilder.toString();
+//                    System.out.println("DEBUG JSON START");
+//                    System.out.println(jsonResponse);
+//                    System.out.println("DEBUG JSON END");
+//                    return reader.readValue(jsonResponse);
 //                  ====================DEBUG=====================
                     return reader.readValue(connection.getInputStream());
                 case POST:
@@ -575,7 +580,7 @@ public class DomainsConnector
         if (request.getSlot() != null) {
             parameters.put("interval", Converter.convertIntervalToStringUTC(request.getSlot()));
         }
-//        for (CapabilityListRequest capabilityListRequest : request.getCapabilityListRequests()) {
+//        for (CapabilitySpecificationRequest capabilityListRequest : request.getCapabilitySpecificationRequests()) {
 //            parameters.put("capabilityListRequests", capabilityListRequest);
 //        }
         List<Domain> domains;
@@ -643,27 +648,27 @@ public class DomainsConnector
             }
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
-//        for (Map.Entry<Domain, List<DomainCapability>> entry : domainCapabilities.entrySet()) {
-//            for (DomainCapability capability : entry.getValue()) {
-//                //TODO: user id??
-//            }
-//            if (roomSettings.getParticipants() != null) {
-//                for (cz.cesnet.shongo.controller.api.PersonParticipant participant : roomSettings.getParticipants()) {
-//                    AbstractPerson abstractPerson = participant.getPerson();
-//                    if (abstractPerson instanceof UserPerson) {
-//                        parameters.put("participants", );
-//                    }
-//                    else {
-//                        throw new TodoImplementException("Unsupported type of AbstractPerson: " + abstractPerson.getClass());
-//                    }
-//                }
-//            }
-//        }
+        List<RoomParticipant> participants = new ArrayList<>();
+        if (roomSettings.getParticipants() != null) {
+            for (cz.cesnet.shongo.controller.api.PersonParticipant participant : roomSettings.getParticipants()) {
+                AbstractPerson abstractPerson = participant.getPerson();
+                if (abstractPerson instanceof UserPerson) {
+                    UserPerson userPerson = (UserPerson) abstractPerson;
+                    RoomParticipant roomParticipant = new RoomParticipant(participant.getId());
+                    roomParticipant.setRole(participant.getRole());
+                    participants.add(roomParticipant);
+                }
+                else {
+                    throw new TodoImplementException("Unsupported type of AbstractPerson: " + abstractPerson.getClass());
+                }
+            }
+        }
+
         //TODO: room name
 
         //TODO:Map<Domain, Object> dataByDomains = null;
 
-        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, null, domainCapabilities.keySet(), Reservation.class);
+        Map<String, Reservation> reservations = performTypedRequests(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_ALLOCATE_ROOM, parameters, participants, domainCapabilities.keySet(), Reservation.class);
         return new ArrayList<>(reservations.values());
     }
 

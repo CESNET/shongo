@@ -11,6 +11,8 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Enumeration;
 
 public class BasicAuthFilter implements Filter
 {
@@ -27,6 +29,16 @@ public class BasicAuthFilter implements Filter
         HttpServletResponse res = (HttpServletResponse) ss;
         try {
             HttpServletRequest req = (HttpServletRequest) sr;
+//            ====================DEBUG=====================
+//            System.out.println("Http headers");
+//            Enumeration<String> headerNames = req.getHeaderNames();
+//            while (headerNames.hasMoreElements()) {
+//                String headerName = headerNames.nextElement();
+//                String headerValue = req.getHeader(headerName);
+//                System.out.println(headerName + ":" + headerValue);
+//            }
+//            ====================DEBUG=====================
+
             String[] credentials = SSLCommunication.getBasicAuthCredentials(req);
             if (InterDomainAction.DOMAIN_LOGIN.equals(req.getPathInfo())) {
                 String domainName = credentials[0];

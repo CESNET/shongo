@@ -104,6 +104,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
         logger.debug("Running scheduler for interval '{}'...", dateTimeFormatter.formatInterval(interval));
+        logger.debug("Start of scheduler in time: " + DateTime.now());
 
         cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
         timer.start();
@@ -310,6 +311,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     timer.stop(), result.failedReservationRequests, result.allocatedReservationRequests,
                     result.deletedReservations
             });
+            logger.debug("End of scheduler in time: " + DateTime.now());
         }
         return result;
     }
