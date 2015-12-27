@@ -12,7 +12,8 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
+import cz.cesnet.shongo.controller.api.domains.request.*;
+import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -214,8 +215,9 @@ public class InterDomainController implements InterDomainProtocol
                                           @RequestParam(value = "roomPin", required = false) String roomPin,
                                           @RequestParam(value = "acRoomAccessMode", required = false) AdobeConnectPermissions acRoomAccessMode,
                                           @RequestParam(value = "roomRecorded", required = false) Boolean roomRecorded,
-                                          @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId)
-            throws NotAuthorizedException, ForbiddenException
+                                          @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId,
+                                          @RequestBody List<RoomParticipant> participants)
+    throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
