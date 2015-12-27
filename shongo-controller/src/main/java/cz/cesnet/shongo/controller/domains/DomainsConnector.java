@@ -656,6 +656,7 @@ public class DomainsConnector
                     UserPerson userPerson = (UserPerson) abstractPerson;
                     RoomParticipant roomParticipant = new RoomParticipant(participant.getId());
                     roomParticipant.setRole(participant.getRole());
+                    roomParticipant.addValue(RoomParticipant.Type.NAME, "TODO");
                     participants.add(roomParticipant);
                 }
                 else {
