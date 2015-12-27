@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.domains;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -65,6 +66,8 @@ public class InterDomainController implements InterDomainProtocol
         binder.registerCustomEditor(AdobeConnectPermissions.class, new EnumEditor<>(AdobeConnectPermissions.class));
         binder.registerCustomEditor(AliasType.class, new EnumEditor<>(AliasType.class));
         binder.registerCustomEditor(ExecutableState.class, new EnumEditor<>(ExecutableState.class));
+        binder.registerCustomEditor(RoomParticipant.Type.class, new EnumEditor<>(RoomParticipant.Type.class));
+        binder.registerCustomEditor(ParticipantRole.class, new EnumEditor<>(ParticipantRole.class));
     }
 
     @Override

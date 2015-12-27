@@ -97,7 +97,7 @@ public class RoomParticipant
         }
     }
 
-    private enum Type
+    public enum Type
     {
         EPPN,
         EMAIL,
