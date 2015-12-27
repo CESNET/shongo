@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
 import cz.cesnet.shongo.ParticipantRole;
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.ArrayList;
@@ -22,9 +23,11 @@ public class RoomParticipant
     @JsonProperty("values")
     List<RoomParticipantValue> values = new ArrayList<>();
 
-    public RoomParticipant(String id)
+    @JsonCreator
+    public RoomParticipant(@JsonProperty("id") String id, @JsonProperty("role") ParticipantRole role)
     {
         this.id = id;
+        this.role = role;
     }
 
     public String getId()
@@ -70,7 +73,8 @@ public class RoomParticipant
         @JsonProperty("value")
         String value;
 
-        public RoomParticipantValue(Type type, String value)
+        @JsonCreator
+        public RoomParticipantValue(@JsonProperty("type")Type type, @JsonProperty("value")String value)
         {
             this.type = type;
             this.value = value;
