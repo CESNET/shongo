@@ -654,8 +654,7 @@ public class DomainsConnector
                 AbstractPerson abstractPerson = participant.getPerson();
                 if (abstractPerson instanceof UserPerson) {
                     UserPerson userPerson = (UserPerson) abstractPerson;
-                    RoomParticipant roomParticipant = new RoomParticipant(participant.getId());
-                    roomParticipant.setRole(participant.getRole());
+                    RoomParticipant roomParticipant = new RoomParticipant(participant.getId(), participant.getRole());
                     roomParticipant.addValue(RoomParticipant.Type.NAME, "TODO");
                     participants.add(roomParticipant);
                 }
