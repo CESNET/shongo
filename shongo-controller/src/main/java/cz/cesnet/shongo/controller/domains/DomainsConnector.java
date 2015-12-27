@@ -664,6 +664,8 @@ public class DomainsConnector
             }
         }
 
+        participants = participants.isEmpty() ? null : participants;
+
         //TODO: room name
 
         //TODO:Map<Domain, Object> dataByDomains = null;
