@@ -248,10 +248,8 @@ public class InterDomainController implements InterDomainProtocol
 
                 switch (previousReservationRequest.getState()) {
                     case MODIFIED:
-                        //TODO: jak reportovat?
                         throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(reservationRequestIdentifier.formatGlobalId());
                     case DELETED:
-                        //TODO: vyhazovat 404?
                         throw new ControllerReportSet.ReservationRequestDeletedException(reservationRequestIdentifier.formatGlobalId());
                 }
             }
@@ -259,7 +257,6 @@ public class InterDomainController implements InterDomainProtocol
             RoomSpecification roomSpecification = new RoomSpecification(participantCount, technologies.toArray(new Technology[technologies.size()]));
             RoomAvailability roomAvailability = roomSpecification.getAvailability();
             roomAvailability.setMeetingDescription(description);
-            //TODO: recording
             if (Boolean.TRUE.equals(roomRecorded) && !technologies.contains(Technology.ADOBE_CONNECT)) {
                 roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
             }
@@ -535,6 +532,74 @@ public class InterDomainController implements InterDomainProtocol
         } finally {
             entityManager.close();
         }
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_PARTICIPANT_UPDATE, method = RequestMethod.POST)
+    @ResponseBody
+    public AbstractResponse handleSetParticipants(HttpServletRequest request, String reservationRequestId, List<RoomParticipant> participants) throws NotAuthorizedException, ForbiddenException
+    {
+        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+        return null;
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_PARTICIPANT_LIST, method = RequestMethod.GET)
+    @ResponseBody
+    public List<RoomParticipant> handleGetParticipants(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
+    {
+        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+        return null;
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, method = RequestMethod.POST)
+    @ResponseBody
+    public AbstractResponse handleRoomAction(HttpServletRequest request, String reservationRequestId, AbstractDomainRoomAction action) throws NotAuthorizedException, ForbiddenException
+    {
+        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+
+        return null;
+    }
+
+    @Override
+    @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_DELETED, method = RequestMethod.GET)
+    @ResponseBody
+    public AbstractResponse handleDeletedReservation(HttpServletRequest request, String foreignReservationRequestId, String message) throws NotAuthorizedException, ForbiddenException
+    {
+        return null;
+    }
+
+    private ReservationRequest validateReservationRequestsDomain(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
+    {
+        Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+        ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ReservationRequest reservationRequest = null;
+        try {
+            reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        } catch (CommonReportSet.ObjectNotExistsException ex) {
+            throwForbiddenException(domainId);
+        }
+
+        if (reservationRequest == null) {
+            throwForbiddenException(domainId);
+        }
+        String createdByUserId = reservationRequest.getCreatedBy();
+
+        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
+            // Throw {@code ForbiddenException} for error 403 to return
+            throwForbiddenException(domainId);
+        }
+
+        return reservationRequest;
+    }
+
+    private void throwForbiddenException(Long domainId) throws ForbiddenException
+    {
+        throw new ForbiddenException("Domain (id: " + domainId + ") doesn't have sufficient permissions or object doesn't exist." );
     }
 
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)

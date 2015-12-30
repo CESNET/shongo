@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.eclipse.jetty.server.UserIdentity;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -136,6 +137,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 List<Reservation> reservations = new LinkedList<>(allocation.getReservations());
                 for (Reservation reservation : reservations) {
                     DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
+                    if (!UserInformation.isLocal(reservation.getUserId())) {
+                        throw new TodoImplementException("poslat notifikace domene: " + reservation.getUserId());
+                    }
                     try {
                         List<AbstractNotification> notifications = deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
                         reservationNotifications.addAll(notifications);
