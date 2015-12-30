@@ -52,7 +52,7 @@ public interface InterDomainProtocol {
     AbstractResponse handleRoomAction(HttpServletRequest request, String reservationRequestId, AbstractDomainRoomAction action)
             throws NotAuthorizedException, ForbiddenException;
 
-    AbstractResponse handleDeletedReservation(HttpServletRequest request, String foreignReservationRequestId, String message)
+    AbstractResponse handleDeletedReservation(HttpServletRequest request, String foreignReservationRequestId, String reason)
             throws NotAuthorizedException, ForbiddenException;
 
     class NotAuthorizedException extends Exception {

@@ -8,16 +8,19 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.*;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.eclipse.jetty.server.UserIdentity;
@@ -137,12 +140,21 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 List<Reservation> reservations = new LinkedList<>(allocation.getReservations());
                 for (Reservation reservation : reservations) {
                     DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
-                    if (!UserInformation.isLocal(reservation.getUserId())) {
-                        throw new TodoImplementException("poslat notifikace domene: " + reservation.getUserId());
-                    }
                     try {
                         List<AbstractNotification> notifications = deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
                         reservationNotifications.addAll(notifications);
+
+                        // Notify foreign domain, that created this reservation about the deletion (if unexpected).
+                        //TODO: specify domain in the reservation directly
+                        if (false && !UserInformation.isLocal(reservation.getUserId())) {
+                            String reservationRequestId = ObjectIdentifier.formatId(reservation.getReservationRequest());
+                            Long domainId = UserInformation.parseDomainId(reservation.getUserId());
+                            ResourceManager resourceManager = new ResourceManager(entityManager);
+                            Domain domain = resourceManager.getDomain(domainId);
+
+                            String message = "TODO: Reservation deleted unexpectedly (possible maintenance reasons).";
+                            InterDomainAgent.getInstance().getConnector().notifyDomain(domain.toApi(), reservationRequestId, message);
+                        }
                     } catch (ForeignDomainConnectException e) {
                         // When deallocate of foreign reservation fails, try again next time
                         //TODO: delay for some time
