@@ -537,7 +537,10 @@ public class InterDomainController implements InterDomainProtocol
     @Override
     @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_PARTICIPANT_UPDATE, method = RequestMethod.POST)
     @ResponseBody
-    public AbstractResponse handleSetParticipants(HttpServletRequest request, String reservationRequestId, List<RoomParticipant> participants) throws NotAuthorizedException, ForbiddenException
+    public AbstractResponse handleSetParticipants(HttpServletRequest request,
+                                                  @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId,
+                                                  @RequestBody List<RoomParticipant> participants)
+            throws NotAuthorizedException, ForbiddenException
     {
         ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
         return null;
@@ -546,7 +549,9 @@ public class InterDomainController implements InterDomainProtocol
     @Override
     @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_PARTICIPANT_LIST, method = RequestMethod.GET)
     @ResponseBody
-    public List<RoomParticipant> handleGetParticipants(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
+    public List<RoomParticipant> handleGetParticipants(HttpServletRequest request,
+                                                       @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException
     {
         ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
         return null;
@@ -555,7 +560,10 @@ public class InterDomainController implements InterDomainProtocol
     @Override
     @RequestMapping(value = InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, method = RequestMethod.POST)
     @ResponseBody
-    public AbstractResponse handleRoomAction(HttpServletRequest request, String reservationRequestId, AbstractDomainRoomAction action) throws NotAuthorizedException, ForbiddenException
+    public AbstractResponse handleRoomAction(HttpServletRequest request,
+                                             @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId,
+                                             @RequestBody AbstractDomainRoomAction action)
+            throws NotAuthorizedException, ForbiddenException
     {
         ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
 
@@ -565,7 +573,10 @@ public class InterDomainController implements InterDomainProtocol
     @Override
     @RequestMapping(value = InterDomainAction.DOMAIN_RESERVATION_DELETED, method = RequestMethod.GET)
     @ResponseBody
-    public AbstractResponse handleDeletedReservation(HttpServletRequest request, String foreignReservationRequestId, String message) throws NotAuthorizedException, ForbiddenException
+    public AbstractResponse handleDeletedReservation(HttpServletRequest request,
+                                                     @RequestParam(value = "reservationRequestId", required = true) String foreignReservationRequestId,
+                                                     @RequestParam(value = "reason", required = true) String reason)
+            throws NotAuthorizedException, ForbiddenException
     {
         return null;
     }
