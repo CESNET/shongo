@@ -113,8 +113,7 @@ public class InterDomainTest extends AbstractControllerTest
     }
 
     /**
-     * Test of action {@link cz.cesnet.shongo.controller.api.domains.InterDomainAction#DOMAIN_RESOURCES_LIST}
-     * for some types of resources/capabilities
+     * Test of listing foreign resources and capabilities
      */
     @Test
     public void testListForeignCapabilities() throws ForeignDomainConnectException

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.domains;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectPermissions;
+import cz.cesnet.shongo.controller.api.domains.request.AbstractDomainRoomAction;
 import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
@@ -33,9 +34,6 @@ public interface InterDomainProtocol {
                                           Boolean roomRecorded, String reservationRequestId, List<RoomParticipant> participants)
             throws NotAuthorizedException, ForbiddenException;
 
-//    Reservation handleAddParticipants(HttpServletRequest request, String reservationRequestId, )
-//            throws NotAuthorizedException, ForbiddenException;
-
     Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException;
 
@@ -43,6 +41,18 @@ public interface InterDomainProtocol {
             throws NotAuthorizedException, ForbiddenException;
 
     List<Reservation> handleListReservations(HttpServletRequest request, String resourceId, Interval slot)
+            throws NotAuthorizedException, ForbiddenException;
+
+    AbstractResponse handleSetParticipants(HttpServletRequest request, String reservationRequestId, List<RoomParticipant> participants)
+            throws NotAuthorizedException, ForbiddenException;
+
+    List<RoomParticipant> handleGetParticipants(HttpServletRequest request, String reservationRequestId)
+            throws NotAuthorizedException, ForbiddenException;
+
+    AbstractResponse handleRoomAction(HttpServletRequest request, String reservationRequestId, AbstractDomainRoomAction action)
+            throws NotAuthorizedException, ForbiddenException;
+
+    AbstractResponse handleDeletedReservation(HttpServletRequest request, String foreignReservationRequestId, String message)
             throws NotAuthorizedException, ForbiddenException;
 
     class NotAuthorizedException extends Exception {
