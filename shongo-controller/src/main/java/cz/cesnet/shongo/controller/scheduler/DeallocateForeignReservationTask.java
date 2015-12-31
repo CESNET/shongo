@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
+import cz.cesnet.shongo.controller.booking.reservation.ForeignRoomReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
@@ -38,6 +39,13 @@ public class DeallocateForeignReservationTask extends DeallocateReservationTask
         // Perform foreign deallocate only for the latest reservation request
         if (allocation == null || reservation.equals(allocation.getCurrentReservation())) {
             // Check if foreign reservation even exists
+            if (reservation instanceof ForeignRoomReservation) {
+                ForeignRoomReservation foreignResourceReservation = (ForeignRoomReservation) reservation;
+                if (!foreignResourceReservation.getForeignReservationRequestsIds().isEmpty())
+                {
+                    throw new TodoImplementException("wait for finalization...");
+                }
+            }
             if (reservation.getForeignReservationRequestId() != null) {
                 Domain domain = reservation.getDomain().toApi();
                 if (!InterDomainAgent.getInstance().getConnector().deallocateReservation(domain, reservation.getForeignReservationRequestId())) {
