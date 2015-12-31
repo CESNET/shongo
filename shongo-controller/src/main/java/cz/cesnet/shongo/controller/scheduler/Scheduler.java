@@ -159,7 +159,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                         // When deallocate of foreign reservation fails, try again next time
                         //TODO: delay for some time
                         logger.error("Deallocation of foreign reservation has failed", e);
+                    } catch (TodoImplementException e) {
+                        // Skip deletion for now
                     }
+
                 }
                 if (Allocation.State.DELETED.equals(allocation.getState()) && allocation.getReservationRequest() == null) {
                     if (!allocation.getReservations().isEmpty() && !allocation.getChildReservationRequests().isEmpty()) {
