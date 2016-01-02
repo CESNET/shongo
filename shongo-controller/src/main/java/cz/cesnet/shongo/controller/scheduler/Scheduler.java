@@ -474,6 +474,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             allocatedReservation.setUserId(reservationRequest.getCreatedBy());
             reservationManager.create(allocatedReservation);
         }
+        else {
+            reservationManager.update(allocatedReservation);
+        }
 
         // Create ACL entries for new reservation
         authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
