@@ -177,15 +177,18 @@ public class Allocation extends SimplePersistentObject
     {
         // Manage bidirectional association
         if (!reservations.contains(reservation)) {
-            // Check if reservation doesn't collide with any old one
-            Interval reservationSlot = reservation.getSlot();
-            for (Reservation oldReservation : reservations) {
-                if (reservationSlot.overlaps(oldReservation.getSlot())) {
-                    throw new IllegalStateException(
-                            String.format("New reservation cannot be added to allocation"
-                                    + " because it's time slot '%s' collides with '%s' from old reservation '%s'.",
-                                    reservationSlot, oldReservation.getSlot(),
-                                    ObjectIdentifier.formatId(oldReservation)));
+            // Check reservations overlaps only for new reservations (not for deletion - other states)
+            if (State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS.equals(state)) {
+                // Check if reservation doesn't collide with any old one
+                Interval reservationSlot = reservation.getSlot();
+                for (Reservation oldReservation : reservations) {
+                    if (reservationSlot.overlaps(oldReservation.getSlot())) {
+                        throw new IllegalStateException(
+                                String.format("New reservation cannot be added to allocation"
+                                                + " because it's time slot '%s' collides with '%s' from old reservation '%s'.",
+                                        reservationSlot, oldReservation.getSlot(),
+                                        ObjectIdentifier.formatId(oldReservation)));
+                    }
                 }
             }
             reservations.add(reservation);

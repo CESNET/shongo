@@ -164,6 +164,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     }
 
                 }
+                // Delete allocation if it has no {@link ReservationRequest} linked (for foreign reservations for example).
                 if (Allocation.State.DELETED.equals(allocation.getState()) && allocation.getReservationRequest() == null) {
                     if (!allocation.getReservations().isEmpty() && !allocation.getChildReservationRequests().isEmpty()) {
                         throw new TodoImplementException();

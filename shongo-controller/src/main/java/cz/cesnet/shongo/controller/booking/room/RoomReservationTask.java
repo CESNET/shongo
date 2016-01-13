@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
@@ -21,6 +22,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.domain.DomainResource;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
@@ -484,7 +486,7 @@ public class RoomReservationTask extends ReservationTask
         if (!reservationsPending(reservations) && !reservations.isEmpty()) {
             bestReservation = reservations.first();
         }
-        for (cz.cesnet.shongo.controller.api.domains.response.Reservation candidateReservation : reservations) {
+        for (cz.cesnet.shongo.controller.api.domains.response.Reservation candidateReservation : result) {
             // Add all created foreign reservation requests ids
             reservation.addForeignReservationRequestId(candidateReservation.getForeignReservationRequestId());
         }
@@ -559,9 +561,9 @@ public class RoomReservationTask extends ReservationTask
                 // Delete unwanted reservation request in foreign domains
                 Iterator<String> iterator = currentReservation.getForeignReservationRequestsIds().iterator();
                 while (iterator.hasNext()) {
-                    String reservationRequestId = iterator.next();
-                    if (!reservationRequestId.equals(currentReservation.getForeignReservationRequestId())) {
-                        createReservationForDeletion(reservationRequestId, entityManager);
+                    String foreignReservationRequestId = iterator.next();
+                    if (!foreignReservationRequestId.equals(currentReservation.getForeignReservationRequestId())) {
+                        createReservationForDeletion(foreignReservationRequestId, entityManager);
                     }
                     iterator.remove();
                 }
@@ -620,6 +622,10 @@ public class RoomReservationTask extends ReservationTask
 
     private void assignForeignExecutable(ForeignRoomReservation currentReservation, cz.cesnet.shongo.controller.api.domains.response.Reservation bestReservation)
     {
+        EntityManager entityManager = schedulerContext.getEntityManager();
+        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+
         // Allocated room endpoint
         currentReservation.setSlotStart(bestReservation.getSlotStart());
         currentReservation.setSlotEnd(bestReservation.getSlotEnd());
@@ -668,6 +674,10 @@ public class RoomReservationTask extends ReservationTask
         // Set executable to room reservation
         currentReservation.setExecutable(resourceRoomEndpoint);
 
+        executableManager.create(resourceRoomEndpoint);
+        // Set ACL for executable
+        authorizationManager.createAclEntriesForChildEntity(currentReservation, resourceRoomEndpoint);
+
         // Notify participants
         if (resourceRoomEndpoint != null && resourceRoomEndpoint.isParticipantNotificationEnabled()) {
             schedulerContextState.addNotification(new RoomNotification.RoomCreated(resourceRoomEndpoint));
@@ -703,19 +713,20 @@ public class RoomReservationTask extends ReservationTask
         reservationToUpdate.setDomain(domain);
     }
 
-    private void createReservationForDeletion(String reservationRequestsId, EntityManager entityManager)
+    private void createReservationForDeletion(String foreignReservationRequestsId, EntityManager entityManager)
     {
         ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        String domainName = ObjectIdentifier.parseForeignDomain(reservationRequestsId);
+        String domainName = ObjectIdentifier.parseForeignDomain(foreignReservationRequestsId);
 
         ForeignRoomReservation reservation = new ForeignRoomReservation();
         reservation.setUserId(Authorization.ROOT_USER_ID);
         reservation.setComplete(true);
         reservation.setDomain(resourceManager.getDomainByName(domainName));
-        reservation.setForeignReservationRequestId(reservationRequestsId);
+        reservation.setForeignReservationRequestId(foreignReservationRequestsId);
 
-        entityManager.persist(reservation);
+        reservationManager.create(reservation);
     }
 
 
