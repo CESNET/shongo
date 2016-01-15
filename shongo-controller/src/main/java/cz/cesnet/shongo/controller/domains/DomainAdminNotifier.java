@@ -57,6 +57,12 @@ public class DomainAdminNotifier {
         notifyDomainAdmins(message, exception);
     }
 
+    public void logAndNotifyDomainAdmins(String message)
+    {
+        logger.error(message);
+        notifyDomainAdmins(message, null);
+    }
+
     public void logDomainAdmins(String message, Throwable exception)
     {
         logger.error(message, exception);

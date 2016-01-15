@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
-import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -21,6 +18,8 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.cache.DomainCache;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.DateTime;
@@ -58,15 +57,20 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     private final ReentrantReadWriteLock reservationCacheLock = new ReentrantReadWriteLock();
 
     /**
+     * @see cz.cesnet.shongo.controller.cache.Cache
+     */
+    private Cache cache;
+    /**
      * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 
-    public DomainService(EntityManagerFactory entityManagerFactory, Authorization authorization)
+    public DomainService(EntityManagerFactory entityManagerFactory, Authorization authorization, Cache cache)
     {
         this.entityManagerFactory = entityManagerFactory;
         this.authorization = authorization;
         this.reservationsCache.setExpiration(Duration.standardMinutes(5));
+        this.cache = cache;
     }
 
     @Override
@@ -814,16 +818,33 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
     }
 
+    /**
+     * Get domain by it's name from domainCache or add to cache if missing.
+     *
+     * @param domainName
+     * @return {@link Domain}
+     */
     public cz.cesnet.shongo.controller.api.Domain findDomainByName(String domainName)
     {
         checkNotNull("domain-name", domainName);
 
+        DomainCache domainCache = cache.getDomainCache();
+        cz.cesnet.shongo.controller.booking.domain.Domain domain = domainCache.getDomainByName(domainName);
+        if (domain == null) {
+            domain = getDomainByName(domainName);
+            domainCache.addObject(domain);
+        }
+        return domain.toApi();
+    }
+
+    private cz.cesnet.shongo.controller.booking.domain.Domain getDomainByName(String domainName)
+    {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             cz.cesnet.shongo.controller.booking.domain.Domain domain = resourceManager.getDomainByName(domainName);
 
-            return domain.toApi();
+            return domain;
         } finally {
             entityManager.close();
         }

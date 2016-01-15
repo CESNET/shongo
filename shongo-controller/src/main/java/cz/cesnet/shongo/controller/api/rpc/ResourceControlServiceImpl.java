@@ -1,17 +1,25 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.api.jade.RecordingObjectType;
 import cz.cesnet.shongo.api.jade.RecordingPermissionType;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
 import cz.cesnet.shongo.connector.api.jade.endpoint.*;
+import cz.cesnet.shongo.connector.api.jade.endpoint.Mute;
+import cz.cesnet.shongo.connector.api.jade.endpoint.SetMicrophoneLevel;
+import cz.cesnet.shongo.connector.api.jade.endpoint.SetPlaybackLevel;
+import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
+import cz.cesnet.shongo.controller.api.domains.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -21,6 +29,8 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.resource.Mode;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.domains.DomainsConnector;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.EntityManager;
@@ -216,8 +226,23 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validateRoom(token, deviceResourceId, roomId);
-        return (Room) performDeviceCommand(deviceResourceId, agentName, new GetRoom(roomId));
+        if (isValidForeignRoom(token, roomId)) {
+            DomainsConnector connector = InterDomainAgent.getInstance().getConnector();
+            cz.cesnet.shongo.controller.api.domains.request.GetRoom getRoom;
+            getRoom = new cz.cesnet.shongo.controller.api.domains.request.GetRoom();
+
+            try {
+                return (Room) connector.sendRoomAction(getRoom, roomId);
+            } catch (ForeignDomainConnectException e) {
+                throw new TodoImplementException("Throw appropriate exception for foreign domains");
+//                        ControllerReportSet.DeviceCommandFailedException(
+//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
+            }
+        }
+        else {
+            String agentName = validateRoom(token, deviceResourceId, roomId);
+            return (Room) performDeviceCommand(deviceResourceId, agentName, new GetRoom(roomId));
+        }
     }
 
     @Override
@@ -459,13 +484,14 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     /**
      * @param securityToken    to be validated against given {@code deviceResourceId}
      * @param deviceResourceId
+     * @param roomId
      * @return agent name
      */
     private String validateRoom(SecurityToken securityToken, String deviceResourceId, String roomId)
     {
         authorization.validate(securityToken);
         checkNotNull("deviceResourceId", deviceResourceId);
-        checkNotNull("roomId", deviceResourceId);
+        checkNotNull("roomId", roomId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -484,6 +510,32 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
                 }
             }
             return agentName;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    /**
+     * @param securityToken    to be validated against given {@code deviceResourceId}
+     * @param foreignReservationRequestId
+     * @return agent name
+     */
+    private boolean isValidForeignRoom(SecurityToken securityToken, String foreignReservationRequestId)
+    {
+        authorization.validate(securityToken);
+        checkNotNull("roomId", foreignReservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            ObjectIdentifier objectIdentifier = ObjectIdentifier.parseTypedId(foreignReservationRequestId, ObjectType.RESOURCE);
+            return !objectIdentifier.isLocal();
+        } catch (IllegalArgumentException ex) {
+            // if id is not reservation request id at all
+            return false;
+        } catch (ControllerReportSet.IdentifierInvalidTypeException ex) {
+            return false;
         }
         finally {
             entityManager.close();

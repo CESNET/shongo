@@ -1,15 +1,14 @@
 package cz.cesnet.shongo.controller.domains;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.ObjectType;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
+import cz.cesnet.shongo.connector.api.jade.multipoint.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
@@ -18,20 +17,25 @@ import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.executable.*;
+import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
-import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification.RoomState;
 
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
+import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.joda.time.Interval;
 import org.springframework.http.HttpStatus;
@@ -98,7 +102,6 @@ public class InterDomainController implements InterDomainProtocol
             @RequestBody List<CapabilitySpecificationRequest> capabilitySpecificationRequests
     ) throws NotAuthorizedException
     {
-        //TODO: add slot
         List<DomainCapability> capabilities = new ArrayList<>();
         for (CapabilitySpecificationRequest capabilitySpecificationRequest : capabilitySpecificationRequests) {
             Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
@@ -133,6 +136,8 @@ public class InterDomainController implements InterDomainProtocol
     {
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -153,8 +158,6 @@ public class InterDomainController implements InterDomainProtocol
             // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
             resourceManager.getDomainResource(domainId, resourceIdentifier.getPersistenceId());
 
-            entityManager.getTransaction().begin();
-
             AbstractReservationRequest previousReservationRequest = null;
             if (reservationRequestIdentifier != null) {
                 previousReservationRequest = reservationRequestManager.get(reservationRequestIdentifier.getPersistenceId());
@@ -167,10 +170,8 @@ public class InterDomainController implements InterDomainProtocol
 
                 switch (previousReservationRequest.getState()) {
                     case MODIFIED:
-                        //TODO: jak reportovat?
                         throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(reservationRequestIdentifier.formatGlobalId());
                     case DELETED:
-                        //TODO: vyhazovat 404?
                         throw new ControllerReportSet.ReservationRequestDeletedException(reservationRequestIdentifier.formatGlobalId());
                 }
             }
@@ -179,20 +180,18 @@ public class InterDomainController implements InterDomainProtocol
 
             ReservationRequest newReservationRequest = new ReservationRequest();
             newReservationRequest.setSlot(slot);
-            newReservationRequest.setSpecification(ResourceSpecification.createFromApi(resourceSpecification, entityManager));
+            Specification specification = cz.cesnet.shongo.controller.booking.resource.ResourceSpecification.createFromApi(resourceSpecification, entityManager);
+            newReservationRequest.setSpecification(specification);
             newReservationRequest.setPurpose(ReservationRequestPurpose.USER);
             newReservationRequest.setDescription(description);
             newReservationRequest.setCreatedBy(UserInformation.formatForeignUserId(userId, domainId));
             newReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
-            //TODO: when deleting, send anotation to foreign domain
-//                    newReservationRequest.setSchedulerDeleteState(AbstractReservationRequest.SchedulerDeleteState.DELETE);
             if (previousReservationRequest == null) {
                 reservationRequestManager.create(newReservationRequest);
             } else {
                 previousReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
                 reservationRequestManager.modify(previousReservationRequest, newReservationRequest);
             }
-            //TODO: create ACL for some purpose?
             entityManager.getTransaction().commit();
 
             reservation.setForeignReservationRequestId(ObjectIdentifier.formatId(newReservationRequest));
@@ -220,10 +219,12 @@ public class InterDomainController implements InterDomainProtocol
                                           @RequestParam(value = "roomRecorded", required = false) Boolean roomRecorded,
                                           @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId,
                                           @RequestBody List<RoomParticipant> participants)
-    throws NotAuthorizedException, ForbiddenException
+            throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             Reservation reservation = new Reservation();
@@ -233,8 +234,6 @@ public class InterDomainController implements InterDomainProtocol
             if (!Strings.isNullOrEmpty(reservationRequestId)) {
                 reservationRequestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
             }
-
-            entityManager.getTransaction().begin();
 
             AbstractReservationRequest previousReservationRequest = null;
             if (reservationRequestIdentifier != null) {
@@ -289,15 +288,12 @@ public class InterDomainController implements InterDomainProtocol
             newReservationRequest.setDescription(description);
             newReservationRequest.setCreatedBy(UserInformation.formatForeignUserId(userId, domainId));
             newReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
-            //TODO: when deleting, send anotation to foreign domain
-//                    newReservationRequest.setSchedulerDeleteState(AbstractReservationRequest.SchedulerDeleteState.DELETE);
             if (previousReservationRequest == null) {
                 reservationRequestManager.create(newReservationRequest);
             } else {
                 previousReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
                 reservationRequestManager.modify(previousReservationRequest, newReservationRequest);
             }
-            //TODO: create ACL for some purpose?
             entityManager.getTransaction().commit();
 
             reservation.setForeignReservationRequestId(ObjectIdentifier.formatId(newReservationRequest));
@@ -323,6 +319,8 @@ public class InterDomainController implements InterDomainProtocol
 
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             ReservationRequest reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
@@ -331,8 +329,9 @@ public class InterDomainController implements InterDomainProtocol
             String createdByUserId = reservationRequest.getCreatedBy();
 
             Specification specification = reservationRequest.getSpecification();
-            if (specification instanceof ResourceSpecification) {
-                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+            if (specification instanceof cz.cesnet.shongo.controller.booking.resource.ResourceSpecification) {
+                cz.cesnet.shongo.controller.booking.resource.ResourceSpecification resourceSpecification;
+                resourceSpecification = (cz.cesnet.shongo.controller.booking.resource.ResourceSpecification) specification;
                 Resource resource = resourceSpecification.getResource();
                 if (resource != null) {
                     // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
@@ -393,15 +392,8 @@ public class InterDomainController implements InterDomainProtocol
 
             switch (reservationRequest.getAllocationState()) {
                 case ALLOCATION_FAILED:
-                    // Set last available reservation (when modification failed)
-//                    if (reservationRequest.getModifiedReservationRequest() != null) {
-//                        cz.cesnet.shongo.controller.booking.reservation.Reservation lastReservation;
-//                        lastReservation = reservationRequest.getAllocation().getCurrentReservation();
-//                        reservation.setForeignReservationId(ObjectIdentifier.formatId(lastReservation));
-//                    }
                     reservation.setStatus(AbstractResponse.Status.FAILED);
 
-                    //TODO get report: reservationRequest.getReportDescription()
                     SchedulerReport report = reservationRequest.getReports().get(reservationRequest.getReports().size() - 1);
                     reservation.setMessage("TODO: " + report.toString());
                     break;
@@ -434,14 +426,14 @@ public class InterDomainController implements InterDomainProtocol
 
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             ReservationRequest reservationRequest;
             try {
                 reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
             } catch (CommonReportSet.ObjectNotExistsException ex) {
-                //TODO
-                // Return success - reservation request is already deleted?
                 return new AbstractResponse()
                 {
                 };
@@ -450,8 +442,9 @@ public class InterDomainController implements InterDomainProtocol
             String createdByUserId = reservationRequest.getCreatedBy();
 
             Specification specification = reservationRequest.getSpecification();
-            if (specification instanceof ResourceSpecification) {
-                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+            if (specification instanceof cz.cesnet.shongo.controller.booking.resource.ResourceSpecification) {
+                cz.cesnet.shongo.controller.booking.resource.ResourceSpecification resourceSpecification;
+                resourceSpecification = (cz.cesnet.shongo.controller.booking.resource.ResourceSpecification) specification;
                 Resource resource = resourceSpecification.getResource();
                 if (resource != null) {
                     // Throw {@code CommonReportSet.ObjectNotExistsException} if resource is not assigned to this domain for error 403 to return
@@ -469,16 +462,13 @@ public class InterDomainController implements InterDomainProtocol
             }
 
             //Delete local reservation request
-            //TODO: nefunguje, nesmaze rezervaci
             try {
                 getDomainService().deleteReservationRequest(reservationRequest);
             } catch (ControllerReportSet.ReservationRequestDeletedException ex) {
                 // continue - ReservationRequest already deleted
             }
 
-            return new AbstractResponse()
-            {
-            };
+            return returnOk();
         } finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
@@ -499,6 +489,8 @@ public class InterDomainController implements InterDomainProtocol
         Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             ResourceManager resourceManager = new ResourceManager(entityManager);
 //        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, null);
             Set<String> resourceIds = new HashSet<>();
@@ -542,8 +534,39 @@ public class InterDomainController implements InterDomainProtocol
                                                   @RequestBody List<RoomParticipant> participants)
             throws NotAuthorizedException, ForbiddenException
     {
-        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
-        return null;
+        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+
+            ExecutableManager executableManager = new ExecutableManager(entityManager);
+
+            cz.cesnet.shongo.controller.booking.executable.Executable executable = getExecutable(reservationRequest);
+            RoomEndpoint roomEndpoint;
+            if (executable instanceof RoomEndpoint) {
+                roomEndpoint = (RoomEndpoint) executable;
+            } else {
+                throw new TodoImplementException();
+            }
+
+            List<cz.cesnet.shongo.controller.booking.participant.AbstractParticipant> abstractParticipants = new ArrayList<>();
+            for (RoomParticipant participant : participants) {
+                cz.cesnet.shongo.controller.booking.participant.PersonParticipant personParticipant;
+                personParticipant = (PersonParticipant) PersonParticipant.createFromApi(participant.toApi(), entityManager);
+                abstractParticipants.add(personParticipant);
+            }
+            roomEndpoint.setParticipants(abstractParticipants);
+
+            executableManager.update(roomEndpoint);
+
+            return returnOk();
+        } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
     }
 
     @Override
@@ -553,8 +576,30 @@ public class InterDomainController implements InterDomainProtocol
                                                        @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException
     {
-        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
-        return null;
+        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+
+        try {
+            entityManager.getTransaction().begin();
+
+            RoomExecutable roomExecutable = getRoomExecutable(reservationRequest, entityManager);
+            String deviceResourceId = roomExecutable.getResourceId();
+            String roomId = roomExecutable.getRoomId();
+            String agentName = validateRoom(deviceResourceId, roomId, entityManager);
+
+            Object participants = performDeviceCommand(deviceResourceId, agentName, new ListRoomParticipants(roomId));
+
+            List<RoomParticipant> roomParticipants = new ArrayList<>();
+            for (cz.cesnet.shongo.api.RoomParticipant participant : (List<cz.cesnet.shongo.api.RoomParticipant>) participants) {
+                RoomParticipant roomParticipant = new RoomParticipant(participant.getId(), participant.getRole());
+                roomParticipant.addValue(RoomParticipant.Type.NAME, participant.getDisplayName());
+                roomParticipants.add(roomParticipant);
+            }
+
+            return roomParticipants;
+        } finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -565,9 +610,34 @@ public class InterDomainController implements InterDomainProtocol
                                              @RequestBody AbstractDomainRoomAction action)
             throws NotAuthorizedException, ForbiddenException
     {
-        ReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
 
-        return null;
+            RoomExecutable roomExecutable = getRoomExecutable(reservationRequest, entityManager);
+            String deviceResourceId = roomExecutable.getResourceId();
+            String roomId = roomExecutable.getRoomId();
+            String agentName = validateRoom(deviceResourceId, roomId, entityManager);
+
+            ConnectorCommand command = action.toApi();
+            if (command instanceof GetRoom) {
+                ((GetRoom) command).setRoomId(roomId);
+            } else {
+                throw new TodoImplementException("Unsupported command.");
+            }
+
+            Object commandResult = performDeviceCommand(deviceResourceId, agentName, command);
+
+            if (commandResult instanceof Room) {
+                Room room = (Room) commandResult;
+                return returnOk();
+            } else {
+                return returnOk();
+            }
+        } finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -578,34 +648,29 @@ public class InterDomainController implements InterDomainProtocol
                                                      @RequestParam(value = "reason", required = true) String reason)
             throws NotAuthorizedException, ForbiddenException
     {
-        return null;
-    }
-
-    private ReservationRequest validateReservationRequestsDomain(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
-    {
-        Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
-        ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, foreignReservationRequestId);
 
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        ReservationRequest reservationRequest = null;
         try {
-            reservationRequest = (ReservationRequest) reservationRequestManager.get(requestIdentifier.getPersistenceId());
-        } catch (CommonReportSet.ObjectNotExistsException ex) {
-            throwForbiddenException(domainId);
-        }
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            reservationRequestManager.delete(reservationRequest, false);
 
-        if (reservationRequest == null) {
-            throwForbiddenException(domainId);
-        }
-        String createdByUserId = reservationRequest.getCreatedBy();
+            InterDomainAgent.getInstance().logAndNotifyDomainAdmins("Foreign reservation has been deleted (reservation_request_id: " + foreignReservationRequestId + ").");
 
-        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
-            // Throw {@code ForbiddenException} for error 403 to return
-            throwForbiddenException(domainId);
+            return returnOk();
+        } finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
         }
+    }
 
-        return reservationRequest;
+    private AbstractResponse returnOk()
+    {
+        return new AbstractResponse()
+        {
+        };
     }
 
     private void throwForbiddenException(Long domainId) throws ForbiddenException
@@ -756,5 +821,127 @@ public class InterDomainController implements InterDomainProtocol
                 setValue(T.valueOf(enumType, text));
             }
         }
+    }
+
+
+    private AbstractReservationRequest validateReservationRequestsDomain(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
+    {
+        Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+        ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = null;
+        try {
+            reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        } catch (CommonReportSet.ObjectNotExistsException ex) {
+            throwForbiddenException(domainId);
+        }
+
+        if (reservationRequest == null) {
+            throwForbiddenException(domainId);
+        }
+        String createdByUserId = reservationRequest.getCreatedBy();
+
+        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
+            // Throw {@code ForbiddenException} for error 403 to return
+            throwForbiddenException(domainId);
+        }
+
+        return reservationRequest;
+    }
+
+    /**
+     * @param deviceResourceId
+     * @return agent name
+     */
+    private String validateRoom(String deviceResourceId, String roomId, EntityManager entityManager)
+    {
+        checkNotNull("deviceResourceId", deviceResourceId);
+        checkNotNull("roomId", roomId);
+
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
+            cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            return agentName;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    /**
+     * Check whether argumetn is not null.
+     *
+     * @param argumentName
+     * @param argumentValue
+     */
+    protected void checkNotNull(String argumentName, Object argumentValue)
+    {
+        if (argumentValue == null) {
+            throw new IllegalArgumentException("Argument " + argumentName + " must be not null.");
+        }
+    }
+
+    /**
+     * Gets name of agent managing a given device.
+     *
+     * @param deviceResource of which the agent name should be get
+     * @return agent name of managed resource with given {@code deviceResourceId}
+     */
+    protected String getAgentName(cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource)
+    {
+        Mode mode = deviceResource.getMode();
+        if (mode instanceof cz.cesnet.shongo.controller.booking.resource.ManagedMode) {
+            cz.cesnet.shongo.controller.booking.resource.ManagedMode managedMode = (cz.cesnet.shongo.controller.booking.resource.ManagedMode) mode;
+            return managedMode.getConnectorAgentName();
+        }
+        throw new RuntimeException(String.format("Resource '%s' is not managed!",
+                ObjectIdentifier.formatId(deviceResource)));
+    }
+
+    private RoomExecutable getRoomExecutable(AbstractReservationRequest reservationRequest, EntityManager entityManager)
+    {
+
+        Executable executableApi = getExecutable(reservationRequest).toApi(entityManager, Report.UserType.DOMAIN_ADMIN);
+        if (executableApi instanceof RoomExecutable) {
+            return (RoomExecutable) executableApi;
+        }
+        else {
+            throw new TodoImplementException();
+        }
+
+    }
+
+    private cz.cesnet.shongo.controller.booking.executable.Executable getExecutable(AbstractReservationRequest reservationRequest)
+    {
+
+        Allocation allocation = reservationRequest.getAllocation();
+        if (allocation == null) {
+            throw new RuntimeException("Failed to execute command for this room.");
+        }
+        cz.cesnet.shongo.controller.booking.reservation.Reservation reservation = allocation.getCurrentReservation();
+        if (reservation == null) {
+            throw new RuntimeException("Failed to execute command for this room.");
+        }
+        return reservation.getExecutable();
+    }
+
+    /**
+     * Asks the local controller agent to send a command to be performed by a device.
+     *
+     * @param agentName on which the command should be performed
+     * @param command    command to be performed by the device
+     */
+    private Object performDeviceCommand(String deviceResourceId, String agentName, ConnectorCommand command)
+    {
+        SendLocalCommand sendLocalCommand = cz.cesnet.shongo.controller.Controller.getInstance().getAgent().sendCommand(agentName, command);
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            return sendLocalCommand.getResult();
+        }
+        throw new ControllerReportSet.DeviceCommandFailedException(
+                deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
     }
 }

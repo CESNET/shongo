@@ -1067,7 +1067,7 @@ public class Controller
 
         // Initialize Inter Domain agent
         if (configuration.isInterDomainConfigured()) {
-            InterDomainAgent.create(entityManagerFactory, configuration, authorization, controller.getEmailSender());
+            InterDomainAgent.create(entityManagerFactory, configuration, authorization, controller.getEmailSender(), cache);
         }
 
         // Add XML-RPC services

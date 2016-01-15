@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class InterDomainAgent{
      * @param configuration
      */
     protected InterDomainAgent(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration,
-                               Authorization authorization, EmailSender emailSender) {
+                               Authorization authorization, EmailSender emailSender, Cache cache) {
         if (configuration == null || !configuration.isInterDomainConfigured()) {
             throw new IllegalStateException("Inter Domain connection is not configured.");
         }
@@ -45,7 +46,7 @@ public class InterDomainAgent{
 
         this.entityManagerFactory = entityManagerFactory;
 
-        domainService = new DomainService(entityManagerFactory, authorization);
+        domainService = new DomainService(entityManagerFactory, authorization, cache);
         domainService.init(configuration);
 
         this.notifier = new DomainAdminNotifier(logger, emailSender, configuration);
@@ -58,11 +59,12 @@ public class InterDomainAgent{
 
     synchronized public static InterDomainAgent create(EntityManagerFactory entityManagerFactory,
                                                        ControllerConfiguration configuration,
-                                                       Authorization authorization, EmailSender emailSender) {
+                                                       Authorization authorization, EmailSender emailSender,
+                                                       Cache cache) {
         if (instance != null) {
             throw new IllegalStateException("Another instance of InterDomainAgent already exists.");
         }
-        instance = new InterDomainAgent(entityManagerFactory, configuration, authorization, emailSender);
+        instance = new InterDomainAgent(entityManagerFactory, configuration, authorization, emailSender, cache);
         return instance;
     }
 
@@ -118,5 +120,10 @@ public class InterDomainAgent{
     public void logAndNotifyDomainAdmins(String message, Throwable exception)
     {
         this.notifier.logAndNotifyDomainAdmins(message, exception);
+    }
+
+    public void logAndNotifyDomainAdmins(String message)
+    {
+        this.notifier.logAndNotifyDomainAdmins(message);
     }
 }

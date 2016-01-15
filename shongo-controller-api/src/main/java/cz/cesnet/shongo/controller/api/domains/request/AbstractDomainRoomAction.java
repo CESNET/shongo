@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
@@ -12,6 +13,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         include = JsonTypeInfo.As.PROPERTY,
         property = "action")
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = GetRoom.class, name = "getRoom"),
         @JsonSubTypes.Type(value = DisconnectRoomParticipant.class, name = "disconnectRoomParticipant"),
         @JsonSubTypes.Type(value = Mute.class, name = "mute"),
         @JsonSubTypes.Type(value = Unmute.class, name = "unmute"),
@@ -22,4 +24,5 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 })
 public abstract class AbstractDomainRoomAction
 {
+        public abstract ConnectorCommand toApi();
 }

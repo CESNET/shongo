@@ -429,10 +429,11 @@ public class RoomReservationTask extends ReservationTask
 
         // Set domain and foreign reservation request for modification
         if (currentReservation != null) {
+            cz.cesnet.shongo.controller.api.Domain domain = currentReservation.getDomain().toApi();
             previousReservationRequestId = currentReservation.getForeignReservationRequestId();
-            List<DomainCapability> capabilities = domainsRoomCapabilities.get(currentReservation.getDomain().toApi());
+            List<DomainCapability> capabilities = domainsRoomCapabilities.get(domain);
             domainsRoomCapabilities.clear();
-            domainsRoomCapabilities.put(currentReservation.getDomain().toApi(), capabilities);
+            domainsRoomCapabilities.put(domain, capabilities);
         }
         RoomSettings allocateRoomSettings = new RoomSettings();
         allocateRoomSettings.setParticipantCount(participantCount);
@@ -616,6 +617,10 @@ public class RoomReservationTask extends ReservationTask
                     entityManager.getTransaction().rollback();
                 }
             }
+        }
+        else {
+            // Not finish reservation request
+            schedulerContext.setRequestWantedState(ReservationRequest.AllocationState.COMPLETE);
         }
         return  currentReservation;
     }
