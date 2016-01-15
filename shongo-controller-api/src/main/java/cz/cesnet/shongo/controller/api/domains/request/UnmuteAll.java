@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Action to foreign virtual room to unmute all participants.
  *
@@ -7,4 +11,18 @@ package cz.cesnet.shongo.controller.api.domains.request;
  */
 public class UnmuteAll extends AbstractDomainRoomAction
 {
+    @JsonProperty("roomId")
+    private Long roomId;
+
+    @JsonCreator
+    public UnmuteAll(@JsonProperty("roomId") Long roomId) {
+        this.roomId = roomId;
+    }
+
+    @Override
+    public ConnectorCommand toApi() {
+        cz.cesnet.shongo.connector.api.jade.endpoint.Unmute unmute = new cz.cesnet.shongo.connector.api.jade.endpoint.Unmute();
+        unmute.setId(roomId);
+        return unmute;
+    }
 }

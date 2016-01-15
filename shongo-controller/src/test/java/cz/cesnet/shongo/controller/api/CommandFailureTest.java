@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -89,8 +90,8 @@ public class CommandFailureTest extends AbstractControllerTest
             getResourceControlService().modifyRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
-        catch (ControllerReportSet.DeviceCommandFailedException exception) {
-            Assert.assertEquals(JadeReportSet.CommandUnknownErrorReport.class, exception.getJadeReport().getClass());
+        catch (CommonReportSet.UnknownErrorException exception) {
+            Assert.assertEquals(CommonReportSet.UnknownErrorException.class, exception.getClass());
         }
     }
 

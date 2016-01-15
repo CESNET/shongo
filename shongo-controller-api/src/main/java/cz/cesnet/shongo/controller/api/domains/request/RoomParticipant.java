@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
 import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.controller.api.AnonymousPerson;
+import cz.cesnet.shongo.controller.api.PersonParticipant;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -63,6 +65,24 @@ public class RoomParticipant
     public void addValue(Type type, String value)
     {
         this.values.add(new RoomParticipantValue(type, value));
+    }
+
+    public PersonParticipant toApi() {
+        PersonParticipant participant = new PersonParticipant();
+        participant.setRole(role);
+        AnonymousPerson person = new AnonymousPerson();
+        for (RoomParticipantValue value : values) {
+            switch (value.getType()) {
+                case NAME:
+                    person.setName(value.getValue());
+                    break;
+                case EMAIL:
+                    person.setEmail(value.getValue());
+                    break;
+            }
+        }
+        participant.setPerson(person);
+        return participant;
     }
 
     private class RoomParticipantValue

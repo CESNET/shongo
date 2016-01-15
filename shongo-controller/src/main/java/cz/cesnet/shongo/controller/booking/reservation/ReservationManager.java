@@ -356,14 +356,15 @@ public class ReservationManager extends AbstractManager
     /**
      * List all allocations which were been set for deletion of reservations
      *
-     * @return list of {@link Allocation}s for which reservation should be deleted
+     * @return list of {@link Allocation}s for which reservations should be deleted
      */
     public List<Allocation> getAllocationsReservationsForDeletion()
     {
         TypedQuery<Allocation> query = entityManager.createQuery(
                 "SELECT allocation FROM Allocation allocation"
                         + " WHERE ((allocation.state = :stateDeleted)"
-                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))",
+                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))"
+                        + " AND (allocation.reservationRequest = null OR allocation.reservations.size != 0)",
                 Allocation.class)
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);

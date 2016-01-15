@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
@@ -36,6 +37,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private ResourceCache resourceCache;
 
     /**
+     * @see DomainCache
+     */
+    private DomainCache domainCache;
+
+    /**
      * {@link EntityManagerFactory} used to load resources in {@link #init(cz.cesnet.shongo.controller.ControllerConfiguration)} method.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -46,6 +52,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public Cache()
     {
         resourceCache = new ResourceCache();
+        domainCache = new DomainCache();
     }
 
     /**
@@ -54,6 +61,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public Cache(EntityManagerFactory entityManagerFactory)
     {
         this.resourceCache = new ResourceCache();
+        domainCache = new DomainCache();
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -71,6 +79,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public ResourceCache getResourceCache()
     {
         return resourceCache;
+    }
+
+    /**
+     * @return {@link #domainCache}
+     */
+    public DomainCache getDomainCache()
+    {
+        return domainCache;
     }
 
     @Override
@@ -91,7 +107,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             try {
-
                 logger.debug("Loading resources...");
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 List<Resource> resourceList = resourceManager.list();
@@ -101,6 +116,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     }
                     catch (Exception exception) {
                         throw new RuntimeException("Failed to add resource to the cache.", exception);
+                    }
+                }
+
+                logger.debug("Loading domains...");
+                List<Domain> domainList = resourceManager.listAllDomains();
+                for (Domain domain : domainList) {
+                    try {
+                        addDomain(domain);
+                    }
+                    catch (Exception exception) {
+                        throw new RuntimeException("Failed to add domain to the cache.", exception);
                     }
                 }
             }
@@ -164,5 +190,43 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         // Remove resource from resource cache
         resourceCache.removeObject(resource);
+    }
+
+    /**
+     * @param domain
+     */
+    public synchronized void addDomain(Domain domain)
+    {
+        // Add domain to resource cache
+        domain.checkPersisted();
+        domain.loadLazyProperties();
+        domainCache.addObject(domain);
+    }
+
+    /**
+     * Update domain in the cache.
+     *
+     * @param domain
+     */
+    public synchronized void updateDomain(Domain domain)
+    {
+        removeDomain(domain);
+        try {
+            addDomain(domain);
+        }
+        catch (Exception exception) {
+            throw new RuntimeException("Failed to update domain in the domain cache.", exception);
+        }
+    }
+
+    /**
+     * Remove domain from the {@link Cache}.
+     *
+     * @param domain to be removed
+     */
+    public synchronized void removeDomain(Domain domain)
+    {
+        // Remove domain from domain cache
+        domainCache.removeObject(domain);
     }
 }

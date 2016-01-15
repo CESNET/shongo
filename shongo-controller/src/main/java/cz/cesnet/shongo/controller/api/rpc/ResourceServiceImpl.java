@@ -997,7 +997,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            // Create tag from API
+            // Create domain from API
             domain.fromApi(domainApi);
 
             // Save it
@@ -1007,6 +1007,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+
+            // Add domain to the cache
+            if (cache != null) {
+                cache.addDomain(domain);
+            }
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -1122,6 +1127,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceManager.updateDomain(domain);
 
             entityManager.getTransaction().commit();
+
+            // Update resource in the cache
+            if (cache != null) {
+                cache.updateDomain(domain);
+            }
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -1176,6 +1186,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+
+            // Update resource in the cache
+            if (cache != null) {
+                cache.removeDomain(persistenceDomain);
+            }
         }
         catch (RollbackException exception) {
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {

@@ -18,7 +18,7 @@ import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
-import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.api.domains.request.AbstractDomainRoomAction;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.commons.collections4.MultiMap;
@@ -28,7 +28,6 @@ import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -760,6 +759,22 @@ public class DomainsConnector
         return reservations;
     }
 
+    public Object sendRoomAction(AbstractDomainRoomAction action, String reservationRequestId) throws ForeignDomainConnectException
+    {
+        ObjectReader reader = mapper.reader(AbstractResponse.class);
+        MultiMap<String, String> parameters = new MultiValueMap<>();
+        parameters.put("foreignReservationRequestId", reservationRequestId);
+
+        String domainName = ObjectIdentifier.parseDomain(reservationRequestId);
+        Domain domain = getDomainService().findDomainByName(domainName);
+        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DELETED, parameters, action, domain, reader, AbstractResponse.class);
+
+        if (!AbstractResponse.Status.OK.equals(response.getStatus())) {
+            throw new ForeignDomainConnectException(domain, InterDomainAction.DOMAIN_RESERVATION_DELETED, "Failed to notify foreign about deleted reservation.");
+        }
+
+        return response;
+    }
 
     public void notifyDomain(Domain domain, String reservationRequestId, String reason) throws ForeignDomainConnectException
     {

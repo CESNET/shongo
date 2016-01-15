@@ -27,6 +27,10 @@
             <version>${shongo.version}</version>
         </dependency>
         <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>shongo-connector-api</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
             <version>${jetty.version}</version>

@@ -63,7 +63,7 @@ public class ForeignRoomEndpoint extends RoomEndpoint
     @Override
     public String getRoomId()
     {
-        return null;
+        return getForeignReservationRequestId();
     }
 
     @Override
@@ -128,6 +128,8 @@ public class ForeignRoomEndpoint extends RoomEndpoint
 
 //        throw new TodoImplementException("pravdepodobne jen pridavat participanty");
     }
+
+
 
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
