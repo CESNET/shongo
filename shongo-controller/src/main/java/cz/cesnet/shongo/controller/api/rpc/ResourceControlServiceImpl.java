@@ -534,6 +534,9 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         } catch (IllegalArgumentException ex) {
             // if id is not reservation request id at all
             return false;
+        }
+        catch (ControllerReportSet.IdentifierInvalidException ex) {
+            return false;
         } catch (ControllerReportSet.IdentifierInvalidTypeException ex) {
             return false;
         }

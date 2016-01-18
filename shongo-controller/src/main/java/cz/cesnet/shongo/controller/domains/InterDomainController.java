@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.domains;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
@@ -630,8 +631,10 @@ public class InterDomainController implements InterDomainProtocol
             Object commandResult = performDeviceCommand(deviceResourceId, agentName, command);
 
             if (commandResult instanceof Room) {
-                Room room = (Room) commandResult;
-                return returnOk();
+                Room roomApi = (Room) commandResult;
+                cz.cesnet.shongo.controller.api.domains.response.Room room;
+                room = cz.cesnet.shongo.controller.api.domains.response.Room.createFromApi(roomApi);
+                return room;
             } else {
                 return returnOk();
             }
