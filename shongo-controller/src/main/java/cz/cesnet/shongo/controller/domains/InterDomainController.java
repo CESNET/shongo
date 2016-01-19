@@ -865,15 +865,10 @@ public class InterDomainController implements InterDomainProtocol
         checkNotNull("roomId", roomId);
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        try {
-            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
-            cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
-            String agentName = getAgentName(deviceResource);
-            return agentName;
-        }
-        finally {
-            entityManager.close();
-        }
+        ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
+        cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+        String agentName = getAgentName(deviceResource);
+        return agentName;
     }
 
     /**
