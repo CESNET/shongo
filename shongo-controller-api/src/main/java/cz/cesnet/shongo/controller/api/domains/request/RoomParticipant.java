@@ -26,7 +26,16 @@ public class RoomParticipant
     List<RoomParticipantValue> values = new ArrayList<>();
 
     @JsonCreator
-    public RoomParticipant(@JsonProperty("id") String id, @JsonProperty("role") ParticipantRole role)
+    public RoomParticipant(@JsonProperty("id") String id,
+                           @JsonProperty("role") ParticipantRole role,
+                           @JsonProperty("values") List<RoomParticipantValue> values)
+    {
+        this.id = id;
+        this.role = role;
+        this.values = values;
+    }
+
+    public RoomParticipant(String id, ParticipantRole role)
     {
         this.id = id;
         this.role = role;
@@ -62,7 +71,7 @@ public class RoomParticipant
         this.values = values;
     }
 
-    public void addValue(Type type, String value)
+    public void addValue(RoomParticipantValue.Type type, String value)
     {
         this.values.add(new RoomParticipantValue(type, value));
     }
@@ -85,46 +94,6 @@ public class RoomParticipant
         return participant;
     }
 
-    private class RoomParticipantValue
-    {
-        @JsonProperty("type")
-        Type type;
 
-        @JsonProperty("value")
-        String value;
 
-        @JsonCreator
-        public RoomParticipantValue(@JsonProperty("type")Type type, @JsonProperty("value")String value)
-        {
-            this.type = type;
-            this.value = value;
-        }
-
-        public Type getType()
-        {
-            return type;
-        }
-
-        public void setType(Type type)
-        {
-            this.type = type;
-        }
-
-        public String getValue()
-        {
-            return value;
-        }
-
-        public void setValue(String value)
-        {
-            this.value = value;
-        }
-    }
-
-    public enum Type
-    {
-        EPPN,
-        EMAIL,
-        NAME;
-    }
 }
