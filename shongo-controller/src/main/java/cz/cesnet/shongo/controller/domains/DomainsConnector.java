@@ -763,14 +763,14 @@ public class DomainsConnector
     {
         ObjectReader reader = mapper.reader(AbstractResponse.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        parameters.put("foreignReservationRequestId", reservationRequestId);
+        parameters.put("reservationRequestId", reservationRequestId);
 
         String domainName = ObjectIdentifier.parseDomain(reservationRequestId);
         Domain domain = getDomainService().findDomainByName(domainName);
-        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_RESERVATION_DELETED, parameters, action, domain, reader, AbstractResponse.class);
+        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, parameters, action, domain, reader, AbstractResponse.class);
 
         if (!AbstractResponse.Status.OK.equals(response.getStatus())) {
-            throw new ForeignDomainConnectException(domain, InterDomainAction.DOMAIN_RESERVATION_DELETED, "Failed to notify foreign about deleted reservation.");
+            throw new ForeignDomainConnectException(domain, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, "Failed to notify foreign about deleted reservation.");
         }
 
         return response;

@@ -529,7 +529,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            ObjectIdentifier objectIdentifier = ObjectIdentifier.parseTypedId(foreignReservationRequestId, ObjectType.RESOURCE);
+            ObjectIdentifier objectIdentifier = ObjectIdentifier.parseTypedId(foreignReservationRequestId, ObjectType.RESERVATION_REQUEST);
             return !objectIdentifier.isLocal();
         } catch (IllegalArgumentException ex) {
             // if id is not reservation request id at all
