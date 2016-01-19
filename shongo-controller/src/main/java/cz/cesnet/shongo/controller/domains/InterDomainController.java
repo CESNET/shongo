@@ -73,6 +73,7 @@ public class InterDomainController implements InterDomainProtocol
         binder.registerCustomEditor(ExecutableState.class, new EnumEditor<>(ExecutableState.class));
         binder.registerCustomEditor(RoomParticipant.Type.class, new EnumEditor<>(RoomParticipant.Type.class));
         binder.registerCustomEditor(ParticipantRole.class, new EnumEditor<>(ParticipantRole.class));
+        binder.registerCustomEditor(RoomLayout.class, new EnumEditor<>(RoomLayout.class));
     }
 
     @Override
