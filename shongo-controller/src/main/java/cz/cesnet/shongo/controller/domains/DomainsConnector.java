@@ -3,22 +3,20 @@ package cz.cesnet.shongo.controller.domains;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
-import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
+import cz.cesnet.shongo.controller.api.domains.request.*;
 import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
-import cz.cesnet.shongo.controller.api.domains.request.RoomSettings;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.ForeignResources;
-import cz.cesnet.shongo.controller.api.domains.request.AbstractDomainRoomAction;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.commons.collections4.MultiMap;
@@ -655,7 +653,7 @@ public class DomainsConnector
                 if (abstractPerson instanceof UserPerson) {
                     UserPerson userPerson = (UserPerson) abstractPerson;
                     RoomParticipant roomParticipant = new RoomParticipant(participant.getId(), participant.getRole());
-                    roomParticipant.addValue(RoomParticipant.Type.NAME, "TODO");
+                    roomParticipant.addValue(RoomParticipantValue.Type.NAME, "TODO");
                     participants.add(roomParticipant);
                 }
                 else {
@@ -759,15 +757,15 @@ public class DomainsConnector
         return reservations;
     }
 
-    public Object sendRoomAction(AbstractDomainRoomAction action, String reservationRequestId) throws ForeignDomainConnectException
+    public <T extends AbstractResponse> T sendRoomAction(AbstractDomainRoomAction action, String reservationRequestId, Class<T> responseClass) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(AbstractResponse.class);
+        ObjectReader reader = mapper.reader(responseClass);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", reservationRequestId);
 
         String domainName = ObjectIdentifier.parseDomain(reservationRequestId);
         Domain domain = getDomainService().findDomainByName(domainName);
-        AbstractResponse response = performRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, parameters, action, domain, reader, AbstractResponse.class);
+        T response = performRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, parameters, action, domain, reader, responseClass);
 
         if (!AbstractResponse.Status.OK.equals(response.getStatus())) {
             throw new ForeignDomainConnectException(domain, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, "Failed to notify foreign about deleted reservation.");

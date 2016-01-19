@@ -4,7 +4,6 @@ package cz.cesnet.shongo.controller.api.domains.response;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -40,12 +39,14 @@ public class RoomSpecification extends ForeignSpecification
     public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
                              @JsonProperty("roomName") String roomName,
                              @JsonProperty("technologies") Set<Technology> technologies,
-                             @JsonProperty("aliases") List<Alias> aliases)
+                             @JsonProperty("aliases") List<Alias> aliases,
+                             @JsonProperty("state") RoomState state)
     {
         this.licenseCount = licenseCount;
         this.roomName = roomName;
         this.technologies = technologies;
         this.aliases = aliases;
+        this.state = state;
     }
 
     public RoomSpecification()

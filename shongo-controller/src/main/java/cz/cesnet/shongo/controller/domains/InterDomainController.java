@@ -71,7 +71,7 @@ public class InterDomainController implements InterDomainProtocol
         binder.registerCustomEditor(AdobeConnectPermissions.class, new EnumEditor<>(AdobeConnectPermissions.class));
         binder.registerCustomEditor(AliasType.class, new EnumEditor<>(AliasType.class));
         binder.registerCustomEditor(ExecutableState.class, new EnumEditor<>(ExecutableState.class));
-        binder.registerCustomEditor(RoomParticipant.Type.class, new EnumEditor<>(RoomParticipant.Type.class));
+        binder.registerCustomEditor(RoomParticipantValue.Type.class, new EnumEditor<>(RoomParticipantValue.Type.class));
         binder.registerCustomEditor(ParticipantRole.class, new EnumEditor<>(ParticipantRole.class));
         binder.registerCustomEditor(RoomLayout.class, new EnumEditor<>(RoomLayout.class));
     }
@@ -594,7 +594,7 @@ public class InterDomainController implements InterDomainProtocol
             List<RoomParticipant> roomParticipants = new ArrayList<>();
             for (cz.cesnet.shongo.api.RoomParticipant participant : (List<cz.cesnet.shongo.api.RoomParticipant>) participants) {
                 RoomParticipant roomParticipant = new RoomParticipant(participant.getId(), participant.getRole());
-                roomParticipant.addValue(RoomParticipant.Type.NAME, participant.getDisplayName());
+                roomParticipant.addValue(RoomParticipantValue.Type.NAME, participant.getDisplayName());
                 roomParticipants.add(roomParticipant);
             }
 

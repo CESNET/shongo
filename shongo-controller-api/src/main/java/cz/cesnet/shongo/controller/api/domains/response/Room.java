@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,25 +41,25 @@ public class Room extends AbstractResponse
     //TODO room settings??
 
 
-    public Room()
-    {
-    }
+//    public Room()
+//    {
+//    }
 
-    @JsonCreator
-    public Room(@JsonProperty("id") String id,
-                   @JsonProperty("description") String description,
-                   @JsonProperty("aliases") List<Alias> aliases,
-                   @JsonProperty("technologies") Set<Technology> technologies,
-                   @JsonProperty("roomLayout") RoomLayout roomLayout,
-                   @JsonProperty("roomParticipants") List<RoomParticipant> roomParticipants)
-    {
-        this.id = id;
-        this.description = description;
-        this.aliases = aliases;
-        this.technologies = technologies;
-        this.roomLayout = roomLayout;
-        this.roomParticipants = roomParticipants;
-    }
+//    @JsonCreator
+//    public Room(@JsonProperty("id") String id,
+//                   @JsonProperty("description") String description,
+//                   @JsonProperty("aliases") List<Alias> aliases,
+//                   @JsonProperty("technologies") Set<Technology> technologies,
+//                   @JsonProperty("roomLayout") RoomLayout roomLayout,
+//                   @JsonProperty("roomParticipants") List<RoomParticipant> roomParticipants)
+//    {
+//        this.id = id;
+//        this.description = description;
+//        this.aliases = aliases;
+//        this.technologies = technologies;
+//        this.roomLayout = roomLayout;
+//        this.roomParticipants = roomParticipants;
+//    }
 
     public String getId()
     {
@@ -141,6 +142,24 @@ public class Room extends AbstractResponse
         }
         room.setRoomParticipants(participants);
         room.setTechnologies(roomApi.getTechnologies());
+
+        return room;
+    }
+
+    public cz.cesnet.shongo.api.Room toApi()
+    {
+        cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
+        room.setId(id);
+        room.setDescription(description);
+        for (Alias alias : aliases) {
+            room.addAlias(alias.getType(), alias.getValue());
+        }
+        //TODO licences
+        room.setLayout(roomLayout);
+        for (RoomParticipant participant : roomParticipants) {
+            room.addParticipantRole(participant.getId(), participant.getRole());
+        }
+        room.setTechnologies(new HashSet<>(technologies));
 
         return room;
     }

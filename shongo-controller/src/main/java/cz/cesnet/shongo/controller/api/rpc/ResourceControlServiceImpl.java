@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.api.jade.RecordingObjectType;
 import cz.cesnet.shongo.api.jade.RecordingPermissionType;
@@ -20,6 +22,7 @@ import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.domains.request.*;
+import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -232,7 +235,9 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             getRoom = new cz.cesnet.shongo.controller.api.domains.request.GetRoom();
 
             try {
-                return (Room) connector.sendRoomAction(getRoom, roomId);
+                cz.cesnet.shongo.controller.api.domains.response.Room room;
+                room = connector.sendRoomAction(getRoom, roomId, cz.cesnet.shongo.controller.api.domains.response.Room.class);
+                return room.toApi();
             } catch (ForeignDomainConnectException e) {
                 throw new TodoImplementException("Throw appropriate exception for foreign domains");
 //                        ControllerReportSet.DeviceCommandFailedException(
@@ -269,8 +274,12 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public Collection<RoomParticipant> listRoomParticipants(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validateRoom(token, deviceResourceId, roomId);
-        return (List<RoomParticipant>) performDeviceCommand(deviceResourceId, agentName, new ListRoomParticipants(roomId));
+        if (isValidForeignRoom(token, roomId)) {
+            throw new TodoImplementException();
+        } else {
+            String agentName = validateRoom(token, deviceResourceId, roomId);
+            return (List<RoomParticipant>) performDeviceCommand(deviceResourceId, agentName, new ListRoomParticipants(roomId));
+        }
     }
 
     @Override
