@@ -1,14 +1,9 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.RoomLayout;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
-import cz.cesnet.shongo.controller.api.domains.response.Alias;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+import cz.cesnet.shongo.controller.api.domains.response.Room;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Get room's info.
@@ -17,7 +12,6 @@ import java.util.Set;
  */
 public class GetRoom extends AbstractDomainRoomAction
 {
-
     @Override
     public ConnectorCommand toApi()
     {
@@ -25,5 +19,11 @@ public class GetRoom extends AbstractDomainRoomAction
         getRoom = new cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom();
 
         return getRoom;
+    }
+
+    @Override
+    public Class<Room> getReturnClass()
+    {
+        return Room.class;
     }
 }

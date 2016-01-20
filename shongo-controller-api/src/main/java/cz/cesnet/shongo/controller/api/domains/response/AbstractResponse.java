@@ -50,6 +50,11 @@ public class AbstractResponse
         this.message = message;
     }
 
+    public Object toApi()
+    {
+        return null;
+    }
+
     public static enum Status
     {
         OK,

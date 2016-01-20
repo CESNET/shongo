@@ -4,7 +4,6 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -721,6 +720,20 @@ public class DomainsConnector
         return AbstractResponse.Status.OK.equals(response.getStatus());
     }
 
+    public List<RoomParticipant> listRoomParticipants(String foreignReservationRequestId) throws ForeignDomainConnectException
+    {
+        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, RoomParticipant.class));
+        MultiMap<String, String> parameters = new MultiValueMap<>();
+        parameters.put("reservationRequestId", foreignReservationRequestId);
+
+        String domainName = ObjectIdentifier.parseDomain(foreignReservationRequestId);
+        Domain domain = getDomainService().findDomainByName(domainName);
+
+        List<RoomParticipant> response = performRequest(InterDomainAction.HttpMethod.GET, InterDomainAction.DOMAIN_VIRTUAL_ROOM_PARTICIPANT_LIST, parameters, null, domain, reader, List.class);
+
+        return response;
+    }
+
 //    public List<Reservation> listReservations(Domain domain)
 //    {
 //        return listReservations(domain, null, null);
@@ -757,13 +770,14 @@ public class DomainsConnector
         return reservations;
     }
 
-    public <T extends AbstractResponse> T sendRoomAction(AbstractDomainRoomAction action, String reservationRequestId, Class<T> responseClass) throws ForeignDomainConnectException
+
+    public <T extends AbstractResponse> T sendRoomAction(AbstractDomainRoomAction action, String foreignReservationRequestId, Class<T> responseClass) throws ForeignDomainConnectException
     {
         ObjectReader reader = mapper.reader(responseClass);
         MultiMap<String, String> parameters = new MultiValueMap<>();
-        parameters.put("reservationRequestId", reservationRequestId);
+        parameters.put("reservationRequestId", foreignReservationRequestId);
 
-        String domainName = ObjectIdentifier.parseDomain(reservationRequestId);
+        String domainName = ObjectIdentifier.parseDomain(foreignReservationRequestId);
         Domain domain = getDomainService().findDomainByName(domainName);
         T response = performRequest(InterDomainAction.HttpMethod.POST, InterDomainAction.DOMAIN_VIRTUAL_ROOM_ACTION, parameters, action, domain, reader, responseClass);
 

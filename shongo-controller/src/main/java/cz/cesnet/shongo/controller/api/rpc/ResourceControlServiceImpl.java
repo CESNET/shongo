@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
@@ -18,11 +18,11 @@ import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ListRoomParticipants;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.domains.request.*;
-import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -38,10 +38,7 @@ import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Resource service implementation.
@@ -230,19 +227,9 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
         if (isValidForeignRoom(token, roomId)) {
-            DomainsConnector connector = InterDomainAgent.getInstance().getConnector();
             cz.cesnet.shongo.controller.api.domains.request.GetRoom getRoom;
             getRoom = new cz.cesnet.shongo.controller.api.domains.request.GetRoom();
-
-            try {
-                cz.cesnet.shongo.controller.api.domains.response.Room room;
-                room = connector.sendRoomAction(getRoom, roomId, cz.cesnet.shongo.controller.api.domains.response.Room.class);
-                return room.toApi();
-            } catch (ForeignDomainConnectException e) {
-                throw new TodoImplementException("Throw appropriate exception for foreign domains");
-//                        ControllerReportSet.DeviceCommandFailedException(
-//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
-            }
+            return (Room) performForeignDeviceCommand(roomId, getRoom);
         }
         else {
             String agentName = validateRoom(token, deviceResourceId, roomId);
@@ -275,7 +262,30 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public Collection<RoomParticipant> listRoomParticipants(SecurityToken token, String deviceResourceId, String roomId)
     {
         if (isValidForeignRoom(token, roomId)) {
-            throw new TodoImplementException();
+            DomainsConnector connector = InterDomainAgent.getInstance().getConnector();
+
+            try {
+                List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipant> participantList;
+                participantList = connector.listRoomParticipants(roomId);
+
+                List<RoomParticipant> participants = new ArrayList<>();
+                for (cz.cesnet.shongo.controller.api.domains.request.RoomParticipant participant : participantList) {
+                    RoomParticipant roomParticipant = new RoomParticipant();
+                    roomParticipant.setId(participant.getId());
+                    roomParticipant.setRoomId(roomId);
+                    roomParticipant.setRole(participant.getRole());
+                    //TODO aliases?
+                    participants.add(roomParticipant);
+                }
+                return participants;
+            } catch (ForeignDomainConnectException e) {
+                String actionName = cz.cesnet.shongo.controller.api.domains.request.ListRoomParticipants.class.getSimpleName();
+                throw new ControllerReportSet.DeviceCommandFailedException(
+                        roomId, actionName, new JadeReportSet.CommandUnknownErrorReport(actionName, null));
+//                throw new TodoImplementException("Throw appropriate exception for foreign domains");
+//                        ControllerReportSet.DeviceCommandFailedException(
+//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
+            }
         } else {
             String agentName = validateRoom(token, deviceResourceId, roomId);
             return (List<RoomParticipant>) performDeviceCommand(deviceResourceId, agentName, new ListRoomParticipants(roomId));
@@ -461,6 +471,24 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         }
         throw new ControllerReportSet.DeviceCommandFailedException(
                 deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
+    }
+
+    private <T extends AbstractDomainRoomAction> Object performForeignDeviceCommand(String foreignReservationRequestId, T action)
+    {
+        DomainsConnector connector = InterDomainAgent.getInstance().getConnector();
+
+        try {
+            cz.cesnet.shongo.controller.api.domains.response.AbstractResponse response;
+            response = connector.sendRoomAction(action, foreignReservationRequestId, action.getReturnClass());
+            return response.toApi();
+        } catch (ForeignDomainConnectException e) {
+            String actionName = action.toString();
+            throw new ControllerReportSet.DeviceCommandFailedException(
+                    foreignReservationRequestId, actionName, new JadeReportSet.CommandUnknownErrorReport(actionName, null));
+//                throw new TodoImplementException("Throw appropriate exception for foreign domains");
+//                        ControllerReportSet.DeviceCommandFailedException(
+//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
+        }
     }
 
     /**
