@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ListRoomParticipants;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
