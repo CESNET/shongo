@@ -274,6 +274,12 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
                     roomParticipant.setId(participant.getId());
                     roomParticipant.setRoomId(roomId);
                     roomParticipant.setRole(participant.getRole());
+                    for (RoomParticipantValue value : participant.getValues()) {
+                        if (RoomParticipantValue.Type.NAME.equals(value.getType())) {
+                            roomParticipant.setDisplayName(value.getValue());
+                            break;
+                        }
+                    }
                     //TODO aliases?
                     participants.add(roomParticipant);
                 }
@@ -305,9 +311,13 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public Map<String, MediaData> getRoomParticipantSnapshots(SecurityToken token, String deviceResourceId,
             String roomId, Set<String> roomParticipantIds)
     {
-        String agentName = validateRoom(token, deviceResourceId, roomId);
-        return (Map<String, MediaData>) performDeviceCommand(deviceResourceId, agentName,
-                new GetRoomParticipantSnapshots(roomId, roomParticipantIds));
+        if (isValidForeignRoom(token, roomId)) {
+            return null;
+        } else {
+            String agentName = validateRoom(token, deviceResourceId, roomId);
+            return (Map<String, MediaData>) performDeviceCommand(deviceResourceId, agentName,
+                    new GetRoomParticipantSnapshots(roomId, roomParticipantIds));
+        }
     }
 
     @Override

@@ -835,25 +835,31 @@ public class InterDomainController implements InterDomainProtocol
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AbstractReservationRequest reservationRequest = null;
         try {
-            reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
-        } catch (CommonReportSet.ObjectNotExistsException ex) {
-            throwForbiddenException(domainId);
-        }
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            AbstractReservationRequest reservationRequest = null;
+            try {
+                reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+            } catch (CommonReportSet.ObjectNotExistsException ex) {
+                throwForbiddenException(domainId);
+            }
 
-        if (reservationRequest == null) {
-            throwForbiddenException(domainId);
-        }
-        String createdByUserId = reservationRequest.getCreatedBy();
+            if (reservationRequest == null) {
+                throwForbiddenException(domainId);
+            }
+            String createdByUserId = reservationRequest.getCreatedBy();
 
-        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
-            // Throw {@code ForbiddenException} for error 403 to return
-            throwForbiddenException(domainId);
-        }
+            if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
+                // Throw {@code ForbiddenException} for error 403 to return
+                throwForbiddenException(domainId);
+            }
 
-        return reservationRequest;
+            return reservationRequest;
+
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
