@@ -296,7 +296,7 @@ public class ExecutionPlan
                     executionTarget.setAttemptCount(executionTarget.getAttemptCount() + 1);
 
                     // If the last report allows for next attempt, set the date/time for the next attempt
-                    if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
+                    if (lastReport == null || lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
                         Executor executor = getExecutor();
                         if (executionTarget.getAttemptCount() < executor.getMaxAttemptCount()) {
                             executionTarget.setNextAttempt(referenceDateTime.plus(executor.getNextAttempt()));
