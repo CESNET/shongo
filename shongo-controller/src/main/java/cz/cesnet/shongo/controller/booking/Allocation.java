@@ -104,6 +104,11 @@ public class Allocation extends SimplePersistentObject
         return Collections.unmodifiableList(childReservationRequests);
     }
 
+    public void setChildReservationRequests(List<ReservationRequest> childReservationRequests)
+    {
+        this.childReservationRequests = childReservationRequests;
+    }
+
     /**
      * @param childReservationRequest to be added to the {@link #childReservationRequests}
      */
@@ -137,6 +142,11 @@ public class Allocation extends SimplePersistentObject
     public List<Reservation> getReservations()
     {
         return Collections.unmodifiableList(reservations);
+    }
+
+    public void setReservations(List<Reservation> reservations)
+    {
+        this.reservations = reservations;
     }
 
     /**
@@ -226,13 +236,6 @@ public class Allocation extends SimplePersistentObject
                 state = null;
             }
         }
-    }
-
-    @Override
-    public void loadLazyProperties()
-    {
-        getReservations().size();
-        super.loadLazyProperties();
     }
 
     /**
