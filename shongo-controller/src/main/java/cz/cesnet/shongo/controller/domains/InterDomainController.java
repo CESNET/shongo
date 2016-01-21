@@ -537,11 +537,10 @@ public class InterDomainController implements InterDomainProtocol
                                                   @RequestBody List<RoomParticipant> participants)
             throws NotAuthorizedException, ForbiddenException
     {
-        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
-
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
             entityManager.getTransaction().begin();
+            AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId, entityManager);
 
             ExecutableManager executableManager = new ExecutableManager(entityManager);
 
@@ -579,11 +578,10 @@ public class InterDomainController implements InterDomainProtocol
                                                        @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId)
             throws NotAuthorizedException, ForbiddenException
     {
-        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
 
         try {
-            entityManager.getTransaction().begin();
+            AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId, entityManager);
 
             RoomExecutable roomExecutable = getRoomExecutable(reservationRequest, entityManager);
             String deviceResourceId = roomExecutable.getResourceId();
@@ -613,10 +611,9 @@ public class InterDomainController implements InterDomainProtocol
                                              @RequestBody AbstractDomainRoomAction action)
             throws NotAuthorizedException, ForbiddenException
     {
-        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId);
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
-            entityManager.getTransaction().begin();
+            AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId, entityManager);
 
             RoomExecutable roomExecutable = getRoomExecutable(reservationRequest, entityManager);
             String deviceResourceId = roomExecutable.getResourceId();
@@ -653,10 +650,10 @@ public class InterDomainController implements InterDomainProtocol
                                                      @RequestParam(value = "reason", required = true) String reason)
             throws NotAuthorizedException, ForbiddenException
     {
-        AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, foreignReservationRequestId);
-
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+            AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, foreignReservationRequestId, entityManager);
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.delete(reservationRequest, false);
 
@@ -829,37 +826,31 @@ public class InterDomainController implements InterDomainProtocol
     }
 
 
-    private AbstractReservationRequest validateReservationRequestsDomain(HttpServletRequest request, String reservationRequestId) throws NotAuthorizedException, ForbiddenException
+    private AbstractReservationRequest validateReservationRequestsDomain(HttpServletRequest request, String reservationRequestId, EntityManager entityManager)
+            throws NotAuthorizedException, ForbiddenException
     {
         Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
         ObjectIdentifier requestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
-        EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = null;
         try {
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            AbstractReservationRequest reservationRequest = null;
-            try {
-                reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
-            } catch (CommonReportSet.ObjectNotExistsException ex) {
-                throwForbiddenException(domainId);
-            }
-
-            if (reservationRequest == null) {
-                throwForbiddenException(domainId);
-            }
-            String createdByUserId = reservationRequest.getCreatedBy();
-
-            if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
-                // Throw {@code ForbiddenException} for error 403 to return
-                throwForbiddenException(domainId);
-            }
-
-            return reservationRequest;
-
+            reservationRequest = reservationRequestManager.get(requestIdentifier.getPersistenceId());
+        } catch (CommonReportSet.ObjectNotExistsException ex) {
+            throwForbiddenException(domainId);
         }
-        finally {
-            entityManager.close();
+
+        if (reservationRequest == null) {
+            throwForbiddenException(domainId);
         }
+        String createdByUserId = reservationRequest.getCreatedBy();
+
+        if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
+            // Throw {@code ForbiddenException} for error 403 to return
+            throwForbiddenException(domainId);
+        }
+
+        return reservationRequest;
     }
 
     /**
@@ -928,7 +919,6 @@ public class InterDomainController implements InterDomainProtocol
         if (allocation == null) {
             throw new RuntimeException("Failed to execute command for this room.");
         }
-        allocation.loadLazyProperties();
         cz.cesnet.shongo.controller.booking.reservation.Reservation reservation = allocation.getCurrentReservation();
         if (reservation == null) {
             throw new RuntimeException("Failed to execute command for this room.");
