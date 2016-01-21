@@ -928,6 +928,7 @@ public class InterDomainController implements InterDomainProtocol
         if (allocation == null) {
             throw new RuntimeException("Failed to execute command for this room.");
         }
+        allocation.loadLazyProperties();
         cz.cesnet.shongo.controller.booking.reservation.Reservation reservation = allocation.getCurrentReservation();
         if (reservation == null) {
             throw new RuntimeException("Failed to execute command for this room.");

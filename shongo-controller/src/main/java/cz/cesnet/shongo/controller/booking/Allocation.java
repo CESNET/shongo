@@ -228,6 +228,13 @@ public class Allocation extends SimplePersistentObject
         }
     }
 
+    @Override
+    public void loadLazyProperties()
+    {
+        getReservations().size();
+        super.loadLazyProperties();
+    }
+
     /**
      * State of allocation.
      */
