@@ -43,7 +43,7 @@ public abstract class AbstractPerson extends SimplePersistentObject implements C
             person = new UserPerson();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ForeignPerson) {
-            throw new TodoImplementException("foreign person");
+            person = new ForeignPerson();
         }
         else {
             throw new TodoImplementException(api.getClass());
