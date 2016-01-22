@@ -474,7 +474,12 @@ public class RoomReservationTask extends ReservationTask
             for (AbstractParticipant participant : participants) {
                 if (participant instanceof PersonParticipant) {
                     PersonParticipant personParticipant = (PersonParticipant) participant;
-                    allocateRoomSettings.addParticipant(personParticipant.toApi());
+                    PersonInformation personInformation = personParticipant.getPersonInformation();
+                    if (personInformation instanceof UserInformation) {
+                        allocateRoomSettings.addParticipant((UserInformation) personInformation, personParticipant.getRole());
+                    } else {
+                        throw new TodoImplementException("Unsupported person information: " + personInformation.getClass());
+                    }
                 } else {
                     throw new TodoImplementException("Unsupported participant type: " + participant.getClass());
                 }

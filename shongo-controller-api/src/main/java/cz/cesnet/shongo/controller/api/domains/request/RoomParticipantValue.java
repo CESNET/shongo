@@ -4,7 +4,7 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * Represents a room participant value for {@link RoomParticipant}.
+ * Represents a room participant value for {@link RoomParticipantRole}.
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */

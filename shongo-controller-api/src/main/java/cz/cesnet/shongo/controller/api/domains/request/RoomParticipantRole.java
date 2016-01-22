@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
 import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.AnonymousPerson;
 import cz.cesnet.shongo.controller.api.PersonParticipant;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -39,6 +40,15 @@ public class RoomParticipantRole
     {
         this.id = id;
         this.role = role;
+    }
+
+    public RoomParticipantRole(UserInformation userInformation, ParticipantRole role)
+    {
+        this.id = userInformation.getUserId();
+        this.role = role;
+        for (String principalName : userInformation.getPrincipalNames()) {
+            addValue(RoomParticipantValue.Type.EPPN, principalName);
+        }
     }
 
     public String getId()
