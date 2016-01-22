@@ -9,6 +9,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.ListRoomParticipants;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoomParticipant;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -625,6 +626,8 @@ public class InterDomainController implements InterDomainProtocol
                 ((GetRoom) command).setRoomId(roomId);
             } else if (command instanceof DisconnectRoomParticipant) {
                 ((DisconnectRoomParticipant) command).setRoomId(roomId);
+            } else if (command instanceof ModifyRoomParticipant) {
+                ((ModifyRoomParticipant) command).getRoomParticipant().setRoomId(roomId);
             } else {
                 throw new TodoImplementException("Unsupported command.");
             }
@@ -638,7 +641,7 @@ public class InterDomainController implements InterDomainProtocol
                 return room;
             } else {
                 // Return ok status when command is void
-                // classes: DisconnectRoomParticipant
+                // classes: DisconnectRoomParticipant, ModifyRoomParticipant
                 return returnOk();
             }
         } finally {

@@ -19,6 +19,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.ListRoomParticipants;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoomParticipant;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -309,8 +310,17 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant)
     {
-        String agentName = validateRoom(token, deviceResourceId, roomParticipant.getRoomId());
-        performDeviceCommand(deviceResourceId, agentName, new ModifyRoomParticipant(roomParticipant));
+        String roomId = roomParticipant.getRoomId();
+        if (isValidForeignRoom(token, roomId)) {
+            cz.cesnet.shongo.controller.api.domains.response.RoomParticipant participant;
+            participant = cz.cesnet.shongo.controller.api.domains.response.RoomParticipant.createFromApi(roomParticipant);
+            cz.cesnet.shongo.controller.api.domains.request.ModifyRoomParticipant modifyRoomParticipant;
+            modifyRoomParticipant = new cz.cesnet.shongo.controller.api.domains.request.ModifyRoomParticipant(participant);
+            performForeignDeviceCommand(roomId, modifyRoomParticipant);
+        } else {
+            String agentName = validateRoom(token, deviceResourceId, roomParticipant.getRoomId());
+            performDeviceCommand(deviceResourceId, agentName, new ModifyRoomParticipant(roomParticipant));
+        }
     }
 
     @Override
