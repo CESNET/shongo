@@ -10,7 +10,8 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.request.*;
-import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
+import cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole;
+import cz.cesnet.shongo.controller.api.domains.response.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
@@ -645,15 +646,15 @@ public class DomainsConnector
             }
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
-        List<RoomParticipant> participants = new ArrayList<>();
+        List<RoomParticipantRole> participants = new ArrayList<>();
         if (roomSettings.getParticipants() != null) {
             for (cz.cesnet.shongo.controller.api.PersonParticipant participant : roomSettings.getParticipants()) {
                 AbstractPerson abstractPerson = participant.getPerson();
                 if (abstractPerson instanceof UserPerson) {
                     UserPerson userPerson = (UserPerson) abstractPerson;
-                    RoomParticipant roomParticipant = new RoomParticipant(participant.getId(), participant.getRole());
-                    roomParticipant.addValue(RoomParticipantValue.Type.NAME, "TODO");
-                    participants.add(roomParticipant);
+                    RoomParticipantRole roomParticipantRole = new RoomParticipantRole(participant.getId(), participant.getRole());
+                    roomParticipantRole.addValue(RoomParticipantValue.Type.NAME, "TODO");
+                    participants.add(roomParticipantRole);
                 }
                 else {
                     throw new TodoImplementException("Unsupported type of AbstractPerson: " + abstractPerson.getClass());

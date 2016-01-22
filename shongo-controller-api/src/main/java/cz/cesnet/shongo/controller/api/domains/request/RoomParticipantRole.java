@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class RoomParticipant
+public class RoomParticipantRole
 {
     @JsonProperty("id")
     String id;
@@ -26,7 +26,7 @@ public class RoomParticipant
     List<RoomParticipantValue> values = new ArrayList<>();
 
     @JsonCreator
-    public RoomParticipant(@JsonProperty("id") String id,
+    public RoomParticipantRole(@JsonProperty("id") String id,
                            @JsonProperty("role") ParticipantRole role,
                            @JsonProperty("values") List<RoomParticipantValue> values)
     {
@@ -35,7 +35,7 @@ public class RoomParticipant
         this.values = values;
     }
 
-    public RoomParticipant(String id, ParticipantRole role)
+    public RoomParticipantRole(String id, ParticipantRole role)
     {
         this.id = id;
         this.role = role;
