@@ -96,9 +96,7 @@ public class ForeignRoomEndpoint extends RoomEndpoint
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         try {
-            State stateCheck = getForeignState(executableManager);
-            System.out.println("DEBUG STATE: " +stateCheck);
-            return stateCheck;
+            return getForeignState(executableManager);
         }
         catch (ForeignDomainConnectException e) {
             String roomName = getRoomName();
@@ -112,9 +110,7 @@ public class ForeignRoomEndpoint extends RoomEndpoint
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         try {
-            State stateCheck = getForeignState(executableManager);
-            System.out.println("DEBUG STATE: " +stateCheck);
-            return stateCheck;
+            return getForeignState(executableManager);
         }
         catch (ForeignDomainConnectException e) {
             // TODO: parse exception

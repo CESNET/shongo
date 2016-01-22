@@ -121,27 +121,17 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     public List<Domain> listDomains(boolean onlyForeignDomains, Boolean allocatable)
     {
         DomainCache domainCache = cache.getDomainCache();
-
-//        EntityManager entityManager = entityManagerFactory.createEntityManager();
-//        ResourceManager resourceManager = new ResourceManager(entityManager);
-//        try {
-            List<Domain> domainList = new ArrayList<>();
-            if (!onlyForeignDomains) {
-                domainList.add(LocalDomain.getLocalDomain().toApi());
+        List<Domain> domainList = new ArrayList<>();
+        if (!onlyForeignDomains) {
+            domainList.add(LocalDomain.getLocalDomain().toApi());
+        }
+        for (cz.cesnet.shongo.controller.booking.domain.Domain domain : domainCache.getObjects()) {
+            if (allocatable != null && !allocatable.equals(domain.isAllocatable())) {
+                continue;
             }
-            for (cz.cesnet.shongo.controller.booking.domain.Domain domain : domainCache.getObjects()) {
-                if (allocatable != null && !allocatable.equals(domain.isAllocatable())) {
-                    continue;
-                }
-                domainList.add(domain.toApi());
-            }
-            return Collections.unmodifiableList(domainList);
-//        } finally {
-//            if (entityManager.getTransaction().isActive()) {
-//                entityManager.getTransaction().rollback();
-//            }
-//            entityManager.close();
-//        }
+            domainList.add(domain.toApi());
+        }
+        return Collections.unmodifiableList(domainList);
     }
 
 //    public ListResponse<ResourceSummary> listLocalResources(ResourceListRequest request) {
