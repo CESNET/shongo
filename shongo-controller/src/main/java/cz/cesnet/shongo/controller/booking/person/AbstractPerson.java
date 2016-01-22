@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.person;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
@@ -40,6 +41,9 @@ public abstract class AbstractPerson extends SimplePersistentObject implements C
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.UserPerson) {
             person = new UserPerson();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ForeignPerson) {
+            throw new TodoImplementException("foreign person");
         }
         else {
             throw new TodoImplementException(api.getClass());

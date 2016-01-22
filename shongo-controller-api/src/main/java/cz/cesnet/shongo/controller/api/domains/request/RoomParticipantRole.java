@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.domains.request;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.AnonymousPerson;
+import cz.cesnet.shongo.controller.api.ForeignPerson;
 import cz.cesnet.shongo.controller.api.PersonParticipant;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -89,7 +90,7 @@ public class RoomParticipantRole
     public PersonParticipant toApi() {
         PersonParticipant participant = new PersonParticipant();
         participant.setRole(role);
-        AnonymousPerson person = new AnonymousPerson();
+        ForeignPerson person = new ForeignPerson();
         for (RoomParticipantValue value : values) {
             switch (value.getType()) {
                 case NAME:
@@ -97,6 +98,9 @@ public class RoomParticipantRole
                     break;
                 case EMAIL:
                     person.setEmail(value.getValue());
+                    break;
+                case EPPN:
+                    System.out.println("TODO: eppn: " + value.getType());
                     break;
             }
         }
