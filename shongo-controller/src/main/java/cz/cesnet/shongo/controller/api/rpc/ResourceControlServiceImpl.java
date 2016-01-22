@@ -288,9 +288,6 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
                 String actionName = cz.cesnet.shongo.controller.api.domains.request.ListRoomParticipants.class.getSimpleName();
                 throw new ControllerReportSet.DeviceCommandFailedException(
                         roomId, actionName, new JadeReportSet.CommandUnknownErrorReport(actionName, null));
-//                throw new TodoImplementException("Throw appropriate exception for foreign domains");
-//                        ControllerReportSet.DeviceCommandFailedException(
-//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
             }
         } else {
             String agentName = validateRoom(token, deviceResourceId, roomId);
@@ -345,8 +342,15 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validateRoom(token, deviceResourceId, roomId);
-        performDeviceCommand(deviceResourceId, agentName, new DisconnectRoomParticipant(roomId, roomParticipantId));
+        if (isValidForeignRoom(token, roomId)) {
+            cz.cesnet.shongo.controller.api.domains.request.DisconnectRoomParticipant disconnectRoomParticipant;
+            disconnectRoomParticipant = new cz.cesnet.shongo.controller.api.domains.request.DisconnectRoomParticipant(roomParticipantId);
+            performForeignDeviceCommand(roomId, disconnectRoomParticipant);
+        }
+        else {
+            String agentName = validateRoom(token, deviceResourceId, roomId);
+            performDeviceCommand(deviceResourceId, agentName, new DisconnectRoomParticipant(roomId, roomParticipantId));
+        }
     }
 
     @Override
@@ -495,9 +499,6 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             String actionName = action.toString();
             throw new ControllerReportSet.DeviceCommandFailedException(
                     foreignReservationRequestId, actionName, new JadeReportSet.CommandUnknownErrorReport(actionName, null));
-//                throw new TodoImplementException("Throw appropriate exception for foreign domains");
-//                        ControllerReportSet.DeviceCommandFailedException(
-//                        deviceResourceId, command.toString(), sendLocalCommand.getJadeReport());
         }
     }
 

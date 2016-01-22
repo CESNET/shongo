@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.multipoint.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
 import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.ListRoomParticipants;
 import cz.cesnet.shongo.controller.*;
@@ -623,6 +624,8 @@ public class InterDomainController implements InterDomainProtocol
             ConnectorCommand command = action.toApi();
             if (command instanceof GetRoom) {
                 ((GetRoom) command).setRoomId(roomId);
+            } else if (command instanceof DisconnectRoomParticipant) {
+                ((DisconnectRoomParticipant) command).setRoomId(roomId);
             } else {
                 throw new TodoImplementException("Unsupported command.");
             }
@@ -635,6 +638,8 @@ public class InterDomainController implements InterDomainProtocol
                 room = cz.cesnet.shongo.controller.api.domains.response.Room.createFromApi(roomApi);
                 return room;
             } else {
+                // Return ok status when command is void
+                // classes: DisconnectRoomParticipant
                 return returnOk();
             }
         } finally {
