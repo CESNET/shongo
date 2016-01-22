@@ -195,7 +195,7 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     @Override
     public cz.cesnet.shongo.controller.api.AbstractPerson toApi()
     {
-        cz.cesnet.shongo.controller.api.AnonymousPerson person = new cz.cesnet.shongo.controller.api.AnonymousPerson();
+        cz.cesnet.shongo.controller.api.ForeignPerson person = new cz.cesnet.shongo.controller.api.ForeignPerson();
         person.setId(getId());
         person.setName(getName());
         person.setOrganization(getOrganization());
@@ -206,8 +206,8 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api)
     {
-        cz.cesnet.shongo.controller.api.AnonymousPerson anonymousPersonApi =
-                (cz.cesnet.shongo.controller.api.AnonymousPerson) api;
+        cz.cesnet.shongo.controller.api.ForeignPerson anonymousPersonApi =
+                (cz.cesnet.shongo.controller.api.ForeignPerson) api;
         setName(anonymousPersonApi.getName());
         setOrganization(anonymousPersonApi.getOrganization());
         setEmail(anonymousPersonApi.getEmail());
