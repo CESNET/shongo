@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.domains;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -648,17 +649,8 @@ public class DomainsConnector
         }
         List<RoomParticipantRole> participants = new ArrayList<>();
         if (roomSettings.getParticipants() != null) {
-            for (cz.cesnet.shongo.controller.api.PersonParticipant participant : roomSettings.getParticipants()) {
-                AbstractPerson abstractPerson = participant.getPerson();
-                if (abstractPerson instanceof UserPerson) {
-                    UserPerson userPerson = (UserPerson) abstractPerson;
-                    RoomParticipantRole roomParticipantRole = new RoomParticipantRole(participant.getId(), participant.getRole());
-                    roomParticipantRole.addValue(RoomParticipantValue.Type.NAME, "TODO");
-                    participants.add(roomParticipantRole);
-                }
-                else {
-                    throw new TodoImplementException("Unsupported type of AbstractPerson: " + abstractPerson.getClass());
-                }
+            for (Map.Entry<UserInformation, ParticipantRole> entry : roomSettings.getParticipants().entrySet()) {
+                participants.add(new RoomParticipantRole(entry.getKey(), entry.getValue()));
             }
         }
 

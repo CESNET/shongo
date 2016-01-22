@@ -267,12 +267,12 @@ public class InterDomainController implements InterDomainProtocol
             }
 
             //TODO: participants
-//            for (ParticipantModel participant : roomParticipants) {
-//                if (participant.getId() == null) {
-//                    continue;
-//                }
-//                roomSpecification.addParticipant(participant.toApi());
-//            }
+            for (RoomParticipantRole participant : participants) {
+                if (participant.getId() == null) {
+                    continue;
+                }
+                roomSpecification.addParticipant(participant.toApi());
+            }
             if (technologies.contains(Technology.H323) && !Strings.isNullOrEmpty(roomPin)) {
                 H323RoomSetting h323RoomSetting = new H323RoomSetting();
                 h323RoomSetting.setPin(roomPin);
