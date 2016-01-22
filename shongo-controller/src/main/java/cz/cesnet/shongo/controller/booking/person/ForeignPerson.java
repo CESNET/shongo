@@ -124,9 +124,9 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     }
 
     @Override
-    public AnonymousPerson clone() throws CloneNotSupportedException
+    public ForeignPerson clone() throws CloneNotSupportedException
     {
-        AnonymousPerson person = (AnonymousPerson) super.clone();
+        ForeignPerson person = (ForeignPerson) super.clone();
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
@@ -206,11 +206,11 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api)
     {
-        cz.cesnet.shongo.controller.api.ForeignPerson anonymousPersonApi =
+        cz.cesnet.shongo.controller.api.ForeignPerson foreignPersonApi =
                 (cz.cesnet.shongo.controller.api.ForeignPerson) api;
-        setName(anonymousPersonApi.getName());
-        setOrganization(anonymousPersonApi.getOrganization());
-        setEmail(anonymousPersonApi.getEmail());
+        setName(foreignPersonApi.getName());
+        setOrganization(foreignPersonApi.getOrganization());
+        setEmail(foreignPersonApi.getEmail());
     }
 
     @Override
