@@ -494,10 +494,15 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.api.domains.response.AbstractResponse response;
             response = connector.sendRoomAction(action, foreignReservationRequestId, action.getReturnClass());
             return response.toApi();
-        } catch (ForeignDomainConnectException e) {
+        } catch (ForeignDomainConnectException ex) {
             String actionName = action.toString();
-            throw new ControllerReportSet.DeviceCommandFailedException(
-                    foreignReservationRequestId, actionName, new JadeReportSet.CommandUnknownErrorReport(actionName, null));
+
+            ControllerReportSet.DeviceCommandFailedReport report = new ControllerReportSet.DeviceCommandFailedReport();
+            report.setDevice(foreignReservationRequestId);
+            report.setCommand(actionName);
+            report.setJadeReport(new JadeReportSet.CommandUnknownErrorReport(actionName, null));
+
+            throw new ControllerReportSet.DeviceCommandFailedException(ex, report);
         }
     }
 
