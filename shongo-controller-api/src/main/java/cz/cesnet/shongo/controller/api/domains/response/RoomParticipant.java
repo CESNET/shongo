@@ -12,6 +12,9 @@ import org.joda.time.DateTime;
  */
 public class RoomParticipant
 {
+    @JsonProperty("id")
+    String id;
+
     @JsonProperty("userId")
     String userId;
 
@@ -38,6 +41,16 @@ public class RoomParticipant
 
     @JsonProperty("videoSnapshot")
     private Boolean videoSnapshot;
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId(String id)
+    {
+        this.id = id;
+    }
 
     public String getUserId()
     {
@@ -132,6 +145,7 @@ public class RoomParticipant
     public static RoomParticipant createFromApi(cz.cesnet.shongo.api.RoomParticipant roomParticipantApi)
     {
         RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantApi.getId());
         roomParticipant.setUserId(roomParticipantApi.getUserId());
         roomParticipant.setDisplayName(roomParticipantApi.getDisplayName());
         roomParticipant.setRole(roomParticipantApi.getRole());
@@ -149,6 +163,7 @@ public class RoomParticipant
     public cz.cesnet.shongo.api.RoomParticipant toApi()
     {
         cz.cesnet.shongo.api.RoomParticipant roomParticipant = new cz.cesnet.shongo.api.RoomParticipant();
+        roomParticipant.setId(getId());
         roomParticipant.setUserId(getUserId());
         roomParticipant.setDisplayName(getDisplayName());
         roomParticipant.setRole(getRole());
