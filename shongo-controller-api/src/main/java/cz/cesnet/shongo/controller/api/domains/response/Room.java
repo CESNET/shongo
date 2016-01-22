@@ -4,8 +4,6 @@ import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.RoomLayout;
 import cz.cesnet.shongo.api.RoomParticipantRole;
-import cz.cesnet.shongo.controller.api.domains.request.RoomParticipant;
-import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.ArrayList;
@@ -36,30 +34,9 @@ public class Room extends AbstractResponse
     private RoomLayout roomLayout;
 
     @JsonProperty("roomParticipants")
-    private List<RoomParticipant> roomParticipants;
+    private List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> roomParticipants;
 
     //TODO room settings??
-
-
-//    public Room()
-//    {
-//    }
-
-//    @JsonCreator
-//    public Room(@JsonProperty("id") String id,
-//                   @JsonProperty("description") String description,
-//                   @JsonProperty("aliases") List<Alias> aliases,
-//                   @JsonProperty("technologies") Set<Technology> technologies,
-//                   @JsonProperty("roomLayout") RoomLayout roomLayout,
-//                   @JsonProperty("roomParticipants") List<RoomParticipant> roomParticipants)
-//    {
-//        this.id = id;
-//        this.description = description;
-//        this.aliases = aliases;
-//        this.technologies = technologies;
-//        this.roomLayout = roomLayout;
-//        this.roomParticipants = roomParticipants;
-//    }
 
     public String getId()
     {
@@ -111,12 +88,12 @@ public class Room extends AbstractResponse
         this.roomLayout = roomLayout;
     }
 
-    public List<RoomParticipant> getRoomParticipants()
+    public List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> getRoomParticipants()
     {
         return roomParticipants;
     }
 
-    public void setRoomParticipants(List<RoomParticipant> roomParticipants)
+    public void setRoomParticipants(List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> roomParticipants)
     {
         this.roomParticipants = roomParticipants;
     }
@@ -132,12 +109,13 @@ public class Room extends AbstractResponse
         }
         room.setAliases(aliases);
         room.setRoomLayout(roomApi.getLayout());
-        List<RoomParticipant> participants = new ArrayList<>();
+        List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> participants = new ArrayList<>();
         for (RoomParticipantRole participantRole : roomApi.getParticipantRoles()) {
             ParticipantRole role = participantRole.getRole();
             String id = participantRole.getUserId();
 
-            RoomParticipant roomParticipant = new RoomParticipant(id, role);
+            cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole roomParticipant;
+            roomParticipant = new cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole(id, role);
             participants.add(roomParticipant);
         }
         room.setRoomParticipants(participants);
@@ -156,7 +134,7 @@ public class Room extends AbstractResponse
         }
         //TODO licences
         room.setLayout(roomLayout);
-        for (RoomParticipant participant : roomParticipants) {
+        for (cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole participant : roomParticipants) {
             room.addParticipantRole(participant.getId(), participant.getRole());
         }
         room.setTechnologies(new HashSet<>(technologies));

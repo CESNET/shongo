@@ -265,23 +265,12 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             DomainsConnector connector = InterDomainAgent.getInstance().getConnector();
 
             try {
-                List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipant> participantList;
+                List<cz.cesnet.shongo.controller.api.domains.response.RoomParticipant> participantList;
                 participantList = connector.listRoomParticipants(roomId);
 
                 List<RoomParticipant> participants = new ArrayList<>();
-                for (cz.cesnet.shongo.controller.api.domains.request.RoomParticipant participant : participantList) {
-                    RoomParticipant roomParticipant = new RoomParticipant();
-                    roomParticipant.setId(participant.getId());
-                    roomParticipant.setRoomId(roomId);
-                    roomParticipant.setRole(participant.getRole());
-                    for (RoomParticipantValue value : participant.getValues()) {
-                        if (RoomParticipantValue.Type.NAME.equals(value.getType())) {
-                            roomParticipant.setDisplayName(value.getValue());
-                            break;
-                        }
-                    }
-                    //TODO aliases?
-                    participants.add(roomParticipant);
+                for (cz.cesnet.shongo.controller.api.domains.response.RoomParticipant participant : participantList) {
+                    participants.add(participant.toApi());
                 }
                 return participants;
             } catch (ForeignDomainConnectException e) {
