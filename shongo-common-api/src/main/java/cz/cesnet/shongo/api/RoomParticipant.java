@@ -247,7 +247,7 @@ public class RoomParticipant extends IdentifiedComplexType
      */
     public boolean isVideoSnapshot()
     {
-        return Boolean.TRUE.equals(videoEnabled);
+        return Boolean.TRUE.equals(videoSnapshot);
     }
 
     /**
