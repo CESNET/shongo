@@ -12,6 +12,11 @@ public class ForeignPerson extends AbstractPerson
     /**
      * Name of the person.
      */
+    private String userId;
+
+    /**
+     * Name of the person.
+     */
     private String name;
 
     /**
@@ -41,6 +46,19 @@ public class ForeignPerson extends AbstractPerson
     {
         setName(name);
         setEmail(email);
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
     }
 
     /**
@@ -91,6 +109,7 @@ public class ForeignPerson extends AbstractPerson
         this.email = email;
     }
 
+    public static final String USER_ID = "userId";
     public static final String NAME = "name";
     public static final String ORGANIZATION = "organization";
     public static final String EMAIL = "email";
@@ -99,6 +118,7 @@ public class ForeignPerson extends AbstractPerson
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
         dataMap.set(NAME, name);
         dataMap.set(ORGANIZATION, name);
         dataMap.set(EMAIL, email);
@@ -109,6 +129,7 @@ public class ForeignPerson extends AbstractPerson
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        userId = dataMap.getStringRequired(USER_ID, Controller.USER_ID_COLUMN_LENGTH);
         name = dataMap.getStringRequired(NAME, DEFAULT_COLUMN_LENGTH);
         organization = dataMap.getString(ORGANIZATION, DEFAULT_COLUMN_LENGTH);
         email = dataMap.getStringRequired(EMAIL, DEFAULT_COLUMN_LENGTH);

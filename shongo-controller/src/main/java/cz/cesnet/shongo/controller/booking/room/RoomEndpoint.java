@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
+import cz.cesnet.shongo.controller.booking.person.ForeignPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
@@ -27,6 +28,7 @@ import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomAvailableNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
+import org.eclipse.jetty.server.UserIdentity;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -446,6 +448,11 @@ public abstract class RoomEndpoint extends Endpoint
                 if (person instanceof UserPerson) {
                     UserPerson userPerson = (UserPerson) person;
                     roomApi.addParticipantRole(userPerson.getUserId(), personParticipant.getRole());
+                }
+                else if (person instanceof ForeignPerson) {
+                    ForeignPerson foreignPerson = ((ForeignPerson) person);
+                    String userId = UserInformation.formatForeignUserId(foreignPerson.getUserId(), foreignPerson.getDomain().getId());
+                    roomApi.addParticipantRole(userId, personParticipant.getRole());
                 }
             }
         }

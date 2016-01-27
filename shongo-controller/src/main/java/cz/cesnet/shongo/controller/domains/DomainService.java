@@ -42,11 +42,6 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 {
     private static Logger logger = LoggerFactory.getLogger(DomainService.class);
 
-//    /**
-//     * @see cz.cesnet.shongo.controller.cache.Cache
-//     */
-//    private Cache cache;
-
     /**
      * @see javax.persistence.EntityManagerFactory
      */
@@ -95,7 +90,13 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
 //        super.init(configuration);
     }
 
-//    @Override
+
+    public DomainCache getDomainCache()
+    {
+        return cache.getDomainCache();
+    }
+
+    //    @Override
 //    public String getServiceName()
 //    {
 //        return "Resource";

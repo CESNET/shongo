@@ -2,10 +2,13 @@ package cz.cesnet.shongo.controller.booking.person;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Controller;
+import cz.cesnet.shongo.controller.booking.domain.Domain;
+import cz.cesnet.shongo.controller.cache.DomainCache;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Person that can be contacted and has principal names.
@@ -15,6 +18,15 @@ import javax.persistence.Transient;
 @Entity
 public class ForeignPerson  extends AbstractPerson implements PersonInformation
 {
+    /**
+     * Home domain of foreign user. MUST not be null.
+     */
+    private Domain domain;
+
+    /**
+     * User's ID from foreign domain.
+     */
+    private String userId;
 
     /**
      * Full name of the person.
@@ -43,16 +55,35 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     {
     }
 
-    /**
-     * Constructor.
-     *
-     * @param name  sets the {@link #name}
-     * @param email sets the {@link #email}
-     */
-    public ForeignPerson(String name, String email)
+    @ManyToOne
+    @Access(AccessType.FIELD)
+    @JoinColumn(name = "domain_id")
+    public Domain getDomain()
     {
-        setName(name);
-        setEmail(email);
+        if (domain == null) {
+            throw new IllegalArgumentException("Value domain must be set.");
+        }
+        return domain;
+    }
+
+    public void setDomain(Domain domain)
+    {
+        if (domain == null) {
+            throw new IllegalArgumentException("Value domain must be set.");
+        }
+        this.domain = domain;
+    }
+
+    @Column(length = Controller.USER_ID_COLUMN_LENGTH)
+    @Access(AccessType.FIELD)
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
     }
 
     /**
@@ -127,6 +158,8 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     public ForeignPerson clone() throws CloneNotSupportedException
     {
         ForeignPerson person = (ForeignPerson) super.clone();
+        person.setUserId(userId);
+        person.setDomain(domain);
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
@@ -145,6 +178,12 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
         }
         ForeignPerson person = (ForeignPerson) object;
 
+        if (userId != null && person.userId != null) {
+            return userId.equals(person.userId);
+        }
+        if (domain != null && person.domain != null) {
+            return domain.equals(person.domain);
+        }
         if (email != null && person.email != null) {
             return email.equals(person.email);
         }
@@ -208,6 +247,14 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     {
         cz.cesnet.shongo.controller.api.ForeignPerson foreignPersonApi =
                 (cz.cesnet.shongo.controller.api.ForeignPerson) api;
+        String foreignUserId = foreignPersonApi.getUserId();
+        String userId = UserInformation.parseUserId(foreignUserId);
+        Long domainId = UserInformation.parseDomainId(foreignUserId);
+        DomainCache domainCache = InterDomainAgent.getInstance().getDomainService().getDomainCache();
+        Domain domain = domainCache.getObject(domainId);
+
+        setUserId(userId);
+        setDomain(domain);
         setName(foreignPersonApi.getName());
         setOrganization(foreignPersonApi.getOrganization());
         setEmail(foreignPersonApi.getEmail());
