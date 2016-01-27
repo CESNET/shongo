@@ -268,10 +268,10 @@ public class InterDomainController implements InterDomainProtocol
 
             //TODO: participants
             for (RoomParticipantRole participant : participants) {
-                if (participant.getId() == null) {
+                if (participant.getUserId() == null) {
                     continue;
                 }
-                roomSpecification.addParticipant(participant.toApi());
+                roomSpecification.addParticipant(participant.toApi(domainId));
             }
             if (technologies.contains(Technology.H323) && !Strings.isNullOrEmpty(roomPin)) {
                 H323RoomSetting h323RoomSetting = new H323RoomSetting();
@@ -544,6 +544,7 @@ public class InterDomainController implements InterDomainProtocol
         try {
             entityManager.getTransaction().begin();
             AbstractReservationRequest reservationRequest = validateReservationRequestsDomain(request, reservationRequestId, entityManager);
+            Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
 
             ExecutableManager executableManager = new ExecutableManager(entityManager);
 
@@ -558,7 +559,7 @@ public class InterDomainController implements InterDomainProtocol
             List<cz.cesnet.shongo.controller.booking.participant.AbstractParticipant> abstractParticipants = new ArrayList<>();
             for (RoomParticipantRole participant : participants) {
                 cz.cesnet.shongo.controller.booking.participant.PersonParticipant personParticipant;
-                personParticipant = (PersonParticipant) PersonParticipant.createFromApi(participant.toApi(), entityManager);
+                personParticipant = (PersonParticipant) PersonParticipant.createFromApi(participant.toApi(domainId), entityManager);
                 abstractParticipants.add(personParticipant);
             }
             roomEndpoint.setParticipants(abstractParticipants);
