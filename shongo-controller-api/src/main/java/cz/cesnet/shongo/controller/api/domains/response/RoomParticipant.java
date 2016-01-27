@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.DateTime;
@@ -154,7 +155,7 @@ public class RoomParticipant
         roomParticipant.setMicrophoneEnabled(roomParticipantApi.getMicrophoneEnabled());
         roomParticipant.setMicrophoneLevel(roomParticipantApi.getMicrophoneLevel());
         roomParticipant.setVideoEnabled(roomParticipantApi.getVideoEnabled());
-        //TODO
+        //TODO:
         roomParticipant.setVideoSnapshot(false);
         return roomParticipant;
     }
@@ -164,7 +165,13 @@ public class RoomParticipant
     {
         cz.cesnet.shongo.api.RoomParticipant roomParticipant = new cz.cesnet.shongo.api.RoomParticipant();
         roomParticipant.setId(getId());
-        roomParticipant.setUserId(getUserId());
+        String userId = getUserId();
+        if (UserInformation.isLocal(userId)) {
+            roomParticipant.setUserId(userId);
+        }
+        else {
+            throw new TodoImplementException();
+        }
         roomParticipant.setDisplayName(getDisplayName());
         roomParticipant.setRole(getRole());
         roomParticipant.setJoinTime(getJoinTime());

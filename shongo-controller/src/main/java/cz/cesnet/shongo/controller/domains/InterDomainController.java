@@ -595,7 +595,23 @@ public class InterDomainController implements InterDomainProtocol
 
             List<RoomParticipant> roomParticipants = new ArrayList<>();
             for (cz.cesnet.shongo.api.RoomParticipant participant : (List<cz.cesnet.shongo.api.RoomParticipant>) participants) {
-                roomParticipants.add(RoomParticipant.createFromApi(participant));
+                RoomParticipant roomParticipant = RoomParticipant.createFromApi(participant);
+                String userId = roomParticipant.getUserId();
+                // Return user-id only for users from that domain
+                // TODO: return from other domains too
+                if (UserInformation.isLocal(userId)) {
+                    roomParticipant.setUserId(null);
+                } else {
+                    Long participantDomainId = UserInformation.parseDomainId(userId);
+                    Long requestDomainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+
+                    if (requestDomainId.equals(participantDomainId)) {
+                        roomParticipant.setUserId(UserInformation.parseUserId(userId));
+                    } else {
+                        roomParticipant.setUserId(null);
+                    }
+                }
+                roomParticipants.add(roomParticipant);
             }
 
             return roomParticipants;
