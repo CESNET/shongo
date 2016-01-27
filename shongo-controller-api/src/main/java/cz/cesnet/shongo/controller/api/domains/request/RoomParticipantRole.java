@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.domains.request;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ForeignPerson;
 import cz.cesnet.shongo.controller.api.PersonParticipant;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -17,8 +18,8 @@ import java.util.List;
  */
 public class RoomParticipantRole
 {
-    @JsonProperty("id")
-    String id;
+    @JsonProperty("userId")
+    String userId;
 
     @JsonProperty("role")
     ParticipantRole role;
@@ -27,38 +28,40 @@ public class RoomParticipantRole
     List<RoomParticipantValue> values = new ArrayList<>();
 
     @JsonCreator
-    public RoomParticipantRole(@JsonProperty("id") String id,
+    public RoomParticipantRole(@JsonProperty("userId") String userId,
                            @JsonProperty("role") ParticipantRole role,
                            @JsonProperty("values") List<RoomParticipantValue> values)
     {
-        this.id = id;
+        this.userId = userId;
         this.role = role;
         this.values = values;
     }
 
-    public RoomParticipantRole(String id, ParticipantRole role)
+    public RoomParticipantRole(String userId, ParticipantRole role)
     {
-        this.id = id;
+        this.userId = userId;
         this.role = role;
     }
 
     public RoomParticipantRole(UserInformation userInformation, ParticipantRole role)
     {
-        this.id = userInformation.getUserId();
+        this.userId = userInformation.getUserId();
         this.role = role;
+        this.addValue(RoomParticipantValue.Type.NAME, userInformation.getFullName());
+        this.addValue(RoomParticipantValue.Type.EMAIL, userInformation.getEmail());
         for (String principalName : userInformation.getPrincipalNames()) {
             addValue(RoomParticipantValue.Type.EPPN, principalName);
         }
     }
 
-    public String getId()
+    public String getUserId()
     {
-        return id;
+        return userId;
     }
 
-    public void setId(String id)
+    public void setUserId(String userId)
     {
-        this.id = id;
+        this.userId = userId;
     }
 
     public ParticipantRole getRole()
@@ -86,10 +89,11 @@ public class RoomParticipantRole
         this.values.add(new RoomParticipantValue(type, value));
     }
 
-    public PersonParticipant toApi() {
+    public PersonParticipant toApi(Long domainId) {
         PersonParticipant participant = new PersonParticipant();
         participant.setRole(role);
         ForeignPerson person = new ForeignPerson();
+        person.setUserId(UserInformation.formatForeignUserId(userId, domainId));
         for (RoomParticipantValue value : values) {
             switch (value.getType()) {
                 case NAME:

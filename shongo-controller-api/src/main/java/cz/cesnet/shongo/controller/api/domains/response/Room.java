@@ -135,7 +135,7 @@ public class Room extends AbstractResponse
         //TODO licences
         room.setLayout(roomLayout);
         for (cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole participant : roomParticipants) {
-            room.addParticipantRole(participant.getId(), participant.getRole());
+            room.addParticipantRole(participant.getUserId(), participant.getRole());
         }
         room.setTechnologies(new HashSet<>(technologies));
 
