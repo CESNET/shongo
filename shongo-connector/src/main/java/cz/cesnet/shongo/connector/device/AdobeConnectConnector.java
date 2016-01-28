@@ -212,12 +212,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         endMeetingAttributes.add("state", state.toString());
 
         if (message != null) {
-            try {
-                endMeetingAttributes.add("message",URLEncoder.encode(message,"UTF8"));
-            }
-            catch (UnsupportedEncodingException e) {
-                throw new CommandException("Error while message encoding.", e);
-            }
+            endMeetingAttributes.add("message",message);
         }
 
         if (redirect == true && url != null) {
@@ -597,43 +592,38 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private void setRoomAttributes(RequestAttributeList attributes, Room room)
             throws CommandException
     {
-        try {
-            // Set the description
-            if (room.getDescription() != null) {
-                attributes.add("description", URLEncoder.encode(room.getDescription(), "UTF8"));
-            }
+        // Set the description
+        if (room.getDescription() != null) {
+            attributes.add("description", room.getDescription());
+        }
 
-            // Set capacity
-            attributes.add("sco-tag", String.valueOf(room.getLicenseCount()));
+        // Set capacity
+        attributes.add("sco-tag", String.valueOf(room.getLicenseCount()));
 
 
-            // Create/Update aliases
-            if (room.getAliases() != null) {
-                for (Alias alias : room.getAliases()) {
-                    switch (alias.getType()) {
-                        case ROOM_NAME:
-                            attributes.add("name", URLEncoder.encode(alias.getValue(), "UTF8"));
-                            break;
-                        case ADOBE_CONNECT_URI:
-                            if (urlPathExtractionFromUri == null) {
-                                throw new CommandException(String.format(
-                                        "Cannot set Adobe Connect Url Path - missing connector device option '%s'",
-                                        URL_PATH_EXTRACTION_FROM_URI));
-                            }
-                            Matcher matcher = urlPathExtractionFromUri.matcher(alias.getValue());
-                            if (!matcher.find()) {
-                                throw new CommandException("Invalid Adobe Connect URI: " + alias.getValue());
-                            }
-                            attributes.add("url-path", matcher.group(1));
-                            break;
-                        default:
-                            throw new RuntimeException("Unrecognized alias: " + alias.toString());
-                    }
+        // Create/Update aliases
+        if (room.getAliases() != null) {
+            for (Alias alias : room.getAliases()) {
+                switch (alias.getType()) {
+                    case ROOM_NAME:
+                        attributes.add("name", alias.getValue());
+                        break;
+                    case ADOBE_CONNECT_URI:
+                        if (urlPathExtractionFromUri == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set Adobe Connect Url Path - missing connector device option '%s'",
+                                    URL_PATH_EXTRACTION_FROM_URI));
+                        }
+                        Matcher matcher = urlPathExtractionFromUri.matcher(alias.getValue());
+                        if (!matcher.find()) {
+                            throw new CommandException("Invalid Adobe Connect URI: " + alias.getValue());
+                        }
+                        attributes.add("url-path", matcher.group(1));
+                        break;
+                    default:
+                        throw new RuntimeException("Unrecognized alias: " + alias.toString());
                 }
             }
-        }
-        catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while URL encoding.", ex);
         }
     }
 
@@ -714,61 +704,55 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public String createRoom(Room room) throws CommandException
     {
-        try {
-            RequestAttributeList attributes = new RequestAttributeList();
-            attributes.add("folder-id",
-                    (this.meetingsFolderId != null ? this.meetingsFolderId : this.getMeetingsFolderId()));
-            attributes.add("type", "meeting");
-            attributes.add("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("folder-id",
+                (this.meetingsFolderId != null ? this.meetingsFolderId : this.getMeetingsFolderId()));
+        attributes.add("type", "meeting");
+        attributes.add("date-begin", DateTime.now().toString());
 
-            // Set room attributes
-            setRoomAttributes(attributes, room);
+        // Set room attributes
+        setRoomAttributes(attributes, room);
 
-            // Room name must be filled
-            if (attributes.getValue("name") == null) {
-                throw new RuntimeException("Room name must be filled for the new room.");
-            }
-
-            Element response = execApi("sco-update", attributes);
-            String roomId = response.getChild("sco").getAttributeValue("sco-id");
-
-            // Add room participants
-            if (room.getLicenseCount() > 0) {
-                startMeeting(roomId);
-                addRoomParticipants(roomId, room.getParticipantRoles());
-            }
-            else if (room.getLicenseCount() == 0) {
-                endMeeting(roomId);
-            }
-
-            // Set passcode (pin), since Adobe Connect 9.0
-            RequestAttributeList passcodeAttributes = new RequestAttributeList();
-            passcodeAttributes.add("acl-id",roomId);
-            passcodeAttributes.add("field-id","meeting-passcode");
-
-            String pin = "";
-            AdobeConnectPermissions accessMode = null;
-            AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
-            if (adobeConnectRoomSetting != null) {
-                pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
-                accessMode = adobeConnectRoomSetting.getAccessMode();
-            }
-
-            // Set pin for room if set
-            passcodeAttributes.add("value",pin);
-            execApi("acl-field-update", passcodeAttributes);
-
-            // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
-            setRoomAccessMode(roomId,accessMode);
-
-            //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
-
-            return roomId;
-
+        // Room name must be filled
+        if (attributes.getValue("name") == null) {
+            throw new RuntimeException("Room name must be filled for the new room.");
         }
-        catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while encoding date: ", ex);
+
+        Element response = execApi("sco-update", attributes);
+        String roomId = response.getChild("sco").getAttributeValue("sco-id");
+
+        // Add room participants
+        if (room.getLicenseCount() > 0) {
+            startMeeting(roomId);
+            addRoomParticipants(roomId, room.getParticipantRoles());
         }
+        else if (room.getLicenseCount() == 0) {
+            endMeeting(roomId);
+        }
+
+        // Set passcode (pin), since Adobe Connect 9.0
+        RequestAttributeList passcodeAttributes = new RequestAttributeList();
+        passcodeAttributes.add("acl-id",roomId);
+        passcodeAttributes.add("field-id","meeting-passcode");
+
+        String pin = "";
+        AdobeConnectPermissions accessMode = null;
+        AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
+        if (adobeConnectRoomSetting != null) {
+            pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
+            accessMode = adobeConnectRoomSetting.getAccessMode();
+        }
+
+        // Set pin for room if set
+        passcodeAttributes.add("value",pin);
+        execApi("acl-field-update", passcodeAttributes);
+
+        // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
+        setRoomAccessMode(roomId,accessMode);
+
+        //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
+
+        return roomId;
     }
 
     @Override
@@ -853,11 +837,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
             String newRoomUrl = newRoomAlias.getValue();
             String msg = "Room has been modified, you have been redirected to the new one (" + newRoomUrl + ").";
-            endMeeting(oldRoomId, URLEncoder.encode(msg, "UTF8"), true, URLEncoder.encode(newRoomUrl, "UTF8"));
-        }
-        catch (UnsupportedEncodingException ex) {
-            deleteRoom(newRoomId);
-            throw new CommandException("Error while encoding URL. ", ex);
+            endMeeting(oldRoomId, msg, true, newRoomUrl);
         }
         catch (CommandException exception) {
             deleteRoom(newRoomId);
@@ -1142,7 +1122,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         String queryString = "";
         if (attributes != null) {
             for (Entry entry : attributes) {
-                queryString += '&' + entry.getKey() + '=' + entry.getValue();
+                try {
+                    queryString += '&' + entry.getKey() + '=' + URLEncoder.encode(entry.getValue(),"UTF8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new CommandException("Failed to process command " + action + ": ", e);
+                }
             }
         }
         return getActionUrl(action) + queryString;
