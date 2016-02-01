@@ -232,7 +232,7 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.AbstractPerson toApi()
+    public cz.cesnet.shongo.controller.api.ForeignPerson toApi()
     {
         cz.cesnet.shongo.controller.api.ForeignPerson person = new cz.cesnet.shongo.controller.api.ForeignPerson();
         person.setId(getId());
@@ -272,18 +272,6 @@ public class ForeignPerson  extends AbstractPerson implements PersonInformation
     public String getFullName()
     {
         return name;
-    }
-
-    @Transient
-    public String getLastName()
-    {
-        int index = name.lastIndexOf(" ");
-        if (index != -1) {
-            return name.substring(index + 1);
-        }
-        else {
-            return name;
-        }
     }
 
     @Override

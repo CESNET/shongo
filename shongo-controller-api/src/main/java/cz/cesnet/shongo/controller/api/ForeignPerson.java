@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.UserInformation;
 
 /**
  * {@link AbstractPerson} which is not known to local Shongo domain.
@@ -102,6 +103,20 @@ public class ForeignPerson extends AbstractPerson
     }
 
     /**
+     * @return {@link UserInformation}
+     */
+    public UserInformation getUserInformation()
+    {
+        UserInformation userInformation = new UserInformation();
+        userInformation.setUserId(userId);
+        userInformation.setFirstName(getFirstName());
+        userInformation.setLastName(getLastName());
+        userInformation.setOrganization(organization);
+        userInformation.setEmail(email);
+        return userInformation;
+    }
+
+    /**
      * @param email sets the {@link #name}
      */
     public void setEmail(String email)
@@ -135,4 +150,25 @@ public class ForeignPerson extends AbstractPerson
         email = dataMap.getStringRequired(EMAIL, DEFAULT_COLUMN_LENGTH);
     }
 
+    public String getFirstName()
+    {
+        int index = name.lastIndexOf(" ");
+        if (index != -1) {
+            return name.substring(0, index);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public String getLastName()
+    {
+        int index = name.lastIndexOf(" ");
+        if (index != -1) {
+            return name.substring(index + 1);
+        }
+        else {
+            return name;
+        }
+    }
 }

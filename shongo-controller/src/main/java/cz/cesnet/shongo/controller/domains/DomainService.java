@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
+import cz.cesnet.shongo.controller.booking.person.ForeignPerson;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
@@ -881,5 +882,21 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
         }
 
         return true;
+    }
+
+    public cz.cesnet.shongo.controller.api.ForeignPerson findForeignPerson(String foreignUserId)
+    {
+        checkNotNull("foreign-user-id", foreignUserId);
+        Long userId = Long.valueOf(UserInformation.parseUserId(foreignUserId));
+        checkNotNull("user-id", userId);
+
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            ForeignPerson foreignPerson = entityManager.find(ForeignPerson.class, userId);
+            return foreignPerson.toApi();
+        } finally {
+            entityManager.close();
+        }
     }
 }

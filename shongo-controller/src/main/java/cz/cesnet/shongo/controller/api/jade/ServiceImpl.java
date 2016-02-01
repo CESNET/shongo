@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.RoomNotExistsException;
+import cz.cesnet.shongo.controller.api.ForeignPerson;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -20,6 +21,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
@@ -74,7 +76,12 @@ public class ServiceImpl implements Service
     public UserInformation getUserInformation(String userId)
     {
         try {
-            return Authorization.getInstance().getUserInformation(userId);
+            if (UserInformation.isLocal(userId)) {
+                return Authorization.getInstance().getUserInformation(userId);
+            } else {
+                ForeignPerson foreignPerson = InterDomainAgent.getInstance().getDomainService().findForeignPerson(userId);
+                return foreignPerson.getUserInformation();
+            }
         }
         catch (ControllerReportSet.UserNotExistsException exception) {
             return null;
