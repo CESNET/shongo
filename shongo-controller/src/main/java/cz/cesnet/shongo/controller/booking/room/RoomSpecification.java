@@ -263,7 +263,7 @@ public class RoomSpecification extends Specification
      */
     @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean isParticipantNotificationEnabled()
-    {
+        {
         return participantNotificationEnabled;
     }
 
