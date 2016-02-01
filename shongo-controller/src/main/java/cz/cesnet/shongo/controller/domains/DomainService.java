@@ -31,6 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -887,14 +891,26 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
     public cz.cesnet.shongo.controller.api.ForeignPerson findForeignPerson(String foreignUserId)
     {
         checkNotNull("foreign-user-id", foreignUserId);
-        Long userId = Long.valueOf(UserInformation.parseUserId(foreignUserId));
+        String userId = UserInformation.parseUserId(foreignUserId);
+        Long domainId = Long.valueOf(UserInformation.parseDomainId(foreignUserId));
         checkNotNull("user-id", userId);
+        checkNotNull("domain-id", domainId);
 
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            ForeignPerson foreignPerson = entityManager.find(ForeignPerson.class, userId);
-            return foreignPerson.toApi();
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<ForeignPerson> query = criteriaBuilder.createQuery(ForeignPerson.class);
+            Root<ForeignPerson> domainRoot = query.from(ForeignPerson.class);
+            javax.persistence.criteria.Predicate paramDomain = criteriaBuilder.equal(domainRoot.get("domain"), domainId);
+            javax.persistence.criteria.Predicate paramUser = criteriaBuilder.equal(domainRoot.get("userId"), userId);
+            query.select(domainRoot);
+            query.where(paramDomain, paramUser);
+
+            TypedQuery<ForeignPerson> typedQuery = entityManager.createQuery(query);
+
+            return typedQuery.getSingleResult().toApi();
         } finally {
             entityManager.close();
         }
