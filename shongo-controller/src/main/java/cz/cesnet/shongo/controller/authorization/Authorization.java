@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -292,8 +293,13 @@ public abstract class Authorization
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
     {
-        UserData userData = getUserData(userId);
-        return userData.getUserInformation();
+        if (UserInformation.isLocal(userId)) {
+            UserData userData = getUserData(userId);
+            return userData.getUserInformation();
+        } else {
+            ForeignPerson foreignPerson = InterDomainAgent.getInstance().getDomainService().findForeignPerson(userId);
+            return foreignPerson.getUserInformation();
+        }
     }
 
     /**

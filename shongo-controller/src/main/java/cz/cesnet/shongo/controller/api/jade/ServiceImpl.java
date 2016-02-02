@@ -76,12 +76,7 @@ public class ServiceImpl implements Service
     public UserInformation getUserInformation(String userId)
     {
         try {
-            if (UserInformation.isLocal(userId)) {
-                return Authorization.getInstance().getUserInformation(userId);
-            } else {
-                ForeignPerson foreignPerson = InterDomainAgent.getInstance().getDomainService().findForeignPerson(userId);
-                return foreignPerson.getUserInformation();
-            }
+            return Authorization.getInstance().getUserInformation(userId);
         }
         catch (ControllerReportSet.UserNotExistsException exception) {
             return null;
