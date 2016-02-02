@@ -262,29 +262,41 @@ public class InterDomainController implements InterDomainProtocol
             RoomSpecification roomSpecification = new RoomSpecification(participantCount, technologies.toArray(new Technology[technologies.size()]));
             RoomAvailability roomAvailability = roomSpecification.getAvailability();
             roomAvailability.setMeetingDescription(description);
-            if (Boolean.TRUE.equals(roomRecorded) && !technologies.contains(Technology.ADOBE_CONNECT)) {
-                roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
-            }
 
-            //TODO: participants
-            for (RoomParticipantRole participant : participants) {
-                if (participant.getUserId() == null) {
-                    continue;
+            // Settings for specific technologies
+            // H.323: room pin, recording
+            if (technologies.contains(Technology.H323)) {
+                roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
+                if (!Strings.isNullOrEmpty(roomPin)) {
+                    H323RoomSetting h323RoomSetting = new H323RoomSetting();
+                    h323RoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                roomSpecification.addParticipant(participant.toApi(domainId));
             }
-            if (technologies.contains(Technology.H323) && !Strings.isNullOrEmpty(roomPin)) {
-                H323RoomSetting h323RoomSetting = new H323RoomSetting();
-                h323RoomSetting.setPin(roomPin);
-                roomSpecification.addRoomSetting(h323RoomSetting);
-            }
-            else if (technologies.contains(Technology.ADOBE_CONNECT)) {
+            // Adobe Connect: access mode, room pin, participants,
+            if (technologies.contains(Technology.ADOBE_CONNECT)) {
                 AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
                 if (!Strings.isNullOrEmpty(roomPin)) {
                     adobeConnectRoomSetting.setPin(roomPin);
                 }
                 adobeConnectRoomSetting.setAccessMode(acRoomAccessMode);
                 roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+
+                for (RoomParticipantRole participant : participants) {
+                    if (participant.getUserId() == null) {
+                        continue;
+                    }
+                    cz.cesnet.shongo.controller.api.PersonParticipant roomParticipant = participant.toApi(domainId);
+                    if (roomParticipant.getPerson() instanceof ForeignPerson) {
+                        ForeignPerson foreignPerson = (ForeignPerson) roomParticipant.getPerson();
+                        if (!foreignPerson.getUserInformation().getPrincipalNames().isEmpty()) {
+                            roomSpecification.addParticipant(roomParticipant);
+                        }
+                    }
+                    else {
+                        throw new TodoImplementException("Unsupported person type: " + roomParticipant.getPerson().getClassName());
+                    }
+                }
             }
 
             ReservationRequest newReservationRequest = new ReservationRequest();
