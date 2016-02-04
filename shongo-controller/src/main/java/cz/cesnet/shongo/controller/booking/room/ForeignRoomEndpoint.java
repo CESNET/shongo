@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ForeignExecutable;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
@@ -38,10 +39,11 @@ import javax.persistence.Transient;
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
-public class ForeignRoomEndpoint extends RoomEndpoint
+public class ForeignRoomEndpoint extends RoomEndpoint implements ForeignExecutable
 {
     private String foreignReservationRequestId;
 
+    @Override
     public String getForeignReservationRequestId()
     {
         return foreignReservationRequestId;

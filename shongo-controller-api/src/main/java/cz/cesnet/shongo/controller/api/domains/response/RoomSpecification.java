@@ -27,26 +27,36 @@ public class RoomSpecification extends ForeignSpecification
     private String roomName;
 
     @JsonProperty("technologies")
-    private Set<Technology> technologies;
+    private Set<Technology> technologies = new HashSet<>();
 
     @JsonProperty("aliases")
-    private List<Alias> aliases;
+    private List<Alias> aliases = new ArrayList<>();
 
     @JsonProperty("state")
     private RoomState state;
+
+    @JsonProperty("recorded")
+    private boolean recorded = false;
+
+    @JsonProperty("recordingActive")
+    private boolean recordingActive = false;
 
     @JsonCreator
     public RoomSpecification(@JsonProperty("licenseCount") Integer licenseCount,
                              @JsonProperty("roomName") String roomName,
                              @JsonProperty("technologies") Set<Technology> technologies,
                              @JsonProperty("aliases") List<Alias> aliases,
-                             @JsonProperty("state") RoomState state)
+                             @JsonProperty("state") RoomState state,
+                             @JsonProperty("recorded") boolean recorded,
+                             @JsonProperty("recordingActive") boolean recordingActive)
     {
         this.licenseCount = licenseCount;
         this.roomName = roomName;
         this.technologies = technologies;
         this.aliases = aliases;
         this.state = state;
+        this.recorded = recorded;
+        this.recordingActive = recordingActive;
     }
 
     public RoomSpecification()
@@ -65,9 +75,6 @@ public class RoomSpecification extends ForeignSpecification
 
     public void addTechnology(Technology technology)
     {
-        if (technologies == null) {
-            technologies = new HashSet<>();
-        }
         this.technologies.add(technology);
     }
 
@@ -83,9 +90,6 @@ public class RoomSpecification extends ForeignSpecification
 
     public void addAlias(AliasType aliasType, String value)
     {
-        if (aliases == null) {
-            aliases = new ArrayList<>();
-        }
         this.aliases.add(new Alias(aliasType, value));
     }
 
@@ -117,6 +121,26 @@ public class RoomSpecification extends ForeignSpecification
     public void setState(RoomState state)
     {
         this.state = state;
+    }
+
+    public boolean isRecorded()
+    {
+        return recorded;
+    }
+
+    public void setRecorded(boolean recorded)
+    {
+        this.recorded = recorded;
+    }
+
+    public boolean isRecordingActive()
+    {
+        return recordingActive;
+    }
+
+    public void setRecordingActive(boolean recordingActive)
+    {
+        this.recordingActive = recordingActive;
     }
 
     /**

@@ -664,6 +664,14 @@ public class DomainsConnector
         return new ArrayList<>(reservations.values());
     }
 
+    public Reservation getReservationByRequest(String foreignReservationRequestId) throws ForeignDomainConnectException
+    {
+        String domainName = ObjectIdentifier.parseDomain(foreignReservationRequestId);
+        Domain domain = getDomainService().findDomainByName(domainName);
+
+        return getReservationByRequest(domain, foreignReservationRequestId);
+    }
+
     public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId) throws ForeignDomainConnectException
     {
         ObjectReader reader = mapper.reader(Reservation.class);

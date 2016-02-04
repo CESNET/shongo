@@ -480,6 +480,8 @@ public class ExecutableManager extends AbstractManager
         return null;
     }
 
+
+
     /**
      * @param executable
      * @return map of recording folder identifiers by {@link RecordingCapability}s for given {@code executable}

@@ -668,10 +668,10 @@ public class RoomReservationTask extends ReservationTask
         resourceRoomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);
         String executableState = roomSpecification.getState().toApi().toString();
         resourceRoomEndpoint.setState(Executable.State.valueOf(executableState));
+        //TODO: recording???
         if (resourceRoomEndpoint.getState().equals(Executable.State.STARTED)) {
             resourceRoomEndpoint.setModified(true);
         }
-
         for (cz.cesnet.shongo.controller.api.domains.response.Alias alias : roomSpecification.getAliases()) {
             Alias persistenceAlias = new Alias(alias.getType(), alias.getValue());
             try {
