@@ -12,6 +12,9 @@ import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.RecordingService;
+import cz.cesnet.shongo.controller.api.domains.response.*;
+import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
@@ -21,13 +24,14 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.*;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.executor.ExecutionPlan;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
@@ -391,6 +395,44 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
                     new ListResponse<cz.cesnet.shongo.controller.api.ExecutableService>();
+
+            // List services for ForeignExecutables and return
+            // TODO: combine both in the future
+            if (executable instanceof ForeignExecutable) {
+                ForeignExecutable foreignExecutable = (ForeignExecutable) executable;
+                String foreignReservationRequestId = foreignExecutable.getForeignReservationRequestId();
+                cz.cesnet.shongo.controller.api.domains.response.Reservation reservation;
+                try {
+                    reservation = InterDomainAgent.getInstance().getConnector().getReservationByRequest(foreignReservationRequestId);
+                }
+                catch (ForeignDomainConnectException e) {
+                    throw new RuntimeException("Failed to get foreign reservation.", e);
+                }
+                // TODO vracet api...
+
+                ForeignSpecification specification = reservation.getSpecification();
+                if (specification instanceof RoomSpecification) {
+                    RoomSpecification roomSpecification = (RoomSpecification) specification;
+                    if (roomSpecification.isRecorded()) {
+                        RecordingService recordingService;
+                        recordingService = new RecordingService();
+                        recordingService.setResourceId(foreignReservationRequestId);
+                        recordingService.setActive(roomSpecification.isRecordingActive());
+
+                        response.addItem(recordingService);
+                        response.setCount(1);
+                        response.setStart(0);
+                    }
+
+                } else {
+                    throw new TodoImplementException("Unsupported foreign specification: " + specification.getClass());
+                }
+
+                if (response.getCount() > 0) {
+                    return response;
+                }
+            }
+
             List<cz.cesnet.shongo.controller.booking.executable.ExecutableService> services = performListRequest(
                     query, queryFilter, cz.cesnet.shongo.controller.booking.executable.ExecutableService.class,
                     request, response, entityManager);

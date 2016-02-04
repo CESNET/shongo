@@ -13,6 +13,8 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoomParticipant;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableService;
+import cz.cesnet.shongo.controller.api.RecordingServiceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
@@ -27,6 +29,8 @@ import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
+import cz.cesnet.shongo.controller.booking.recording.*;
+import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
@@ -362,6 +366,7 @@ public class InterDomainController implements InterDomainProtocol
                 throw new ForbiddenException("Unsupported specification");
             }
 
+            // Authorize domain
             if (!domainId.equals(UserInformation.parseDomainId(createdByUserId)) || !requestIdentifier.isLocal()) {
                 // Throw {@code ForbiddenException} for error 403 to return
                 throw new ForbiddenException("Cannot get reservation");
@@ -402,6 +407,17 @@ public class InterDomainController implements InterDomainProtocol
                     foreignRoomSpecification.setRoomName(roomName);
                     for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomReservation.getEndpoint().getAliases()) {
                         foreignRoomSpecification.addAlias(alias.getType(), alias.getValue());
+                    }
+
+                    //TODO:
+                    for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : roomReservation.getEndpoint().getServices()) {
+                        if (service instanceof cz.cesnet.shongo.controller.booking.recording.RecordingService) {
+                            RecordingService recordingService = (RecordingService) service;
+                            foreignRoomSpecification.setRecorded(true);
+                            foreignRoomSpecification.setRecordingActive(recordingService.isActive());
+                        } else {
+                            throw new TodoImplementException("Unsupported service" + service.getClass());
+                        }
                     }
 
                     reservation.setSpecification(foreignRoomSpecification);
