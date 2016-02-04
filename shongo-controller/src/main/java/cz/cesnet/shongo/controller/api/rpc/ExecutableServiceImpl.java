@@ -416,6 +416,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     if (roomSpecification.isRecorded()) {
                         RecordingService recordingService;
                         recordingService = new RecordingService();
+                        recordingService.setId("");
                         recordingService.setResourceId(foreignReservationRequestId);
                         recordingService.setActive(roomSpecification.isRecordingActive());
 
