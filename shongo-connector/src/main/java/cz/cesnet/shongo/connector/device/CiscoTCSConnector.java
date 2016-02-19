@@ -720,7 +720,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         // Delete storage files
         if (storage.folderExists(folderId)) {
             for (File file : storage.listFiles(folderId, fileId)) {
-                if (file.getFileName().contains(fileId)) {
+                if (storage.filenameEqualsFileId(file, fileId)) {
                     storage.deleteFile(folderId, file.getFileName());
                     if (isMetadataFilename(file.getFileName())) {
                         metadataStorage.deleteFile(folderId, file.getFileName());

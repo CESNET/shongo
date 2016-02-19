@@ -189,4 +189,10 @@ public class ApacheStorage extends AbstractStorage
     {
         return localStorageHandler.validateFile(file, expectedSize);
     }
+
+    @Override
+    public boolean filenameEqualsFileId(File file, String fileId)
+    {
+        return localStorageHandler.filenameEqualsFileId(file, fileId);
+    }
 }
