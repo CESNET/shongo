@@ -573,4 +573,9 @@ public class LocalStorageHandler
         long fileSize = getFileInstance(file).length();
         return Math.abs(fileSize - expectedSize) < (10 * 1024 * 1024);
     }
+
+    public boolean filenameEqualsFileId(File file, String fileId)
+    {
+        return file.getFileName().contains(mangle(fileId));
+    }
 }

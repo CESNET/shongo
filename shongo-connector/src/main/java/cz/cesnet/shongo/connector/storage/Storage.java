@@ -115,4 +115,12 @@ public interface Storage
      * @return
      */
     boolean validateFile(File file, long expectedSize);
+
+    /**
+     *
+     * @param file
+     * @param fileId
+     * @return
+     */
+    boolean filenameEqualsFileId(File file, String fileId);
 }

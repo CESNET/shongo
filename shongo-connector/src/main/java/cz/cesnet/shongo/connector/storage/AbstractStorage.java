@@ -90,4 +90,10 @@ public abstract class AbstractStorage implements Storage
          */
         public UserInformation getUserInformation(String userId) throws CommandException;
     }
+
+    @Override
+    public boolean filenameEqualsFileId(File file, String fileId)
+    {
+        return file.getFileName().contains(fileId);
+    }
 }
