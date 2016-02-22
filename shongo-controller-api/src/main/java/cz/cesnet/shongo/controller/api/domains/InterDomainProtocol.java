@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.AdobeConnectPermissions;
 import cz.cesnet.shongo.controller.api.domains.request.AbstractDomainRoomAction;
 import cz.cesnet.shongo.controller.api.domains.request.CapabilitySpecificationRequest;
 import cz.cesnet.shongo.controller.api.domains.response.RoomParticipant;
-import cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole;
+import cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import org.joda.time.Interval;
 
@@ -32,7 +32,7 @@ public interface InterDomainProtocol {
 
     Reservation handleAllocateRoom(HttpServletRequest request, Interval slot, int participantCount, List<Technology> technologies,
                                           String userId, String description, String roomPin, AdobeConnectPermissions roomAccessMode,
-                                          Boolean roomRecorded, String reservationRequestId, List<RoomParticipantRole> participants)
+                                          Boolean roomRecorded, String reservationRequestId, List<ForeignRoomParticipantRole> participants)
             throws NotAuthorizedException, ForbiddenException;
 
     Reservation handleGetReservation(HttpServletRequest request, String reservationRequestId)
@@ -44,7 +44,7 @@ public interface InterDomainProtocol {
     List<Reservation> handleListReservations(HttpServletRequest request, String resourceId, Interval slot)
             throws NotAuthorizedException, ForbiddenException;
 
-    AbstractResponse handleSetParticipants(HttpServletRequest request, String reservationRequestId, List<RoomParticipantRole> participants)
+    AbstractResponse handleSetParticipants(HttpServletRequest request, String reservationRequestId, List<ForeignRoomParticipantRole> participants)
             throws NotAuthorizedException, ForbiddenException;
 
     List<RoomParticipant> handleGetParticipants(HttpServletRequest request, String reservationRequestId)

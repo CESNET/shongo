@@ -13,6 +13,8 @@ public class ExecutableService extends IdentifiedComplexType
 {
     /**
      * Identifier of {@link Executable} for which the service has been allocated.
+     *
+     * For foreign rooms/reservations it contains foreign reservation request id.
      */
     private String executableId;
 

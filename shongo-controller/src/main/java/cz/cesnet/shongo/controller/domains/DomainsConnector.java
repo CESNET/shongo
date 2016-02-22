@@ -11,7 +11,7 @@ import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.request.*;
-import cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole;
+import cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole;
 import cz.cesnet.shongo.controller.api.domains.response.RoomParticipant;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
@@ -647,10 +647,10 @@ public class DomainsConnector
             }
             parameters.put("reservationRequestId", previousReservationRequestId);
         }
-        List<RoomParticipantRole> participants = new ArrayList<>();
+        List<ForeignRoomParticipantRole> participants = new ArrayList<>();
         if (roomSettings.getParticipants() != null) {
             for (Map.Entry<UserInformation, ParticipantRole> entry : roomSettings.getParticipants().entrySet()) {
-                participants.add(new RoomParticipantRole(entry.getKey(), entry.getValue()));
+                participants.add(new ForeignRoomParticipantRole(entry.getKey(), entry.getValue()));
             }
         }
 
