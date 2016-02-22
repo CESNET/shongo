@@ -13,14 +13,13 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoomParticipant;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.ExecutableService;
 import cz.cesnet.shongo.controller.api.RecordingServiceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.InterDomainProtocol;
 import cz.cesnet.shongo.controller.api.domains.request.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomParticipant;
-import cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole;
+import cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.Reservation;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -228,7 +227,7 @@ public class InterDomainController implements InterDomainProtocol
                                           @RequestParam(value = "acRoomAccessMode", required = false) AdobeConnectPermissions acRoomAccessMode,
                                           @RequestParam(value = "roomRecorded", required = false) Boolean roomRecorded,
                                           @RequestParam(value = "reservationRequestId", required = false) String reservationRequestId,
-                                          @RequestBody List<RoomParticipantRole> participants)
+                                          @RequestBody List<ForeignRoomParticipantRole> participants)
             throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
@@ -286,7 +285,7 @@ public class InterDomainController implements InterDomainProtocol
                 adobeConnectRoomSetting.setAccessMode(acRoomAccessMode);
                 roomSpecification.addRoomSetting(adobeConnectRoomSetting);
 
-                for (RoomParticipantRole participant : participants) {
+                for (ForeignRoomParticipantRole participant : participants) {
                     if (participant.getUserId() == null) {
                         continue;
                     }
@@ -565,7 +564,7 @@ public class InterDomainController implements InterDomainProtocol
     @ResponseBody
     public AbstractResponse handleSetParticipants(HttpServletRequest request,
                                                   @RequestParam(value = "reservationRequestId", required = true) String reservationRequestId,
-                                                  @RequestBody List<RoomParticipantRole> participants)
+                                                  @RequestBody List<ForeignRoomParticipantRole> participants)
             throws NotAuthorizedException, ForbiddenException
     {
         EntityManager entityManager = InterDomainAgent.getInstance().createEntityManager();
@@ -585,7 +584,7 @@ public class InterDomainController implements InterDomainProtocol
             }
 
             List<cz.cesnet.shongo.controller.booking.participant.AbstractParticipant> abstractParticipants = new ArrayList<>();
-            for (RoomParticipantRole participant : participants) {
+            for (ForeignRoomParticipantRole participant : participants) {
                 cz.cesnet.shongo.controller.booking.participant.PersonParticipant personParticipant;
                 personParticipant = (PersonParticipant) PersonParticipant.createFromApi(participant.toApi(domainId), entityManager);
                 abstractParticipants.add(personParticipant);

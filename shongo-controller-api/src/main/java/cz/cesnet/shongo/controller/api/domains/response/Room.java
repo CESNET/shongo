@@ -34,7 +34,7 @@ public class Room extends AbstractResponse
     private RoomLayout roomLayout;
 
     @JsonProperty("roomParticipants")
-    private List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> roomParticipants;
+    private List<cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole> roomParticipants;
 
     //TODO room settings??
 
@@ -88,12 +88,12 @@ public class Room extends AbstractResponse
         this.roomLayout = roomLayout;
     }
 
-    public List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> getRoomParticipants()
+    public List<cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole> getRoomParticipants()
     {
         return roomParticipants;
     }
 
-    public void setRoomParticipants(List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> roomParticipants)
+    public void setRoomParticipants(List<cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole> roomParticipants)
     {
         this.roomParticipants = roomParticipants;
     }
@@ -109,13 +109,13 @@ public class Room extends AbstractResponse
         }
         room.setAliases(aliases);
         room.setRoomLayout(roomApi.getLayout());
-        List<cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole> participants = new ArrayList<>();
+        List<cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole> participants = new ArrayList<>();
         for (RoomParticipantRole participantRole : roomApi.getParticipantRoles()) {
             ParticipantRole role = participantRole.getRole();
             String id = participantRole.getUserId();
 
-            cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole roomParticipant;
-            roomParticipant = new cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole(id, role);
+            cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole roomParticipant;
+            roomParticipant = new cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole(id, role);
             participants.add(roomParticipant);
         }
         room.setRoomParticipants(participants);
@@ -134,7 +134,7 @@ public class Room extends AbstractResponse
         }
         //TODO licences
         room.setLayout(roomLayout);
-        for (cz.cesnet.shongo.controller.api.domains.request.RoomParticipantRole participant : roomParticipants) {
+        for (cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole participant : roomParticipants) {
             room.addParticipantRole(participant.getUserId(), participant.getRole());
         }
         room.setTechnologies(new HashSet<>(technologies));

@@ -408,7 +408,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 catch (ForeignDomainConnectException e) {
                     throw new RuntimeException("Failed to get foreign reservation.", e);
                 }
-                // TODO vracet api...
 
                 ForeignSpecification specification = reservation.getSpecification();
                 if (specification instanceof RoomSpecification) {
@@ -416,8 +415,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     if (roomSpecification.isRecorded()) {
                         RecordingService recordingService;
                         recordingService = new RecordingService();
-                        recordingService.setId("");
-                        recordingService.setResourceId(foreignReservationRequestId);
+                        // Sets executableId to foreign reservation request id
+                        recordingService.setExecutableId(foreignReservationRequestId);
                         recordingService.setActive(roomSpecification.isRecordingActive());
 
                         response.addItem(recordingService);
@@ -429,6 +428,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     throw new TodoImplementException("Unsupported foreign specification: " + specification.getClass());
                 }
 
+                //Return only if any service has been found
                 if (response.getCount() > 0) {
                     return response;
                 }
@@ -792,7 +792,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
+        ObjectIdentifier objectId;
+        try {
+            objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
+        }
+        catch (ControllerReportSet.IdentifierInvalidTypeException ex) {
+            objectId = ObjectIdentifier.parseForeignId(executableId);
+            // Check if id is for foreign reservation request
+            if (!ObjectType.RESERVATION_REQUEST.equals(objectId.getObjectType()) || objectId.isLocal()) {
+                throw ex;
+            }
+
+            throw new TodoImplementException("TOTOTOTOTO");
+        }
+
         try {
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(objectId.getPersistenceId());
