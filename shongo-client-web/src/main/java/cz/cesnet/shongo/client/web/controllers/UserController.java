@@ -136,7 +136,9 @@ public class UserController
         UserSettings userSettings = authorizationService.getUserSettings(securityToken, true);
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("locale", userSettings.getLocale());
-        result.put("homeTimeZone", userSettings.getHomeTimeZone().getID());
+        if (userSettings.getHomeTimeZone() != null) {
+            result.put("homeTimeZone", userSettings.getHomeTimeZone().getID());
+        }
         return result;
     }
 

@@ -88,7 +88,7 @@ public class ClassHelper
     }
 
     /**
-     * Gets all packages named cz.cesnet.shongo.*.api
+     * Gets all packages named cz.cesnet.shongo.*[.api/.api.request]
      *
      * @return
      */
@@ -98,7 +98,7 @@ public class ClassHelper
             ArrayList<String> list = new ArrayList<String>();
             for (Package item : Package.getPackages()) {
                 String name = item.getName();
-                if (name.startsWith("cz.cesnet.shongo.") && (name.endsWith(".api") || name.endsWith(".request"))) {
+                if (name.startsWith("cz.cesnet.shongo.") && ((name.endsWith(".api") || name.endsWith("api.request")))) {
                     list.add(name);
                 }
             }
