@@ -25,7 +25,7 @@ public class Room extends AbstractResponse
     private String description;
 
     @JsonProperty("aliases")
-    private List<Alias> aliases;
+    private List<Alias> aliases = new ArrayList<>();
 
     @JsonProperty("technologies")
     private Set<Technology> technologies;

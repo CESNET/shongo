@@ -61,7 +61,8 @@ sub list_domains()
             {'field' => 'allocatable', 'title' => 'Allocatable'},
             {'field' => 'status',       'title' => 'Status'},
             {'field' => 'url',       'title' => 'Url'},
-            {'field' => 'certificatePath',       'title' => 'Certificate'}
+            {'field' => 'certificatePath',       'title' => 'Certificate'},
+            {'field' => 'shareAuthorizationServer',       'title' => 'Shared AA'}
         ],
         'data' => []
     };
@@ -77,7 +78,8 @@ sub list_domains()
             'allocatable' => $domain->{'allocatable'} ? 'yes' : 'no',
             'status' => $status,
             'url' => $url,
-            'certificatePath' => $certificatePath
+            'certificatePath' => $certificatePath,
+            'shareAuthorizationServer' => $domain->{'shareAuthorizationServer'} ? 'yes' : 'no'
         });
     }
     console_print_table($table);

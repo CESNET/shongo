@@ -47,6 +47,13 @@ public class Domain extends SimplePersistentObject {
     private String passwordHash;
 
     /**
+     * If foreign domain uses the same authorization server or shares user consolidator.
+     *
+     * Use when all users have the same ids in both domains.
+     */
+    private boolean shareAuthorizationServer = false;
+
+    /**
      * Is this domain used for local allocations.
      * Allocatable domains are also cached. See {@link cz.cesnet.shongo.controller.domains.CachedDomainsConnector}
      */
@@ -115,6 +122,17 @@ public class Domain extends SimplePersistentObject {
         this.allocatable = allocatable;
     }
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isShareAuthorizationServer()
+    {
+        return shareAuthorizationServer;
+    }
+
+    public void setShareAuthorizationServer(boolean shareAuthorizationServer)
+    {
+        this.shareAuthorizationServer = shareAuthorizationServer;
+    }
+
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getPasswordHash() {
         return passwordHash;
@@ -144,6 +162,7 @@ public class Domain extends SimplePersistentObject {
         domainApi.setCertificatePath(certificatePath);
         domainApi.setAllocatable(allocatable);
         domainApi.setPasswordHash(passwordHash);
+        domainApi.setShareAuthorizationServer(shareAuthorizationServer);
     }
 
     /**
