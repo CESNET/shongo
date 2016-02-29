@@ -3,6 +3,9 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.UserInformation;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * {@link AbstractPerson} which is not known to local Shongo domain.
  *
@@ -29,6 +32,11 @@ public class ForeignPerson extends AbstractPerson
      * Email for the person.
      */
     private String email;
+
+    /**
+     * Set of user principal names.
+     */
+    private Set<String> principalNames = new HashSet<String>();
 
     /**
      * Constructor.
@@ -103,6 +111,30 @@ public class ForeignPerson extends AbstractPerson
     }
 
     /**
+     * @return {@link #principalNames}
+     */
+    public Set<String> getPrincipalNames()
+    {
+        return principalNames;
+    }
+
+    /**
+     * @param principalNames sets the {@link #principalNames}
+     */
+    public void setPrincipalNames(Set<String> principalNames)
+    {
+        this.principalNames = principalNames;
+    }
+
+    /**
+     * @param principalName to be added to the {@link #principalNames}
+     */
+    public void addPrincipalName(String principalName)
+    {
+        this.principalNames.add(principalName);
+    }
+
+    /**
      * @return {@link UserInformation}
      */
     public UserInformation getUserInformation()
@@ -113,6 +145,7 @@ public class ForeignPerson extends AbstractPerson
         userInformation.setLastName(getLastName());
         userInformation.setOrganization(organization);
         userInformation.setEmail(email);
+        userInformation.setPrincipalNames(principalNames);
         return userInformation;
     }
 
