@@ -186,6 +186,7 @@ public class Domain extends SimplePersistentObject {
         this.setCertificatePath(domainApi.getCertificatePath());
         this.setAllocatable(domainApi.isAllocatable());
         this.setPasswordHash(domainApi.getPasswordHash());
+        this.setShareAuthorizationServer(domainApi.isShareAuthorizationServer());
     }
 
     /**
