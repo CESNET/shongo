@@ -57,6 +57,11 @@ public class Domain extends IdentifiedComplexType
     private String passwordHash;
 
     /**
+     * Foreign domain shares users by the same AA server.
+     */
+    private boolean shareAuthorizationServer;
+
+    /**
      * @return {@link #name}
      */
     public String getName()
@@ -144,6 +149,16 @@ public class Domain extends IdentifiedComplexType
         this.passwordHash = passwordHash;
     }
 
+    public boolean isShareAuthorizationServer()
+    {
+        return shareAuthorizationServer;
+    }
+
+    public void setShareAuthorizationServer(boolean shareAuthorizationServer)
+    {
+        this.shareAuthorizationServer = shareAuthorizationServer;
+    }
+
     private static final Pattern GLOBAL_ID_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
 
     /**
@@ -171,6 +186,7 @@ public class Domain extends IdentifiedComplexType
     private static final String CERTIFICATE_PATH = "certificatePath";
     private static final String ALLOCATABLE = "allocatable";
     private static final String PASSWORD_HASH = "passwordHash";
+    private static final String SHARE_AUTHORIZATION_SERVER = "shareAuthorizationServer";
 
     @Override
     public DataMap toData()
@@ -187,6 +203,7 @@ public class Domain extends IdentifiedComplexType
         dataMap.set(CERTIFICATE_PATH, certificatePath);
         dataMap.set(ALLOCATABLE, allocatable);
         dataMap.set(PASSWORD_HASH, passwordHash);
+        dataMap.set(SHARE_AUTHORIZATION_SERVER, shareAuthorizationServer);
         return dataMap;
     }
 
@@ -202,6 +219,7 @@ public class Domain extends IdentifiedComplexType
         certificatePath = dataMap.getString(CERTIFICATE_PATH);
         allocatable = dataMap.getBool(ALLOCATABLE);
         passwordHash = dataMap.getString(PASSWORD_HASH);
+        shareAuthorizationServer = dataMap.getBool(SHARE_AUTHORIZATION_SERVER);
     }
 
     /**

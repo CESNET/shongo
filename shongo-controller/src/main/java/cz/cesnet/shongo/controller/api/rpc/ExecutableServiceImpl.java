@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RecordingService;
+import cz.cesnet.shongo.controller.api.domains.request.StartRecording;
 import cz.cesnet.shongo.controller.api.domains.response.*;
 import cz.cesnet.shongo.controller.api.domains.response.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -31,6 +32,7 @@ import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.domains.DomainsConnector;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.executor.ExecutionPlan;
@@ -796,14 +798,26 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         try {
             objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         }
-        catch (ControllerReportSet.IdentifierInvalidTypeException ex) {
+        //TODO: only for foreign recording, generalize for other services
+        catch (ControllerReportSet.IdentifierInvalidDomainException ex) {
             objectId = ObjectIdentifier.parseForeignId(executableId);
             // Check if id is for foreign reservation request
-            if (!ObjectType.RESERVATION_REQUEST.equals(objectId.getObjectType()) || objectId.isLocal()) {
+            if (!ObjectType.RESERVATION_REQUEST.equals(objectId.getObjectType())) {
                 throw ex;
             }
 
-            throw new TodoImplementException("TOTOTOTOTO");
+            DomainsConnector domainsConnector = InterDomainAgent.getInstance().getConnector();
+            try {
+                AbstractResponse response = domainsConnector.sendRoomAction(new StartRecording(), executableId, AbstractResponse.class);
+                if (response.success()) {
+                    return Boolean.TRUE;
+                }
+                else {
+                    return Boolean.FALSE;
+                }
+            } catch (ForeignDomainConnectException e) {
+                return Boolean.FALSE;
+            }
         }
 
         try {

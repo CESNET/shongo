@@ -70,6 +70,13 @@ sub new()
         }
     );
     $self->add_attribute(
+        'shareAuthorizationServer', {
+            'required' => 0,
+            'type' => 'bool',
+            'title' => 'Uses the same AA server',
+        }
+    );
+    $self->add_attribute(
         'certificatePath', {
             'required' => 0,
             'title' => 'Domain certificate file (for PKI auth)',
