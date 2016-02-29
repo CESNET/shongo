@@ -238,7 +238,8 @@ public class InterDomainController implements InterDomainProtocol
 
             Reservation reservation = new Reservation();
 
-            Long domainId = ObjectIdentifier.parseLocalId(getDomain(request).getId(), ObjectType.DOMAIN);
+            Domain domain = getDomain(request);
+            Long domainId = ObjectIdentifier.parseLocalId(domain.getId(), ObjectType.DOMAIN);
             ObjectIdentifier reservationRequestIdentifier = null;
             if (!Strings.isNullOrEmpty(reservationRequestId)) {
                 reservationRequestIdentifier = ObjectIdentifier.parseTypedId(reservationRequestId, ObjectType.RESERVATION_REQUEST);
@@ -292,7 +293,8 @@ public class InterDomainController implements InterDomainProtocol
                     cz.cesnet.shongo.controller.api.PersonParticipant roomParticipant = participant.toApi(domainId);
                     if (roomParticipant.getPerson() instanceof ForeignPerson) {
                         ForeignPerson foreignPerson = (ForeignPerson) roomParticipant.getPerson();
-                        if (!foreignPerson.getUserInformation().getPrincipalNames().isEmpty()) {
+                        // Add participants only if users are shared between domains
+                        if (domain.isShareAuthorizationServer() && !foreignPerson.getUserInformation().getPrincipalNames().isEmpty()) {
                             roomSpecification.addParticipant(roomParticipant);
                         }
                     }
