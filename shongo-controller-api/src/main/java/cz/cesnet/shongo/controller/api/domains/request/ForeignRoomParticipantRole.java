@@ -103,7 +103,7 @@ public class ForeignRoomParticipantRole
                     person.setEmail(value.getValue());
                     break;
                 case EPPN:
-                    person.getUserInformation().addPrincipalName(value.getValue());
+                    person.addPrincipalName(value.getValue());
                     break;
             }
         }
