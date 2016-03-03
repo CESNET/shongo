@@ -5,10 +5,10 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<security:authorize access="hasPermission(RESERVATION)">
+<%--<security:authorize access="hasPermission(RESERVATION)">--%>
     <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
                                 domainObject="${reservationRequest}" var="canCreatePermanentRoomCapacity"/>
-</security:authorize>
+<%--</security:authorize>--%>
 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
     <c:set var="canCreatePermanentRoomCapacity" value="${false}"/>
 </c:if>
