@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -25,6 +26,9 @@ import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.room.*;
+import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
+import cz.cesnet.shongo.controller.booking.specification.*;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
@@ -356,11 +360,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         authorization.validate(securityToken);
         checkNotNull("reservationRequest", reservationRequestApi);
 
-        // Check whether user can create reservation requests
-        if (!authorization.hasSystemPermission(securityToken, SystemPermission.RESERVATION)) {
-            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create reservation request");
-        }
-
         // Change user id (only root can do that)
         String userId = securityToken.getUserId();
         if (reservationRequestApi.getUserId() != null && authorization.isAdministrator(securityToken)) {
@@ -371,7 +370,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            // Check permission for reused reservation request
+            // Check permission for reused reservation request.
+            // Allows even when user doesn't have system permission {@link SystemPermission.RESERVATION}.
             String reusedReservationRequestId = reservationRequestApi.getReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
                 checkReusedReservationRequest(securityToken, reusedReservationRequestId, reservationRequestManager);
@@ -383,6 +383,25 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.createFromApi(
                             reservationRequestApi, entityManager);
+
+            // Check whether user can create reservation requests OR has permissions to create capacity for permanent room
+            if (!authorization.hasSystemPermission(securityToken, SystemPermission.RESERVATION)) {
+                boolean allowOnAcl = false;
+                if (reusedReservationRequestId != null) {
+                    cz.cesnet.shongo.controller.booking.specification.Specification specification;
+                    specification = reservationRequest.getSpecification();
+                    if (specification instanceof cz.cesnet.shongo.controller.booking.room.RoomSpecification) {
+                        RoomSpecification roomSpecification = (RoomSpecification) specification;
+                        if (roomSpecification.isReusedRoom()) {
+                            allowOnAcl = true;
+                        }
+                    }
+                }
+                if (!allowOnAcl) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create reservation request");
+                }
+            }
+
             reservationRequest.setCreatedBy(userId);
             reservationRequest.setUpdatedBy(userId);
 
