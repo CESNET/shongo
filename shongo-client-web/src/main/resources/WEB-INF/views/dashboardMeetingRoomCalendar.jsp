@@ -214,7 +214,7 @@
     <div class="btn-group pull-right">
         <form class="form-inline">
             <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
-            <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
+            <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
         </form>
     </div>
 
