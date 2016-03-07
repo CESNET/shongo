@@ -118,12 +118,12 @@ sub connect()
     if ($ssl_unverified) {
         $ssl_opts = {
             SSL_use_cert => 0,
-            SSL_verify_mode => 'SSL_VERIFY_NONE',
+            SSL_verify_mode => SSL_VERIFY_NONE,
         };
     }
     else {
         $ssl_opts = {
-            SSL_verify_mode => 'SSL_VERIFY_PEER'
+            SSL_verify_mode => SSL_VERIFY_PEER
         };
     }
     $self->{'controller-url'} = $url;
