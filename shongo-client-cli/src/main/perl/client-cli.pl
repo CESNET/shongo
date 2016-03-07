@@ -13,6 +13,9 @@ use Shongo::Common;
 use Shongo::ClientCli;
 use Shongo::ClientCli::Shell;
 
+use utf8;
+use open ':std :encoding(utf8)';
+
 # Check readline version
 if ( !defined(Term::ReadLine->Features->{'setHistory'}) ) {
     console_print_error('Term::ReadLine doesn\'t support setHistory!');

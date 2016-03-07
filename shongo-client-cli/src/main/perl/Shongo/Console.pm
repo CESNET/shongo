@@ -29,6 +29,7 @@ BEGIN {
         Win32::Console::ANSI->import();
     }
     binmode STDOUT, ':utf8';
+		binmode STDIN, ':utf8';
 }
 use Term::ReadKey;
 use Shongo::Common;
@@ -218,7 +219,7 @@ sub console_print_table
 sub console_read
 {
     my ($message, $value) = @_;
-    my $term = Term::ReadLine->new('test');
+    my $term = Term::ReadLine->new('read_line', \*STDIN, \*STDOUT);
     $term->ornaments(0);
     $term->SetHistory();
     return $term->readline(colored(sprintf("%s: ", $message), "bold blue"), $value);
