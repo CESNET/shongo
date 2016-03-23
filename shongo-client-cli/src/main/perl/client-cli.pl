@@ -6,14 +6,13 @@ package main;
 
 use strict;
 use warnings;
+use utf8;
 
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
 use Shongo::ClientCli;
 use Shongo::ClientCli::Shell;
-
-use utf8;
 
 # Check readline version
 if ( !defined(Term::ReadLine->Features->{'setHistory'}) ) {
