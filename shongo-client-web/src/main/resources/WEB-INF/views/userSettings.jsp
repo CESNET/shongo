@@ -16,7 +16,7 @@
 <%--
 Alternative: https://einfra.cesnet.cz/perun-gui/#usr/info?active=1
 --%>
-<c:url var="webServiceUrl" value="https://perun.metacentrum.cz/apps/user-profile/"/>
+<c:url var="webServiceUrl" value="https://einfra.cesnet.cz/a/user-profile/fed/"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:userSettings', ['ngApplication', 'ngTooltip']);
