@@ -6,3 +6,4 @@ log/
 target/
 *.fsps
 *.class
+.gitattributes
