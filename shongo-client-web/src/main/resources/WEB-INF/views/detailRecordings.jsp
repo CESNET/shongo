@@ -143,8 +143,9 @@
                     {{roomRecording.duration}}
                 </td>
                 <td>
-                    <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
-                    <span ng-show="roomRecording.viewUrl && roomRecording.downloadUrl == null"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                    <%-- Show download URL if available, for Adobe Connect show view URL always --%>
+                    <span ng-show="roomRecording.downloadUrl && reservationRequest.technology != 'ADOBE_CONNECT'"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                    <span ng-show="roomRecording.viewUrl && (roomRecording.downloadUrl == null || reservationRequest.technology == 'ADOBE_CONNECT')"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
                     <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
                 </td>
                 <td ng-controller="RoomRecordingActionController">
