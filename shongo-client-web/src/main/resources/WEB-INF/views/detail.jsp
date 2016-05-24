@@ -10,7 +10,7 @@
 </c:if>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
+    var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ng.deviceDetector', 'jsp:roomParticipantDialog']);
     module.controller("DetailController", function($scope, $timeout){
         var refreshParameters = {};
 
