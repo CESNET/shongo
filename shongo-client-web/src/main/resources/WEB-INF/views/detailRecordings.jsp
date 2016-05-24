@@ -88,11 +88,16 @@
             <a class="btn btn-default disabled" ng-hide="{{recordingFolderId}}"><i class="fa fa-lock"></i></a>
         </div>
         <h2><spring:message code="views.room.recordings"/></h2>
-        <div class="spinner" ng-hide="ready || errorContent"></div>
         <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
         <div class="alert alert-warning" ng-show="({{deviceDetector.raw.os.windows}} || {{deviceDetector.raw.os.mac}}) && reservationRequest.technology == 'ADOBE_CONNECT'">
-            <spring:message code="views.room.recording.ADOBE_CONNECT.makeOfflineTitle"/>
+            <spring:message code="views.room.recording.ADOBE_CONNECT.makeOffline.title.win"/>
         </div>
+        <div class="alert alert-danger" ng-show="!{{deviceDetector.raw.os.windows}} && !{{deviceDetector.raw.os.mac}} && reservationRequest.technology == 'ADOBE_CONNECT'">
+            <spring:message code="views.room.recording.ADOBE_CONNECT.makeOffline.title.linux"/>
+        </div>
+
+        <div class="spinner" ng-hide="ready || errorContent"></div>
+
 
         <table class="table table-striped table-hover" ng-show="ready">
             <thead>
@@ -153,7 +158,7 @@
                         <span data-hasqtip="1" tooltip="" selectable="false" position="" tooltip-width="" class="ng-scope">
                             <a href="{{roomRecording.downloadUrl}}" target="_blank"><i class="fa fa-download"></i></a>
                         </span>
-                        <span class="hidden"><spring:message code="views.room.recording.ADOBE_CONNECT.makeOfflineDescription"/></span>
+                        <span class="hidden"><spring:message code="views.room.recording.ADOBE_CONNECT.makeOffline.description"/></span>
                     </span>
                     <span ng-show="roomRecording.viewUrl">
                         <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
