@@ -15,7 +15,8 @@
 
 
 <script type="text/javascript">
-    function RecordingFolderController($scope, $timeout) {
+    function RecordingFolderController($scope, deviceDetector, $timeout) {
+        $scope.deviceDetector = deviceDetector;
         $scope.changePermissions = function(url) {
             if ($scope.recordingFolderId == '') {
                 return;
@@ -89,6 +90,9 @@
         <h2><spring:message code="views.room.recordings"/></h2>
         <div class="spinner" ng-hide="ready || errorContent"></div>
         <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
+        <div class="alert alert-warning" ng-show="({{deviceDetector.raw.os.windows}} || {{deviceDetector.raw.os.mac}}) && reservationRequest.technology == 'ADOBE_CONNECT'">
+            <spring:message code="views.room.recording.ADOBE_CONNECT.makeOfflineTitle"/>
+        </div>
 
         <table class="table table-striped table-hover" ng-show="ready">
             <thead>
@@ -139,9 +143,17 @@
                     <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
                 </td>
                 <td ng-controller="RoomRecordingActionController">
-                    <span ng-show="roomRecording.downloadUrl">
-                        <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
+                    <%-- Show download link when available. --%>
+                    <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
+                    <span ng-show="roomRecording.downloadUrl" ng-hide="reservationRequest.technology == 'ADOBE_CONNECT'">
                         <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="fa fa-download"></i></a>
+                    </span>
+                    <%-- For Adobe Connect show only in OS Windows or Mac (due to AC add-in) --%>
+                    <span ng-show="roomRecording.downloadUrl && reservationRequest.technology == 'ADOBE_CONNECT' && ({{deviceDetector.raw.os.windows}} || {{deviceDetector.raw.os.mac}})">
+                        <span data-hasqtip="1" tooltip="" selectable="false" position="" tooltip-width="" class="ng-scope">
+                            <a href="{{roomRecording.downloadUrl}}" target="_blank"><i class="fa fa-download"></i></a>
+                        </span>
+                        <span class="hidden"><spring:message code="views.room.recording.ADOBE_CONNECT.makeOfflineDescription"/></span>
                     </span>
                     <span ng-show="roomRecording.viewUrl">
                         <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
@@ -176,6 +188,7 @@
                                     <a href="" ng-click="changePermissions('${recordingMakePublicUrl}')" title="${recordingMakePublicTitle}" ng-hide="roomRecording.isPublic"><i class="fa fa-lock"></i></a>
                                     <a href="" ng-click="changePermissions('${recordingMakePrivateUrl}')" title="${recordingMakePrivateTitle}" ng-show="roomRecording.isPublic"><i class="fa fa-unlock"></i></a>
                                 </span>
+
                                 <spring:message var="recordingFolderIsPublicTitle" code="views.list.action.recordingFolderIsPublic.title"/>
                                 <i class="fa fa-unlock" title="${recordingFolderIsPublicTitle}" ng-show="isRecordingFolderPublic"></i>
                             </span>

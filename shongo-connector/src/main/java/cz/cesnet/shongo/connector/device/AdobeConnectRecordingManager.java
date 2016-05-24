@@ -16,8 +16,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -226,22 +224,18 @@ public class AdobeConnectRecordingManager
         String recordingFolderName = recordingFolder.getName();
         String suffix = "";
         Integer index = 0;
+        // Check if folder with the same name doesn't already exists on AC server
         while (true) {
-            try {
-                AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
-                attributes.add("sco-id", getRecordingsFolderId());
-                attributes.add("filter-name", URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8"));
-                Element recFolders = connector.execApi("sco-contents", attributes);
-                if (recFolders.getChild("scos").getChildren().size() == 0) {
-                    recordingFolderName = URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8");
-                    break;
-                }
-                index = index + 1;
-                suffix = index.toString();
+            AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+            attributes.add("sco-id", getRecordingsFolderId());
+            attributes.add("filter-name", recordingFolderName + suffix);
+            Element recFolders = connector.execApi("sco-contents", attributes);
+            if (recFolders.getChild("scos").getChildren().size() == 0) {
+                recordingFolderName = recordingFolderName + suffix;
+                break;
             }
-            catch (UnsupportedEncodingException e) {
-                throw new CommandException("Error while message encoding.", e);
-            }
+            index = index + 1;
+            suffix = "_" + index.toString();
         }
 
         AdobeConnectConnector.RequestAttributeList folderAttributes = new AdobeConnectConnector.RequestAttributeList();
@@ -692,6 +686,7 @@ public class AdobeConnectRecordingManager
         recording.setViewUrl(recordingUrl);
         if (dateEnd != null) {
             recording.setEditUrl(recordingUrl + "?pbMode=edit");
+            recording.setDownloadUrl(recordingUrl + "?pbMode=offline");
         }
 
         return recording;
@@ -707,14 +702,9 @@ public class AdobeConnectRecordingManager
     {
         Element recordingFolderElement = connector.getScoInfo(folderId);
         String recordingFolderName = recordingFolderElement.getChild("name").getValue();
-        try {
             String recordingName = recordingsPrefix + recordingFolderName
                     + "_" + RECORDING_NAME_DATETIME_FORMATTER.print(dateTime);
-            return URLEncoder.encode(recordingName, "UTF8");
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new CommandException("Error while URL encoding.", e);
-        }
+            return recordingName;
     }
 
     /**
