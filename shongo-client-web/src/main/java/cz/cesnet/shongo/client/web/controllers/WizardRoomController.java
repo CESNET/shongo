@@ -115,7 +115,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Book new  room.
+     * Book new room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
     public ModelAndView handleRoomType(SecurityToken securityToken)
@@ -189,7 +189,13 @@ public class WizardRoomController extends WizardParticipantsController
      * TODO:Change new room to meeting type and show form for editing room attributes.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.GET)
-    public String handleMeetingRoom(SecurityToken securityToken, UserSession userSession)
+    public String handleMeetingRoom(
+            SecurityToken securityToken,
+            UserSession userSession,
+            @RequestParam(value = "start", required = false) DateTime start,
+            @RequestParam(value = "end", required = false) DateTime end,
+            @RequestParam(value = "resourceId", required = false) String meetingRoomResourceId
+            )
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
         if (reservationRequest == null) {
@@ -198,8 +204,25 @@ public class WizardRoomController extends WizardParticipantsController
                 WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
             }
         }
+
         reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
 
+        if (start != null) {
+            reservationRequest.setStart(start.toLocalTime());
+            reservationRequest.setStartDate(start.toLocalDate());
+        }
+
+        if (end != null) {
+            reservationRequest.setEnd(end);
+        }
+
+        if (start != null && end != null) {
+            reservationRequest.setDuration(Temporal.getIntervalDuration(new Interval(start,end)));
+        }
+
+        if (meetingRoomResourceId != null) {
+            reservationRequest.setMeetingRoomResourceId(meetingRoomResourceId);
+        }
        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
     }
 

@@ -11,6 +11,7 @@
 <tag:url var="meetingRoomIcsUrl" value="<%= ClientWebUrl.MEETING_ROOM_ICS %>">
     <tag:param name="objectUriKey" value="" escape="false" />
 </tag:url>
+<tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
@@ -20,10 +21,10 @@
     var slashes = http.concat("//");
     var host = slashes.concat(window.location.hostname);
     var hostUrl = host.concat(":" + location.port);
-    var calendarUrlBase =  hostUrl + "${meetingRoomIcsUrl}";
+    var calendarUrlBase = hostUrl + "${meetingRoomIcsUrl}";
     var exportCalendarMessage = "<strong><spring:message code='views.index.meetingRooms.calendarExport.message'/></strong><br />";
 
-    module.controller("CalendarController", function($scope,$compile,uiCalendarConfig) {
+    module.controller("CalendarController", function ($scope, $compile, uiCalendarConfig) {
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
@@ -180,11 +181,11 @@
             if (typeof $scope.reservationsFilter.resourceId == 'object') {
                 resourceId = $scope.reservationsFilter.resourceId.id;
             }
-            $.ajax("${meetingRoomReservationsUrl}&interval-from="+start.format()+"&interval-to="+end.format()+"&resource-id="+resourceId, {
+            $.ajax("${meetingRoomReservationsUrl}&interval-from=" + start.format() + "&interval-to=" + end.format() + "&resource-id=" + resourceId, {
                 dataType: "json"
             }).done(function (data) {
                 var events = [];
-                data.items.forEach(function(event) {
+                data.items.forEach(function (event) {
                     var descriptionTitle = "<spring:message code="views.room.description"/>";
                     events.push({
                         title: event.description,
@@ -200,11 +201,11 @@
             })
         };
         $scope.renderCalender = function(calendar) {
-            if(uiCalendarConfig.calendars[calendar]){
+            if (uiCalendarConfig.calendars[calendar]) {
                 uiCalendarConfig.calendars[calendar].fullCalendar('render');
             }
         };
-        $scope.eventRender = function( event, element, view ) {
+        $scope.eventRender = function(event, element, view) {
             var descriptionTitle = "<spring:message code="views.room.description"/>";
             var createdBy = "<spring:message code="views.reservationRequest.createdBy"/>";
             element.qtip({
@@ -228,26 +229,28 @@
         };
 
         $scope.uiConfig = {
-            calendar:{
+            calendar: {
                 lang: '${requestContext.locale.language}',
                 defaultView: 'agendaWeek',
-                height: 'auto',
                 editable: false,
+                nowIndicator: true,
+                selectable:true,
                 lazyFetching: false,
-                header:{
+                selectOverlap: false,
+                header: {
                     left: 'title',
                     center: '',
                     right: 'prev,today,next agendaDay,agendaWeek,month'
                 },
                 loading: function (bool) {
                     if (bool) {
-                        $('#directives-calendar').fadeTo(100,0.5);
-                        $('#loadingImg').fadeTo(100,1);
+                        $('#directives-calendar').fadeTo(100, 0.5);
+                        $('#loadingImg').fadeTo(100, 1);
                         $('#loadingImg').show();
                     } else {
                         $('#loadingImg').fadeOut();
                         $('#loadingImg').hide();
-                        $('#directives-calendar').fadeTo(100,1);
+                        $('#directives-calendar').fadeTo(100, 1);
                     }
                 },
 
@@ -294,27 +297,26 @@
             escapeMarkup: function (markup) {
                 return markup;
             },
-            data:
-                {
+            data: {
                 <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                    <c:if test="${meetingRoomResource.isCalendarPublic()}">
-                        "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
-                    </c:if>
+                <c:if test="${meetingRoomResource.isCalendarPublic()}">
+                "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
+                </c:if>
                 </c:forEach>
-                }
+            }
         };
 
         $scope.reservationsFilter = {
             resourceId: $scope.resourceIdOptions.data[0].id
         };
 
-        $scope.$watch('reservationsFilter.resourceId', function(newResourceId, oldResourceId, scope) {
+        $scope.$watch('reservationsFilter.resourceId', function (newResourceId, oldResourceId, scope) {
             if ($scope.$parent.$tab.active && typeof newResourceId == "object") {
                 $scope.refreshCalendar();
                 if ($scope.resourceUriKeys.data[newResourceId.id]) {
                     var resourceCalendarUrl = calendarUrlBase + $scope.resourceUriKeys.data[newResourceId.id]
                     $('[qtip-init]').show();
-                    $('[qtip-init]').each(function() {
+                    $('[qtip-init]').each(function () {
                         $(this).qtip('option', 'content.text', exportCalendarMessage + "<input id='input' onClick='this.setSelectionRange(0, this.value.length)' readonly value='" + resourceCalendarUrl + "' />");
                     });
                 }
@@ -323,12 +325,12 @@
                 }
             }
         });
-        $scope.refreshCalendar = function() {
+        $scope.refreshCalendar = function () {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
             calendar.fullCalendar('refetchEvents');
             calendar.fullCalendar('rerenderEvents');
         }
-        $scope.$on("refresh-meetingRoomsReservationsCalendar", function() {
+        $scope.$on("refresh-meetingRoomsReservationsCalendar", function () {
             $scope.initCalendar();
             if (!$scope.resourceUriKeys.data[$scope.resourceIdOptions.data[0].id]) {
                 $('[qtip-init]').hide();
@@ -337,11 +339,10 @@
     });
 
     // Init qtip for ics export
-    module.directive('qtipInit', function(){
+    module.directive('qtipInit', function () {
         return {
             restrict: 'A',
-            link: function(scope, element, attrs)
-            {
+            link: function (scope, element, attrs) {
                 var resourceCalendarUrl = calendarUrlBase + scope.resourceUriKeys.data[scope.resourceIdOptions.data[0].id]
                 $(element).qtip({
                     content: {
@@ -378,13 +379,15 @@
         </form>
     </div>
 
-    <div class="top-margin"><span class="fa fa-calendar"  qtip-init /> <spring:message code="views.index.meetingRooms.calendarExport"/></div>
+    <div class="top-margin"><span class="fa fa-calendar" qtip-init/> <spring:message
+            code="views.index.meetingRooms.calendarExport"/></div>
 
     <div id="directives-calendar" class="top-margin">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
             <h4>{{alertMessage}}</h4>
         </div>
         <div class="spinner centered-in-element" id="loadingImg"></div>
-        <div class="top-margin" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar" ui-calendar="uiConfig.calendar"></div>
+        <div class="top-margin" ng-model="eventSources" calendar="meetingRoomsReservationsCalendar"
+             ui-calendar="uiConfig.calendar"></div>
     </div>
 </div>

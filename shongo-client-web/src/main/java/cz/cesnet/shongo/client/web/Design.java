@@ -360,7 +360,7 @@ public class Design
 
             public String getLanguage()
             {
-                if (languageUrl == null) {
+                if (languageUrl != null) {
                     if (requestUrl.contains("?")) {
                         UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUrl);
                         languageUrlBuilder.replaceQueryParam("lang", ":lang");
