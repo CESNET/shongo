@@ -498,7 +498,7 @@ public class RoomModel extends ParticipantConfigurationModel
                     break;
                 case ADOBE_CONNECT_URI:
                     aliasValue = alias.getValue();
-                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
+//                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
                     if (isAvailable) {
                         StringBuilder aliasValueBuilder = new StringBuilder();
                         aliasValueBuilder.append("<a class=\"nowrap\" href=\"");

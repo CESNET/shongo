@@ -116,8 +116,8 @@
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="content" value="/WEB-INF/views/index.jsp" type="template"/>
         <put-list-attribute name="js" inherit="true">
-            <add-attribute value="calendar.js"/>
-            <add-attribute value="fullcalendar.js"/>
+            <add-attribute value="angular-calendar.js"/>
+            <add-attribute value="fullcalendar.min.js"/>
             <add-attribute value="i18n/calendar/cs.js"/>
             <add-attribute value="i18n/calendar/en-gb.js"/>
         </put-list-attribute>

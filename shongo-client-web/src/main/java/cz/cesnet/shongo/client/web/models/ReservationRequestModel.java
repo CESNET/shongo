@@ -77,7 +77,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     protected PeriodicDateTimeSlot.PeriodicityType periodicityType;
 
     /**
-     * End of the period
+     * Start of the period
      */
     protected LocalDate startDate;
 
