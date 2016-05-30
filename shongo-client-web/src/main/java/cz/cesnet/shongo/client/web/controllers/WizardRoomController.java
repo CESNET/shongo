@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
@@ -10,8 +11,6 @@ import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
-import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
@@ -19,10 +18,7 @@ import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +28,6 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-import java.util.List;
 
 /**
  * Controller for creating a new room.
@@ -59,9 +54,6 @@ public class WizardRoomController extends WizardParticipantsController
 
     @Resource
     private ReservationService reservationService;
-
-    @Resource
-    private ResourceService resourceService;
 
     @Resource
     private AuthorizationService authorizationService;
@@ -194,7 +186,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Change new room to meeting type and show form for editing room attributes.
+     * TODO:Change new room to meeting type and show form for editing room attributes.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.GET)
     public String handleMeetingRoom(SecurityToken securityToken, UserSession userSession)
@@ -209,6 +201,54 @@ public class WizardRoomController extends WizardParticipantsController
         reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
 
        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
+    }
+
+    /**
+     * TODO:Change new room to meeting type and show form for editing room attributes.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.POST)
+    public Object handleMeetingRoomConfirm(
+            SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @RequestParam(value = "start") DateTime start,
+            @RequestParam(value = "end") DateTime end,
+            @RequestParam(value = "resourceId") String meetingRoomResourceId,
+            @RequestParam(value = "description", required = false) String description)
+    {
+        ReservationRequestModel reservationRequest = getReservationRequest();
+        if (reservationRequest == null) {
+            reservationRequest = createReservationRequest(securityToken);
+            synchronized (request) {
+                WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
+            }
+        }
+
+        reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
+
+        if (start != null) {
+            reservationRequest.setStart(start.toLocalTime());
+            reservationRequest.setStartDate(start.toLocalDate());
+        }
+
+        if (end != null) {
+            reservationRequest.setEnd(end);
+        }
+
+        if (start != null && end != null) {
+            reservationRequest.setDuration(Temporal.getIntervalDuration(new Interval(start, end)));
+        }
+
+        if (meetingRoomResourceId != null) {
+            reservationRequest.setMeetingRoomResourceId(meetingRoomResourceId);
+        }
+
+        if (!Strings.isNullOrEmpty(description)) {
+            reservationRequest.setDescription(description);
+        }
+
+        addDefaultParticipant(securityToken, reservationRequest);
+
+        return handleConfirmed(securityToken, sessionStatus, reservationRequest);
     }
 
     /**

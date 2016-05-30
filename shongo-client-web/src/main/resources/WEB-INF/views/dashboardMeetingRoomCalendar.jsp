@@ -29,6 +29,144 @@
         var m = date.getMonth();
         var y = date.getFullYear();
 
+        var newReservationRequestId = "new_reservation_request_id";
+
+        $scope.formatInterval = function(start, end) {
+            var locale = '${requestContext.locale.language}';
+            var interval = "";
+            if (moment(start).isBefore(end, "day")) {
+                interval += moment(start).lang(locale).format("lll");
+                interval += "<br />";
+                interval += moment(end).lang(locale).format("lll");
+            } else {
+                interval = moment(start).lang(locale).format("ll");
+                interval += " ";
+                interval += moment(start).lang(locale).format("LT");
+                interval += " - ";
+                interval += moment(end).lang(locale).format("LT");
+            }
+            return interval;
+        }
+
+        // Show centered tooltip dialog, @see qTip modal tooltips
+        $scope.dialogue = function (content, title, calendar) {
+            $('<div />').qtip({
+                content: {
+                    text: content,
+                    button: '<spring:message code="views.button.cancel" />',
+                    title: title
+                },
+                position: {
+                    my: 'center', at: 'center',
+                    target: $(window)
+                },
+                show: {
+                    ready: true,
+                    solo: true,
+                    modal: {
+                        on: true,
+                        blur: false
+                    }
+                },
+                hide: false,
+                style: {
+                    classes: 'dialogue qtip-light qtipForm',
+                    width: 400,
+                },
+                events: {
+                    render: function(event, api) {
+                        $('button', api.elements.content).click(function(e) {
+                            api.hide(e);
+                        });
+                    },
+                    hide: function(event, api) {
+                        api.destroy();
+                        calendar.fullCalendar('removeEvents', newReservationRequestId);
+                        calendar.fullCalendar('unselect');
+                    }
+                },
+            });
+        }
+
+        // Prompt dialog for confirmation of reservation request
+        $scope.reservationRequestPrompt = function(start, end, calendar) {
+            var bookReservationParamUrl = "${meetingRoomBookUrl}";
+            bookReservationParamUrl += "?start=";
+            bookReservationParamUrl += start.toISOString();
+            bookReservationParamUrl += "&end=";
+            bookReservationParamUrl += end.toISOString();
+            bookReservationParamUrl += "&resourceId=";
+            bookReservationParamUrl += $scope.reservationsFilter.resourceId.id;
+
+            var form = $('<form />', {
+                        action: '${meetingRoomBookUrl}',
+                        method: 'POST'
+                    });
+            form.append(
+                    $('<input />', {
+                                type: 'hidden',
+                                name: 'resourceId',
+                                value: $scope.reservationsFilter.resourceId.id
+                    })
+            );
+            form.append(
+                    $('<input />', {
+                                type: 'hidden',
+                                name: 'start',
+                                value: start.toISOString()
+                    })
+            );
+            form.append(
+                    $('<input />', {
+                                type: 'hidden',
+                                name: 'end',
+                                value: end.toISOString()
+                    })
+            );
+            form.append(
+                    $('<label />', {
+                                html: '<spring:message code="views.reservationRequest.slot" />:'
+                    })
+            ).append($('<br />'));
+            form.append(
+                    $('<div />', {
+                                html: $scope.formatInterval(start, end)
+                    })
+            ).append($('<br />'));
+            form.append(
+                    $('<label />', {
+                                text: '<spring:message code="views.room.description" />:',
+                                for: 'description',
+                                style: 'padding-right: 5px'
+                    })
+            ).append($('<br />'));
+            form.append(
+                    $('<input />', {
+                                type: 'text',
+                                id: 'description',
+                                name: 'description',
+                                style: 'width:100%'
+                    })
+            ).append($('<br />')).append($('<br />'));
+
+            var formConfirm = $("<div>", {
+                style: 'text-align: right;'
+            });
+            formConfirm.append($('<a>', {
+                href: bookReservationParamUrl,
+                text: '<spring:message code="views.button.editMore" />',
+                style: 'margin-right:5px',
+                class: 'btn btn-default btn-xs'
+            }));
+            formConfirm.append($('<input>', {
+                        type: 'submit',
+                        value: '<spring:message code="views.button.finish" />',
+                        class: 'btn btn-default btn-primary btn-xs'
+                    })
+            );
+            form.append(formConfirm);
+            $scope.dialogue(form, '<spring:message code='views.index.action.bookMeetingRoom'/>', calendar);
+        }
 
         $scope.initCalendar = function() {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
@@ -89,7 +227,6 @@
             });
         };
 
-
         $scope.uiConfig = {
             calendar:{
                 lang: '${requestContext.locale.language}',
@@ -111,6 +248,29 @@
                         $('#loadingImg').fadeOut();
                         $('#loadingImg').hide();
                         $('#directives-calendar').fadeTo(100,1);
+                    }
+                },
+
+                // Create new reservation requests by select function
+                select: function (start, end) {
+                    var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
+                    if (end.isBefore(moment())) {
+                        calendar.fullCalendar('unselect');
+                        //TODO
+                        alert("<spring:message code="validation.field.invalidFutureSlot"/>");
+                    } else {
+                        //rendering the reservation
+                        calendar.fullCalendar('renderEvent',
+                                {
+                                    start: start,
+                                    end: end,
+                                    color: '#ff4d4d',
+                                    id: newReservationRequestId,
+                                }
+                        );
+
+                        // confirm request
+                        $scope.reservationRequestPrompt(start, end, calendar);
                     }
                 },
                 eventRender: $scope.eventRender
