@@ -196,4 +196,25 @@
         <put-attribute name="title" value="views.resourceCapacityUtilizationDescription.title"/>
         <put-attribute name="content" value="/WEB-INF/views/resourceCapacityUtilizationDescription.jsp" type="template"/>
     </definition>
+
+    <definition name="resourceReservationRequestsConfirmation" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceReservationRequests.confirmation.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceReservationRequests.jsp" type="template"/>
+    </definition>
+
+    <definition name="resourceReservationRequestsConfirmationCalendar" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceReservationRequests.confirmation.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceReservationRequestsConfirmationCalendar.jsp" type="template"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular-calendar.js"/>
+            <add-attribute value="fullcalendar.min.js"/>
+            <add-attribute value="i18n/calendar/cs.js"/>
+            <add-attribute value="i18n/calendar/en-gb.js"/>
+        </put-list-attribute>
+    </definition>
+
+    <definition name="resourceReservationRequests" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceReservationRequests.confirmation.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceReservationRequests.jsp" type="template"/>
+    </definition>
 </tiles-definitions>
