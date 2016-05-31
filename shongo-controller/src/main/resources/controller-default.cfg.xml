@@ -152,6 +152,7 @@
     <notification>
         <!--<reservation-request-url></reservation-request-url>-->
         <!--<user-settings-url></user-settings-url>-->
+        <!--<reservation-request-confirmation-url></reservation-request-confirmation-url>-->
     </notification>
 
     <!-- Configuration of domain administrators-->

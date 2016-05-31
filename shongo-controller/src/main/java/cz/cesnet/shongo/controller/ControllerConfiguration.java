@@ -189,6 +189,12 @@ public class ControllerConfiguration extends CombinedConfiguration
      */
     public static final String NOTIFICATION_RESERVATION_REQUEST_URL = "notification.reservation-request-url";
 
+
+    /**
+     * Primary url of a reservation requests with "${reservationRequestId}" variable which can be used in notifications.
+     */
+    public static final String NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL = "notification.reservation-request-confirmation-url";
+
     /**
      * Constructor.
      */
@@ -295,6 +301,18 @@ public class ControllerConfiguration extends CombinedConfiguration
             return null;
         }
         return reservationRequestUrl;
+    }
+
+    /**
+     * @return {@link #NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL}
+     */
+    public String getNotificationReservationRequestConfirmationUrl()
+    {
+        String reservationRequestConfirmationUrl = getString(NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL);
+        if (reservationRequestConfirmationUrl == null || reservationRequestConfirmationUrl.isEmpty()) {
+            return null;
+        }
+        return reservationRequestConfirmationUrl;
     }
 
     /**

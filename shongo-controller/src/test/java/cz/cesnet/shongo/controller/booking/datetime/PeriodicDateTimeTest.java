@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
-import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
-import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -12,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 import cz.cesnet.shongo.api.Converter;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**

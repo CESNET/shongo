@@ -8,6 +8,8 @@ import org.joda.time.format.PeriodFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
+
 /**
  * Helper for manipulating/formatting temporal data types.
  *
@@ -111,6 +113,17 @@ public class Temporal
     }
 
     /**
+     * Convert Joda DateTime to SQL Timestamp.
+     *
+     * @param dateTime to convert
+     * @return Timestamp for NativeQuery
+     */
+    public static Timestamp convertDateTimeToTimestamp(DateTime dateTime)
+    {
+        return new Timestamp(dateTime.getMillis());
+    }
+
+    /**
      * @param interval1
      * @param interval2
      * @return true if both interval are equaled (without chronology match),
@@ -185,8 +198,6 @@ public class Temporal
         }
         return maxDateTime;
     }
-
-
 
     /**
      * @param dateTime

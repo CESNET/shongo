@@ -2139,6 +2139,173 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * The reservation request has been denied by resource owner {@link #deniedBy}. Reason: {@link #reason}
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReservationRequestDeniedReport")
+    public static class ReservationRequestDeniedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected String deniedBy;
+
+        protected String reason;
+
+        public ReservationRequestDeniedReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-denied";
+        }
+
+        public ReservationRequestDeniedReport(String deniedBy, String reason)
+        {
+            setDeniedBy(deniedBy);
+            setReason(reason);
+        }
+
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+        public String getDeniedBy()
+        {
+            return deniedBy;
+        }
+
+        public void setDeniedBy(String deniedBy)
+        {
+            this.deniedBy = deniedBy;
+        }
+
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+        public String getReason()
+        {
+            return reason;
+        }
+
+        public void setReason(String reason)
+        {
+            this.reason = reason;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("deniedBy", deniedBy);
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-denied", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * The reservation request has been denied. Reason: The resource {@link #resource} is already allocated in interval {@link #interval}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReservationRequestDeniedAlreadyAllocatedReport")
+    public static class ReservationRequestDeniedAlreadyAllocatedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected cz.cesnet.shongo.controller.booking.resource.Resource resource;
+
+        protected org.joda.time.Interval interval;
+
+        public ReservationRequestDeniedAlreadyAllocatedReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-denied-already-allocated";
+        }
+
+        public ReservationRequestDeniedAlreadyAllocatedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
+        {
+            setResource(resource);
+            setInterval(interval);
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "resource_id")
+        public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(resource);
+        }
+
+        public void setResource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            this.resource = resource;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-denied-already-allocated", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
      * Reused reservation request {@link #reservationRequest} is mandatory but wasn't used.
      */
     @javax.persistence.Entity
@@ -4397,6 +4564,8 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ConnectionFromToReport.class);
         addReportClass(ConnectionToMultipleReport.class);
         addReportClass(ReservationRequestInvalidSlotReport.class);
+        addReportClass(ReservationRequestDeniedReport.class);
+        addReportClass(ReservationRequestDeniedAlreadyAllocatedReport.class);
         addReportClass(ReservationWithoutMandatoryUsageReport.class);
         addReportClass(ReservationReport.class);
         addReportClass(ReservationAlreadyUsedReport.class);

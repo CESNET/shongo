@@ -44,6 +44,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 "https://127.0.0.1:8182/user/settings");
         System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
                 "https://127.0.0.1:8182/detail/${reservationRequestId}");
+        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL,
+                "https://127.0.0.1:8182/resource/reservation-request/confirmation/?resource-id=${resourceId}&date=${date}");
         System.setProperty(ControllerConfiguration.TIMEZONE, "UTC");
         super.before();
     }
@@ -56,6 +58,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 "https://127.0.0.1:8182/user/settings");
         System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
                 "https://127.0.0.1:8182/detail/${reservationRequestId}");
+        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL,
+                "https://127.0.0.1:8182/resource/reservation-request/confirmation/?resource-id=${resourceId}&date=${date}");
         System.setProperty(ControllerConfiguration.TIMEZONE, "UTC");
     }
 
@@ -957,7 +961,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
     private void clearNotificationRecords()
     {
-        notificationExecutor.notificationRecords.clear();
+        notificationExecutor.getNotificationRecords().clear();
     }
 
     private List<TestingNotificationExecutor.NotificationRecord<AbstractNotification>> getNotificationRecords()
@@ -971,7 +975,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         List<TestingNotificationExecutor.NotificationRecord<T>> notificationRecords =
                 new LinkedList<TestingNotificationExecutor.NotificationRecord<T>>();
         for (TestingNotificationExecutor.NotificationRecord notificationRecord :
-                notificationExecutor.notificationRecords) {
+                notificationExecutor.getNotificationRecords()) {
             AbstractNotification notification = notificationRecord.getNotification();
             if (notificationType.isInstance(notification)) {
                 notificationRecords.add((TestingNotificationExecutor.NotificationRecord<T>) notificationRecord);
@@ -1318,70 +1322,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
             start = start.plus(schedulerPeriod);
             for (Class<? extends AbstractNotification> clazz : getNotificationTypes()) {
                 Assert.assertNotSame(ReservationNotification.Deleted.class, clazz);
-            }
-        }
-    }
-
-    /**
-     * {@link NotificationExecutor} for testing.
-     */
-    private class TestingNotificationExecutor extends NotificationExecutor
-    {
-        /**
-         * Executed {@link AbstractNotification}.
-         */
-        private List<NotificationRecord> notificationRecords = new LinkedList<NotificationRecord>();
-
-        /**
-         * @return size of {@link #notificationRecords}
-         */
-        public int getNotificationCount()
-        {
-            return notificationRecords.size();
-        }
-
-        @Override
-        public void executeNotification(PersonInformation recipient, AbstractNotification notification,
-                NotificationManager manager, EntityManager entityManager)
-        {
-            NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
-            logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
-                    recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
-            });
-            for (NotificationAttachment attachment : recipientMessage.getAttachments()) {
-                iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
-                String fileContent = calendarAttachment.getFileContent("test", entityManager);
-                logger.debug("ATTACHMENT {}:\n{}", attachment.getFileName(), fileContent);
-            }
-            notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
-            if (notification instanceof RoomGroupNotification) {
-                RoomGroupNotification roomGroupNotification = (RoomGroupNotification) notification;
-                for (RoomNotification roomNotification : roomGroupNotification.getNotifications(recipient)) {
-                    notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, roomNotification));
-                }
-            }
-        }
-
-        private class NotificationRecord<T extends AbstractNotification>
-        {
-            private final PersonInformation recipient;
-
-            private final T notification;
-
-            private NotificationRecord(PersonInformation recipient, T notification)
-            {
-                this.recipient = recipient;
-                this.notification = notification;
-            }
-
-            public PersonInformation getRecipient()
-            {
-                return recipient;
-            }
-
-            public T getNotification()
-            {
-                return notification;
             }
         }
     }

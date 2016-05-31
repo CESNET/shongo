@@ -13,7 +13,8 @@ SELECT
     resource_summary.technologies AS technologies,
     resource_summary.description AS description,
     resource_summary.calendar_public AS calendar_public,
-    resource_summary.calendar_uri_key AS calendar_uri_key
+    resource_summary.calendar_uri_key AS calendar_uri_key,
+    resource_summary.confirm_by_owner AS confirm_by_owner
 FROM resource_summary
 WHERE ${filter}
 ORDER BY ${order}

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.AbstractObjectReport;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.AllocationStateReportMessages;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
@@ -126,7 +127,17 @@ public class AllocationStateReport extends AbstractObjectReport
         UserError userError = null;
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
-            if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_FOUND)) {
+            if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_DENIED_ALREADY_ALLOCATED)) {
+                String resourceName = (String) ((HashMap<String,Object>) report.get("resource")).get("name");
+                Interval interval = Converter.convertToInterval(report.get("interval"));
+                return new ReservationRequestDeniedAlreadyAllocated(resourceName, interval);
+            }
+            else if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_DENIED)) {
+                String reason = (String) report.get("reason");
+                String deniedBy = (String) report.get("deniedBy");
+                return new ReservationRequestDenied(reason, deniedBy);
+            }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_FOUND)) {
                 if (ResourceNotFound.hasHigherPriorityThan(userError)) {
                     String parentId = (String) parentReports.lastElement().get(ID);
                     if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
@@ -662,5 +673,81 @@ public class AllocationStateReport extends AbstractObjectReport
         {
             return MESSAGE_SOURCE.getMessage("recordingRoomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
         }
+    }
+
+    /**
+     * Reservation request denied because resource with name {@link #resourceName} is already allocated in specified {@link #interval}.
+     */
+    public static class ReservationRequestDeniedAlreadyAllocated extends UserError
+    {
+        private String resourceName;
+
+        private Interval interval;
+
+        public ReservationRequestDeniedAlreadyAllocated(String resourceName, Interval interval)
+        {
+            this.resourceName = resourceName;
+            this.interval = interval;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("resourceAlreadyAllocated", locale, this.resourceName,
+                    dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Reservation request has been denied by resource owner {@link #userId}.
+     *
+     * {@link #userName} must be set before {@link #getMessage()} is called;
+     */
+    public static class ReservationRequestDenied extends UserError implements UserIdentityRequired
+    {
+        private String reason;
+
+        private String userId;
+
+        private String userName;
+
+        public ReservationRequestDenied(String reason, String userId)
+        {
+            this.reason = reason;
+            this.userId = userId;
+        }
+
+        public String getUserId()
+        {
+            return userId;
+        }
+
+        public void setUserName(String userName)
+        {
+            this.userName = userName;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            if (userName == null) {
+                throw new IllegalStateException("Username must be set.");
+            }
+            if (reason == null || "".equals(reason)) {
+                reason = MESSAGE_SOURCE.getMessage("reservationRequestDenied.reason.none", locale);
+            }
+            return MESSAGE_SOURCE.getMessage("reservationRequestDenied", locale, this.userName, reason);
+        }
+    }
+
+    /**
+     * Specifies {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} requiring user lookup after initialization.
+     */
+    public interface UserIdentityRequired
+    {
+        String getUserId();
+
+        void setUserName(String userName);
     }
 }

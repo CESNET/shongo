@@ -74,6 +74,11 @@ sub new()
         'title' => 'Calendar URI key',
         'editable' => 0
     });
+    $self->add_attribute('confirmByOwner', {
+        'title' => 'Confirm requests by owner',
+        'type' => 'bool',
+        'required' => 1
+    });
     $self->add_attribute('childResourceIds', {
         'title' => 'Children',
         'format' => sub {

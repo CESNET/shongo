@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
@@ -29,7 +30,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Preprocessor extends SwitchableComponent implements Component.AuthorizationAware
+public class Preprocessor extends SwitchableComponent implements Component.AuthorizationAware, Component.NotificationManagerAware
 {
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
@@ -44,6 +45,11 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
     private Authorization authorization;
 
     /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
+
+    /**
      * @param cache sets the {@link #cache}
      */
     public void setCache(Cache cache)
@@ -55,6 +61,12 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
     public void setAuthorization(Authorization authorization)
     {
         this.authorization = authorization;
+    }
+
+    @Override
+    public void setNotificationManager(NotificationManager notificationManager)
+    {
+        this.notificationManager = notificationManager;
     }
 
     @Override

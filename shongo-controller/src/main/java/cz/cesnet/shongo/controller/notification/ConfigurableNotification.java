@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -312,6 +313,14 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
 
         /**
+         * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL}
+         */
+        public String getReservationRequestConfirmationUrl()
+        {
+            return controllerConfiguration.getNotificationReservationRequestConfirmationUrl();
+        }
+
+        /**
          * @param reservationRequestId
          * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
          */
@@ -319,6 +328,18 @@ public abstract class ConfigurableNotification extends AbstractNotification
         {
             String reservationRequestUrl = getReservationRequestUrl();
             return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
+        }
+
+
+        /**
+         * @param resourceId
+         * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
+         */
+        public String formatReservationRequestConfirmationUrl(String resourceId, Interval interval)
+        {
+            String reservationRequestConfirmationUrl = getReservationRequestConfirmationUrl();
+            String date = Converter.convertLocalDateToString(interval.getStart().toLocalDate());
+            return reservationRequestConfirmationUrl.replace("${resourceId}", resourceId).replace("${date}", date);
         }
     }
 

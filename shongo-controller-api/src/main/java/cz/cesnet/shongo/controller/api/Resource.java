@@ -79,6 +79,11 @@ public class Resource extends IdentifiedComplexType
     private String calendarUriKey;
 
     /**
+     * If all reservation request must be first confirmed by owner.
+     */
+    private boolean confirmByOwner;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -191,6 +196,22 @@ public class Resource extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #confirmByOwner}
+     */
+    public boolean isConfirmByOwner()
+    {
+        return confirmByOwner;
+    }
+
+    /**
+     * @param confirmByOwner sets the {@link #confirmByOwner}
+     */
+    public void setConfirmByOwner(boolean confirmByOwner)
+    {
+        this.confirmByOwner = confirmByOwner;
+    }
+
+    /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
     public void setAllocationOrder(Integer allocationOrder)
@@ -287,6 +308,7 @@ public class Resource extends IdentifiedComplexType
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
     public static final String IS_CALENDAR_PUBLIC = "calendarPublic";
     public static final String CALENDAR_URI_KEY = "calendarUriKey";
+    public static final String CONFIRM_BY_OWNER = "confirmByOwner";
 
     @Override
     public DataMap toData()
@@ -303,6 +325,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
         dataMap.set(IS_CALENDAR_PUBLIC, calendarPublic);
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
+        dataMap.set(CONFIRM_BY_OWNER, confirmByOwner);
 
         if (maximumFuture instanceof DateTime) {
             dataMap.set(MAXIMUM_FUTURE, (DateTime) maximumFuture);
@@ -333,5 +356,6 @@ public class Resource extends IdentifiedComplexType
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
         calendarPublic = dataMap.getBool(IS_CALENDAR_PUBLIC);
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
+        confirmByOwner = dataMap.getBool(CONFIRM_BY_OWNER);
     }
 }

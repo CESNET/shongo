@@ -95,6 +95,11 @@ public class Resource extends PersistentObject implements ReportableComplex
     private boolean calendarPublic;
 
     /**
+     * If all reservation request must be first confirmed by owner.
+     */
+    private boolean confirmByOwner;
+
+    /**
      * Hash key used for public calendar URL
      */
     private String calendarUriKey;
@@ -168,6 +173,17 @@ public class Resource extends PersistentObject implements ReportableComplex
 
     public void setCalendarPublic(boolean calendarPublic) {
         this.calendarPublic = calendarPublic;
+    }
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isConfirmByOwner()
+    {
+        return confirmByOwner;
+    }
+
+    public void setConfirmByOwner(boolean confirmByOwner)
+    {
+        this.confirmByOwner = confirmByOwner;
     }
 
     @Column(columnDefinition = "varchar(8)", unique = true)
@@ -498,6 +514,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         resourceApi.setDescription(getDescription());
         resourceApi.setCalendarPublic(isCalendarPublic());
         resourceApi.setCalendarUriKey(getCalendarUriKey());
+        resourceApi.setConfirmByOwner(isConfirmByOwner());
 
         if (maximumFuture != null) {
             resourceApi.setMaximumFuture(maximumFuture.toApi());
@@ -554,6 +571,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setAllocationOrder(resourceApi.getAllocationOrder());
         setCalendarPublic(resourceApi.isCalendarPublic());
         setCalendarUriKey(resourceApi.getCalendarUriKey());
+        setConfirmByOwner(resourceApi.isConfirmByOwner());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
             newParentResourceId = ObjectIdentifier.parseLocalId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);
@@ -632,14 +650,29 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     public List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager)
     {
+        return getAdministrators(authorizationManager, true);
+    }
+
+    /**
+     * Get list of administrators to be notified.
+     * The list is constructed from {@link Resource} owners and {@link #administratorEmails}.
+     *
+     * @param authorizationManager to be used for determining {@link Resource} owners
+     * @param owners include owners of the resource
+     * @return list of administrator {@link PersonInformation}s
+     */
+    public List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager, boolean owners)
+    {
         EntityManager entityManager = authorizationManager.getEntityManager();
         Authorization authorization = authorizationManager.getAuthorization();
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         List<PersonInformation> administrators = new LinkedList<PersonInformation>();
-        for (UserInformation administrator : authorizationManager.getUsersWithRole(this, ObjectRole.OWNER)) {
-            UserSettings userSettings = userSettingsManager.getUserSettings(administrator.getUserId(), null);
-            if (userSettings.isResourceAdministratorNotifications()) {
-                administrators.add(administrator);
+        if (owners) {
+            for (UserInformation administrator : authorizationManager.getUsersWithRole(this, ObjectRole.OWNER)) {
+                UserSettings userSettings = userSettingsManager.getUserSettings(administrator.getUserId(), null);
+                if (userSettings.isResourceAdministratorNotifications()) {
+                    administrators.add(administrator);
+                }
             }
         }
         synchronized (this) {

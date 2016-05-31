@@ -268,7 +268,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ForeignResourcesListRequest foreignResourcesListRequest = new ForeignResourcesListRequest();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        // List local resources too
         boolean searchLocal = true;
+        // List foreign resources too
         boolean searchForeign = true;
         try {
             Set<Long> readableResourceIds = authorization.getEntitiesWithPermission(securityToken,
@@ -404,6 +406,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("resource_summary.allocatable = TRUE");
             }
 
+            // Reservation requests confirmation needed
+            if (request.getNeedsConfirmation() != null) {
+                queryFilter.addFilter("resource_summary.confirm_by_owner = :needsConfirmation");
+                queryFilter.addFilterParameter("needsConfirmation", request.getNeedsConfirmation());
+            }
+
             // Query order by
             String queryOrderBy =
                     "resource_summary.allocatable DESC, resource_summary.allocation_order, resource_summary.id";
@@ -440,12 +448,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     if (resourceSummary.isCalendarPublic()) {
                         resourceSummary.setCalendarUriKey(record[9].toString());
                     }
+                    resourceSummary.setConfirmByOowner((Boolean) record[10]);
                     response.addItem(resourceSummary);
                 }
             }
 
             // List foreign resources
-            if (searchForeign) {
+            if (searchForeign && !request.isOnlyLocal()) {
                 foreignResourcesListRequest.setSecurityToken(securityToken);
                 foreignResourcesListRequest.setPermission(request.getPermission());
                 //TODO: add TagId

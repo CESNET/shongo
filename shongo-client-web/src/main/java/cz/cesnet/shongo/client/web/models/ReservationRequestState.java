@@ -13,6 +13,11 @@ import java.util.Locale;
 public enum ReservationRequestState
 {
     /**
+     * Reservation request has not been confirmed yet, nor allocated by the scheduler yet.
+     */
+    CONFIRM_AWAITING(false),
+
+    /**
      * Reservation request has not been allocated by the scheduler yet.
      */
     NOT_ALLOCATED(false),
@@ -46,6 +51,11 @@ public enum ReservationRequestState
      * Reservation request cannot be allocated by the scheduler or the starting of executable failed.
      */
     FAILED(false),
+
+    /**
+     * The reservation request has been denied. It won't be allocated.
+     */
+    DENIED(false),
 
     /**
      * Modification of reservation request cannot be allocated by the scheduler
@@ -177,6 +187,10 @@ public enum ReservationRequestState
                 else {
                     return FAILED;
                 }
+            case CONFIRM_AWAITING:
+                return CONFIRM_AWAITING;
+            case DENIED:
+                return DENIED;
             default:
                 return NOT_ALLOCATED;
         }

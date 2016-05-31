@@ -39,4 +39,9 @@ ${context.width(indent + (aliasesLabel?length + 1) / 2 + 1, "----- " + aliasesLa
 </#if>
 <#elseif target.class.simpleName == "Reused">
 ${context.message(indent, "target.reused.reservation")}: ${target.reusedReservationId}
+<#-- Resource -->
+<#elseif target.class.simpleName == "Resource">
+${context.message(indent, "target.resource.name")}: ${target.resourceName}
+
 </#if>
+

@@ -225,6 +225,14 @@ public class ClientWebUrl
             "/resource/capacity-utilization/table";
     public static final String RESOURCE_CAPACITY_UTILIZATION_DESCRIPTION =
             "/resource/capacity-utilization/description";
+    public static final String RESERVATION_REQUEST_CONFIRMATION =
+            "/resource/reservation-request/confirmation";
+    public static final String RESERVATION_REQUEST_CONFIRMATION_DATA =
+            "/resource/reservation-request/confirmation/data";
+    public static final String RESERVATION_REQUEST_CONFIRM =
+            "/resource/reservation-request/confirm";
+    public static final String RESERVATION_REQUEST_DENY =
+            "/resource/reservation-request/deny";
 
     public static String format(String url, Object... variables)
     {

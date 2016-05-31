@@ -71,6 +71,16 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private ObjectPermission permission;
 
     /**
+     * Resources must be only local. default = false
+     */
+    private boolean onlyLocal = false;
+
+    /**
+     * Resource reservations has to be confirmed first.
+     */
+    private Boolean needsConfirmation;
+
+    /**
      * Constructor.
      */
     public ResourceListRequest()
@@ -247,6 +257,38 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         this.allocatable = allocatable;
     }
 
+    /**
+     * @return {@link #onlyLocal}
+     */
+    public boolean isOnlyLocal()
+    {
+        return onlyLocal;
+    }
+
+    /**
+     * @param onlyLocal sets the {@link #onlyLocal}
+     */
+    public void setOnlyLocal(boolean onlyLocal)
+    {
+        this.onlyLocal = onlyLocal;
+    }
+
+    /**
+     * @return {@link #needsConfirmation}
+     */
+    public Boolean getNeedsConfirmation()
+    {
+        return needsConfirmation;
+    }
+
+    /**
+     * @param needsConfirmation sets the {@link #needsConfirmation}
+     */
+    public void setNeedsConfirmation(Boolean needsConfirmation)
+    {
+        this.needsConfirmation = needsConfirmation;
+    }
+
     public static enum Sort
     {
         ID,
@@ -263,6 +305,8 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
     private static final String TECHNOLOGIES = "technologies";
     private static final String ALLOCATABLE = "allocatable";
     private static final String PERMISSION = "permission";
+    private static final String ONLY_LOCAL = "onlyLocal";
+    private static final String NEEDS_CONFIRMATION = "needsConfirmation";
 
     @Override
     public DataMap toData()
@@ -278,6 +322,8 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(ALLOCATABLE, allocatable);
         dataMap.set(PERMISSION, permission);
+        dataMap.set(ONLY_LOCAL, onlyLocal);
+        dataMap.set(NEEDS_CONFIRMATION, needsConfirmation);
         return dataMap;
     }
 
@@ -295,5 +341,7 @@ public class ResourceListRequest extends SortableListRequest<ResourceListRequest
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
         permission = dataMap.getEnum(PERMISSION, ObjectPermission.class);
+        onlyLocal = dataMap.getBool(ONLY_LOCAL);
+        needsConfirmation = dataMap.getBoolean(NEEDS_CONFIRMATION);
     }
 }

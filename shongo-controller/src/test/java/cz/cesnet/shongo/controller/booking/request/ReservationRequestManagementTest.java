@@ -768,6 +768,173 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
                 READ, listObjectPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
     }
 
+    @Test
+    public void testListOwnedResourcesReservationRequests()
+    {
+        Resource ownedResource = new Resource();
+        ownedResource.setName("resource");
+        ownedResource.setAllocatable(true);
+        ownedResource.setConfirmByOwner(true);
+        String ownedResourceId = createResource(ownedResource);
+
+        AclEntry aclEntry = new AclEntry();
+        aclEntry.setRole(ObjectRole.OWNER);
+        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN));
+        aclEntry.setIdentityType(AclIdentityType.USER);
+        aclEntry.setObjectId(ownedResourceId);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_ROOT, aclEntry);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("request");
+        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
+
+        ReservationRequest reservationRequestLonger = new ReservationRequest();
+        reservationRequestLonger.setDescription("request");
+        reservationRequestLonger.setSlot("2012-01-01T11:00", "PT3H");
+        reservationRequestLonger.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestLonger.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id2 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestLonger);
+        Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
+
+        ReservationRequest reservationRequestAnother = new ReservationRequest();
+        reservationRequestAnother.setDescription("request");
+        reservationRequestAnother.setSlot("2012-01-01T01:00", "PT1H");
+        reservationRequestAnother.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestAnother.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id3 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestAnother);
+        Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
+
+        ListResponse<ReservationRequestSummary> reservationRequests;
+        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest(SECURITY_TOKEN);
+        reservationRequestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+        reservationRequestListRequest.setIntervalDateOnly(false);
+        reservationRequestListRequest.setInterval(reservationRequest.getSlot());
+
+        // Check created reservation request without existing reservation, waiting for confirmation
+        reservationRequests = getReservationService().listOwnedResourcesReservationRequests(reservationRequestListRequest);
+        Assert.assertEquals("Two reservation request should exist.", 2, reservationRequests.getItemCount());
+        Assert.assertEquals(id1, reservationRequests.getItem(0).getId());
+        reservationRequest = getReservationRequest(id1, ReservationRequest.class);
+        Assert.assertEquals("request", reservationRequest.getDescription());
+        Assert.assertEquals(AllocationState.CONFIRM_AWAITING, reservationRequest.getAllocationState());
+    }
+
+    @Test
+    public void testReservationRequestConfirmation() throws Exception
+    {
+        Resource ownedResource = new Resource();
+        ownedResource.setName("resource");
+        ownedResource.setAllocatable(true);
+        ownedResource.setConfirmByOwner(true);
+        String ownedResourceId = createResource(ownedResource);
+
+        AclEntry aclEntry = new AclEntry();
+        aclEntry.setRole(ObjectRole.OWNER);
+        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN));
+        aclEntry.setIdentityType(AclIdentityType.USER);
+        aclEntry.setObjectId(ownedResourceId);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_ROOT, aclEntry);
+
+        // Create reservation request requires confirmation
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("request");
+        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
+
+        ReservationRequest reservationRequestLonger = new ReservationRequest();
+        reservationRequestLonger.setDescription("request");
+        reservationRequestLonger.setSlot("2012-01-01T11:00", "PT3H");
+        reservationRequestLonger.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestLonger.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id2 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestLonger);
+        Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
+
+        ReservationRequest reservationRequestAnother = new ReservationRequest();
+        reservationRequestAnother.setDescription("request");
+        reservationRequestAnother.setSlot("2012-01-01T01:00", "PT1H");
+        reservationRequestAnother.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestAnother.setSpecification(new ResourceSpecification(ownedResourceId));
+        String id3 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestAnother);
+        Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
+
+        ListResponse<ReservationRequestSummary> reservationRequests;
+        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest(SECURITY_TOKEN);
+        reservationRequestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+
+        // Check created reservation request without existing reservation, waiting for confirmation
+        reservationRequests = getReservationService().listOwnedResourcesReservationRequests(reservationRequestListRequest);
+        Assert.assertEquals("Tree reservation requests should exist.", 3, reservationRequests.getItemCount());
+        Assert.assertEquals(id1, reservationRequests.getItem(0).getId());
+        reservationRequest = getReservationRequest(id1, ReservationRequest.class);
+        Assert.assertEquals("request", reservationRequest.getDescription());
+        Assert.assertEquals(AllocationState.CONFIRM_AWAITING, reservationRequest.getAllocationState());
+
+        // Confirm reservation request and check if allocated
+        getReservationService().confirmReservationRequest(SECURITY_TOKEN, id1, true);
+
+        reservationRequests = getReservationService().listOwnedResourcesReservationRequests(reservationRequestListRequest);
+        Assert.assertEquals("One reservation request should exist.", 1, reservationRequests.getItemCount());
+        runScheduler();
+        checkAllocated(id1);
+    }
+
+//    @Test
+//    public void testReservationRequestSetConfirmation() throws Exception
+//    {
+//        Resource ownedResource = new Resource();
+//        ownedResource.setName("resource");
+//        ownedResource.setAllocatable(true);
+//        ownedResource.setConfirmByOwner(true);
+//        String ownedResourceId = createResource(ownedResource);
+//
+//        AclEntry aclEntry = new AclEntry();
+//        aclEntry.setRole(ObjectRole.OWNER);
+//        aclEntry.setIdentityPrincipalId(getUserId(SECURITY_TOKEN));
+//        aclEntry.setIdentityType(AclIdentityType.USER);
+//        aclEntry.setObjectId(ownedResourceId);
+//        getAuthorizationService().createAclEntry(SECURITY_TOKEN_ROOT, aclEntry);
+//
+//        // Create reservation request requires confirmation
+//        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+//        reservationRequest.setDescription("request");
+//        reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
+//        reservationRequest.addSlot("2012-01-02T12:00", "PT2H");
+//        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+//        reservationRequest.setSpecification(new ResourceSpecification(ownedResourceId));
+//        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+//        Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
+//
+//        runPreprocessor();
+//
+//        ListResponse<ReservationRequestSummary> reservationRequests;
+//        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest(SECURITY_TOKEN);
+//        reservationRequestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+//
+//        // Check created reservation request without existing reservation, waiting for confirmation
+//        reservationRequests = getReservationService().listOwnedResourcesReservationRequests(reservationRequestListRequest);
+//        Assert.assertEquals("Two reservation requests should exist.", 2, reservationRequests.getItemCount());
+//        String reqId1 = reservationRequests.getItem(0).getId();
+//        String reqId2 = reservationRequests.getItem(1).getId();
+//
+//        // Confirm reservation request and check if allocated
+//        getReservationService().confirmReservationRequest(SECURITY_TOKEN, reqId1, true);
+//        getReservationService().denyReservationRequest(SECURITY_TOKEN, reqId2);
+//
+//        runScheduler();
+//
+//        reservationRequests = getReservationService().listOwnedResourcesReservationRequests(reservationRequestListRequest);
+//        Assert.assertEquals("No reservation request should exist.", 0, reservationRequests.getItemCount());
+//        checkAllocated(reqId1);
+//        checkAllocationFailed(reqId2);
+//    }
+
     private Set<ObjectPermission> listObjectPermissions(SecurityToken securityToken, String objectId)
     {
         return getAuthorizationService().listObjectPermissions(new ObjectPermissionListRequest(

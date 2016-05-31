@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 
 import java.util.List;
@@ -41,7 +43,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             if (allocationState != null) {
                 allocationStateHelp = messageProvider.getMessage("views.reservationRequest.allocationStateHelp." + allocationState);
 
-                if (allocationState.equals(AllocationState.ALLOCATION_FAILED)) {
+                if (AllocationState.ALLOCATION_FAILED.equals(allocationState)) {
                     AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
                     StringBuilder allocationStateHelpBuilder = new StringBuilder();
                     if (userSession.isAdministrationMode()) {
@@ -84,6 +86,23 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             if (AllocationState.ALLOCATION_FAILED.equals(allocationState)) {
                 // Use allocation failed help
                 stateHelp = allocationStateHelp;
+            }
+            else if (AllocationState.DENIED.equals(allocationState)) {
+                StringBuilder reservationRequestDeniedHelp = new StringBuilder();
+                AllocationStateReport.UserError userError = reservationRequest.getAllocationStateReport().toUserError();
+                // Find user who denied the reservation request
+                if (userError instanceof AllocationStateReport.UserIdentityRequired) {
+                    AllocationStateReport.ReservationRequestDenied userErrorWithUserId;
+                    userErrorWithUserId = (AllocationStateReport.ReservationRequestDenied) userError;
+                    String userName = cacheProvider.getUserInformation(userErrorWithUserId.getUserId()).getFullName();
+                    userErrorWithUserId.setUserName(userName);
+                }
+                reservationRequestDeniedHelp.append("<strong>");
+                reservationRequestDeniedHelp.append(userError.getMessage(
+                        messageProvider.getLocale(), messageProvider.getTimeZone()));
+                reservationRequestDeniedHelp.append("</strong><br/>");
+                reservationRequestDeniedHelp.append(allocationStateHelp);
+                stateHelp = reservationRequestDeniedHelp.toString();
             }
             else if (room != null && RoomState.FAILED.equals(room.getState())) {
                 // Use room failed help

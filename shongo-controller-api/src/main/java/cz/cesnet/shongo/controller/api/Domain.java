@@ -215,7 +215,9 @@ public class Domain extends IdentifiedComplexType
         organization = dataMap.getStringRequired(ORGANIZATION);
         status = dataMap.getEnum(STATUS, Status.class);
         shortName = dataMap.getString(SHORT_NAME);
-        domainAddress = new DeviceAddress(dataMap.getStringRequired(URL), dataMap.getIntegerRequired(PORT));
+        if (dataMap.getString(URL) != null && dataMap.getInteger(PORT) != null) {
+            domainAddress = new DeviceAddress(dataMap.getString(URL), dataMap.getInteger(PORT));
+        }
         certificatePath = dataMap.getString(CERTIFICATE_PATH);
         allocatable = dataMap.getBool(ALLOCATABLE);
         passwordHash = dataMap.getString(PASSWORD_HASH);

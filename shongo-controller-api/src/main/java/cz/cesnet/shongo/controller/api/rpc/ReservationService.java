@@ -103,6 +103,33 @@ public interface ReservationService extends Service
     public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request);
 
     /**
+     * List reservation requests of resources for which is the requesting user entitled to control it.
+     * @param request
+     * @return
+     */
+    @API
+    public ListResponse<ReservationRequestSummary> listOwnedResourcesReservationRequests(ReservationRequestListRequest request);
+
+    /**
+     * Confirms given reservation request (awaiting confirmation).
+     * @param securityToken
+     * @param reservationRequestId
+     * @return boolean state if request is confirmed and and ready for allocation
+     */
+    @API
+    public Boolean confirmReservationRequest(SecurityToken securityToken, String reservationRequestId, boolean denyOthers);
+
+    /**
+     * Deny given reservation request (awaiting confirmation).
+     * @param securityToken
+     * @param reservationRequestId
+     * @return boolean state if request is confirmed and and ready for allocation
+     */
+    @API
+    public Boolean denyReservationRequest(SecurityToken securityToken, String reservationRequestId, String reason);
+
+
+    /**
      * Gets the complete Reservation object.
      *
      * @param token                token of the user requesting the operation

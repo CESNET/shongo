@@ -22,7 +22,6 @@
                 dataType: "json"
             }).done(function (data) {
                 var result = data.aliases;
-                console.debug(data);
                 if (data.pin != null) {
                     result += "<strong><spring:message code="views.room.pin"/>:</strong> " + data.pin;
                 }

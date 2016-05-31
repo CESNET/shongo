@@ -1,33 +1,35 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.resource.ResourceCapacity;
 import cz.cesnet.shongo.client.web.resource.ResourceCapacityUtilization;
 import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
+import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
-import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.joda.time.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import sun.security.util.ObjectIdentifier;
 
 import java.util.*;
 
@@ -61,6 +63,7 @@ public class ResourceController
     {
         binder.registerCustomEditor(Interval.class, new IntervalEditor());
         binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+        binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
         binder.registerCustomEditor(Period.class, new PeriodEditor());
     }
 
@@ -242,5 +245,173 @@ public class ResourceController
         modelAndView.addObject("resourceCapacity", resourceCapacity);
         modelAndView.addObject("resourceCapacityUtilization", resourceCapacityUtilization);
         return modelAndView;
+    }
+
+    /**
+     * TODO:
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleReservationRequestsConfirmationData(
+            SecurityToken securityToken,
+            Locale locale,
+            DateTimeZone timeZone,
+            @RequestParam(value = "interval-from", required = false) DateTime intervalFrom,
+            @RequestParam(value = "interval-to", required = false) DateTime intervalTo,
+            @RequestParam(value = "resource-id", required = false) String resourceId,
+            @RequestParam(value = "showExisting", required = false) Boolean showExisting,
+            @RequestParam(value = "start", required = false) Integer start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "false") boolean sortDescending) throws ClassNotFoundException
+    {
+        ReservationRequestListRequest requestListRequest = new ReservationRequestListRequest(securityToken);
+        // Listing is irrelevant when requests and reservations are shown at the same time
+        if (!Boolean.TRUE.equals(showExisting)) {
+            requestListRequest.setStart(start);
+            requestListRequest.setCount(count);
+        }
+        requestListRequest.setSort(sort);
+        requestListRequest.setSortDescending(sortDescending);
+        requestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+        if (intervalFrom == null) {
+            intervalFrom = Temporal.DATETIME_INFINITY_START;
+        }
+        if (intervalTo == null) {
+            intervalTo = Temporal.DATETIME_INFINITY_END;
+        }
+        Interval interval = Temporal.roundIntervalToDays(new Interval(intervalFrom, intervalTo));
+        requestListRequest.setInterval(interval);
+        if (resourceId != null) {
+            requestListRequest.setSpecificationResourceId(resourceId);
+        } else {
+            throw new TodoImplementException("list request for confirmation generaly");
+        }
+        ListResponse<ReservationRequestSummary> listResponse = reservationService.listOwnedResourcesReservationRequests(requestListRequest);
+
+        List<Map> items = new LinkedList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
+        for (ReservationRequestSummary reservationRequestSummary : listResponse.getItems()) {
+            // Skip reservation request sets, for now
+            if (reservationRequestSummary.getFutureSlotCount() != null) {
+                continue;
+            }
+            Map<String, Object> reservationRequest = new HashMap<>();
+            reservationRequest.put("id", reservationRequestSummary.getId());
+            reservationRequest.put("description", reservationRequestSummary.getDescription());
+            UserInformation user = cache.getUserInformation(securityToken, reservationRequestSummary.getUserId());
+            reservationRequest.put("user", user.getFullName());
+            reservationRequest.put("userEmail", user.getPrimaryEmail());
+            Interval slot = reservationRequestSummary.getEarliestSlot();
+            // LIST
+            reservationRequest.put("slot", formatter.formatInterval(slot));
+            reservationRequest.put("resourceId", reservationRequestSummary.getResourceId());
+            // CALENDAR
+            reservationRequest.put("start", slot.getStart().toLocalDateTime().toString());
+            reservationRequest.put("end", slot.getEnd().toLocalDateTime().toString());
+            items.add(reservationRequest);
+        }
+
+        if (Boolean.TRUE.equals(showExisting)) {
+            ReservationListRequest request = new ReservationListRequest();
+            request.setSecurityToken(securityToken);
+            request.setStart(start);
+            request.setCount(count);
+            request.setInterval(interval);
+            if (resourceId != null) {
+                request.addResourceId(resourceId);
+            } else {
+                throw new TodoImplementException("list request for confirmation generally");
+            }
+            ListResponse<ReservationSummary> reservationSummaries = reservationService.listReservations(request);
+
+            for (ReservationSummary reservationSummary : reservationSummaries) {
+                Map<String, Object> reservation = new HashMap<String, Object>();
+//                reservation.put("id", reservationSummary.getId());
+                reservation.put("type", reservationSummary.getType());
+                reservation.put("description", reservationSummary.getReservationRequestDescription());
+                if (UserInformation.isLocal(reservationSummary.getUserId())) {
+                    UserInformation user = cache.getUserInformation(securityToken, reservationSummary.getUserId());
+                    reservation.put("user", user.getFullName());
+                    reservation.put("userEmail", user.getPrimaryEmail());
+                }
+                else {
+                    Long domainId = UserInformation.parseDomainId(reservationSummary.getUserId());
+                    String domainName = resourceService.getDomainName(securityToken, domainId.toString());
+                    reservation.put("foreignDomain", domainName);
+                }
+                Interval slot = reservationSummary.getSlot();
+                // LIST - not necessary for existing reservation
+                // CALENDAR
+                reservation.put("start", slot.getStart().toLocalDateTime().toString());
+                reservation.put("end", slot.getEnd().toLocalDateTime().toString());
+                reservation.put("reservation", true);
+
+                items.add(reservation);
+            }
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        // Listing is irrelevant when requests and reservations are shown at the same time
+        if (!Boolean.TRUE.equals(showExisting)) {
+            data.put("start", listResponse.getStart());
+            data.put("count", listResponse.getCount());
+        }
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
+        data.put("items", items);
+        return data;
+    }
+
+    /**
+     * TODO:Handle single {@link ResourceCapacityUtilization}.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION, method = RequestMethod.GET)
+    public Object handleReservationRequestsConfirmation(
+            SecurityToken securityToken,
+            @RequestParam(value = "resource-id", required = false) String resourceId,
+            @RequestParam(value = "date", required = false) LocalDate date) throws ClassNotFoundException
+    {
+        Map<String, String> resources = new LinkedHashMap<>();
+        ResourceListRequest listRequest = new ResourceListRequest(securityToken);
+        listRequest.setOnlyLocal(true);
+        listRequest.setNeedsConfirmation(true);
+        listRequest.setPermission(ObjectPermission.CONTROL_RESOURCE);
+        for (ResourceSummary resourceSummary : resourceService.listResources(listRequest)) {
+            resources.put(resourceSummary.getId(), resourceSummary.getName());
+        }
+        ModelAndView modelAndView = new ModelAndView("resourceReservationRequestsConfirmationCalendar");
+        // Check valid resourceId if present
+        if (resourceId != null) {
+            if (!resources.containsKey(resourceId)) {
+                throw new PageNotAuthorizedException();
+            } else {
+                modelAndView.addObject("resourceId", resourceId);
+            }
+        }
+        if (date != null) {
+            modelAndView.addObject("date", Converter.convertLocalDateToString(date));
+        }
+        modelAndView.addObject("resources", resources);
+        return modelAndView;
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CONFIRM, method = RequestMethod.GET)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void handleReservationRequestConfirm(
+            SecurityToken securityToken,
+            @RequestParam(value = "reservationRequestId") String reservationRequestId)
+    {
+        reservationService.confirmReservationRequest(securityToken, reservationRequestId, true);
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DENY, method = RequestMethod.GET)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void handleReservationRequestDeny(
+            SecurityToken securityToken,
+            @RequestParam(value = "reservationRequestId") String reservationRequestId,
+            @RequestParam(value = "reason", required = false) String reason)
+    {
+        reservationService.denyReservationRequest(securityToken, reservationRequestId, reason);
     }
 }

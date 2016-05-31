@@ -48,6 +48,12 @@ public class AclUserState
             new HashMap<AclObjectClass, Set<Long>>();
 
     /**
+     * Map of objects which are controllable by the user (he has {@link ObjectPermission#CONTROL_RESOURCE} for them) by {@link AclObjectClass}.
+     */
+    private Map<AclObjectClass, Set<Long>> controlledObjectsByClass =
+            new HashMap<AclObjectClass, Set<Long>>();
+
+    /**
      * @param aclEntry to be added to the {@link AclUserState}
      */
     public synchronized void addAclEntry(AclEntry aclEntry)
@@ -99,6 +105,15 @@ public class AclUserState
                 if (entities == null) {
                     entities = new HashSet<Long>();
                     reservableObjectsByClass.put(objectClass, entities);
+                }
+                entities.add(objectIdentity.getObjectId());
+            }
+            // Update controllable entities
+            if (objectState.permissions.contains(ObjectPermission.CONTROL_RESOURCE)) {
+                Set<Long> entities = controlledObjectsByClass.get(objectClass);
+                if (entities == null) {
+                    entities = new HashSet<>();
+                    controlledObjectsByClass.put(objectClass, entities);
                 }
                 entities.add(objectIdentity.getObjectId());
             }
@@ -164,7 +179,16 @@ public class AclUserState
                     }
                 }
             }
-
+            // Update controllable entities
+            if (!objectState.permissions.contains(ObjectPermission.CONTROL_RESOURCE)) {
+                Set<Long> entities = controlledObjectsByClass.get(objectClass);
+                if (entities != null) {
+                    entities.remove(objectIdentity.getObjectId());
+                    if (entities.size() == 0) {
+                        controlledObjectsByClass.remove(objectClass);
+                    }
+                }
+            }
             // Remove objects states
             if (objectState.aclEntries.size() == 0) {
                 objectStateByObjectIdentity.remove(objectIdentity);
@@ -264,6 +288,9 @@ public class AclUserState
                 break;
             case RESERVE_RESOURCE:
                 entities = reservableObjectsByClass.get(objectClass);
+                break;
+            case CONTROL_RESOURCE:
+                entities = controlledObjectsByClass.get(objectClass);
                 break;
             default:
                 throw new TodoImplementException(objectPermission);
