@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
@@ -21,12 +19,17 @@ import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.*;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.ReservationRequestConfirmationNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -45,7 +48,7 @@ import java.util.*;
  */
 public class ReservationServiceImpl extends AbstractServiceImpl
         implements ReservationService, Component.EntityManagerFactoryAware,
-                   Component.AuthorizationAware
+                   Component.AuthorizationAware, Component.NotificationManagerAware
 {
     /**
      * @see cz.cesnet.shongo.controller.cache.Cache
@@ -61,6 +64,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
      * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
+
+    /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
 
     /**
      * Constructor.
@@ -80,6 +88,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public void setAuthorization(Authorization authorization)
     {
         this.authorization = authorization;
+    }
+
+    @Override
+    public void setNotificationManager(NotificationManager notificationManager)
+    {
+        this.notificationManager = notificationManager;
     }
 
     @Override
@@ -426,6 +440,28 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
+            if (reservationRequest instanceof ReservationRequest) {
+                ReservationRequest simpleReservationRequest = (ReservationRequest) reservationRequest;
+                if (ReservationRequest.AllocationState.CONFIRM_AWAITING.equals(simpleReservationRequest.getAllocationState())) {
+                    //TODO: check availability
+                    if (simpleReservationRequest.getSpecification() instanceof ResourceSpecification) {
+                        ResourceSpecification resourceSpecification = (ResourceSpecification) simpleReservationRequest.getSpecification();
+                        //TODO: add notification
+                        List<PersonInformation> recipients = resourceSpecification.getResource().getAdministrators(authorizationManager, false);
+                        ReservationRequestConfirmationNotification notification;
+
+                        notification = new ReservationRequestConfirmationNotification(simpleReservationRequest);
+                        notification.addRecipients(recipients, false);
+
+                        notificationManager.addNotification(notification, entityManager);
+                    }
+                    else {
+                        throw new TodoImplementException("Confirmation not supported for specification type: "
+                                + simpleReservationRequest.getSpecification().getClass().getSimpleName());
+                    }
+                }
+            }
+
             return ObjectIdentifier.formatId(reservationRequest);
         }
         finally {
@@ -437,7 +473,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             entityManager.close();
         }
-
     }
 
     @Override
@@ -550,6 +585,175 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (authorizationManager.isTransactionActive()) {
                 authorizationManager.rollbackTransaction();
             }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public Boolean confirmReservationRequest(SecurityToken securityToken, String reservationRequestId, boolean denyOthers)
+    {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        ReservationRequest reservationRequest;
+        Resource resource;
+        try {
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            entityManager.getTransaction().begin();
+
+            // Get old reservation request and check permissions and restrictions for confirmation
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+            if (abstractReservationRequest instanceof ReservationRequest) {
+                reservationRequest = (ReservationRequest) abstractReservationRequest;
+            } else {
+                throw new TodoImplementException("ReservationRequestSet is unsupported for confirmation.");
+            }
+
+            if (!ReservationRequest.AllocationState.CONFIRM_AWAITING.equals(reservationRequest.getAllocationState())) {
+                return Boolean.TRUE;
+            }
+
+            cz.cesnet.shongo.controller.booking.specification.Specification specification = reservationRequest.getSpecification();
+            if (specification instanceof ResourceSpecification) {
+                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+                resource = resourceSpecification.getResource();
+            } else {
+                throw new TodoImplementException("Unsupported specification type: " + specification.getClass().getSimpleName());
+            }
+
+            if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.CONTROL_RESOURCE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("confirm reservation request %s", resource.getId());
+            }
+
+            switch (reservationRequest.getState()) {
+                case MODIFIED:
+                    throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(objectId.toId());
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(objectId.toId());
+            }
+
+            reservationRequest.setAllocationState(ReservationRequest.AllocationState.COMPLETE);
+
+            reservationRequestManager.update(reservationRequest);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+
+        // Deny other reservation requests colliding with this one allowed
+        if (denyOthers) {
+            ReservationRequestListRequest requestListRequest = new ReservationRequestListRequest(securityToken);
+            requestListRequest.setInterval(reservationRequest.getSlot());
+            requestListRequest.setIntervalDateOnly(false);
+            requestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+            requestListRequest.setSpecificationResourceId(ObjectIdentifier.formatId(resource));
+
+            ListResponse<ReservationRequestSummary> listResponse = listOwnedResourcesReservationRequests(requestListRequest);
+            try {
+                entityManager = entityManagerFactory.createEntityManager();
+                ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+                entityManager.getTransaction().begin();
+
+                for (ReservationRequestSummary reservationRequestSummary : listResponse) {
+                    Long requestId = ObjectIdentifier.parseLocalId(reservationRequestSummary.getId(), ObjectType.RESERVATION_REQUEST);
+                    ReservationRequest request = reservationRequestManager.getReservationRequest(requestId);
+                    if (AbstractReservationRequest.State.ACTIVE.equals(request.getState())) {
+                        request.setAllocationState(ReservationRequest.AllocationState.DENIED);
+
+                        SchedulerReportSet.ReservationRequestDeniedAlreadyAllocatedReport report = new SchedulerReportSet.ReservationRequestDeniedAlreadyAllocatedReport();
+                        report.setResource(resource);
+                        report.setInterval(reservationRequest.getSlot());
+                        request.setReport(report);
+
+                        reservationRequestManager.update(request);
+                    }
+                }
+
+                entityManager.getTransaction().commit();
+            }
+            finally {
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+                entityManager.close();
+            }
+        }
+
+        return Boolean.TRUE;
+    }
+
+    @Override
+    public Boolean denyReservationRequest(SecurityToken securityToken, String reservationRequestId, String reason)
+    {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        try {
+            entityManager.getTransaction().begin();
+
+            // Get old reservation request and check permissions and restrictions for confirmation
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+            ReservationRequest reservationRequest;
+            if (abstractReservationRequest instanceof ReservationRequest) {
+                reservationRequest = (ReservationRequest) abstractReservationRequest;
+            } else {
+                throw new TodoImplementException("ReservationRequestSet is unsupported for confirmation.");
+            }
+
+            if (!ReservationRequest.AllocationState.CONFIRM_AWAITING.equals(reservationRequest.getAllocationState())) {
+                return Boolean.TRUE;
+            }
+
+            cz.cesnet.shongo.controller.booking.specification.Specification specification = reservationRequest.getSpecification();
+            Resource resource;
+            if (specification instanceof ResourceSpecification) {
+                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+                resource = resourceSpecification.getResource();
+            } else {
+                throw new TodoImplementException("Unsupported specification type: " + specification.getClass().getSimpleName());
+            }
+
+            if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.CONTROL_RESOURCE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("confirm reservation request %s", objectId);
+            }
+
+            switch (reservationRequest.getState()) {
+                case MODIFIED:
+                    throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(objectId.toId());
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(objectId.toId());
+            }
+
+            reservationRequest.setAllocationState(ReservationRequest.AllocationState.DENIED);
+
+            SchedulerReportSet.ReservationRequestDeniedReport report = new SchedulerReportSet.ReservationRequestDeniedReport();
+            report.setDeniedBy(authorization.getUserInformation(securityToken).getUserId());
+            report.setReason(reason);
+            reservationRequest.setReport(report);
+            reservationRequestManager.update(reservationRequest);
+
+            entityManager.getTransaction().commit();
+
+            return Boolean.TRUE;
+        }
+        finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -898,8 +1102,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (interval != null) {
                     queryFilter.addFilter("reservation_request_summary.slot_start < :intervalEnd");
                     queryFilter.addFilter("reservation_request_summary.slot_end > :intervalStart");
-                    queryFilter.addFilterParameter("intervalStart", interval.getStart().toDate());
-                    queryFilter.addFilterParameter("intervalEnd", interval.getEnd().toDate());
+                    if (request.isIntervalDateOnly()) {
+                        queryFilter.addFilterParameter("intervalStart", interval.getStart().toDate());
+                        queryFilter.addFilterParameter("intervalEnd", interval.getEnd().toDate());
+                    } else {
+                        throw new TodoImplementException("interval used only for dates without time");
+                    }
                 }
 
                 String userId = request.getUserId();
@@ -992,6 +1200,127 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_LIST, parameters);
 
             ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
+            List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            for (Object[] record : records) {
+                ReservationRequestSummary reservationRequestSummary = getReservationRequestSummary(record);
+                response.addItem(reservationRequestSummary);
+            }
+            return response;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public ListResponse<ReservationRequestSummary> listOwnedResourcesReservationRequests(ReservationRequestListRequest request)
+    {
+        checkNotNull("request", request);
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            QueryFilter queryFilter = new QueryFilter("reservation_request_summary", true);
+
+            // List only reservation requests which current user owns
+            Set<Long> ownedResourceIds = authorization.getEntitiesWithRole(securityToken, Resource.class, ObjectRole.OWNER);
+
+            // Return empty response when user doesn't own any resources
+            if (ownedResourceIds.isEmpty()) {
+                return new ListResponse<>();
+            } else {
+                queryFilter.addFilter("specification_summary.resource_id IN (:resourceIds)");
+                queryFilter.addFilterParameter("resourceIds", ownedResourceIds);
+            }
+
+            // Filter specification resource id
+            String specificationResourceId = request.getSpecificationResourceId();
+            if (specificationResourceId != null) {
+                queryFilter.addFilter("specification_summary.resource_id = :resource_id");
+                queryFilter.addFilterParameter("resource_id",
+                        ObjectIdentifier.parseLocalId(specificationResourceId, ObjectType.RESOURCE));
+            }
+
+            // List only latest versions of a reservation requests (no it's modifications or deleted requests)
+            queryFilter.addFilter("reservation_request_summary.state = 'ACTIVE'");
+
+            AllocationState allocationState = request.getAllocationState();
+            if (allocationState != null) {
+                queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");
+                queryFilter.addFilterParameter("allocationState", allocationState.toString());
+            }
+
+            Interval interval = request.getInterval();
+            if (interval != null) {
+                queryFilter.addFilter("reservation_request_summary.slot_start < :intervalEnd");
+                queryFilter.addFilter("reservation_request_summary.slot_end > :intervalStart");
+                if (request.isIntervalDateOnly()) {
+                    queryFilter.addFilterParameter("intervalStart", interval.getStart().toDate());
+                    queryFilter.addFilterParameter("intervalEnd", interval.getEnd().toDate());
+                } else {
+                    queryFilter.addFilterParameter("intervalStart", Temporal.convertDateTimeToTimestamp(interval.getStart()));
+                    queryFilter.addFilterParameter("intervalEnd", Temporal.convertDateTimeToTimestamp(interval.getEnd()));
+                }
+            }
+
+            // Query order by
+            String queryOrderBy;
+            ReservationRequestListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                switch (sort) {
+                    case ALIAS_ROOM_NAME:
+                        queryOrderBy = "specification_summary.alias_room_name";
+                        break;
+                    case RESOURCE_ROOM_NAME:
+                        queryOrderBy = "resource_summary.name";
+                        break;
+                    case DATETIME:
+                        queryOrderBy = "reservation_request_summary.created_at";
+                        break;
+                    case REUSED_RESERVATION_REQUEST:
+                        queryOrderBy = "reservation_request_summary.reused_reservation_request_id IS NOT NULL";
+                        break;
+                    case ROOM_PARTICIPANT_COUNT:
+                        queryOrderBy = "specification_summary.room_participant_count";
+                        break;
+                    case SLOT:
+                        queryOrderBy = "reservation_request_summary.slot_end";
+                        break;
+                    case SLOT_NEAREST:
+                        queryOrderBy = "reservation_request_summary.slot_nearness_priority, reservation_request_summary.slot_nearness_value";
+                        break;
+                    case STATE:
+                        queryOrderBy = "reservation_request_summary.allocation_state, reservation_request_summary.executable_state";
+                        break;
+                    case TECHNOLOGY:
+                        queryOrderBy = "specification_summary.technologies";
+                        break;
+                    case TYPE:
+                        queryOrderBy = "specification_summary.type";
+                        break;
+                    case USER:
+                        queryOrderBy = "reservation_request_summary.created_by";
+                        break;
+                    default:
+                        throw new TodoImplementException(sort);
+                }
+            }
+            else {
+                queryOrderBy = "reservation_request_summary.id";
+            }
+            Boolean sortDescending = request.getSortDescending();
+            sortDescending = (sortDescending != null ? sortDescending : false);
+            if (sortDescending) {
+                queryOrderBy = queryOrderBy + " DESC";
+            }
+
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put("filter", queryFilter.toQueryWhere());
+            parameters.put("order", queryOrderBy);
+            String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_LIST, parameters);
+
+            ListResponse<ReservationRequestSummary> response = new ListResponse<>();
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
                 ReservationRequestSummary reservationRequestSummary = getReservationRequestSummary(record);

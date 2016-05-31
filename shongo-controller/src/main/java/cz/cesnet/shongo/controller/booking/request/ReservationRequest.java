@@ -5,8 +5,10 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
@@ -256,6 +258,10 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * If {@link #specification} is instance of {@link cz.cesnet.shongo.controller.booking.specification.StatefulSpecification} and it's
      * {@link cz.cesnet.shongo.controller.booking.specification.StatefulSpecification#getCurrentState()} is {@link cz.cesnet.shongo.controller.booking.specification.StatefulSpecification.State#NOT_READY}
      * the state of {@link ReservationRequest} is set to {@link ReservationRequest.AllocationState#NOT_COMPLETE}.
+     *
+     * If {@link #specification} is instance of {@link ResourceSpecification} and {@link #allocationState} is not set yet,
+     * set it for {@link ReservationRequest.AllocationState#CONFIRM_AWAITING} for resources requiring reservation confirmation
+     *
      * Otherwise the state is not changed or forced to {@link ReservationRequest.AllocationState#COMPLETE} in incorrect cases.
      *
      * @see ReservationRequest.AllocationState
@@ -263,11 +269,23 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     public void updateStateBySpecification()
     {
         AllocationState newAllocationState = getAllocationState();
+        Specification specification = getSpecification();
         if (newAllocationState == null || newAllocationState == ReservationRequest.AllocationState.NOT_COMPLETE) {
             newAllocationState = ReservationRequest.AllocationState.COMPLETE;
+
+            // For resource reservation request with demanded confirmation set state {@link ReservationRequest.AllocationState#CONFIRM_AWAITING}
+            if (specification instanceof ResourceSpecification) {
+                // Check if reservation request need confirmation
+                //TODO: co zmodifikovana rezervace
+
+                ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
+                if (resourceSpecification.getResource().isConfirmByOwner()) {
+                    newAllocationState = AllocationState.CONFIRM_AWAITING;
+                }
+            }
         }
+
         List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
-        Specification specification = getSpecification();
         if (specification instanceof StatefulSpecification) {
             StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
             if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
@@ -398,6 +416,12 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         NOT_COMPLETE,
 
         /**
+         * Specification is instance of {@link ResourceSpecification} and resource requires confirmation by owner.
+         * When confirmed, state is switched to {@link #COMPLETE}.
+         */
+        CONFIRM_AWAITING,
+
+        /**
          * Specification is not instance of {@link StatefulSpecification} or it has
          * {@link StatefulSpecification#getCurrentState()} {@link StatefulSpecification.State#READY} or
          * {@link StatefulSpecification.State#SKIP}.
@@ -419,7 +443,12 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
          * Allocation of the {@link ReservationRequest} failed. The reason can be found from
          * the {@link ReservationRequest#getReports()}
          */
-        ALLOCATION_FAILED;
+        ALLOCATION_FAILED,
+
+        /*
+         * The reservation request has been denied. It won't be allocated.
+         */
+        DENIED;
 
         /**
          * @return {@link cz.cesnet.shongo.controller.api.AllocationState} for this {@code allocationState}
@@ -430,10 +459,14 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 case NOT_COMPLETE:
                 case COMPLETE:
                     return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
+                case CONFIRM_AWAITING:
+                    return cz.cesnet.shongo.controller.api.AllocationState.CONFIRM_AWAITING;
                 case ALLOCATED:
                     return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;
                 case ALLOCATION_FAILED:
                     return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATION_FAILED;
+                case DENIED:
+                    return cz.cesnet.shongo.controller.api.AllocationState.DENIED;
                 default:
                     throw new TodoImplementException(this);
             }

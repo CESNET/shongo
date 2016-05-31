@@ -1352,6 +1352,40 @@
             <visible>user</visible>
         </report>
 
+        <report>
+            <id>reservation-request-denied</id>
+            <classification severity="info"/>
+            <params>
+                <param name="deniedBy" type="String"/>
+                <param name="reason" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The reservation request has been denied by resource owner ${deniedBy}.
+                Reason: ${reason}
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>reservation-request-denied-already-allocated</id>
+            <classification severity="info"/>
+            <params>
+                <param name="resource" type="Resource"/>
+                <param name="interval" type="Interval"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The reservation request has been denied.
+                Reason: The resource ${resource.id} is already allocated in interval ${interval}.
+            </message>
+            <visible>user</visible>
+        </report>
+
         <!--
           - RESERVATION
           -->

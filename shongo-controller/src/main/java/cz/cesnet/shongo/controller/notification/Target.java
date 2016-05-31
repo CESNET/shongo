@@ -14,9 +14,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.*;
-import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
-import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
@@ -98,6 +96,11 @@ public abstract class Target
         private Resource(ResourceReservation resourceReservation)
         {
             setResource(resourceReservation.getResource());
+        }
+
+        private Resource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            setResource(resource);
         }
     }
 
@@ -628,6 +631,9 @@ public abstract class Target
                 }
             }
             return new Room((RoomSpecification) specification, reusedTarget, entityManager);
+        }
+        else if (specification instanceof ResourceSpecification) {
+            return new Resource(((ResourceSpecification) specification).getResource());
         }
         else {
             return new Other(specification);

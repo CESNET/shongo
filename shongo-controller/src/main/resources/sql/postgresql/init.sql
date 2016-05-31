@@ -102,6 +102,7 @@ SELECT
     resource.description AS description,
     resource.calendar_public AS calendar_public,
     resource.calendar_uri_key AS calendar_uri_key,
+    resource.confirm_by_owner AS confirm_by_owner,
     string_agg(device_resource_technologies.technologies, ',') AS technologies,
     CASE
       WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN room_provider_capability on room_provider_capability.id = capability.id) THEN 'ROOM_PROVIDER'

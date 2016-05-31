@@ -494,6 +494,10 @@ public class Controller
                 Component.AuthorizationAware authorizationAware = (Component.AuthorizationAware) component;
                 authorizationAware.setAuthorization(authorization);
             }
+            if (component instanceof Component.NotificationManagerAware) {
+                Component.NotificationManagerAware notificationManagerAware = (Component.NotificationManagerAware) component;
+                notificationManagerAware.setNotificationManager(notificationManager);
+            }
             component.init(configuration);
         }
     }

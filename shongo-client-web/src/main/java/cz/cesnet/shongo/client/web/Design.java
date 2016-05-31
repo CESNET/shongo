@@ -10,7 +10,10 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.NullCacheStorage;
@@ -54,6 +57,12 @@ public class Design
      */
     @Resource
     protected MessageSource applicationMessageSource;
+
+    /**
+     * @see ResourceService
+     */
+    @Resource
+    protected ResourceService resourceService;
 
     /**
      * @see ApplicationContext
@@ -360,7 +369,7 @@ public class Design
 
             public String getLanguage()
             {
-                if (languageUrl != null) {
+                if (languageUrl == null) {
                     if (requestUrl.contains("?")) {
                         UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUrl);
                         languageUrlBuilder.replaceQueryParam("lang", ":lang");
@@ -652,7 +661,7 @@ public class Design
             }
             links.add(new LinkContext("navigation.help", getUrl().applyBackUrl(ClientWebUrl.HELP)));
             if (isUserAuthenticated()) {
-                UserContext user = getUser();
+                final UserContext user = getUser();
 
                 if (cache.hasUserPermission(user.securityToken, UserPermission.RESOURCE_MANAGEMENT)) {
                     links.add(new LinkSeparatorContext());
@@ -662,6 +671,16 @@ public class Design
                         add(new LinkSeparatorContext());
                         add(new LinkContext("navigation.resourceReservations",
                                 ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
+                        // Show reservation request link only when there are some valid resources
+                        ResourceListRequest listRequest = new ResourceListRequest(user.securityToken);
+                        listRequest.setPermission(ObjectPermission.CONTROL_RESOURCE);
+                        listRequest.setNeedsConfirmation(true);
+                        listRequest.setOnlyLocal(true);
+                        if (!resourceService.listResources(listRequest).getItems().isEmpty()) {
+                            add(new LinkSeparatorContext());
+                            add(new LinkContext("navigation.resourceReservationsConfirmation",
+                                    ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION));
+                        }
                     }}));
                 }
             }

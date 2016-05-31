@@ -6,6 +6,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <tag:url var="reservationRequestConfirmationDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION_DATA %>">
   <tag:param name="count" value="10"/>
@@ -44,15 +45,26 @@
     var m = date.getMonth();
     var y = date.getFullYear();
 
-//    $scope.initCalendar = function() {
-//      var calendar = uiCalendarConfig.calendars['resourceReservationRequestsConfirmationCalendar'];
-//      if (calendar) {
-//        calendar.fullCalendar('render');
-//      }
-//    };
+    // default values
+    $scope.showExistingReservations = true;
 
+    $scope.resourceIdOptions = {
+      escapeMarkup: function (markup) {
+        return markup;
+      },
+      data: [
+        <c:forEach items="${resources}" var="resource">
+        {id: "${resource.key}", text: "${resource.value}"},
+        </c:forEach>
+      ]
+    };
+
+    $scope.reservationsFilter = {
+      resourceId: $scope.resourceIdOptions.data[0].id
+    };
+
+    // Ajax call for reservation request for confirmation
     $scope.eventsF = function(start, end, timezone, callback) {
-      //TODO: resource GET
       <c:choose>
         <c:when test="${resourceId != null}">
           var resourceId = '${resourceId}';
@@ -65,7 +77,8 @@
       if (typeof $scope.reservationsFilter.resourceId == 'object') {
         resourceId = $scope.reservationsFilter.resourceId.id;
       }
-      $.ajax("${reservationRequestConfirmationDataUrl}&interval-from="+start.format()+"&interval-to="+end.format()+"&resource-id="+resourceId, {
+
+      $.ajax("${reservationRequestConfirmationDataUrl}&interval-from="+start.format()+"&interval-to="+end.format()+"&resource-id="+resourceId+"&showExisting="+$scope.showExistingReservations, {
         dataType: "json"
       }).done(function (data) {
         var events = [];
@@ -79,49 +92,76 @@
             bookedBy: event.user,
             ownersEmail: event.userEmail,
             start: event.start,
-            end: event.end
+            end: event.end,
+            isReservaion: event.reservation
           });
         });
         callback(events);
 
       })
     };
-//    $scope.renderCalender = function(calendar) {
-//      console.log("test");
-//
-//      if(uiCalendarConfig.calendars[calendar]){
-//        uiCalendarConfig.calendars[calendar].fullCalendar('render');
-//      }
-//    };
+
     $scope.eventRender = function( event, element, view ) {
       var descriptionTitle = "<spring:message code="views.room.description"/>";
       var requestedByTitle = "<spring:message code="views.resourceReservationRequests.confirmation.requestedBy"/>";
       var requestedBy = event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)";
-      element.qtip({
-        content:
-        "<center>" +
-        "<a class=\"btn-primary btn-xs\" href=\"\" onclick=\"updateRequestConfirmation('${reservationRequestConfirmUrl}?reservationRequestId=" + event.id + "');return false;\"><spring:message code="views.list.action.confirm.title"/></a>" +
-        "&nbsp;" +
-        "<a class=\"btn-danger btn-xs\" href=\"\" onclick=\"updateRequestConfirmation('${reservationRequestDenyUrl}?reservationRequestId=" + event.id + "');return false;\"><spring:message code="views.list.action.deny.title"/></a>" +
-        "</center>" +
-        "<strong>" + descriptionTitle + ":</strong><br /><span onclick=''>" + event.description + "</span>" +
-        "<br />" +
-        "<strong>" + requestedByTitle + ":</strong><br /><span>" + requestedBy + "</span>",
-        position: {
-          my: 'left top',
-          at: 'top right'
-        },
-        show: {
-          solo: true
-        },
-        hide: {
-          fixed: true,
-          delay: 600
-        },
-        style: {
-          classes: 'qtip-app'
-        }
-      });
+      // event color reservation/request
+
+      if (!event.isReservaion) {
+        // Render qTip for confirmation
+        element.css('border-color', 'orange');
+        element.css('background-color', 'orange');
+
+        element.qtip({
+          content:
+          "<center>" +
+          "<a class=\"btn-primary btn-xs\" href=\"\" onclick=\"updateRequestConfirmation('${reservationRequestConfirmUrl}?reservationRequestId=" + event.id + "');return false;\"><spring:message code="views.list.action.confirm.title"/></a>" +
+          "&nbsp;" +
+          "<a class=\"btn-danger btn-xs\" href=\"\" onclick=\"updateRequestConfirmation('${reservationRequestDenyUrl}?reservationRequestId=" + event.id + "');return false;\"><spring:message code="views.list.action.deny.title"/></a>" +
+          "</center>" +
+          "<strong>" + descriptionTitle + ":</strong><br /><span onclick=''>" + event.description + "</span>" +
+          "<br />" +
+          "<strong>" + requestedByTitle + ":</strong><br /><span>" + requestedBy + "</span>",
+          position: {
+            my: 'left top',
+            at: 'top right'
+          },
+          show: {
+            solo: true
+          },
+          hide: {
+            fixed: true,
+            delay: 600
+          },
+          style: {
+            classes: 'qtip-app',
+          }
+        });
+      }
+      // Render information about existing reservation
+      else {
+        var descriptionTitle = "<spring:message code="views.room.description"/>";
+        var bookedByTitle = "<spring:message code="views.room.bookedBy"/>";
+        var bookedBy = event.bookedBy ? (event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)") : event.foreignDomain;
+        element.qtip({
+          content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
+          "<strong>" + bookedByTitle + ":</strong><br /><span>" + bookedBy + "</span>",
+          position: {
+            my: 'left top',
+            at: 'top right'
+          },
+          show: {
+            solo: true
+          },
+          hide: {
+            fixed: true,
+            delay: 600
+          },
+          style: {
+            classes: 'qtip-app'
+          }
+        });
+      }
     };
 
 
@@ -163,21 +203,6 @@
 
     $scope.eventSources = [$scope.eventsF];
 
-    $scope.resourceIdOptions = {
-      escapeMarkup: function (markup) {
-        return markup;
-      },
-      data: [
-        <c:forEach items="${resources}" var="resource">
-          {id: "${resource.key}", text: "${resource.value}"},
-        </c:forEach>
-      ]
-    };
-
-    $scope.reservationsFilter = {
-      resourceId: $scope.resourceIdOptions.data[0].id
-    };
-
     $scope.$watch('reservationsFilter.resourceId', function(newResourceId, oldResourceId, scope) {
       if (typeof newResourceId == "object") {
         $scope.refreshCalendar();
@@ -193,10 +218,19 @@
 //        }
       }
     });
+
+    $scope.$watch('showExistingReservations', function(newValue, oldValue, scope) {
+      if (typeof newValue === "boolean") {
+        $scope.refreshCalendar();
+      }
+    });
+
     $scope.refreshCalendar = function() {
       var calendar = uiCalendarConfig.calendars['resourceReservationRequestsConfirmationCalendar'];
-      calendar.fullCalendar('refetchEvents');
-      calendar.fullCalendar('rerenderEvents');
+      if (calendar) {
+        calendar.fullCalendar('refetchEvents');
+        calendar.fullCalendar('rerenderEvents');
+      }
     }
 //    $scope.$on("refresh-resourceReservationRequestsConfirmationCalendar", function() {
 //      $scope.initCalendar();
@@ -208,18 +242,22 @@
 </script>
 <div ng-app="jsp:resourceReservationRequestsConfirmationCalendar">
   <div ng-controller="ResourceReservationRequestConfirmationCalendarController">
-      <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
-      <div class="btn-group pull-right">
-        <form class="form-inline">
-          <label for="resourceId"><spring:message code="views.room"/>:</label>
-          <input id="resourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
-        </form>
-      </div>
+    <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
+    <div class="btn-group pull-right">
+      <form class="form-inline">
+        <label for="resourceId"><spring:message code="views.room"/>:</label>
+        <input id="resourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
+      </form>
 
-      <div class="alert alert-warning push-top short-line"><spring:message code="views.resourceReservationRequests.confirmation.description"/></div>
+        <input id="showExistingReservations" type="checkbox" ng-model="showExistingReservations"/>
+        <label for="showExistingReservations">
+          <spring:message code="views.resourceReservationRequests.confirmation.showExistingReservations"/>
+        </label>
+    </div>
 
+    <div class="alert alert-warning push-top short-line"><spring:message code="views.resourceReservationRequests.confirmation.description"/></div>
 
-      <div id="directives-calendar" class="top-margin">
+    <div id="directives-calendar" class="top-margin">
         <div class="alert-success calAlert" ng-show="alertMessage != undefined && alertMessage != ''">
           <h4>{{alertMessage}}</h4>
         </div>

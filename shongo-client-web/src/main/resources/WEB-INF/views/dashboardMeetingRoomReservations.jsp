@@ -78,7 +78,7 @@
      ng-init="init('meetingRoomReservationList', getReservationListDataUrl, null, 'refresh-meetingRoomsReservations')">
     <form class="form-inline">
         <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
-        <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions"/>
+        <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
 
         &nbsp;
         <label for="start"><spring:message code="views.interval"/>:</label>

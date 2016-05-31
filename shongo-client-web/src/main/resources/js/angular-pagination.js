@@ -42,7 +42,7 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     // Current page index
     $scope.pageIndex = null;
     // Current page size (number of items per page)
-    $scope.pageSize = 5;
+    $scope.pageSize = 10;
     // Specifies whether items are ready to show (e.g., they have been fetched for the first time)
     $scope.ready = false;
     // Increment parent readyCount
@@ -380,9 +380,9 @@ paginationModule.directive('paginationPageSize', function () {
                 '<div class="form-inline pagination-page-size' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;' +
                 '<select class="form-control" ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
-                '<option value="5" selected="true">5</option>' +
-                '<option value="10">10</option>' +
-                '<option value="15">15</option>' + optionUnlimited +
+                '<option value="10" selected="true">10</option>' +
+                '<option value="15">15</option>' +
+                '<option value="20">20</option>' +optionUnlimited +
                 '</select>' +
                 '</span>' + refresh +
                 '</div>';

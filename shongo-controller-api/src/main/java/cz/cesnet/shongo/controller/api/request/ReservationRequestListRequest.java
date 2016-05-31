@@ -66,6 +66,11 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private Interval interval;
 
     /**
+     * Restrict request by interval only by date (true) or full date-time (false)
+     */
+    private boolean intervalDateOnly = true;
+
+    /**
      * Restricts resulting reservation requests to contain only those which were created by user with this user-id or
      * the user has {@link AclEntry} for them.
      */
@@ -271,6 +276,22 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     }
 
     /**
+     * @return {@link #intervalDateOnly}
+     */
+    public boolean isIntervalDateOnly()
+    {
+        return intervalDateOnly;
+    }
+
+    /**
+     * @param intervalDateOnly sets the {@link #intervalDateOnly}
+     */
+    public void setIntervalDateOnly(boolean intervalDateOnly)
+    {
+        this.intervalDateOnly = intervalDateOnly;
+    }
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -364,6 +385,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String PARTICIPANT_USER_ID = "participantUserId";
     private static final String SEARCH = "search";
     private static final String HISTORY = "history";
+    private static final String INTERVAL_DATE_ONLY = "intervalDateOnly";
 
     @Override
     public DataMap toData()
@@ -381,6 +403,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(PARTICIPANT_USER_ID, participantUserId);
         dataMap.set(SEARCH, search);
         dataMap.set(HISTORY, history);
+        dataMap.set(INTERVAL_DATE_ONLY, intervalDateOnly);
         return dataMap;
     }
 
@@ -401,5 +424,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         participantUserId = dataMap.getString(PARTICIPANT_USER_ID);
         search = dataMap.getString(SEARCH);
         history = dataMap.getBool(HISTORY);
+        intervalDateOnly = dataMap.getBool(INTERVAL_DATE_ONLY);
     }
 }

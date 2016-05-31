@@ -65,6 +65,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private String domainName;
 
     /**
+     * If all reservation request must be first confirmed by owner.
+     */
+    private boolean confirmByOowner;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -197,6 +202,16 @@ public class ResourceSummary extends IdentifiedComplexType
         this.domainName = domainName;
     }
 
+    public boolean isConfirmByOowner()
+    {
+        return confirmByOowner;
+    }
+
+    public void setConfirmByOowner(boolean confirmByOowner)
+    {
+        this.confirmByOowner = confirmByOowner;
+    }
+
     /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
@@ -215,6 +230,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String CALENDAR_PUBLIC = "calendarPublic";
     private static final String CALENDAR_URI_KEY = "calendarUriKey";
     private static final String DOMAIN_NAME = "domainName";
+    private static final String CONFIRM_BY_OWNER = "confirmByOwner";
 
     @Override
     public DataMap toData()
@@ -230,6 +246,7 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(CALENDAR_PUBLIC, calendarPublic);
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
         dataMap.set(DOMAIN_NAME, domainName);
+        dataMap.set(CONFIRM_BY_OWNER, confirmByOowner);
         return dataMap;
     }
 
@@ -247,5 +264,6 @@ public class ResourceSummary extends IdentifiedComplexType
         calendarPublic = dataMap.getBool(CALENDAR_PUBLIC);
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
         domainName = dataMap.getString(DOMAIN_NAME);
+        confirmByOowner = dataMap.getBool(CONFIRM_BY_OWNER);
     }
 }

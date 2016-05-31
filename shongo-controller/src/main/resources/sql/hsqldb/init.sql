@@ -20,6 +20,7 @@ SELECT
     resource.description AS description,
     resource.calendar_public AS calendar_public,
     resource.calendar_uri_key AS calendar_uri_key,
+    resource.confirm_by_owner AS confirm_by_owner,
     GROUP_CONCAT(device_resource_technologies.technologies SEPARATOR ',') AS technologies,
     CASE
       WHEN (SELECT resource_id FROM capability INNER JOIN room_provider_capability on room_provider_capability.id = capability.id WHERE resource_id = resource.id) IS NOT NULL THEN 'ROOM_PROVIDER'

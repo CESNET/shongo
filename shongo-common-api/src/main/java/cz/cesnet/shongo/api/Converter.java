@@ -333,6 +333,20 @@ public class Converter
     }
 
     /**
+     * Convert given {@link LocalDate} {@code value} to {@link String}.
+     *
+     * @param value
+     * @return converted {@link String} value
+     */
+    public static String convertLocalDateToString(LocalDate value)
+    {
+        if (value == null) {
+            return null;
+        }
+        return value.toString();
+    }
+
+    /**
      * Convert given {@code value} to {@link DateTime} value.
      *
      * @param value

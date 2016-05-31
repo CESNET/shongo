@@ -47,7 +47,7 @@
                 <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
             </th>
             <th width="200px">
-                <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
+                <pagination-sort column="STATE"><spring:message code="views.index.meetingRooms.state"/></pagination-sort>
             </th>
             <th>
                 <spring:message code="views.room.description"/>
