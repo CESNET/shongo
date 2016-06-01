@@ -171,7 +171,7 @@
         <c:choose>
           <c:when test="${date != null}">
             defaultDate: '${date}',
-            defaultView: 'month',
+            defaultView: 'agendaWeek',
           </c:when>
           <c:otherwise>
             defaultView: 'agendaWeek',

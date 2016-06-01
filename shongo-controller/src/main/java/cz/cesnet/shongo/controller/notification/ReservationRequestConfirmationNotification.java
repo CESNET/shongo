@@ -1,15 +1,11 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.joda.time.LocalDate;
 
 import java.util.Collection;
 import java.util.Locale;

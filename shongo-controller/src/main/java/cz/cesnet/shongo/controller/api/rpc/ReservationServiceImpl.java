@@ -30,6 +30,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationRequestConfirmationNotification;
+import cz.cesnet.shongo.controller.notification.ReservationRequestDeniedNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -443,10 +444,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (reservationRequest instanceof ReservationRequest) {
                 ReservationRequest simpleReservationRequest = (ReservationRequest) reservationRequest;
                 if (ReservationRequest.AllocationState.CONFIRM_AWAITING.equals(simpleReservationRequest.getAllocationState())) {
-                    //TODO: check availability
                     if (simpleReservationRequest.getSpecification() instanceof ResourceSpecification) {
                         ResourceSpecification resourceSpecification = (ResourceSpecification) simpleReservationRequest.getSpecification();
-                        //TODO: add notification
                         List<PersonInformation> recipients = resourceSpecification.getResource().getAdministrators(authorizationManager, false);
                         ReservationRequestConfirmationNotification notification;
 
@@ -602,7 +601,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         ReservationRequest reservationRequest;
-        Resource resource;
+        String resourceId;
+
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             entityManager.getTransaction().begin();
@@ -621,9 +621,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             cz.cesnet.shongo.controller.booking.specification.Specification specification = reservationRequest.getSpecification();
+            Resource resource;
             if (specification instanceof ResourceSpecification) {
                 ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
                 resource = resourceSpecification.getResource();
+                resourceId = ObjectIdentifier.formatId(resource);
             } else {
                 throw new TodoImplementException("Unsupported specification type: " + specification.getClass().getSimpleName());
             }
@@ -658,14 +660,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             requestListRequest.setInterval(reservationRequest.getSlot());
             requestListRequest.setIntervalDateOnly(false);
             requestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
-            requestListRequest.setSpecificationResourceId(ObjectIdentifier.formatId(resource));
+            requestListRequest.setSpecificationResourceId(resourceId);
 
             ListResponse<ReservationRequestSummary> listResponse = listOwnedResourcesReservationRequests(requestListRequest);
             try {
                 entityManager = entityManagerFactory.createEntityManager();
                 ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+                ResourceManager resourceManager = new ResourceManager(entityManager);
                 entityManager.getTransaction().begin();
 
+                Resource resource = resourceManager.get(ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE));
                 for (ReservationRequestSummary reservationRequestSummary : listResponse) {
                     Long requestId = ObjectIdentifier.parseLocalId(reservationRequestSummary.getId(), ObjectType.RESERVATION_REQUEST);
                     ReservationRequest request = reservationRequestManager.getReservationRequest(requestId);
@@ -682,6 +686,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
 
                 entityManager.getTransaction().commit();
+
+                // Send notifications to resource administrators and owner of the reservation requests
+                for (ReservationRequestSummary reservationRequestSummary : listResponse) {
+                    Long requestId = ObjectIdentifier.parseLocalId(reservationRequestSummary.getId(), ObjectType.RESERVATION_REQUEST);
+                    ReservationRequest reservationRequestDenied = reservationRequestManager.getReservationRequest(requestId);
+
+                    AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+                    List<PersonInformation> recipients = resource.getAdministrators(authorizationManager, false);
+                    ReservationRequestDeniedNotification notification;
+
+                    notification = new ReservationRequestDeniedNotification(reservationRequestDenied, authorizationManager);
+                    notification.addRecipients(recipients, true);
+
+                    notificationManager.addNotification(notification, entityManager);
+                }
             }
             finally {
                 if (entityManager.getTransaction().isActive()) {
@@ -750,6 +769,23 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestManager.update(reservationRequest);
 
             entityManager.getTransaction().commit();
+
+            // Send notifications to resource administrators and owner of the reservation request
+            if (reservationRequest.getSpecification() instanceof ResourceSpecification) {
+                AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+                ResourceSpecification resourceSpecification = (ResourceSpecification) reservationRequest.getSpecification();
+                List<PersonInformation> recipients = resourceSpecification.getResource().getAdministrators(authorizationManager, false);
+                ReservationRequestDeniedNotification notification;
+
+                notification = new ReservationRequestDeniedNotification(reservationRequest, authorizationManager);
+                notification.addRecipients(recipients, true);
+
+                notificationManager.addNotification(notification, entityManager);
+            }
+            else {
+                throw new TodoImplementException("Confirmation not supported for specification type: "
+                        + reservationRequest.getSpecification().getClass().getSimpleName());
+            }
 
             return Boolean.TRUE;
         }

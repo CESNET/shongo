@@ -135,6 +135,7 @@ public class AllocationStateReport extends AbstractObjectReport
             else if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_DENIED)) {
                 String reason = (String) report.get("reason");
                 String deniedBy = (String) report.get("deniedBy");
+
                 return new ReservationRequestDenied(reason, deniedBy);
             }
             else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_FOUND)) {
@@ -731,13 +732,22 @@ public class AllocationStateReport extends AbstractObjectReport
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
-            if (userName == null) {
+            return getMessage(locale, timeZone, null);
+        }
+
+        public String getMessage(Locale locale, DateTimeZone timeZone, String userName)
+        {
+            if (userName != null && this.userName == null) {
+                this.userName = userName;
+            }
+            if (this.userName == null) {
                 throw new IllegalStateException("Username must be set.");
             }
-            if (reason == null || "".equals(reason)) {
-                reason = MESSAGE_SOURCE.getMessage("reservationRequestDenied.reason.none", locale);
-            }
-            return MESSAGE_SOURCE.getMessage("reservationRequestDenied", locale, this.userName, reason);
+//            if (reason == null || "".equals(reason)) {
+//                reason = MESSAGE_SOURCE.getMessage("reservationRequestDenied.reason.none", locale);
+//            }
+//            return MESSAGE_SOURCE.getMessage("reservationRequestDenied", locale, this.userName, reason);
+            return MESSAGE_SOURCE.getMessage("reservationRequestDenied", locale, this.userName);
         }
     }
 

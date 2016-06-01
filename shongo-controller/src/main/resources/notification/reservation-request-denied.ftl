@@ -1,12 +1,12 @@
 <#--
-  -- Template for rendering {@link ReservationRequestConfirmationNotification}
+  -- Template for rendering {@link ReservationRequestDenied}
   -->
-${context.message("reservationRequestConfirmation.message")}
+${context.message("reservationRequestDenied.message")}
 
 <#assign indent = 23>
-<#if context.reservationRequestConfirmationUrl??>
-${context.message(indent, "reservationRequest.url.confirmation")}: <a href="${context.formatReservationRequestConfirmationUrl(target.resourceId, notification.requestedSlot)}">${context.formatReservationRequestConfirmationUrl(target.resourceId, notification.requestedSlot)}</a>
-<#elseif notification.reservationRequestId??>
+<#--<#if context.reservationRequestConfirmationUrl??>-->
+<#--${context.message(indent, "reservationRequest.id")}: ${target.resourceId}</a>-->
+<#if notification.reservationRequestId??>
 ${context.message(indent, "reservationRequest.id")}: ${notification.reservationRequestId}
 </#if>
 <#if notification.reservationRequestUpdatedAt??>
@@ -21,3 +21,14 @@ ${context.message(indent, 'reservationRequest.requestedSlot')}: ${context.format
 ${context.width(indent)}  ${context.formatInterval(notification.requestedSlot, "UTC")}
 </#if>
 <#include "target.ftl">
+<#--<#if adminReport??>-->
+<#--${context.message(indent, 'allocationFailed.userError')}: ${context.indentNextLines(indent + 2, userError)}-->
+<#--${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, adminReport)}-->
+<#--<#else>-->
+${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, userError)}
+<#--<#if (errorList??) >-->
+<#--<#list errorList as error>-->
+<#--${context.width(indent)}  ${error}-->
+<#--</#list>-->
+<#--</#if>-->
+<#--</#if>-->
