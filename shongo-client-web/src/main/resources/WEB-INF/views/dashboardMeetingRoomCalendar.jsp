@@ -211,24 +211,26 @@
             var descriptionTitle = "<spring:message code="views.room.description"/>";
             var bookedByTitle = "<spring:message code="views.room.bookedBy"/>";
             var bookedBy = event.bookedBy ? (event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)") : event.foreignDomain;
-            element.qtip({
-                content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
-                "<strong>" + bookedByTitle + ":</strong><br /><span>" + bookedBy + "</span>",
-                position: {
-                    my: 'left top',
-                    at: 'top right'
-                },
-                show: {
-                    solo: true
-                },
-                hide: {
-                    fixed: true,
-                    delay: 600
-                },
-                style: {
-                    classes: 'qtip-app'
-                }
-            });
+            if (newReservationRequestId != event.id) {
+                element.qtip({
+                    content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
+                    "<strong>" + bookedByTitle + ":</strong><br /><span>" + bookedBy + "</span>",
+                    position: {
+                        my: 'left top',
+                        at: 'top right'
+                    },
+                    show: {
+                        solo: true
+                    },
+                    hide: {
+                        fixed: true,
+                        delay: 600
+                    },
+                    style: {
+                        classes: 'qtip-app'
+                    }
+                });
+            }
         };
 
         $scope.uiConfig = {
@@ -262,8 +264,7 @@
                     var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
                     if (end.isBefore(moment())) {
                         calendar.fullCalendar('unselect');
-                        //TODO
-                        alert("<spring:message code="validation.field.invalidFutureSlot"/>");
+                        alert("<spring:message code="views.index.action.bookMeetingRoom.invalidPastSlot"/>");
                     } else {
                         //rendering the reservation
                         calendar.fullCalendar('renderEvent',
