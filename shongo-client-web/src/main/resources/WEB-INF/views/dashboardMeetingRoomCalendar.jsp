@@ -169,11 +169,52 @@
             $scope.dialogue(form, '<spring:message code='views.index.action.bookMeetingRoom'/>', calendar);
         }
 
-        $scope.initCalendar = function() {
-            var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
-            if (calendar) {
-                calendar.fullCalendar('render');
+        // Resource input select
+        $scope.resourceIdOptions = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data: [
+                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                    <c:choose>
+                    <c:when test="${meetingRoomResource.domainName != null}">
+                        {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b><br />(${meetingRoomResource.domainName})"},
+                    </c:when>
+                    <c:otherwise>
+                        {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
+                    </c:otherwise>
+                    </c:choose>
+                </c:forEach>
+            ]
+        };
+
+        // URI keys for public calendar of resources
+        $scope.resourceUriKeys = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data: {
+                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                <c:if test="${meetingRoomResource.isCalendarPublic}">
+                "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
+                </c:if>
+                </c:forEach>
             }
+        };
+
+        $scope.reservableResources = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data: {
+                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                "${meetingRoomResource.id}": "${meetingRoomResource.isReservable}",
+                </c:forEach>
+            }
+        };
+
+        $scope.reservationsFilter = {
+            resourceId: $scope.resourceIdOptions.data[0].id
         };
 
         $scope.eventsF = function(start, end, timezone, callback) {
@@ -195,7 +236,8 @@
                         ownersEmail: event.ownerEmail,
                         foreignDomain: event.foreignDomain,
                         start: event.start,
-                        end: event.end
+                        end: event.end,
+                        isOwned: event.isOwned
                     });
                 });
                 callback(events);
@@ -211,9 +253,20 @@
             var descriptionTitle = "<spring:message code="views.room.description"/>";
             var bookedByTitle = "<spring:message code="views.room.bookedBy"/>";
             var bookedBy = event.bookedBy ? (event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)") : event.foreignDomain;
+            var actions = "";
+//            TODO
+            <%--if (event.isOwned) {--%>
+                <%--<spring:message var="actionIcon" code="views.list.action.modify.iconClass"/>--%>
+                <%--actions = '<span>' +--%>
+                <%--'| <a href="${meetingRoomModifyUrl}"><b class="${actionIcon}"></b></a>'+--%>
+                                <%--"<tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>" +--%>
+                <%--&lt;%&ndash;'| <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>' +&ndash;%&gt;--%>
+                <%--&lt;%&ndash;'| <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>' +&ndash;%&gt;--%>
+                <%--'</span>';--%>
+            <%--}--%>
             if (newReservationRequestId != event.id) {
                 element.qtip({
-                    content: "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
+                    content: actions + "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
                     "<strong>" + bookedByTitle + ":</strong><br /><span>" + bookedBy + "</span>",
                     position: {
                         my: 'left top',
@@ -233,13 +286,14 @@
             }
         };
 
+        var selectable = ($scope.reservableResources.data[$scope.resourceIdOptions.data[0].id] === 'true');
         $scope.uiConfig = {
             calendar: {
                 lang: '${requestContext.locale.language}',
                 defaultView: 'agendaWeek',
                 editable: false,
                 nowIndicator: true,
-                selectable:true,
+                selectable: selectable,
                 lazyFetching: false,
                 selectOverlap: false,
                 header: {
@@ -286,45 +340,14 @@
 
         $scope.eventSources = [$scope.eventsF];
 
-        $scope.resourceIdOptions = {
-            escapeMarkup: function (markup) {
-                return markup;
-            },
-            data: [
-                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                    <c:choose>
-                        <c:when test="${meetingRoomResource.domainName != null}">
-                            {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b><br />(${meetingRoomResource.domainName})"},
-                        </c:when>
-                        <c:otherwise>
-                            {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
-                        </c:otherwise>
-                    </c:choose>
-                </c:forEach>
-            ]
-        };
-
-        $scope.resourceUriKeys = {
-            escapeMarkup: function (markup) {
-                return markup;
-            },
-            data: {
-                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                <c:if test="${meetingRoomResource.isCalendarPublic()}">
-                "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
-                </c:if>
-                </c:forEach>
-            }
-        };
-
-        $scope.reservationsFilter = {
-            resourceId: $scope.resourceIdOptions.data[0].id
-        };
-
         $scope.$watch('reservationsFilter.resourceId', function (newResourceId, oldResourceId, scope) {
             if ($scope.$parent.$tab.active && typeof newResourceId == "object") {
+                // Enable creating reservation request in the calendar, when resource is reservable
+                $scope.uiConfig.calendar.selectable = ($scope.reservableResources.data[newResourceId.id] === 'true');
+
                 $scope.refreshCalendar();
                 if ($scope.resourceUriKeys.data[newResourceId.id]) {
+                    // Show export .ics URL for public resource
                     var resourceCalendarUrl = calendarUrlBase + $scope.resourceUriKeys.data[newResourceId.id]
                     $('[qtip-init]').show();
                     $('[qtip-init]').each(function () {
@@ -338,11 +361,19 @@
         });
         $scope.refreshCalendar = function () {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
+
+            // Force reload of config is needed for select (creating reservation requests in calendar)
+            calendar.fullCalendar($scope.uiConfig.calendar);
+
+            // Render events
             calendar.fullCalendar('refetchEvents');
             calendar.fullCalendar('rerenderEvents');
         }
         $scope.$on("refresh-meetingRoomsReservationsCalendar", function () {
-            $scope.initCalendar();
+            var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
+            if (calendar) {
+                calendar.fullCalendar('render');
+            }
             if (!$scope.resourceUriKeys.data[$scope.resourceIdOptions.data[0].id]) {
                 $('[qtip-init]').hide();
             }
