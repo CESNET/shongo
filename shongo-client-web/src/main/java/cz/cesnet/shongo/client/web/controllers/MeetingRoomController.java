@@ -318,6 +318,9 @@ public class MeetingRoomController {
             item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
+            //TODO:overovat opravneni uzivatele
+            item.put("isOwned", cache.getObjectPermissions(securityToken, reservationId).contains(ObjectPermission.WRITE));
+
 //            String reservationResourceId = reservation.getResourceId();
 //            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
             //CALENDAR

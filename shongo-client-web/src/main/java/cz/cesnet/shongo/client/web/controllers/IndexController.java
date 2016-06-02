@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.Design;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
@@ -37,6 +39,9 @@ public class IndexController
     @javax.annotation.Resource
     protected ResourceService resourceService;
 
+    @Resource
+    private Cache cache;
+
     /**
      * Handle main (index) view.
      */
@@ -57,8 +62,7 @@ public class IndexController
         modelAndView.addObject("showOnlyMeetingRooms", ClientWebConfiguration.getInstance().showOnlyMeetingRooms());
 
         if (authentication != null) {
-            Map<String, String> resourcesOld = new LinkedHashMap<String, String>();
-            List<ResourceSummary> resourceSummaries = new LinkedList<ResourceSummary>();
+//            List<ResourceSummary> resourceSummaries = new LinkedList<ResourceSummary>();
 
             OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
 
@@ -66,10 +70,23 @@ public class IndexController
             ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
             resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
             resourceListRequest.setAllocatable(false);
+
+            List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
             for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
-                resourceSummaries.add(resourceSummary);
+                Set<ObjectPermission> permissions;
+                permissions = cache.getObjectPermissions(authenticationToken.getSecurityToken(), resourceSummary.getId());
+
+//                resourceSummaries.add(resourceSummary);
+                Map<String, Object> item = new HashMap<String, Object>();
+                item.put("id", resourceSummary.getId());
+                item.put("name", resourceSummary.getName());
+                item.put("domainName", resourceSummary.getDomainName());
+                item.put("calendarUriKey", resourceSummary.getCalendarUriKey());
+                item.put("isCalendarPublic", resourceSummary.isCalendarPublic());
+                item.put("isReservable", permissions.contains(ObjectPermission.RESERVE_RESOURCE));
+                items.add(item);
             }
-            modelAndView.addObject("meetingRoomResources", resourceSummaries);
+            modelAndView.addObject("meetingRoomResources", items);
         }
 
         sessionStatus.setComplete();
