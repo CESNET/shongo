@@ -36,4 +36,16 @@ public interface AliasService extends CommonService {
      * @throws CommandException
      */
     public void deleteAlias(String aliasId) throws CommandException;
+
+    /**
+     *
+     * @param roomName room to be changed
+     * @param newRoomName new name, or null
+     * @param aliasType for new newE164Number
+     * @param e164Number old number to be removed, or null
+     * @param newE164Number new number to be added, or null
+     * @throws CommandException
+     */
+    public void modifyAlias(String roomName, String newRoomName, AliasType aliasType, String e164Number,
+                            String newE164Number) throws CommandException;
 }
