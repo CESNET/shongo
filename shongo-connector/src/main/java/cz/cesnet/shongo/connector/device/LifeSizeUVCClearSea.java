@@ -419,45 +419,5 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private void attemptConnection() {
         connectionState = ConnectionState.DISCONNECTED;
         scheduledThreadPoolExecutor.schedule(RUNNABLE, 3, TimeUnit.HOURS);
-//        if (!threadRunning) {
-//            connectionState = ConnectionState.DISCONNECTED;
-//            threadRunning = true;
-//            new Thread() {
-//                public void run() {
-//                    while (true) {
-//                        try {
-//                            if (connectionState == ConnectionState.DISCONNECTED) {
-//                                // wait between login attempts 3 hours
-//                                login();
-//                                Thread.sleep(3 * 3600000);
-//                            } else {
-//                                threadRunning = false;
-//                                break;
-//                            }
-//                        } catch (InterruptedException e) {
-//                            Thread.currentThread().interrupt();
-//                            logger.info("ClearSea reconnection thread interrupted." + e);
-//                        } catch (CommandException e) {
-//                            String message = "Error during ClearSea login attempt.";
-//                            logger.error(message + e.getMessage());
-//
-//                            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
-//                            notifyTarget.addMessage("en",
-//                                    "Error during ClearSea login attempt.",
-//                                    "There was an exception during ClearSea login attempt: " + e.getMessage());
-//                            notifyTarget.addMessage("cs",
-//                                    "Chyba počas pokusu o připojení na ClearSea.",
-//                                    "Byla vyhozena výjimka počas pokusu o připojení na ClearSea:" + e.getMessage());
-//
-//                            try {
-//                                performControllerAction(notifyTarget);
-//                            } catch (CommandException ex) {
-//                                logger.error("Failed to send notification" + ex);
-//                            }
-//                        }
-//                    }
-//                }
-//            }.start();
-//        }
     }
 }
