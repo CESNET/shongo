@@ -256,11 +256,12 @@
             // Show actions for owned reservations (copied from listAction.tag)
             var actions = "";
             if (event.isOwned) {
-                actions = "<span class='btn-group pull-right'>" +
-                        "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a>" +
-                        " | " +
-                        "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>" +
-                        "</span>";
+                actions = "<span class='btn-group pull-right'>";
+                if (event.end.isAfter(moment())) {
+                    actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
+                }
+                actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
+                actions += "</span>";
             } else {
                 // Change collor for not-owned reservations
                 if ($scope.highlightOwnedReservations) {
