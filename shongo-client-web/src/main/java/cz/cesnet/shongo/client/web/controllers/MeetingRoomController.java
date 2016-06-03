@@ -292,9 +292,9 @@ public class MeetingRoomController {
 
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
-        List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> items = new LinkedList<>();
         for (ReservationSummary reservation : response.getItems()) {
-            Map<String, Object> item = new HashMap<String, Object>();
+            Map<String, Object> item = new HashMap<>();
             String reservationId = reservation.getId();
             item.put("id", reservationId);
             item.put("description", reservation.getReservationRequestDescription());
@@ -319,7 +319,11 @@ public class MeetingRoomController {
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
             //TODO:overovat opravneni uzivatele
-            item.put("isOwned", cache.getObjectPermissions(securityToken, reservationId).contains(ObjectPermission.WRITE));
+            boolean isOwned = cache.getObjectPermissions(securityToken, reservationId).contains(ObjectPermission.WRITE);
+            item.put("isOwned", isOwned);
+            if (isOwned) {
+                item.put("requestId", reservation.getReservationRequestId());
+            }
 
 //            String reservationResourceId = reservation.getResourceId();
 //            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);

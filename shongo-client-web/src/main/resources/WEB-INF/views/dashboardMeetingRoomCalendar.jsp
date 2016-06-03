@@ -1,4 +1,5 @@
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
@@ -30,6 +31,8 @@
         var m = date.getMonth();
         var y = date.getFullYear();
 
+        // default values
+        $scope.highlightOwnedReservations = false;
         var newReservationRequestId = "new_reservation_request_id";
 
         $scope.formatInterval = function(start, end) {
@@ -237,33 +240,34 @@
                         foreignDomain: event.foreignDomain,
                         start: event.start,
                         end: event.end,
-                        isOwned: event.isOwned
+                        isOwned: event.isOwned,
+                        requestId: event.requestId
                     });
                 });
                 callback(events);
 
             })
         };
-        $scope.renderCalender = function(calendar) {
-            if (uiCalendarConfig.calendars[calendar]) {
-                uiCalendarConfig.calendars[calendar].fullCalendar('render');
-            }
-        };
         $scope.eventRender = function(event, element, view) {
             var descriptionTitle = "<spring:message code="views.room.description"/>";
             var bookedByTitle = "<spring:message code="views.room.bookedBy"/>";
             var bookedBy = event.bookedBy ? (event.bookedBy + " (<a href=\"mailto:" + event.ownersEmail + "\">" + event.ownersEmail + "</a>)") : event.foreignDomain;
+
+            // Show actions for owned reservations (copied from listAction.tag)
             var actions = "";
-//            TODO
-            <%--if (event.isOwned) {--%>
-                <%--<spring:message var="actionIcon" code="views.list.action.modify.iconClass"/>--%>
-                <%--actions = '<span>' +--%>
-                <%--'| <a href="${meetingRoomModifyUrl}"><b class="${actionIcon}"></b></a>'+--%>
-                                <%--"<tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>" +--%>
-                <%--&lt;%&ndash;'| <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>' +&ndash;%&gt;--%>
-                <%--&lt;%&ndash;'| <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>' +&ndash;%&gt;--%>
-                <%--'</span>';--%>
-            <%--}--%>
+            if (event.isOwned) {
+                actions = "<span class='btn-group pull-right'>" +
+                        "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a>" +
+                        " | " +
+                        "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>" +
+                        "</span>";
+            } else {
+                // Change collor for not-owned reservations
+                if ($scope.highlightOwnedReservations) {
+                    element.css('background-color', '#88b5dd');
+                }
+            }
+
             if (newReservationRequestId != event.id) {
                 element.qtip({
                     content: actions + "<strong>" + descriptionTitle + ":</strong><br /><span>" + event.description + "</span><br />" +
@@ -345,7 +349,7 @@
                 // Enable creating reservation request in the calendar, when resource is reservable
                 $scope.uiConfig.calendar.selectable = ($scope.reservableResources.data[newResourceId.id] === 'true');
 
-                $scope.refreshCalendar();
+                $scope.forceReloadCalendar();
                 if ($scope.resourceUriKeys.data[newResourceId.id]) {
                     // Show export .ics URL for public resource
                     var resourceCalendarUrl = calendarUrlBase + $scope.resourceUriKeys.data[newResourceId.id]
@@ -359,7 +363,7 @@
                 }
             }
         });
-        $scope.refreshCalendar = function () {
+        $scope.forceReloadCalendar = function () {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
 
             // Force reload of config is needed for select (creating reservation requests in calendar)
@@ -369,6 +373,15 @@
             calendar.fullCalendar('refetchEvents');
             calendar.fullCalendar('rerenderEvents');
         }
+        $scope.refreshCalendar = function () {
+            var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
+
+            // Render events
+            if (calendar) {
+                calendar.fullCalendar('refetchEvents');
+                calendar.fullCalendar('rerenderEvents');
+            }
+        }
         $scope.$on("refresh-meetingRoomsReservationsCalendar", function () {
             var calendar = uiCalendarConfig.calendars['meetingRoomsReservationsCalendar'];
             if (calendar) {
@@ -376,6 +389,11 @@
             }
             if (!$scope.resourceUriKeys.data[$scope.resourceIdOptions.data[0].id]) {
                 $('[qtip-init]').hide();
+            }
+        });
+        $scope.$watch('highlightOwnedReservations', function(newValue, oldValue, scope) {
+            if (typeof newValue === "boolean") {
+                $scope.refreshCalendar();
             }
         });
     });
@@ -419,6 +437,11 @@
             <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
             <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
         </form>
+
+        <input id="highlightOwnedReservations" type="checkbox" ng-model="highlightOwnedReservations"/>
+        <label for="highlightOwnedReservations">
+            <spring:message code="views.index.meetingRooms.highlightOwnedReservations"/>
+        </label>
     </div>
 
     <div class="top-margin"><span class="fa fa-calendar" qtip-init/> <spring:message
