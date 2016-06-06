@@ -191,7 +191,8 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         serviceUserID = username;
         serviceUserPassword = password;
         connectionState = ConnectionState.DISCONNECTED;
-        attemptConnection();
+        login();
+//        attemptConnection();
     }
 
     @Override
@@ -219,6 +220,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private void login() throws CommandException {
         accessToken = (String) performRequest(RequestType.GET, "&username=" + serviceUserID +
                 "&password=" + serviceUserPassword, null).get("access_token");
+        connectionState = ConnectionState.LOOSELY_CONNECTED;
     }
 
     /**
@@ -242,7 +244,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             attemptConnection();
         } catch (IOException e) {
             String message = "Failed to initialize connection.";
-            logger.warn(message, e);
+            logger.error(message, e);
             attemptConnection();
         }
     }
@@ -304,7 +306,11 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                 checkError(connection);
             }
             connection.disconnect();
-            logger.info("Action: " + action + " was successful.");
+            if (actionUrl.contains(API_V2)) {
+                logger.info("Action: " + action + " was successful.");
+            } else {
+                logger.info("Action login was successful.");
+            }
             return jsonResponse;
         } catch (SocketTimeoutException e) {
             logger.warn("Timeout in performRequest.", e);
@@ -312,9 +318,11 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             String message = "EXECUTION ERROR: " + e + " ON ACTION: " + actionUrl;
             logger.error(message);
             throw new CommandException(message, e);
+        } catch (Exception e) {
+            logger.error("UNKWNOW ERROR: ", e);
+            attemptConnection();
         } finally {
             connection.disconnect();
-            attemptConnection();
         }
         return null;
     }
@@ -389,6 +397,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             String message = "Error code could not be read from the connection.";
             logger.error(message);
             throw new CommandException(message, e);
+        } catch (Exception e) {
+            logger.error("CONNECTION ERROR: ", e);
+            throw e;
         }
     }
 
@@ -396,7 +407,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * REST request types enumeration
      */
     public enum RequestType {
-        GET, POST, PUT, DELETE
+        GET, POST, DELETE
     }
 
     /**
@@ -414,7 +425,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     }
 
     /**
-     * Adds a Runnable method to ScheduledThreadPoolExecutor if not already there.
+     * Schedule login action in the future if something went wrong - set state according it.
      */
     private void attemptConnection() {
         connectionState = ConnectionState.DISCONNECTED;
