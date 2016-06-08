@@ -1606,6 +1606,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 if (recordings.size() > 0) {
                     Set<String> recordingFolderIds = getRecordingFolderIds();
                     for (Recording recording : recordings) {
+                        logger.debug("checking recording: " + recording.getName());
                         try {
                             String recordingId = recording.getId();
                             String recordingFolderId = recording.getRecordingFolderId();
