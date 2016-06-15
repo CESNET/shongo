@@ -14,6 +14,20 @@
 </tag:url>
 <tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
+<tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
+    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<%--<tag:url var="childReservationDelete" value="<%= ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE %>">--%>
+<%--<tag:param name="reservationRequestId" value="\"+event.requestId+\"" escape="false"/>--%>
+<%--<tag:param name="back-url" value="{{requestUrl}}" escape="false"/>--%>
+<%--<tag:param name="excludeReservationId" value="{{childReservationRequest.reservationId}}" escape="false"/>--%>
+<%--</tag:url>--%>
+
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
@@ -260,15 +274,17 @@
             if (event.isOwned) {
                 actions = "<span class='btn-group pull-right'>";
                 if (event.end.isAfter(moment())) {
-                    actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
+                    <%--actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";--%>
+                    actions += "<a href='${meetingRoomModifyUrl}' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
                 }
                 if (!event.isPeriodic) {
-                    actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
+                    actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
                 } else {
                     <%--if (event.end.isAfter(moment())) {--%>
                         <%--actions += "<a href='/wizard/room/" + event.requestId + "/remove-periodic?excludeReservationId=" + event.id + "&back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.single.title"/>'></b></a> | ";--%>
                     <%--}--%>
-                    actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
+                    actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
+                    <%--actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";--%>
                 }
                 actions += "</span>";
             } else {
