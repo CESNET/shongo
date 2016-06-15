@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.client.web.Cache;
@@ -11,19 +12,14 @@ import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
-import org.joda.time.LocalDate;
+import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,6 +68,21 @@ public class ReservationRequestValidator implements Validator
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
         SpecificationType specificationType = reservationRequestModel.getSpecificationType();
 
+        // Remove deleted (null) slots and duplicate from except slots
+        // Sort - for validation and user GUI
+        if (reservationRequestModel.getExcludeDates() != null) {
+            List<LocalDate> excludeDates = new ArrayList<>(new HashSet<>(reservationRequestModel.getExcludeDates()));
+            Iterator<LocalDate> i = excludeDates.iterator();
+            while (i.hasNext()) {
+                LocalDate excludeDate = i.next();
+                if (excludeDate == null) {
+                    i.remove();
+                }
+            }
+            Collections.sort(excludeDates);
+            reservationRequestModel.setExcludeDates(excludeDates);
+        }
+
         if (specificationType != SpecificationType.MEETING_ROOM) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         }
@@ -108,11 +119,13 @@ public class ReservationRequestValidator implements Validator
                     }
                     validatePeriodicity(reservationRequestModel, errors);
                     validatePeriodicSlotsStart(reservationRequestModel, errors);
+                    validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
                     validatePeriodicSlotsStart(reservationRequestModel, errors);
+                    validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
@@ -171,7 +184,16 @@ public class ReservationRequestValidator implements Validator
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
             SortedSet<PeriodicDateTimeSlot> slots = reservationRequestModel.getSlots(timeZone);
-            availabilityCheckRequest.addAllSlots(new LinkedList<PeriodicDateTimeSlot>(slots));
+            if (reservationRequestModel.getExcludeDates() != null && !reservationRequestModel.getExcludeDates().isEmpty()) {
+                for (LocalDate excludeDate : reservationRequestModel.getExcludeDates()) {
+                    for (PeriodicDateTimeSlot slot : slots) {
+                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
+                            slot.addExcludeDate(excludeDate);
+                        }
+                    }
+                }
+            }
+            availabilityCheckRequest.addAllSlots(new LinkedList<>(slots));
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
@@ -344,6 +366,33 @@ public class ReservationRequestValidator implements Validator
         }
         catch (IllegalStateException ex) {
             //Skip this test
+        }
+    }
+
+    public static void validatePeriodicExclusions(ReservationRequestModel reservationRequestModel, DateTimeZone timeZone, Errors errors)
+    {
+        DateTime start = reservationRequestModel.getRequestStart();
+        Integer duration = reservationRequestModel.getDurationCount();
+        LocalDate end = reservationRequestModel.getPeriodicityEnd();
+        if (start == null || duration == null || end == null) {
+            return;
+        }
+        if (reservationRequestModel.getExcludeDates() != null && !reservationRequestModel.getExcludeDates().isEmpty()) {
+            int index = 0;
+            for (LocalDate excludeDate : reservationRequestModel.getExcludeDates()) {
+                boolean invalidExcludeDate = true;
+                for (PeriodicDateTimeSlot slot : reservationRequestModel.getSlots(timeZone)) {
+                    if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
+                        invalidExcludeDate = false;
+                    }
+                }
+                if (invalidExcludeDate) {
+                    // For specific field by index validation, the exclude dates collection must be sorted
+                    errors.rejectValue("excludeDates", "validation.field.invalidExcludeDates");
+                    errors.rejectValue("excludeDates[" + index + "]", "validation.field.invalidExcludeDates");
+                }
+                index++;
+            }
         }
     }
 

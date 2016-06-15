@@ -22,6 +22,7 @@ public class Converter
 {
     public static final int ENUM_VALUE_MAXIMUM_LENGTH = 64;
     public static final int READABLE_PARTIAL_MAXIMUM_LENGTH = 32;
+    public static final int LOCAL_DATE_MAXIMUM_LENGTH = 10;
     public static final int PERIOD_MAXIMUM_LENGTH = 64;
     public static final int LOCALE_MAXIMUM_LENGTH = 16;
     public static final int DATE_TIME_ZONE_MAXIMUM_LENGTH = 32;
@@ -388,6 +389,28 @@ public class Converter
     }
 
     /**
+     * Convert given {@link String} {@code value} to {@link LocalDate} value.
+     *
+     * @param value
+     * @return converted {@link LocalDate} value
+     */
+    public static LocalDate convertStringToLocalDate(String value)
+    {
+        LocalDate localDate;
+        try {
+            localDate = DATE_TIME_FORMATTER.parseLocalDate(value);
+        }
+        catch (Exception exception) {
+            throw new CommonReportSet.TypeIllegalValueException(LocalDate.class.getSimpleName(), value);
+        }
+        final long millis = localDate.toDateTimeAtStartOfDay().getMillis();
+        if (millis < DATETIME_INFINITY_START_MILLIS || millis > DATETIME_INFINITY_END_MILLIS) {
+            throw new CommonReportSet.TypeIllegalValueException(LocalDate.class.getSimpleName(), value);
+        }
+        return localDate;
+    }
+
+    /**
      * Convert given {@link DateTimeZone} {@code value} to {@link String}.
      *
      * @param value
@@ -611,6 +634,26 @@ public class Converter
         else {
             String stringValue = checkMaximumStringLength(value.toString(), READABLE_PARTIAL_MAXIMUM_LENGTH);
             return convertStringToReadablePartial(stringValue);
+        }
+    }
+
+    /**
+     * Convert given {@code value} to {@link LocalDate} value.
+     *
+     * @param value
+     * @return converted {@link LocalDate} value
+     */
+    public static LocalDate convertToLocalDate(Object value)
+    {
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof LocalDate) {
+            return (LocalDate) value;
+        }
+        else {
+            String stringValue = checkMaximumStringLength(value.toString(), LOCAL_DATE_MAXIMUM_LENGTH);
+            return convertStringToLocalDate(stringValue);
         }
     }
 
@@ -888,6 +931,9 @@ public class Converter
         }
         else if (Interval.class.equals(targetClass)) {
             return (T) convertToInterval(value);
+        }
+        else if (LocalDate.class.isAssignableFrom(targetClass)) {
+            return (T) convertToLocalDate(value);
         }
         else if (ReadablePartial.class.isAssignableFrom(targetClass)) {
             return (T) convertToReadablePartial(value);

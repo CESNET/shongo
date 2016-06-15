@@ -200,6 +200,24 @@
                 </div>
             </c:if>
         </dd>
+        <c:if test="${reservationRequest.excludeDates.size() > 0}">
+            <dt><spring:message code="views.reservationRequest.periodicity.exclude"/>:</dt>
+            <c:forEach items="${reservationRequest.excludeDates}" var="date">
+                <c:choose>
+                    <c:when test="${reservationRequest.removedReservationDate.equals(date)}">
+                        <dd>
+                            A
+                            <tag:format value="${date}" style="date"/>
+                        </dd>
+                    </c:when>
+                    <c:otherwise>
+                        <dd>
+                            <tag:format value="${date}" style="date"/>
+                        </dd>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
+        </c:if>
     </c:if>
 
     <%-- PIN --%>

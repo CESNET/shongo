@@ -71,6 +71,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected int slotAfterMinutes;
 
+    protected List<LocalDate> excludeDates;
+
+    /**
+     * Exclude date from #excludeDates for highligting in user GUI
+     */
+    protected LocalDate removedReservationDate;
+
     /**
      * Type of the period
      */
@@ -385,6 +392,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void setPeriodicityDayInMonth(PeriodicDateTimeSlot.DayOfWeek peridicityDayInMonth) {
         this.periodicityDayInMonth = peridicityDayInMonth;
+    }
+
+    public List<LocalDate> getExcludeDates()
+    {
+        return excludeDates;
+    }
+
+    public void setExcludeDates(List<LocalDate> exceptSlots)
+    {
+        this.excludeDates = exceptSlots;
     }
 
     public Interval getCollidingInterval() {
@@ -768,6 +785,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomParticipantNotificationEnabled = roomParticipantNotificationEnabled;
     }
 
+    public LocalDate getRemovedReservationDate()
+    {
+        return removedReservationDate;
+    }
+
+    public void setRemovedReservationDate(LocalDate removedReservationDate)
+    {
+        this.removedReservationDate = removedReservationDate;
+    }
+
     /**
      * Load attributes from given {@code specification}.
      *
@@ -891,6 +918,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             boolean periodicityEndSet = false;
 
             int index = 0;
+            // Multiple slots awailable only for WEEKLY periodicity, check done few lines lower
             periodicDaysInWeek = new PeriodicDateTimeSlot.DayOfWeek[slots.size()];
             // Set slot properties and periodicity
             for (Object slot : slots) {
@@ -964,6 +992,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 else if ((this.periodicityEnd == null && this.periodicityEnd != periodicityEnd)
                         || (this.periodicityEnd != null && !this.periodicityEnd.equals(periodicityEnd))) {
                     throw new UnsupportedApiException("Slot end %s is not same for all slots.", slotEnd);
+                }
+
+                // Set exclude dates for slot
+                if (periodicSlot.getExcludeDates() != null) {
+                    if (this.excludeDates == null) {
+                        this.excludeDates = new LinkedList<>();
+                    }
+                    this.excludeDates.addAll(periodicSlot.getExcludeDates());
+                    // Remove duplicates
+                    this.excludeDates = new ArrayList<>(new HashSet<>(excludeDates));
                 }
             }
         }
@@ -1170,7 +1208,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * @return requested reservation date/time slot as {@link Interval}
+     * @return requested first reservation date/time slot as {@link Interval}
      */
     public Interval getFirstSlot()
     {
@@ -1327,6 +1365,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             // Create set of reservation requests
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             reservationRequestSet.addAllSlots(slots);
+            if (excludeDates != null && !excludeDates.isEmpty()) {
+                for (LocalDate excludeDate : excludeDates) {
+                    for (PeriodicDateTimeSlot slot : slots) {
+                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
+                            slot.addExcludeDate(excludeDate);
+                        }
+                    }
+                }
+            }
             abstractReservationRequest = reservationRequestSet;
         }
         if (!Strings.isNullOrEmpty(id)) {
@@ -1435,7 +1482,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         attributes.put("Permanent room", permanentRoomReservationRequestId);
         attributes.put("Participant count", roomParticipantCount);
         attributes.put("PIN", roomPin);
-        attributes.put("Access mode",roomAccessMode);
+        attributes.put("Access mode", roomAccessMode);
+        attributes.put("Exclude dates", excludeDates);
         return ReportModel.formatAttributes(attributes);
     }
 

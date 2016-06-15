@@ -233,6 +233,7 @@
                     var descriptionTitle = "<spring:message code="views.room.description"/>";
                     var none = "<spring:message code="views.reservationRequest.description.none"/>";
                     events.push({
+                        id: event.id,
                         title: event.description,
                         description: event.description ? event.description : none,
                         bookedBy: event.ownerName,
@@ -241,7 +242,8 @@
                         start: event.start,
                         end: event.end,
                         isOwned: event.isOwned,
-                        requestId: event.requestId
+                        requestId: event.requestId,
+                        isPeriodic: event.isPeriodic
                     });
                 });
                 callback(events);
@@ -260,7 +262,14 @@
                 if (event.end.isAfter(moment())) {
                     actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
                 }
-                actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
+                if (!event.isPeriodic) {
+                    actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
+                } else {
+                    <%--if (event.end.isAfter(moment())) {--%>
+                        <%--actions += "<a href='/wizard/room/" + event.requestId + "/remove-periodic?excludeReservationId=" + event.id + "&back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.single.title"/>'></b></a> | ";--%>
+                    <%--}--%>
+                    actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
+                }
                 actions += "</span>";
             } else {
                 // Change collor for not-owned reservations

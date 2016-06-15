@@ -13,6 +13,9 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
+import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import java.util.*;
 
 /**
@@ -26,7 +29,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * List of {@link cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot}s for which the reservation is requested.
      */
-    private List<DateTimeSlot> slots = new ArrayList<DateTimeSlot>();
+    private List<DateTimeSlot> slots = new ArrayList<>();
 
     /**
      * @return {@link #slots}

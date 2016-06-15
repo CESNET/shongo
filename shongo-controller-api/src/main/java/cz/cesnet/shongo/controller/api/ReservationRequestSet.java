@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.*;
 
 import java.util.*;
 
@@ -17,7 +15,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * Collection of date/time slots for which the reservation is requested.
      */
-    private List<Object> slots = new LinkedList<Object>();
+    private List<Object> slots = new LinkedList<>();
 
     /**
      * Constructor.
@@ -45,6 +43,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public void addAllSlots(Collection<PeriodicDateTimeSlot> slots) {
         this.slots.addAll(slots);
     }
+
     /**
      * Add new slot to the {@link #SLOTS}.
      *

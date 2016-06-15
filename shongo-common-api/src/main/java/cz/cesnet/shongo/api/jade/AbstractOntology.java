@@ -9,9 +9,8 @@ import jade.content.schema.ObjectSchema;
 import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.LocalDate;
 import org.joda.time.Period;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Abstract {@link Ontology}.
@@ -37,6 +36,7 @@ public abstract class AbstractOntology extends CustomBeanOntology
             SerializableOntology.getInstance().add(serializableSchema, Period.class);
             SerializableOntology.getInstance().add(serializableSchema, Duration.class);
             SerializableOntology.getInstance().add(serializableSchema, DateTime.class);
+            SerializableOntology.getInstance().add(serializableSchema, LocalDate.class);
             SerializableOntology.getInstance().add(serializableSchema, DeviceAddress.class);
         }
         catch (OntologyException exception) {

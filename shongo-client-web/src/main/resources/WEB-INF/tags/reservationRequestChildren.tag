@@ -45,6 +45,11 @@
     <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
+<tag:url var="childReservationDelete" value="<%= ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE %>">
+    <tag:param name="reservationRequestId" value="{{childReservationRequest.parentReservationRequestId}}" escape="false"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+    <tag:param name="excludeReservationId" value="{{childReservationRequest.reservationId}}" escape="false"/>
+</tag:url>
 
 <div ng-controller="PaginationController"
      ng-init="init('reservationRequestDetail.children', '${childListUrl}', {id: '${reservationRequest.id}'})">
@@ -100,6 +105,9 @@
                 <span ng-show="childReservationRequest.roomStateAvailable">
                     | <tag:listAction code="manage" url="${childRoomManagementUrl}" tabindex="2"/>
                 </span>
+                <%--<span ng-show="childReservationRequest.reservationId">--%>
+                    <%--| <tag:listAction code="delete" url="${childReservationDelete}" tabindex="2" />--%>
+                <%--</span>--%>
             </td>
         </tr>
         </tbody>

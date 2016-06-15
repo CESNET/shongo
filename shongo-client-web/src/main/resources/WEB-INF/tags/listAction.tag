@@ -7,6 +7,8 @@
 <%@ attribute name="ngClick" required="false" type="java.lang.String" %>
 <%@ attribute name="target" required="false" type="java.lang.String" %>
 <%@ attribute name="tabindex" required="false" type="java.lang.Integer" %>
+<%@ attribute name="showTitle" required="false" type="java.lang.Boolean" %>
+<%@ attribute name="disabled" required="false" type="java.lang.Boolean" %>
 <%----%>
 <spring:message var="actionIcon" code="views.list.action.${code}.iconClass"/>
 <c:choose>
@@ -18,10 +20,20 @@
     </c:otherwise>
 </c:choose>
 <c:if test="${not empty ngClick}">
-    <c:set var="url" value="#"/>
+    <c:set var="url" value=""/>
     <c:set var="ngClick" value=" ng-click=\"${ngClick}\""/>
 </c:if>
 <c:if test="${not empty target}">
     <c:set var="target"> target="${target}"</c:set>
 </c:if>
-<a href="${url}" ${ngClick}tabindex="${tabindex}" ${target}><b class="${actionIcon}" title="${actionTitle}"></b></a>
+<c:if test="${showTitle}">
+    <c:set var="textTitle" value="${actionTitle}" />
+</c:if>
+<c:choose>
+    <c:when test="${disabled}">
+        <span href="${url}" ${ngClick}tabindex="${tabindex}" ${target}><b class="${actionIcon} " title="${actionTitle}"></b> <b>${textTitle}</b></span>
+    </c:when>
+    <c:otherwise>
+        <a href="${url}" ${ngClick}tabindex="${tabindex}" ${target}><b class="${actionIcon}" title="${actionTitle}"></b> <b>${textTitle}</b></a>
+    </c:otherwise>
+</c:choose>
