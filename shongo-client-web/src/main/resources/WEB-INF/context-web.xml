@@ -89,7 +89,7 @@
         <property name="fallbackToSystemLocale" value="false"/>
 
         <!-- Reload messages for debugging-->
-        <!--property name="cacheSeconds" value="5"/-->
+        <!--<property name="cacheSeconds" value="5"/>-->
     </bean>
 
     <!-- Design -->

@@ -7,6 +7,8 @@ import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.*;
 
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a definition for periodic date/time slots.
@@ -48,6 +50,11 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
      * Ending date and/or time after which the periodic events are not considered.
      */
     private ReadablePartial end;
+
+    /**
+     * Collection of dates excluded from given time slots
+     */
+    protected List<LocalDate> excludeDates = new LinkedList<>();
 
     /**
      * Constructor.
@@ -221,6 +228,47 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
         this.end = end;
     }
 
+    /**
+     * @return {@link #EXCLUDE_DATES}
+     */
+    public List<LocalDate> getExcludeDates()
+    {
+        return excludeDates;
+    }
+
+    /**
+     * @param excludeDates sets the {@link #EXCLUDE_DATES}
+     */
+    public void setExcludeDates(List<LocalDate> excludeDates)
+    {
+        this.excludeDates = excludeDates;
+    }
+
+    public void addAllExcludeDates(List<LocalDate> excludeDates)
+    {
+        this.excludeDates.addAll(excludeDates);
+    }
+
+    /**
+     * Add new date to the {@link #EXCLUDE_DATES}.
+     *
+     * @param date
+     */
+    public void addExcludeDate(LocalDate date)
+    {
+        this.excludeDates.add(date);
+    }
+
+    /**
+     * Add new date to the {@link #EXCLUDE_DATES}.
+     *
+     * @param date
+     */
+    public void addExcludeDate(ReadablePartial date)
+    {
+        this.excludeDates.add(new LocalDate(date));
+    }
+
     public static final String START = "start";
     public static final String TIME_ZONE = "timeZone";
     public static final String DURATION = "duration";
@@ -229,7 +277,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
     public static final String MONTH_PERIODICITY_TYPE = "monthPeriodicityType";
     public static final String PERIODICITY_DAY_ORDER = "periodicityDayOrder";
     public static final String PERIODICITY_DAY_IN_MONTH = "periodicityDayInMonth";
-
+    public static final String EXCLUDE_DATES = "excludeDates";
 
     @Override
     public DataMap toData()
@@ -243,6 +291,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
         dataMap.set(MONTH_PERIODICITY_TYPE, monthPeriodicityType);
         dataMap.set(PERIODICITY_DAY_ORDER, periodicityDayOrder);
         dataMap.set(PERIODICITY_DAY_IN_MONTH, periodicityDayInMonth);
+        dataMap.set(EXCLUDE_DATES, excludeDates);
         return dataMap;
     }
 
@@ -258,6 +307,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType implements Compa
         monthPeriodicityType = dataMap.getEnum(MONTH_PERIODICITY_TYPE, PeriodicityType.MonthPeriodicityType.class);
         periodicityDayOrder = dataMap.getInteger(PERIODICITY_DAY_ORDER);
         periodicityDayInMonth = dataMap.getEnum(PERIODICITY_DAY_IN_MONTH, DayOfWeek.class);
+        excludeDates = dataMap.getList(EXCLUDE_DATES, LocalDate.class);
     }
 
     @Override

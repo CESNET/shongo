@@ -26,6 +26,7 @@
 <script type="text/javascript">
     var module = angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
     module.controller("ReservationRequestFormController", function($scope, $application) {
+        $scope.excludeDatesIdPrefix = "excludeDatesDynamic_";
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '' || value == 0) ? defaultValue : value);
@@ -38,6 +39,16 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
+
+        // Initialize dynamic html except days. Add one empty input when no slots given from request model.f
+        $scope.excludeDates = [];
+        $scope.excludeDatesHighestId = $scope.value('${reservationRequest.excludeDates.size()}', 0);
+        <c:if test="${reservationRequest.excludeDates == null || reservationRequest.excludeDates.size() == 0}">
+            $scope.excludeDates.push({
+                id: $scope.excludeDatesHighestId++,
+                removeId: $scope.excludeDates.length + 1});
+        </c:if>
+
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
         </c:if>
@@ -379,6 +390,26 @@
                 event.setResult(content, false);
             }).fail($application.handleAjaxFailure);
             return "<spring:message code="views.loading"/>";
+        };
+
+        // Manage slots except given periodicity
+        $scope.addExcludeDates = function() {
+            $scope.excludeDates.push({
+                id: $scope.excludeDatesHighestId++,
+                removeId: $scope.excludeDates.length + 1});
+        };
+        $scope.removeExcludeDates = function(removeId) {
+            $scope.excludeDates.forEach(function(element) {
+                if (element.removeId == removeId) {
+                    $scope.excludeDates.splice($scope.excludeDates.indexOf(element), 1);
+                    return;
+                }
+            });
+        };
+        $scope.removeStaticExcludeDates = function(removeId) {
+//            $("#" + removeId).parent().parent().remove();
+            $("#" + removeId).timepicker('setTime', null);
+            $("#" + removeId).parent().parent().hide();
         };
     });
 
@@ -905,6 +936,7 @@
                     </div>
                 </div>
 
+                <%-- SHOW CALCULATED SLOTS --%>
                 <%--<div class="col-xs-3">--%>
                     <%--<div class="top-margin" ng-show="periodicityType != 'NONE'">--%>
                         <%--<span class="input-group">--%>
@@ -928,19 +960,58 @@
             </div>
         </div>
 
-         <div class="form-group">
+        <div class="form-group">
             <label class="col-xs-3 control-label" path="periodicityEnd">
                 <spring:message code="views.reservationRequest.periodicity.end"/>:
             </label>
             <div class="col-xs-9 space-padding">
                 <div class="col-xs-2 bg-danger">
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                 </div>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="periodicityEnd" cssClass="error"/>
             </div>
         </div>
+
+        <%--<div class="form-group row">--%>
+            <%--<label class="col-xs-3 control-label" path="excludeDates">--%>
+                <%--<spring:message code="views.reservationRequest.periodicity.exclude"/>:--%>
+            <%--</label>--%>
+    <%----%>
+            <%--<div class="row col-xs-9" id="excludeDates">--%>
+                <%--<c:forEach items="${reservationRequest.excludeDates}" var="slot" varStatus="status">--%>
+                    <%--<div class="row space-padding padding-line">--%>
+                        <%--<div class="col-xs-2 bg-danger">--%>
+                            <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="excludeDates[${status.index}]" id="excludeDatesStatic_${status.index}" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>--%>
+                        <%--</div>--%>
+                        <%--<div class="col-xs-10 action-padding">--%>
+                            <%--<tag:listAction code="remove" ngClick="removeStaticExcludeDates('excludeDatesStatic_${status.index}')" tabindex="${tabIndex}" />--%>
+                        <%--</div>--%>
+                    <%--</div>--%>
+                <%--</c:forEach>--%>
+    <%----%>
+                <%--<div class="row space-padding padding-line" ng-repeat="date in excludeDates">--%>
+                    <%--<div class="col-xs-2 bg-danger">--%>
+                        <%--<input name="excludeDates[{{date.id}}]" class="form-control" tabindex="1" ng-disabled="periodicityType == 'NONE'" date-picker="true" type="text">--%>
+                    <%--</div>--%>
+                    <%--<div class="col-xs-10 action-padding">--%>
+                        <%--<tag:listAction code="remove" ngClick="removeExcludeDates(date.removeId)" tabindex="${tabIndex}" />--%>
+                    <%--</div>--%>
+                <%--</div>--%>
+    <%----%>
+                <%--<div class="col-xs-9 padding-line action-padding" ng-hide="periodicityType == 'NONE'">--%>
+                    <%--<tag:listAction code="add" ngClick="addExcludeDates()" showTitle="true" tabindex="${tabIndex}" />--%>
+                <%--</div>--%>
+                <%--<div class="col-xs-9 padding-line action-padding" ng-show="periodicityType == 'NONE'">--%>
+                    <%--<tag:listAction code="add" showTitle="true" disabled="true" tabindex="${tabIndex}" />--%>
+                <%--</div>--%>
+            <%--</div>--%>
+    <%----%>
+            <%--<div class="col-xs-offset-3 col-xs-9">--%>
+                <%--<form:errors path="excludeDates" cssClass="error"/>--%>
+            <%--</div>--%>
+        <%--</div>--%>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">

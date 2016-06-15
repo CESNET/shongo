@@ -247,6 +247,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth = request.getPeriodicityDayInMonth();
                 PeriodicDateTime periodicDateTime = new PeriodicDateTime(slot.getStart(), slot.getPeriod(), slot.getEnd(), slot.getPeriodicityDayOrder(), slot.getPeriodicityDayInMonth());
                 periodicDateTime.setTimeZone(slot.getTimeZone());
+                periodicDateTime.addAllRules(PeriodicDateTime.RuleType.DISABLE, slot.getExcludeDates());
+
                 //if (Period.ZERO.equals(request.getPeriod())) {
                     for (DateTime slotStart : periodicDateTime.enumerate()) {
                         slots.add(new Interval(slotStart, slot.getDuration()));

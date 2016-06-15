@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -207,6 +205,20 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         else {
             periodicDateTimeSlotApi.setMonthPeriodicityType(cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.STANDARD);
         }
+
+        for (PeriodicDateTime.Rule rule : periodicDateTime.getRules()) {
+            if (rule.isInterval()) {
+                throw new TodoImplementException("Interval rules are not implemented yet.");
+            }
+            switch (rule.getType()) {
+                case DISABLE:
+                    periodicDateTimeSlotApi.addExcludeDate(rule.getDateTime());
+                    break;
+                default:
+                    throw new TodoImplementException("Unsupported rule type: " + rule.getType());
+            }
+        }
+
         return periodicDateTimeSlotApi;
     }
 
@@ -229,6 +241,8 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         }
         setPeriodicDateTime(periodicDateTime);
         setDuration(periodicDateTimeSlotApi.getDuration());
+
+        periodicDateTime.addAllRules(PeriodicDateTime.RuleType.DISABLE, periodicDateTimeSlotApi.getExcludeDates());
     }
 
     @Override

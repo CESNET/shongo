@@ -89,6 +89,7 @@ public class IndexController
             modelAndView.addObject("meetingRoomResources", items);
         }
 
+        // Not functional without controller annotation @SessionAttributes
         sessionStatus.setComplete();
 
         return modelAndView;

@@ -198,6 +198,8 @@ public class DetailReservationRequestController extends AbstractDetailController
             if (reservation != null) {
                 // Reservation should contain allocated room
                 AbstractRoomExecutable room = (AbstractRoomExecutable) reservation.getExecutable();
+                child.put("parentReservationRequestId", reservationRequest.getParentReservationRequestId());
+                child.put("reservationId", reservation.getId());
                 if (room != null) {
                     child.put("roomId", room.getId());
 

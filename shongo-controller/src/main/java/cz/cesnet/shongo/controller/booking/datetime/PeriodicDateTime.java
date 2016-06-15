@@ -1,15 +1,18 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
-import cz.cesnet.shongo.SimplePersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import cz.cesnet.shongo.hibernate.PersistentReadablePartial;
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.CascadeType;
 import org.joda.time.*;
 
 import javax.persistence.*;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
 import java.util.*;
 
 /**
@@ -220,6 +223,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #rules}
      */
     @OneToMany
+    @Cascade(CascadeType.ALL)
     public List<Rule> getRules()
     {
         return Collections.unmodifiableList(rules);
@@ -266,6 +270,23 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
     public void addRule(RuleType type, ReadablePartial dateTimeFrom, ReadablePartial dateTimeTo)
     {
         addRule(new Rule(type, dateTimeFrom, dateTimeTo));
+    }
+
+    /**
+     * Add list of new rules of the given type for periodic date. Adds only valid dates within the slot interval.
+     *
+     * @param type            Type of rule
+     * @param dateTimeList    List of concrete date
+     */
+    public void addAllRules(RuleType type, List<LocalDate> dateTimeList)
+    {
+        if (dateTimeList != null) {
+            for (LocalDate dateTime : dateTimeList) {
+                if (cz.cesnet.shongo.Temporal.dateFitsInterval(getStart(), getEnd(), dateTime)) {
+                    addRule(type, dateTime);
+                }
+            }
+        }
     }
 
     /**
@@ -526,7 +547,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
         periodicDateTime.setTimeZone(timeZone);
         periodicDateTime.setPeriodicityDayInMonth(periodicityDayInMonth);
         periodicDateTime.setPeriodicityDayOrder(periodicityDayOrder);
-        rules = new ArrayList<Rule>();
+        rules = new ArrayList<>();
         for (Rule rule : rules) {
             periodicDateTime.addRule(rule.clone());
         }
@@ -672,7 +693,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
         @Transient
         public boolean isInterval()
         {
-            if (dateTimeTo == null) {
+            if (dateTimeFrom == null) {
                 throw new IllegalStateException("Periodic date/time rule should have set at least one date/time.");
             }
             return dateTimeTo != null;

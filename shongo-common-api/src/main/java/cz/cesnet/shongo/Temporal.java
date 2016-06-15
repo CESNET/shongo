@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Helper for manipulating/formatting temporal data types.
@@ -222,4 +223,40 @@ public class Temporal
 
         return new Interval(start, end);
     }
+
+    /**
+     * Checks if given date is between given interval, including edges (rounded to whole days)
+     *
+     * @param start Start of the interval
+     * @param end End of the interval
+     * @param date Date to check
+     *
+     * @return
+     */
+    public static boolean dateFitsInterval(DateTime start, ReadablePartial end, LocalDate date)
+    {
+        if (start == null || end == null || date == null) {
+            throw new IllegalArgumentException("Parameters must not be null.");
+        }
+
+        LocalDate slotStart = start.toLocalDate();
+        LocalDate slotEnd = new LocalDate(end);
+
+        return (slotStart.isBefore(date) && slotEnd.isAfter(date)) || slotStart.equals(date) || slotEnd.equals(date);
+    }
+
+
+//    public static DateTime getDayInMonth(DateTime startDate, int orderOfDay, int dayInWeek)
+//    {
+//        if (orderOfDay < 1 || orderOfDay > 4) {
+//            throw new IllegalStateException("Parameter orderOfDay has to be value of 1-4.");
+//        }
+//        if (dayInWeek < 1 || dayInWeek > 6) {
+//        throw new IllegalStateException("Parameter dayInMonth has to be value of 1-6 (Sunday to Saturday.");
+//    }
+//    }
+//    public static DateTime getSlotStart()
+//    {
+//
+//    }
 }

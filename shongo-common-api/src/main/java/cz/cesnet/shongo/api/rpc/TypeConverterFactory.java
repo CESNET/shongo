@@ -7,6 +7,7 @@ import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.LocalDate;
 import org.joda.time.Period;
 
 import java.lang.reflect.ParameterizedType;
@@ -34,6 +35,11 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     private TypeConverter dateTimeConverter = new DateTimeConverter();
 
     /**
+     * Converter for {@link LocalDate}.
+     */
+    private TypeConverter localDateConverter = new LocalDateConverter();
+
+    /**
      * Converter for {@link Period}.
      */
     private TypeConverter periodConverter = new PeriodConverter();
@@ -52,6 +58,9 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         }
         else if (DateTime.class.isAssignableFrom(type)) {
             return dateTimeConverter;
+        }
+        else if (LocalDate.class.isAssignableFrom(type)) {
+            return localDateConverter;
         }
         else if (Period.class.isAssignableFrom(type)) {
             return periodConverter;
@@ -167,6 +176,35 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof String) {
                 return Converter.convertStringToDateTime((String) pObject);
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return Converter.convertDateTimeToString((DateTime) result);
+        }
+    }
+
+    /**
+     * {@link TypeConverter} for {@link DateTime}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class LocalDateConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof LocalDate;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+                return Converter.convertStringToLocalDate((String) pObject);
             }
             return pObject;
         }

@@ -22,7 +22,6 @@ import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormatterBuilder;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -318,11 +317,22 @@ public class MeetingRoomController {
             item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
-            //TODO:overovat opravneni uzivatele
             boolean isOwned = cache.getObjectPermissions(securityToken, reservationId).contains(ObjectPermission.WRITE);
             item.put("isOwned", isOwned);
             if (isOwned) {
-                item.put("requestId", reservation.getReservationRequestId());
+                String reservationRequestId = reservation.getReservationRequestId();
+                AbstractReservationRequest abstractReservationRequest;
+                abstractReservationRequest = reservationService.getReservationRequest(securityToken, reservationRequestId);
+                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                String parentReservationRequestId = reservationRequest.getParentReservationRequestId();
+                if (parentReservationRequestId != null) {
+                    // Reservation request for reservation in periodic request
+                    reservationRequestId = parentReservationRequestId;
+                }
+
+                item.put("isPeriodic", parentReservationRequestId != null);
+                // Reservation request id of whole request created by user
+                item.put("requestId", reservationRequestId);
             }
 
 //            String reservationResourceId = reservation.getResourceId();

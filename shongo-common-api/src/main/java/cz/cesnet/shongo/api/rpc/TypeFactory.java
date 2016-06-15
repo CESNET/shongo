@@ -13,12 +13,12 @@ import org.apache.xmlrpc.parser.TypeParser;
 import org.apache.xmlrpc.serializer.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -137,6 +137,18 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     /**
+     * {@link TypeSerializer} for {@link LocalDate}.
+     */
+    public static class LocalDateSerializer extends StringSerializer
+    {
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertLocalDateToString((LocalDate) object));
+        }
+    }
+
+    /**
      * {@link TypeSerializer} for {@link Period}.
      */
     public static class PeriodSerializer extends StringSerializer
@@ -231,6 +243,7 @@ public class TypeFactory extends TypeFactoryImpl
     private static final TypeSerializer CLASS_SERIALIZER = new ClassSerializer();
     private static final TypeSerializer ENUM_SERIALIZER = new EnumSerializer();
     private static final TypeSerializer DATETIME_SERIALIZER = new DateTimeSerializer();
+    private static final TypeSerializer LOCAL_DATE_SERIALIZER = new LocalDateSerializer();
     private static final TypeSerializer PERIOD_SERIALIZER = new PeriodSerializer();
     private static final TypeSerializer INTERVAL_SERIALIZER = new IntervalSerializer();
     private static final TypeSerializer ATOMIC_TYPE_SERIALIZER = new AtomicTypeSerializer();
@@ -249,6 +262,9 @@ public class TypeFactory extends TypeFactoryImpl
         }
         else if (pObject instanceof DateTime) {
             return DATETIME_SERIALIZER;
+        }
+        else if (pObject instanceof LocalDate) {
+            return LOCAL_DATE_SERIALIZER;
         }
         else if (pObject instanceof Period) {
             return PERIOD_SERIALIZER;

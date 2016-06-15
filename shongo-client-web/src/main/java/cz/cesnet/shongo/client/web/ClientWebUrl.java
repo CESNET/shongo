@@ -37,6 +37,8 @@ public class ClientWebUrl
             "/wizard/room/{reservationRequestId:.+}/duplicate";
     public static final String WIZARD_ROOM_MODIFY =
             "/wizard/room/{reservationRequestId:.+}/modify";
+    public static final String WIZARD_ROOM_PERIODIC_REMOVE =
+            "/wizard/room/{reservationRequestId:.+}/remove-periodic";
     public static final String WIZARD_ROOM_ATTRIBUTES =
             "/wizard/room/attributes";
     public static final String WIZARD_ROOM_ROLES =

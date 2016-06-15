@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
@@ -17,8 +18,10 @@ import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -198,12 +201,13 @@ public class WizardRoomController extends WizardParticipantsController
             )
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
-        if (reservationRequest == null) {
+        //TODO
+//        if (reservationRequest == null) {
             reservationRequest = createReservationRequest(securityToken);
             synchronized (request) {
                 WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
             }
-        }
+//        }
 
         reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
 
@@ -311,6 +315,40 @@ public class WizardRoomController extends WizardParticipantsController
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         }
         return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+    }
+
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE, method = RequestMethod.GET)
+    public Object handlePeriodicRoomExclude(
+            UserSession userSession,
+            SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @RequestParam(value = "excludeReservationId") String excludeReservationId)
+    {
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        if (!(reservationRequest instanceof ReservationRequestSet) || Strings.isNullOrEmpty(excludeReservationId)) {
+            throw new IllegalArgumentException("Invalid reservation request or reservation id not provided.");
+        }
+        Reservation excludeReservation = reservationService.getReservation(securityToken, excludeReservationId);
+        LocalDate excludeDate = excludeReservation.getSlot().getStart().toLocalDate();
+
+        ReservationRequestSet reservationRequestSet = (ReservationRequestSet) reservationRequest;
+        for (Object slot : reservationRequestSet.getSlots()) {
+            if (slot instanceof PeriodicDateTimeSlot) {
+                PeriodicDateTimeSlot periodicDateTimeSlot = (PeriodicDateTimeSlot) slot;
+                periodicDateTimeSlot.addExcludeDate(excludeDate);
+            }
+        }
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
+                reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
+        reservationRequestModel.setRemovedReservationDate(excludeDate);
+        synchronized (request) {
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
+        }
+        DataBinder dataBinder = new DataBinder(reservationRequestModel);
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+//        return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, dataBinder.getBindingResult());
     }
 
     /**
