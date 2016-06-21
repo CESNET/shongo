@@ -22,11 +22,11 @@
     <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<%--<tag:url var="childReservationDelete" value="<%= ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE %>">--%>
-<%--<tag:param name="reservationRequestId" value="\"+event.requestId+\"" escape="false"/>--%>
-<%--<tag:param name="back-url" value="{{requestUrl}}" escape="false"/>--%>
-<%--<tag:param name="excludeReservationId" value="{{childReservationRequest.reservationId}}" escape="false"/>--%>
-<%--</tag:url>--%>
+<tag:url var="childReservationDelete" value="<%= ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE %>">
+    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+    <tag:param name="excludeReservationId" value="\" + event.id + \"" escape="false"/>
+</tag:url>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
@@ -280,11 +280,10 @@
                 if (!event.isPeriodic) {
                     actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
                 } else {
-                    <%--if (event.end.isAfter(moment())) {--%>
-                        <%--actions += "<a href='/wizard/room/" + event.requestId + "/remove-periodic?excludeReservationId=" + event.id + "&back-url=/' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.single.title"/>'></b></a> | ";--%>
-                    <%--}--%>
+                    if (event.end.isAfter(moment())) {
+                        actions += "<a href='${childReservationDelete}' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.single.title"/>'></b></a> | ";
+                    }
                     actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
-                    <%--actions += "<a href='/reservation-request/" + event.requestId + "/delete?back-url=/' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";--%>
                 }
                 actions += "</span>";
             } else {
@@ -320,6 +319,7 @@
         $scope.uiConfig = {
             calendar: {
                 lang: '${requestContext.locale.language}',
+                <%--timezone: '${sessionScope.SHONGO_USER.timeZone}',--%>
                 defaultView: 'agendaWeek',
                 editable: false,
                 nowIndicator: true,
@@ -453,7 +453,7 @@
         }
     });
 </script>
-
+${sessionScope.SHONGO_USER.timeZone}
 <div ng-controller="CalendarController">
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
 

@@ -206,8 +206,9 @@
                 <c:choose>
                     <c:when test="${reservationRequest.removedReservationDate.equals(date)}">
                         <dd>
-                            A
-                            <tag:format value="${date}" style="date"/>
+                            <strong class="fa-green">
+                                <tag:format value="${date}" style="date"/>
+                            </strong>
                         </dd>
                     </c:when>
                     <c:otherwise>

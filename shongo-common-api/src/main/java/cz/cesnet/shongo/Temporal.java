@@ -245,7 +245,6 @@ public class Temporal
         return (slotStart.isBefore(date) && slotEnd.isAfter(date)) || slotStart.equals(date) || slotEnd.equals(date);
     }
 
-
 //    public static DateTime getDayInMonth(DateTime startDate, int orderOfDay, int dayInWeek)
 //    {
 //        if (orderOfDay < 1 || orderOfDay > 4) {
