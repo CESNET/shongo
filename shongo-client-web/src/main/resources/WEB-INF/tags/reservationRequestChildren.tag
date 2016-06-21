@@ -105,9 +105,9 @@
                 <span ng-show="childReservationRequest.roomStateAvailable">
                     | <tag:listAction code="manage" url="${childRoomManagementUrl}" tabindex="2"/>
                 </span>
-                <%--<span ng-show="childReservationRequest.reservationId">--%>
-                    <%--| <tag:listAction code="delete" url="${childReservationDelete}" tabindex="2" />--%>
-                <%--</span>--%>
+                <span ng-show="childReservationRequest.reservationId">
+                    | <tag:listAction code="delete" url="${childReservationDelete}" tabindex="2" />
+                </span>
             </td>
         </tr>
         </tbody>

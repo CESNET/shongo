@@ -3,7 +3,6 @@ package cz.cesnet.shongo.client.web.controllers;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
@@ -14,11 +13,10 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cglib.core.Local;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
@@ -346,9 +344,18 @@ public class WizardRoomController extends WizardParticipantsController
         synchronized (request) {
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         }
+
+        // Set valid startDate to be in the future
+        LocalDate startDate = reservationRequestModel.getFirstFutureSlotStart();
+        reservationRequestModel.setStartDate(startDate);
+
+        // Init of DataBinder for binding results (normally done by Spring MVC)
         DataBinder dataBinder = new DataBinder(reservationRequestModel);
-        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
-//        return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, dataBinder.getBindingResult());
+        dataBinder.setConversionService(new DefaultFormattingConversionService());
+        BindingResult errors = dataBinder.getBindingResult();
+
+//        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+        return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, errors);
     }
 
     /**

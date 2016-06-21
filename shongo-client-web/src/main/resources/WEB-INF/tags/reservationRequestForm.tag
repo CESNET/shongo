@@ -974,44 +974,44 @@
             </div>
         </div>
 
-        <%--<div class="form-group row">--%>
-            <%--<label class="col-xs-3 control-label" path="excludeDates">--%>
-                <%--<spring:message code="views.reservationRequest.periodicity.exclude"/>:--%>
-            <%--</label>--%>
-    <%----%>
-            <%--<div class="row col-xs-9" id="excludeDates">--%>
-                <%--<c:forEach items="${reservationRequest.excludeDates}" var="slot" varStatus="status">--%>
-                    <%--<div class="row space-padding padding-line">--%>
-                        <%--<div class="col-xs-2 bg-danger">--%>
-                            <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="excludeDates[${status.index}]" id="excludeDatesStatic_${status.index}" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>--%>
-                        <%--</div>--%>
-                        <%--<div class="col-xs-10 action-padding">--%>
-                            <%--<tag:listAction code="remove" ngClick="removeStaticExcludeDates('excludeDatesStatic_${status.index}')" tabindex="${tabIndex}" />--%>
-                        <%--</div>--%>
-                    <%--</div>--%>
-                <%--</c:forEach>--%>
-    <%----%>
-                <%--<div class="row space-padding padding-line" ng-repeat="date in excludeDates">--%>
-                    <%--<div class="col-xs-2 bg-danger">--%>
-                        <%--<input name="excludeDates[{{date.id}}]" class="form-control" tabindex="1" ng-disabled="periodicityType == 'NONE'" date-picker="true" type="text">--%>
-                    <%--</div>--%>
-                    <%--<div class="col-xs-10 action-padding">--%>
-                        <%--<tag:listAction code="remove" ngClick="removeExcludeDates(date.removeId)" tabindex="${tabIndex}" />--%>
-                    <%--</div>--%>
-                <%--</div>--%>
-    <%----%>
-                <%--<div class="col-xs-9 padding-line action-padding" ng-hide="periodicityType == 'NONE'">--%>
-                    <%--<tag:listAction code="add" ngClick="addExcludeDates()" showTitle="true" tabindex="${tabIndex}" />--%>
-                <%--</div>--%>
-                <%--<div class="col-xs-9 padding-line action-padding" ng-show="periodicityType == 'NONE'">--%>
-                    <%--<tag:listAction code="add" showTitle="true" disabled="true" tabindex="${tabIndex}" />--%>
-                <%--</div>--%>
-            <%--</div>--%>
-    <%----%>
-            <%--<div class="col-xs-offset-3 col-xs-9">--%>
-                <%--<form:errors path="excludeDates" cssClass="error"/>--%>
-            <%--</div>--%>
-        <%--</div>--%>
+        <div class="form-group row">
+            <label class="col-xs-3 control-label" path="excludeDates">
+                <spring:message code="views.reservationRequest.periodicity.exclude"/>:
+            </label>
+
+            <div class="row col-xs-9" id="excludeDates">
+                <c:forEach items="${reservationRequest.excludeDates}" var="slot" varStatus="status">
+                    <div class="row space-padding padding-line">
+                        <div class="col-xs-2 bg-danger">
+                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="excludeDates[${status.index}]" id="excludeDatesStatic_${status.index}" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                        </div>
+                        <div class="col-xs-10 action-padding">
+                            <tag:listAction code="remove" ngClick="removeStaticExcludeDates('excludeDatesStatic_${status.index}')" tabindex="${tabIndex}" />
+                        </div>
+                    </div>
+                </c:forEach>
+
+                <div class="row space-padding padding-line" ng-repeat="date in excludeDates">
+                    <div class="col-xs-2 bg-danger">
+                        <input name="excludeDates[{{date.id}}]" class="form-control" tabindex="1" ng-disabled="periodicityType == 'NONE'" date-picker="true" type="text">
+                    </div>
+                    <div class="col-xs-10 action-padding">
+                        <tag:listAction code="remove" ngClick="removeExcludeDates(date.removeId)" tabindex="${tabIndex}" />
+                    </div>
+                </div>
+
+                <div class="col-xs-9 padding-line action-padding" ng-hide="periodicityType == 'NONE'">
+                    <tag:listAction code="add" ngClick="addExcludeDates()" showTitle="true" tabindex="${tabIndex}" />
+                </div>
+                <div class="col-xs-9 padding-line action-padding" ng-show="periodicityType == 'NONE'">
+                    <tag:listAction code="add" showTitle="true" disabled="true" tabindex="${tabIndex}" />
+                </div>
+            </div>
+
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="excludeDates" cssClass="error"/>
+            </div>
+        </div>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
