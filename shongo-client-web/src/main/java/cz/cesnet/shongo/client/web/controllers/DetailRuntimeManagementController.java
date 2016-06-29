@@ -77,6 +77,10 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             try {
                 Room room = roomCache.getRoom(securityToken, executableId);
                 modelAndView.addObject("roomRuntime", room);
+                H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
+                if (h323RoomSetting != null) {
+                    modelAndView.addObject("contentImportant", h323RoomSetting.getContentImportant());
+                }
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
                 logger.warn("Room " + executableId +" isn't available", exception);
@@ -96,7 +100,8 @@ public class DetailRuntimeManagementController extends AbstractDetailController
     public String handleModify(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout)
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "contentImportant", required = false) Boolean contentImportant)
     {
         String executableId = getExecutableId(securityToken, objectId);
         Room room = roomCache.getRoom(securityToken, executableId);
@@ -105,6 +110,10 @@ public class DetailRuntimeManagementController extends AbstractDetailController
                 throw new IllegalStateException("Layout is not available.");
             }
             room.setLayout(layout);
+        }
+        H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
+        if (contentImportant != null && h323RoomSetting != null) {
+            h323RoomSetting.setContentImportant(contentImportant);
         }
         roomCache.modifyRoom(securityToken, executableId, room);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
@@ -115,9 +124,10 @@ public class DetailRuntimeManagementController extends AbstractDetailController
     public void handleModifyPost(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout)
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "contentImportant", required = false) boolean contentImportant)
     {
-        handleModify(securityToken, objectId, layout);
+        handleModify(securityToken, objectId, layout, contentImportant);
     }
 
     @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANTS_DATA, method = RequestMethod.GET)

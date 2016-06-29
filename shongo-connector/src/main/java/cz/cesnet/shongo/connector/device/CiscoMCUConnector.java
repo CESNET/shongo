@@ -382,6 +382,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         h323RoomSetting.setRegisterWithRegistrar((Boolean) conferenceStatus.get("registerWithSIPRegistrar"));
         h323RoomSetting.setStartLocked((Boolean) conferenceStatus.get("startLocked"));
         h323RoomSetting.setConferenceMeEnabled((Boolean) conferenceStatus.get("conferenceMeEnabled"));
+        h323RoomSetting.setContentImportant((Boolean) conferenceStatus.get("contentImportant"));
         room.addRoomSetting(h323RoomSetting);
 
         return room;
@@ -601,6 +602,9 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             }
             if (h323RoomSetting.getConferenceMeEnabled() != null) {
                 cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
+            }
+            if (h323RoomSetting.getContentImportant() != null) {
+                cmd.setParameter("contentImportant", h323RoomSetting.getContentImportant());
             }
             if (h323RoomSetting.getAllowGuests() != null) {
                 throw new CommandException("Room Setting " + H323RoomSetting.ALLOW_GUESTS + "is not implemented yet.");

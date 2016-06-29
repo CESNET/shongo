@@ -59,6 +59,11 @@ public class H323RoomSetting extends RoomSetting
     private Boolean conferenceMeEnabled;
 
     /**
+     * Is room content important (shown in video channel).
+     */
+    private Boolean contentImportant;
+
+    /**
      * @param pin sets the {@link #pin}
      * @return this {@link H323RoomSetting}
      */
@@ -221,6 +226,22 @@ public class H323RoomSetting extends RoomSetting
     }
 
     /**
+     * @return {@link #contentImportant}
+     */
+    public Boolean getContentImportant()
+    {
+        return contentImportant;
+    }
+
+    /**
+     * @param contentImportant sets the {@link #contentImportant}
+     */
+    public void setContentImportant(Boolean contentImportant)
+    {
+        this.contentImportant = contentImportant;
+    }
+
+    /**
      * @param conferenceMeEnabled sets the {@link #conferenceMeEnabled}
      */
     public void setConferenceMeEnabled(Boolean conferenceMeEnabled)
@@ -238,6 +259,7 @@ public class H323RoomSetting extends RoomSetting
     public static final String REGISTER_WITH_REGISTRAR = "registerWithRegistrar";
     public static final String START_LOCKED = "startLocked";
     public static final String CONFERENCE_ME_ENABLED = "conferenceMeEnabled";
+    public static final String CONTENT_IMPORTANT = "contentImportant";
 
     @Override
     public DataMap toData()
@@ -253,6 +275,7 @@ public class H323RoomSetting extends RoomSetting
         dataMap.set(REGISTER_WITH_REGISTRAR, registerWithRegistrar);
         dataMap.set(START_LOCKED, startLocked);
         dataMap.set(CONFERENCE_ME_ENABLED, conferenceMeEnabled);
+        dataMap.set(CONTENT_IMPORTANT, contentImportant);
         return dataMap;
     }
 
@@ -270,6 +293,7 @@ public class H323RoomSetting extends RoomSetting
         registerWithRegistrar = dataMap.getBoolean(REGISTER_WITH_REGISTRAR);
         startLocked = dataMap.getBoolean(START_LOCKED);
         conferenceMeEnabled = dataMap.getBoolean(CONFERENCE_ME_ENABLED);
+        contentImportant = dataMap.getBoolean(CONTENT_IMPORTANT);
     }
 
     @Override
@@ -309,6 +333,9 @@ public class H323RoomSetting extends RoomSetting
         }
         if (h323RoomSetting.getConferenceMeEnabled() != null) {
             setConferenceMeEnabled(h323RoomSetting.getConferenceMeEnabled());
+        }
+        if (h323RoomSetting.getContentImportant() != null) {
+            setContentImportant(h323RoomSetting.getContentImportant());
         }
     }
 }
