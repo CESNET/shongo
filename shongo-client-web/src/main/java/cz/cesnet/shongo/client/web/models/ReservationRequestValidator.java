@@ -249,10 +249,18 @@ public class ReservationRequestValidator implements Validator
                     }
                     else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
                         AllocationStateReport.ResourceAlreadyAllocated error = (AllocationStateReport.ResourceAlreadyAllocated) userError;
-                        errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
-                        // check if colliding interval is not the first one for periodic reservation request
-                        if (!SlotHelper.areIntervalsColliding(error.getInterval(),reservationRequestModel.getFirstSlot())) {
-                            errors.rejectValue("collidingInterval", null, error.getInterval().toString());
+                        if (reservationRequestModel.getMeetingRoomResourceId() != null) {
+                            // Meeting room already allocated
+                            errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
+                            // check if colliding interval is not the first one for periodic reservation request
+                            if (!SlotHelper.areIntervalsColliding(error.getInterval(), reservationRequestModel.getFirstSlot())) {
+                                errors.rejectValue("collidingInterval", null, error.getInterval().toString());
+                            }
+                        } else {
+                            // If resource is allocated, but virtual room is requested
+//                            errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
+//                            errors.rejectValue("collidingInterval", null, error.getInterval().toString());
+                            errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
                         }
                     }
                     else {

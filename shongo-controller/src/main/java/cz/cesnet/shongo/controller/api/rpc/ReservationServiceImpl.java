@@ -240,25 +240,18 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
-            //Period duration = request.getSlot().toPeriod();
             List<Interval> slots = new ArrayList<Interval>();
             for (PeriodicDateTimeSlot slot : request.getSlots()) {
-                Integer periodicityDayOrder = request.getPeriodicityDayOrder();
-                PeriodicDateTimeSlot.DayOfWeek periodicityDayInMonth = request.getPeriodicityDayInMonth();
                 PeriodicDateTime periodicDateTime = new PeriodicDateTime(slot.getStart(), slot.getPeriod(), slot.getEnd(), slot.getPeriodicityDayOrder(), slot.getPeriodicityDayInMonth());
                 periodicDateTime.setTimeZone(slot.getTimeZone());
                 periodicDateTime.addAllRules(PeriodicDateTime.RuleType.DISABLE, slot.getExcludeDates());
 
-                //if (Period.ZERO.equals(request.getPeriod())) {
-                    for (DateTime slotStart : periodicDateTime.enumerate()) {
-                        slots.add(new Interval(slotStart, slot.getDuration()));
-                    }
-//                }
-//                else {
-//                    slots.add(new Interval(slot.getStart().withZone(slot.getTimeZone()), slot.getDuration()));
-//                }
+                for (DateTime slotStart : periodicDateTime.enumerate()) {
+                    slots.add(new Interval(slotStart, slot.getDuration()));
+                }
             }
 
+            boolean rollback = false;
             // For each time slot in periodic reservation request
             for (Interval slotToTest : slots) {
                 // We must check only the future (because scheduler allocates only in future)
@@ -340,7 +333,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                                         reservationTaskProvider.createReservationTask(schedulerContext, slot);
                                 reservationTask.perform();
                             } finally {
-                                entityManager.getTransaction().rollback();
+                                rollback = true;
                             }
                         } else {
                             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
@@ -362,7 +355,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         }
                     }*/
                     return schedulerReport.toAllocationStateReport(authorization.isAdministrator(securityToken) ?
-                            Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);                }
+                            Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                }
+                finally {
+                    if (rollback) {
+                        entityManager.getTransaction().rollback();
+                    }
+                }
 
             } //END OF FOR-EACH LOOP
 

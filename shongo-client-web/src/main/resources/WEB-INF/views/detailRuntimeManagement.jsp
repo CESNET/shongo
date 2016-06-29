@@ -4,6 +4,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
 <c:if test="${room.state == 'STOPPED'}">
@@ -101,9 +102,19 @@
     function RoomController($scope, $application) {
     <c:if test="${roomRuntime != null}">
         $scope.layout = "${roomRuntime.layout != null ? roomRuntime.layout : 'OTHER'}";
+        $scope.contentImportant = "${contentImportant != null ? contentImportant : 'false'}";
+
         <tag:url var="modifyRoomUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY %>">
             <tag:param name="objectId" value="${room.id}"/>
             <tag:param name="layout" value=":layout"/>
+        </tag:url>
+        <tag:url var="makeContentImportantUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY %>">
+            <tag:param name="objectId" value="${room.id}"/>
+            <tag:param name="contentImportant" value="true"/>
+        </tag:url>
+        <tag:url var="makeContentUnimportantUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY %>">
+            <tag:param name="objectId" value="${room.id}"/>
+            <tag:param name="contentImportant" value="false"/>
         </tag:url>
         $scope.$watch("layout", function (newVal, oldVal) {
             if (newVal != oldVal) {
@@ -112,6 +123,20 @@
                 $.post(url).fail($application.handleAjaxFailure);
             }
         });
+        $scope.makeContentImportant = function () {
+            var url = "${makeContentImportantUrl}";
+            $.get(url, function (data){
+                $scope.contentImportant = 'true';
+                $scope.refreshTab('runtimeManagement');
+            }).fail($application.handleAjaxFailure);
+        };
+        $scope.makeContentUnimportant = function () {
+            var url = "${makeContentUnimportantUrl}";
+            $.get(url, function (data){
+                $scope.contentImportant = 'false';
+                $scope.refreshTab('runtimeManagement');
+            }).fail($application.handleAjaxFailure);
+        };
     </c:if>
 
         $scope.formatGroup = function(groupId, event) {
@@ -184,6 +209,15 @@
             <dt class="control-label"><spring:message code="views.room.layout"/>:</dt>
             <dd>
                 <tag:roomLayout id="roomLayout" model="layout" width="220px"/>
+            </dd>
+            <dt class="control-label"><spring:message code="views.room.content.title"/>:</dt>
+            <dd>
+                <a class="btn btn-default" href="" ng-click="makeContentImportant()" ng-hide="contentImportant" ng-disabled="${!room.state.available}">
+                    <i class="fa fa-picture-o fa-green" /> <spring:message code="views.room.content.makeImportant"/>
+                </a>
+                <a class="btn btn-default" href="" ng-click="makeContentUnimportant()" ng-show="contentImportant" ng-disabled="${!room.state.available}">
+                    <i class="fa fa-picture-o fa-red" /> <spring:message code="views.room.content.makeUnimportant"/>
+                </a>
             </dd>
         </c:if>
     </c:if>
