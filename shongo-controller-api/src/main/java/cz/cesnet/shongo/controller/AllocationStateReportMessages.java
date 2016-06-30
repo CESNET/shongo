@@ -14,6 +14,7 @@ public class AllocationStateReportMessages
     public static final String RESOURCE = "resource";
     public static final String RESOURCE_NOT_ALLOCATABLE = "resource-not-allocatable";
     public static final String RESOURCE_ALREADY_ALLOCATED = "resource-already-allocated";
+    public static final String RESOURCE_UNDER_MAINTENANCE = "resource-under-maintenance";
     public static final String RESOURCE_NOT_AVAILABLE = "resource-not-available";
     public static final String RESOURCE_ROOM_CAPACITY_EXCEEDED = "resource-room-capacity-exceeded";
     public static final String RESOURCE_RECORDING_CAPACITY_EXCEEDED = "resource-recording-capacity-exceeded";
@@ -67,6 +68,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource.id}.");
         addMessage(RESOURCE_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is disabled for allocation.");
         addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated in the time slot ${interval}.");
+        addMessage(RESOURCE_UNDER_MAINTENANCE, new Report.UserType[]{}, Report.Language.ENGLISH, "There is no available capacity due to maintenance in the time slot ${interval}.");
         addMessage(RESOURCE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
         addMessage(RESOURCE_ROOM_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.");
         addMessage(RESOURCE_RECORDING_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} doesn't have any available licenses for recording.");

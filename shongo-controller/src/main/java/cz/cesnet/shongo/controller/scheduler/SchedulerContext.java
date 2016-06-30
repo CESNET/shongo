@@ -552,6 +552,9 @@ public class SchedulerContext
         }
         Reservation reservation = collidingReservations.get(0);
 
+        if (ReservationRequestPurpose.MAINTENANCE.equals(reservation.getAllocation().getReservationRequest().getPurpose())) {
+            throw new SchedulerReportSet.ResourceUnderMaintenanceException(reservation.getAllocatedResource(), reservation.getSlot());
+        }
         throw new SchedulerReportSet.ResourceAlreadyAllocatedException(reservation.getAllocatedResource(), reservation.getSlot());
     }
 

@@ -167,6 +167,11 @@ public class AllocationStateReport extends AbstractObjectReport
                 Interval interval = Converter.convertToInterval(report.get("interval"));
                 return new ResourceAlreadyAllocated(resourceName, interval);
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_UNDER_MAINTENANCE)) {
+                String resourceName = (String) ((HashMap<String,Object>) report.get("resource")).get("name");
+                Interval interval = Converter.convertToInterval(report.get("interval"));
+                return new ResourceUnderMaintenance(resourceName, interval);
+            }
             else if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
                 return new MaximumDurationExceeded(Converter.convertToPeriod(report.get("maxDuration")));
             }
@@ -521,6 +526,11 @@ public class AllocationStateReport extends AbstractObjectReport
             this.interval = interval;
         }
 
+        public String getResourceName()
+        {
+            return resourceName;
+        }
+
         public Interval getInterval() {
             return interval;
         }
@@ -531,6 +541,25 @@ public class AllocationStateReport extends AbstractObjectReport
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             return MESSAGE_SOURCE.getMessage("resourceAlreadyAllocated", locale, this.resourceName,
                     dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Resource with name {@link #resourceName} is already allocated in specified {@link #interval} due to maintenance.
+     */
+    public static class ResourceUnderMaintenance extends ResourceAlreadyAllocated
+    {
+        public ResourceUnderMaintenance(String resourceName, Interval interval)
+        {
+            super(resourceName, interval);
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("resourceUnderMaintenance", locale,
+                    dateTimeFormatter.formatInterval(getInterval()));
         }
     }
 

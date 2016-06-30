@@ -1104,6 +1104,21 @@
         </report>
 
         <report extends="resource">
+            <id>resource-under-maintenance</id>
+            <classification severity="error"/>
+            <params>
+                <param name="interval" type="Interval"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                There is no available capacity due to maintenance in the time slot ${interval}.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report extends="resource">
             <id>resource-not-available</id>
             <classification severity="error"/>
             <params>

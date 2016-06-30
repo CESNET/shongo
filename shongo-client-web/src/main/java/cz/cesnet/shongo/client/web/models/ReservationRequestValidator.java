@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.models;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.client.web.Cache;
@@ -249,7 +250,10 @@ public class ReservationRequestValidator implements Validator
                     }
                     else if (userError instanceof AllocationStateReport.ResourceAlreadyAllocated) {
                         AllocationStateReport.ResourceAlreadyAllocated error = (AllocationStateReport.ResourceAlreadyAllocated) userError;
-                        if (reservationRequestModel.getMeetingRoomResourceId() != null) {
+                        if (userError instanceof AllocationStateReport.ResourceUnderMaintenance) {
+                            // If resource is allocated, but virtual room is requested
+                            errors.rejectValue("roomParticipantCount", null, error.getMessage(locale, timeZone));
+                        } else if (reservationRequestModel.getMeetingRoomResourceId() != null) {
                             // Meeting room already allocated
                             errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
                             // check if colliding interval is not the first one for periodic reservation request
@@ -257,10 +261,7 @@ public class ReservationRequestValidator implements Validator
                                 errors.rejectValue("collidingInterval", null, error.getInterval().toString());
                             }
                         } else {
-                            // If resource is allocated, but virtual room is requested
-//                            errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
-//                            errors.rejectValue("collidingInterval", null, error.getInterval().toString());
-                            errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
+                            throw new TodoImplementException("Unsupported error: " + error.getClass().getSimpleName());
                         }
                     }
                     else {

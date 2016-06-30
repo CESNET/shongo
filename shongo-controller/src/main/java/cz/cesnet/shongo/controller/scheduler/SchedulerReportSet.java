@@ -462,6 +462,121 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * There is no available capacity due to maintenance in the time slot {@link #interval}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceUnderMaintenanceReport")
+    public static class ResourceUnderMaintenanceReport extends ResourceReport
+    {
+        protected org.joda.time.Interval interval;
+
+        public ResourceUnderMaintenanceReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-under-maintenance";
+        }
+
+        public ResourceUnderMaintenanceReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
+        {
+            setResource(resource);
+            setInterval(interval);
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-under-maintenance", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceUnderMaintenanceReport}.
+     */
+    public static class ResourceUnderMaintenanceException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceUnderMaintenanceException(ResourceUnderMaintenanceReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceUnderMaintenanceException(Throwable throwable, ResourceUnderMaintenanceReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceUnderMaintenanceException(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
+        {
+            ResourceUnderMaintenanceReport report = new ResourceUnderMaintenanceReport();
+            report.setResource(resource);
+            report.setInterval(interval);
+            this.report = report;
+        }
+
+        public ResourceUnderMaintenanceException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.Interval interval)
+        {
+            super(throwable);
+            ResourceUnderMaintenanceReport report = new ResourceUnderMaintenanceReport();
+            report.setResource(resource);
+            report.setInterval(interval);
+            this.report = report;
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
+        }
+
+        @Override
+        public ResourceUnderMaintenanceReport getReport()
+        {
+            return (ResourceUnderMaintenanceReport) report;
+        }
+    }
+
+    /**
      * The resource {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
      */
     @javax.persistence.Entity
@@ -4547,6 +4662,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceReport.class);
         addReportClass(ResourceNotAllocatableReport.class);
         addReportClass(ResourceAlreadyAllocatedReport.class);
+        addReportClass(ResourceUnderMaintenanceReport.class);
         addReportClass(ResourceNotAvailableReport.class);
         addReportClass(ResourceRoomCapacityExceededReport.class);
         addReportClass(ResourceRecordingCapacityExceededReport.class);
