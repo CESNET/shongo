@@ -423,7 +423,7 @@ public abstract class Authorization
      * @return true if the user is Shongo admin (should have all permissions),
      * false otherwise
      */
-    public final boolean isAdministrator(String userId)
+    public static final boolean isAdministrator(String userId)
     {
         return userId.equals(ROOT_USER_ID);
     }
@@ -550,6 +550,10 @@ public abstract class Authorization
     public boolean hasObjectPermission(String userId,
                                        AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
     {
+        if (isAdministrator(userId)) {
+            // Administrator has all possible permissions
+            return true;
+        }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
