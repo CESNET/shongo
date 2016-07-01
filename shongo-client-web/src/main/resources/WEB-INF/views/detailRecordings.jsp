@@ -151,7 +151,7 @@
                 <td ng-controller="RoomRecordingActionController">
                     <%-- Show download link when available. --%>
                     <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
-                    <span ng-show="roomRecording.downloadUrl" ng-hide="reservationRequest.technology == 'ADOBE_CONNECT'">
+                    <span ng-hide="reservationRequest.technology == 'ADOBE_CONNECT' || !roomRecording.downloadUrl">
                         <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="fa fa-download"></i></a>
                     </span>
                     <%-- For Adobe Connect show only in OS Windows or Mac (due to AC add-in) --%>
