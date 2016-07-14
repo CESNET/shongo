@@ -1371,37 +1371,35 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         DateTime slotStart = getRequestStart();
         Period duration = getDuration();
 
-        while (slotStart.plus(duration).isBeforeNow()) {
-            Period period = getPeriod();
-            if (period != null) {
-                switch (getPeriodicityType()) {
-                    case WEEKLY:
-                        if (periodicDaysInWeek.length > 1) {
-                            Set<Integer> daysOfWeek = new HashSet<>();
-                            for (PeriodicDateTimeSlot.DayOfWeek day : periodicDaysInWeek) {
-                                daysOfWeek.add(day.getDayIndex() == 1 ? 7 : day.getDayIndex() - 1);
-                            }
-                            while (!daysOfWeek.contains(slotStart.getDayOfWeek()) || slotStart.plus(duration).isBeforeNow()) {
-                                slotStart = slotStart.plusDays(1);
-                            }
-                        } else {
-                            slotStart = slotStart.plus(period);
+        Period period = getPeriod();
+        while (slotStart.plus(duration).isBeforeNow() && period != null) {
+            switch (getPeriodicityType()) {
+                case WEEKLY:
+                    if (periodicDaysInWeek.length > 1) {
+                        Set<Integer> daysOfWeek = new HashSet<>();
+                        for (PeriodicDateTimeSlot.DayOfWeek day : periodicDaysInWeek) {
+                            daysOfWeek.add(day.getDayIndex() == 1 ? 7 : day.getDayIndex() - 1);
                         }
-                        break;
-                    case MONTHLY:
-                        if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(getMonthPeriodicityType())) {
-                            slotStart = getMonthFirstSlotStart(slotStart.plus(period).withDayOfMonth(1));
-                            break;
-                        } else {
-                            slotStart = slotStart.plus(period);
+                        while (!daysOfWeek.contains(slotStart.getDayOfWeek()) || slotStart.plus(duration).isBeforeNow()) {
+                            slotStart = slotStart.plusDays(1);
                         }
-                        break;
-                    case DAILY:
+                    } else {
                         slotStart = slotStart.plus(period);
+                    }
+                    break;
+                case MONTHLY:
+                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(getMonthPeriodicityType())) {
+                        slotStart = getMonthFirstSlotStart(slotStart.plus(period).withDayOfMonth(1));
                         break;
-                    default:
-                        throw new TodoImplementException("Unsupported periodicity type: " + getPeriodicityType());
-                }
+                    } else {
+                        slotStart = slotStart.plus(period);
+                    }
+                    break;
+                case DAILY:
+                    slotStart = slotStart.plus(period);
+                    break;
+                default:
+                    throw new TodoImplementException("Unsupported periodicity type: " + getPeriodicityType());
             }
         }
         return slotStart.toLocalDate();
