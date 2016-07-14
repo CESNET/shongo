@@ -345,16 +345,11 @@ public class WizardRoomController extends WizardParticipantsController
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         }
 
-        // Set valid startDate to be in the future
-        LocalDate startDate = reservationRequestModel.getFirstFutureSlotStart();
-        reservationRequestModel.setStartDate(startDate);
-
         // Init of DataBinder for binding results (normally done by Spring MVC)
         DataBinder dataBinder = new DataBinder(reservationRequestModel);
         dataBinder.setConversionService(new DefaultFormattingConversionService());
         BindingResult errors = dataBinder.getBindingResult();
 
-//        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
         return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, errors);
     }
 
@@ -372,6 +367,7 @@ public class WizardRoomController extends WizardParticipantsController
 
     /**
      * Handle validation of attributes..
+     * For periodic request updates startDate to first future slot.
      *
      * @param reservationRequest to be validated
      */
@@ -385,6 +381,9 @@ public class WizardRoomController extends WizardParticipantsController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
+        // Set valid startDate to be in the future
+        reservationRequest.updateSlotStartToFutureSlot();
+
         ReservationRequestValidator validator = new ReservationRequestValidator(
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);

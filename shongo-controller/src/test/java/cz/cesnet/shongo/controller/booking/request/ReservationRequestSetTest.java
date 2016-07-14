@@ -4,7 +4,6 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.DummyAuthorization;
-import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -19,12 +18,16 @@ import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.AnonymousPerson;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
@@ -37,26 +40,16 @@ import java.util.List;
  */
 public class ReservationRequestSetTest extends AbstractSchedulerTest
 {
-    @Test
-    public void test() throws Exception
-    {
-        // Authorization
-        Authorization authorization;
-        // Preprocessor
-        Preprocessor preprocessor = null;
-        // Scheduler
-        Scheduler scheduler = null;
-        // Interval for which a preprocessor and a scheduler runs and
-        // in which the reservation request compartment takes place
-        Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
-        // Id for reservation request set which is created
-        Long reservationRequestSetId = null;
-        // Id for reservation request which is created from the reservation request set
-        Long reservationRequestId = null;
-        // Ids for persons which are requested to participate in the compartment
-        Long personId1 = null;
-        Long personId2 = null;
+    // Authorization
+    private Authorization authorization;
+    // Preprocessor
+    private Preprocessor preprocessor;
+    // Scheduler
+    private Scheduler scheduler;
 
+    @Before
+    public void init()
+    {
         // ------------
         // Setup cache
         // ------------
@@ -79,6 +72,21 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             deviceResource.setAllocatable(true);
             createResource(deviceResource);
         }
+    }
+
+    @Test
+    public void test() throws Exception
+    {
+        // Interval for which a preprocessor and a scheduler runs and
+        // in which the reservation request compartment takes place
+        Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
+        // Id for reservation request set which is created
+        Long reservationRequestSetId = null;
+        // Id for reservation request which is created from the reservation request set
+        Long reservationRequestId = null;
+        // Ids for persons which are requested to participate in the compartment
+        Long personId1 = null;
+        Long personId2 = null;
 
         // ---------------------------
         // Create reservation request
@@ -290,5 +298,78 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
 
             entityManager.close();
         }
+    }
+
+    @Test
+    public void testResourceReservationRequestModificationTest()
+    {
+        Resource resource = new Resource();
+        resource.setAllocatable(true);
+        createResource(resource);
+
+        Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
+
+        EntityManager entityManager = createEntityManager();
+        entityManager.getTransaction().begin();
+
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setCreatedBy(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setUpdatedBy(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.addSlot("2012-06-22T14:00", "PT2H");
+        reservationRequestSet.setSpecification(new ResourceSpecification(resource));
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        reservationRequestManager.create(reservationRequestSet);
+
+        long reservationRequestSetId = reservationRequestSet.getId();
+        Assert.assertNotNull("The reservation request set should have assigned identifier",
+                reservationRequestSetId);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
+
+        entityManager = createEntityManager();
+        preprocessor.run(interval, entityManager);
+        scheduler.run(interval, entityManager);
+        entityManager.close();
+
+        /*
+         * Modify ReservationRequestSet to ReservationRequest
+         */
+
+        entityManager = createEntityManager();
+        entityManager.getTransaction().begin();
+
+        reservationRequestManager = new ReservationRequestManager(entityManager);
+        ReservationRequestSet oldReservationRequest = reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setCreatedBy(Authorization.ROOT_USER_ID);
+        reservationRequest.setUpdatedBy(Authorization.ROOT_USER_ID);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSlot(new DateTime("2012-06-22T14:00"), new Period("PT2H"));
+        reservationRequest.setSpecification(new ResourceSpecification(resource));
+        reservationRequest.setModifiedReservationRequest(oldReservationRequest);
+
+        reservationRequestManager.modify(oldReservationRequest, reservationRequest);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
+        entityManager = createEntityManager();
+
+        preprocessor.run(interval, entityManager);
+        scheduler.run(interval, entityManager);
+        scheduler.run(interval, entityManager);
+
+        entityManager.close();
+        entityManager = createEntityManager();
+
+        reservationRequestManager = new ReservationRequestManager(entityManager);
+        reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
+
+        Assert.assertEquals(ReservationRequest.AllocationState.ALLOCATED, reservationRequest.getAllocationState());
+
+        entityManager.close();
     }
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -180,7 +181,15 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
             // Delete all reservation requests which should be deleted
             for (ReservationRequest request : reservationRequestManager.getOrphanReservationRequestsForDeletion()) {
-                reservationRequestManager.hardDelete(request, authorizationManager);
+                List<Reservation> detachedReservations = reservationRequestManager.hardDelete(request, authorizationManager);
+                Allocation parentAllocation = request.getParentAllocation();
+                // Add detached reservations to parent allocation, when the allocation is not deleted
+                // (e.g. when modifying from ReservationRequestSet to ReservationRequest)
+                if (parentAllocation != null && Allocation.State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS.equals(parentAllocation.getState())) {
+                    for (Reservation reservation : detachedReservations) {
+                        parentAllocation.addReservation(reservation);
+                    }
+                }
             }
 
             entityManager.getTransaction().commit();
@@ -401,6 +410,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
         slotStart = allocationSlot.getStart();
         Allocation allocation = reservationRequest.getAllocation();
+
         for (Reservation allocatedReservation : allocation.getReservations()) {
             if (!allocationSlot.overlaps(allocatedReservation.getSlot())) {
                 continue;
