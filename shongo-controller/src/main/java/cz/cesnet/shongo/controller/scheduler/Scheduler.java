@@ -512,7 +512,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
 
             // Assign last old existing reservation into previousReservation variable
-            if (previousReservation == null || oldReservation.getSlotEnd().isAfter(previousReservation.getSlotEnd())) {
+            if (previousReservation == null
+                    || oldReservation.getSlotEnd().isAfter(previousReservation.getSlotEnd())
+                    || allocatedReservation.getSlot().overlaps(oldReservation.getSlot())) {
                 previousReservation = oldReservation;
             }
 
