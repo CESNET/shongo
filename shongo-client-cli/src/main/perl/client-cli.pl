@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use utf8;
 
+use Sys::Hostname;
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
@@ -125,7 +126,13 @@ if ( $scripting eq 0 ) {
 }
 
 if ( !defined($connect) || $connect eq '' ) {
-    $connect = 'http://127.0.0.1:8181';
+    my $hostname;
+    if ($ssl) {
+        $hostname = hostname();
+    } else {
+        $hostname = '127.0.0.1';
+    }
+    $connect = 'http://' . $hostname . ':8181';
 }
 if ( $controller->connect($connect, $ssl)) {
     if ( !$controller->is_scripting() ) {
