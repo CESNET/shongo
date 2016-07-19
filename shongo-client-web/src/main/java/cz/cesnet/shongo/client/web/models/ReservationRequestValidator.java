@@ -130,6 +130,7 @@ public class ReservationRequestValidator implements Validator
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+                        validateNum("durationCount", errors);
                     }
                     else {
                         validateInterval(reservationRequestModel, errors);
