@@ -108,7 +108,7 @@ public class ReservationRequestValidator implements Validator
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotBeforeMinutes", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotAfterMinutes", "validation.field.required");
                     if (reservationRequestModel.getDurationType() != null) {
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+                        validateDurationCount(reservationRequestModel, errors);
                     }
                     else {
                         validateInterval(reservationRequestModel, errors);
@@ -129,8 +129,7 @@ public class ReservationRequestValidator implements Validator
                     validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     if (reservationRequestModel.getDurationType() != null) {
                         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                        validateNum("durationCount", errors);
+                        validateDurationCount(reservationRequestModel, errors);
                     }
                     else {
                         validateInterval(reservationRequestModel, errors);
@@ -407,6 +406,20 @@ public class ReservationRequestValidator implements Validator
     }
 
     /**
+     * Validate duration count if filled properly.
+     *
+     * @param reservationRequestModel
+     * @param errors
+     */
+    public static void validateDurationCount(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+        if (reservationRequestModel.getDurationCount() != null) {
+            validatePositiveNum("durationCount", errors);
+        }
+    }
+
+    /**
      * @param field
      * @param errors
      * @return true whether validation succeeds, otherwise false
@@ -445,6 +458,20 @@ public class ReservationRequestValidator implements Validator
         Matcher matcher = PATTERN_NUM.matcher(value);
         if (!matcher.matches()) {
             errors.rejectValue(field, "validation.field.invalidNum");
+        }
+    }
+
+    public static void validatePositiveNum(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        Matcher matcher = PATTERN_NUM.matcher(value);
+        if (!matcher.matches()) {
+            errors.rejectValue(field, "validation.field.invalidNum");
+        } else {
+            Integer number = Integer.parseInt(value);
+            if (number < 1) {
+                errors.rejectValue(field, "validation.field.invalidPositiveNum");
+            }
         }
     }
 }

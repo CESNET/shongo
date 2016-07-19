@@ -1363,7 +1363,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void updateSlotStartToFutureSlot()
     {
-        setStartDate(getFirstFutureSlotStart());
+        try {
+            setStartDate(getFirstFutureSlotStart());
+        }
+        catch (IllegalStateException ex) {
+            // Continue if model is not set properly yet
+            return;
+        }
     }
 
     public LocalDate getFirstFutureSlotStart()
