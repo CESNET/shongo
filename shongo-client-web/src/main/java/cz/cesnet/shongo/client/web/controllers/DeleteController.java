@@ -20,10 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Controller for reverting and deleting reservation requests.
@@ -52,16 +49,11 @@ public class DeleteController
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId);
     }
 
-    /**
-     * Handle deletion of reservation request view.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
-    public String handleDeleteView(
-            HttpServletRequest request,
+
+    private ReservationRequestDetail getReservationForDeletion (
             SecurityToken securityToken,
-            MessageProvider messageProvider,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            Model model)
+            String reservationRequestId,
+            MessageProvider messageProvider)
     {
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, messageProvider.getLocale(), messageProvider.getTimeZone());
         ReservationRequestSummary reservationRequest =
@@ -85,52 +77,154 @@ public class DeleteController
         List<ReservationRequestSummary> dependencies =
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
 
-        model.addAttribute("titleDescription", title);
-        model.addAttribute("specificationType", specificationType);
-        model.addAttribute("reservationRequest", reservationRequest);
-        model.addAttribute("dependencies", dependencies);
+
+        ReservationRequestDetail reservationRequestDetail = new ReservationRequestDetail();
+        reservationRequestDetail.setId(reservationRequestId);
+        reservationRequestDetail.setTitleDescription(title);
+        reservationRequestDetail.setSpecificationType(specificationType);
+        reservationRequestDetail.setReservationRequest(reservationRequest);
+        reservationRequestDetail.setDependencies(dependencies);
         if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
             Interval slot = reservationRequest.getEarliestSlot();
-            model.addAttribute("slot", formatter.formatInterval(slot));
+            reservationRequestDetail.setSlot(formatter.formatInterval(slot));
             if (reservationRequest.getFutureSlotCount() != null && reservationRequest.getFutureSlotCount() > 0) {
                 List<Reservation> reservations = reservationService.getReservationRequestReservations(securityToken, reservationRequestId);
                 List<String> reservationSlots = new LinkedList<String>();
                 for (Reservation reservation : reservations) {
                     reservationSlots.add(formatter.formatInterval(reservation.getSlot()));
                 }
-                model.addAttribute("reservationSlots", reservationSlots);
+                reservationRequestDetail.setReservationSlots(reservationSlots);
             }
         }
-
-        // Initialize breadcrumb
-        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(NavigationInterceptor.BREADCRUMB_REQUEST_ATTRIBUTE);
-        if (breadcrumb != null) {
-            breadcrumb.addPages(breadcrumb.getPagesCount() - 1,
-                    ReservationRequestModel.getPagesForBreadcrumb(reservationRequest));
-        }
-
-        return "reservationRequestDelete";
+        return reservationRequestDetail;
     }
 
     /**
-     * Handle confirmation for deletion of reservation request.
+     * Handle view of reservation requests for deletion.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
+    public String handleDeleteMultipleView (
+            HttpServletRequest request,
+            SecurityToken securityToken,
+            MessageProvider messageProvider,
+            @RequestParam (value = "reservationRequestId", required = false) List<String> reservationRequestIds,
+            Model model)
+    {
+        List<ReservationRequestDetail> reservationsDetail = new ArrayList<>();
+
+        for (String reservationRequestId : reservationRequestIds) {
+            reservationsDetail.add(getReservationForDeletion(securityToken, reservationRequestId, messageProvider));
+        }
+        model.addAttribute("reservationsDetail", reservationsDetail);
+        return "reservationRequestDeleteMultiple";
+    }
+
+    /**
+     * Handle confirmation of reservation requests for deletion.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.POST)
-    public String handleDeleteConfirm(
+    public String handleDeleteMultipleConfirm(
             HttpServletRequest request,
             SecurityToken securityToken,
             @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+            @RequestParam (value = "reservationRequestId", required = false) List<String> reservationRequestIds)
     {
-        if (dependencies) {
-            List<ReservationRequestSummary> reservationRequestDependencies =
-                    ReservationRequestModel.getDeleteDependencies(
-                            reservationRequestId, reservationService, securityToken);
-            for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
-                reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
+        for (String reservationRequestId : reservationRequestIds) {
+            if (dependencies) {
+                List<ReservationRequestSummary> reservationRequestDependencies =
+                        ReservationRequestModel.getDeleteDependencies(
+                                reservationRequestId, reservationService, securityToken);
+                for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
+                    reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
+                }
             }
+            reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         }
-        reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:" + ClientWebUrl.HOME;
     }
+
+
+    /**
+     * View model for deletion request
+     */
+    public class ReservationRequestDetail {
+
+        private String id;
+
+        private String titleDescription;
+
+        private SpecificationType specificationType;
+
+        private ReservationRequestSummary reservationRequest;
+
+        private List<ReservationRequestSummary> dependencies;
+
+        /**
+         * Formated date and time of reserved slots
+         */
+        private List<String> reservationSlots;
+
+        /**
+         * Slot for which Reservation is allocated.
+         */
+        private String slot;
+
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getSlot() {
+            return slot;
+        }
+
+        public void setSlot(String slot) {
+            this.slot = slot;
+        }
+
+        public String getTitleDescription() {
+            return titleDescription;
+        }
+
+        public void setTitleDescription(String titleDescription) {
+            this.titleDescription = titleDescription;
+        }
+
+        public SpecificationType getSpecificationType() {
+            return specificationType;
+        }
+
+        public void setSpecificationType(SpecificationType specificationType) {
+            this.specificationType = specificationType;
+        }
+
+        public ReservationRequestSummary getReservationRequest() {
+            return reservationRequest;
+        }
+
+        public void setReservationRequest(ReservationRequestSummary reservationRequest) {
+            this.reservationRequest = reservationRequest;
+        }
+
+        public List<ReservationRequestSummary> getDependencies() {
+            return dependencies;
+        }
+
+        public void setDependencies(List<ReservationRequestSummary> dependencies) {
+            this.dependencies = dependencies;
+        }
+
+        public List<String> getReservationSlots() {
+            return reservationSlots;
+        }
+
+        public void setReservationSlots(List<String> reservationSlots) {
+            this.reservationSlots = reservationSlots;
+        }
+    }
+
 }

@@ -19,16 +19,16 @@
     <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-</tag:url>
+
+
 
 <div ng-controller="PaginationController"
-     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms')">
+     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms', '${meetingRoomMultipleDeleteUrl}')">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
-    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+    <spring:message code="views.button.remove" var="paginationRemove"/>
+
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
@@ -52,7 +52,7 @@
             <th>
                 <spring:message code="views.room.description"/>
             </th>
-            <th style="min-width: 95px; width: 95px;">
+            <th style="min-width: 95px; width: 105px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -113,7 +113,8 @@
                     <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
-                    | <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>
+                    | <tag:listAction code="delete" url="${meetingRoomSingleDeleteUrl}" tabindex="3"/>
+                    | <input type="checkbox" name="multipleDeleteIds" value="{{room.id}}"/>
                 </span>
             </td>
         </tr>

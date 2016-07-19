@@ -224,6 +224,7 @@
          ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms');">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
+        <spring:message code="views.button.remove" var="paginationRemove"/>
 
         <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
             <spring:message code="views.pagination.records"/>

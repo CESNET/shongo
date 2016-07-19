@@ -453,7 +453,6 @@
         }
     });
 </script>
-${sessionScope.SHONGO_USER.timeZone}
 <div ng-controller="CalendarController">
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
 

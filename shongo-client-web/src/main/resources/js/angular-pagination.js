@@ -1,3 +1,4 @@
+
 /**
  * Pagination module.
  */
@@ -39,6 +40,11 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     // URL
     $scope.url = null;
     $scope.urlParameters = null;
+
+    //MY STUFF, CHANGED ALSO IN INIT
+    $scope.deleteUrl = null;
+
+
     // Current page index
     $scope.pageIndex = null;
     // Current page size (number of items per page)
@@ -204,12 +210,14 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
      * @param url for listing items with ":start" and ":count" parameters
      * @param urlParameters for the url
      * @param refreshEvent to which it should listen and refresh when it happens (the first time auto refresh is skipped)
+     * @param deleteUrl for deleting multiple reservations at once
      */
-    $scope.init = function (name, url, urlParameters, refreshEvent) {
+    $scope.init = function (name, url, urlParameters, refreshEvent, deleteUrl) {
         // Setup name and resource
         $scope.name = name;
         $scope.url = url;
         $scope.urlParameters = urlParameters;
+        $scope.deleteUrl = deleteUrl;
         // Load configuration
         var configuration = null;
         try {
@@ -357,6 +365,34 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     $scope.refresh = function() {
         $scope.setPage($scope.pageIndex, null, true);
     };
+
+    /**
+     * Generates url with ids for deletion button
+     */
+    $scope.removeCheckedReservations = function () {
+        var checkboxes = document.getElementsByName('multipleDeleteIds');
+        var checkboxesChecked = [];
+
+        for (var i=0; i<checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                checkboxesChecked.push(checkboxes[i]);
+            }
+        }
+
+        if (checkboxesChecked.length == 0)
+            return false;
+
+        var deleteUrl = $scope.deleteUrl + '?';
+        for (var i=0; i<checkboxesChecked.length; i++) {
+            deleteUrl += 'reservationRequestId=' + checkboxesChecked[i].getAttribute("value");
+            if(i != checkboxesChecked.length-1) {
+                deleteUrl += '&';
+            }
+        }
+        window.location = deleteUrl;
+
+    }
+
 });
 
 /**
@@ -372,6 +408,11 @@ paginationModule.directive('paginationPageSize', function () {
             if ( attrs.unlimited != null ) {
                 optionUnlimited = '<option value="-1">' + attrs.unlimited + '</option>';
             }
+
+            var remove = ''
+            if ( attrs.remove != null ) {
+                remove += '<a ng-click="removeCheckedReservations()" class="btn btn-default" title="' + attrs.remove + '"><span class="fa fa-trash-o"></span></a>'
+            }
             var refresh = '';
             if ( attrs.refresh != null ) {
                 refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn btn-default" title="' + attrs.refresh +'"><span class="fa fa-refresh"></span></a>';
@@ -384,7 +425,7 @@ paginationModule.directive('paginationPageSize', function () {
                 '<option value="15">15</option>' +
                 '<option value="20">20</option>' +optionUnlimited +
                 '</select>' +
-                '</span>' + refresh +
+                '</span>' + remove + refresh +
                 '</div>';
             element.replaceWith(html);
         }

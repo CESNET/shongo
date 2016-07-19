@@ -150,11 +150,17 @@
     </definition>
 
     <definition name="reservationRequestDelete" extends="layoutAngular">
-        <put-attribute name="content" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/reservationRequestDeleteMultiple.jsp" type="template"/>
         <put-list-attribute name="title">
             <add-attribute expression="T(${titleDescription})"/>
         </put-list-attribute>
     </definition>
+
+    <definition name="reservationRequestDeleteMultiple" extends="layoutAngular">
+        <put-attribute name="content" value="/WEB-INF/views/reservationRequestDeleteMultiple.jsp" type="template"/>
+
+    </definition>
+
 
     <definition name="detail" extends="layoutAngularForm">
         <put-attribute name="heading" value=""/>
@@ -217,4 +223,12 @@
         <put-attribute name="title" value="views.resourceReservationRequests.confirmation.title"/>
         <put-attribute name="content" value="/WEB-INF/views/resourceReservationRequests.jsp" type="template"/>
     </definition>
+
+    <definition name="resourceSettings" extends="layoutAngularForm">
+        <put-attribute name="content" value="/WEB-INF/views/resourceSettings.jsp" type="template"/>
+    </definition>
+    <definition name="resourceSettings" extends="layoutAngularForm">
+        <put-attribute name="content" value="/WEB-INF/views/resourceSettings.jsp" type="template"/>
+    </definition>
+
 </tiles-definitions>
