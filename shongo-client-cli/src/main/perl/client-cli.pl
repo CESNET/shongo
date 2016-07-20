@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Sys::Hostname;
+use Sys::Hostname::FQDN;
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
@@ -128,7 +128,7 @@ if ( $scripting eq 0 ) {
 if ( !defined($connect) || $connect eq '' ) {
     my $hostname;
     if ($ssl) {
-        $hostname = hostname();
+        $hostname = fqdn();
     } else {
         $hostname = '127.0.0.1';
     }

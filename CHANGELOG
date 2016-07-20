@@ -16,7 +16,7 @@
 
     * Delegation of user rights for users without clearance (>= LOA 2).
 
-    * Bug fixes (utf-8 encoding of recordings, encoding in cmd-cli, Perun url update, check of H.323 recording size).
+    * Bug fixes (utf-8 encoding of recordings, encoding in cmd-cli, Perun url update, check of H.323 recording size, cmd-cli localhost connection over ssl).
 
     * Inter domain communication implemented (resource reservation completed, virtual room with TODO).
 

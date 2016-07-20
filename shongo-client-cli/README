@@ -25,6 +25,7 @@ This client requires Perl installed to run and following Perl modules:
  8) JSON
  9) IO::Socket::SSL (version 1.56)
 10) LWP::Protocol::https
+11) Sys::Hostname::FQDN
 
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
