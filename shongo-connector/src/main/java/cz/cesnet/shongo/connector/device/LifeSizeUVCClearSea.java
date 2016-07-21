@@ -5,8 +5,6 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.AliasService;
 import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
-import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
-import cz.cesnet.shongo.controller.api.jade.Service;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +69,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * Runnable will attempt to login every 3 hours and once connection is established
      * it will remove itself from the executors pool queue.
      */
-    private final Runnable RUNNABLE = new Runnable() {
+    private final Runnable LOGIN_RUNNABLE = new Runnable() {
         @Override
         public void run() {
             try {
@@ -79,15 +77,15 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                     logger.info("Connection attempted.");
                     login();
                     if (connectionState == ConnectionState.LOOSELY_CONNECTED) {
-                        logger.info("Connection to ClearSea established.");
+                        logger.info("Connection to ClearSea server " + deviceAddress + " established.");
                         scheduledThreadPoolExecutor.remove(this);
                     } else {
-                        logger.error("Failed to establish connection to ClearSea.");
+                        logger.error("Failed to establish connection to ClearSea server " + deviceAddress + ".");
                     }
                 }
             } catch (CommandException e) {
                 String message = "Error during ClearSea login attempt.";
-                logger.error(message + e.getMessage());
+                logger.error(message, e);
 //                    NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
 //                    notifyTarget.addMessage("en",
 //                            "Error during ClearSea login attempt.",
@@ -218,9 +216,16 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * @throws CommandException
      */
     private void login() throws CommandException {
-        accessToken = (String) performRequest(RequestType.GET, "&username=" + serviceUserID +
-                "&password=" + serviceUserPassword, null).get("access_token");
-        connectionState = ConnectionState.LOOSELY_CONNECTED;
+        try {
+            accessToken = (String) performRequest(RequestType.GET, "&username=" + serviceUserID +
+                    "&password=" + serviceUserPassword, null).get("access_token");
+            connectionState = ConnectionState.LOOSELY_CONNECTED;
+        } catch (Exception e) {
+            String message = "Login to server " + deviceAddress + " failed";
+            logger.error(message);
+            throw new CommandException(message, e);
+        }
+
     }
 
     /**
@@ -398,7 +403,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             logger.error(message);
             throw new CommandException(message, e);
         } catch (Exception e) {
-            logger.error("CONNECTION ERROR: ", e);
+            logger.error("CONNECTION ERROR: " + e.getMessage(), e);
             throw e;
         }
     }
@@ -429,6 +434,6 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private void attemptConnection() {
         connectionState = ConnectionState.DISCONNECTED;
-        scheduledThreadPoolExecutor.schedule(RUNNABLE, 3, TimeUnit.HOURS);
+        scheduledThreadPoolExecutor.schedule(LOGIN_RUNNABLE, 3, TimeUnit.HOURS);
     }
 }
