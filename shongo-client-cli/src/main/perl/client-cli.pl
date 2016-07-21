@@ -8,12 +8,12 @@ use strict;
 use warnings;
 use utf8;
 
-use Sys::Hostname::FQDN;
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
 use Shongo::ClientCli;
 use Shongo::ClientCli::Shell;
+use Sys::Hostname::FQDN qw (fqdn);
 
 # Check readline version
 if ( !defined(Term::ReadLine->Features->{'setHistory'}) ) {
