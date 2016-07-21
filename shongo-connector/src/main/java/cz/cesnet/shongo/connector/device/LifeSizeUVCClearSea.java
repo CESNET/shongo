@@ -5,8 +5,6 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.AliasService;
 import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
-import cz.cesnet.shongo.connector.common.Command;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import org.json.JSONObject;
@@ -248,6 +246,9 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * @throws CommandException
      */
     private void checkTokenValidity() throws CommandException {
+        boolean logged = true;
+        String message = null;
+        Exception exception = null;
         try {
             String actionUrl = buildURLString(ACTION_STATUS);
             HttpsURLConnection connection = (HttpsURLConnection)new URL(actionUrl).openConnection();
@@ -255,23 +256,32 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             // Throws exception when an error is found
             checkError(connection);
         } catch (SocketTimeoutException e) {
-            String message = "Timeout in checkTokenValidity.";
-            logger.warn(message, e);
-            attemptConnection();
+            logged = false;
+            message = "Timeout in checkTokenValidity.";
+            exception = e;
 
             throw new CommandException(message, e);
         } catch (IOException e) {
-            String message = "Failed to initialize connection.";
-            logger.error(message, e);
-            attemptConnection();
+            logged = false;
+            message = "Failed to initialize connection.";
+            exception = e;
 
             throw new CommandException(message, e);
         } catch (CommandException e) {
-            String message = "Failed to get connection status.";
-            logger.error(message, e);
-            attemptConnection();
+            logged = false;
+            message = "Failed to get connection status.";
+            exception = e;
+
+            // If login passes, do not plan connection
+            this.login();
+            logged = true;
 
             throw e;
+        } finally {
+            if (!logged) {
+                logger.warn(message, exception);
+                planConnection();
+            }
         }
     }
 
@@ -347,7 +357,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             throw new CommandException(message, e);
         } catch (Exception e) {
             logger.error("UNKWNOW ERROR: ", e);
-            attemptConnection();
+            planConnection();
         } finally {
             connection.disconnect();
         }
@@ -454,7 +464,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     /**
      * Schedule login action in the future if something went wrong - set state according it.
      */
-    private synchronized void attemptConnection() {
+    private synchronized void planConnection() {
         connectionState = ConnectionState.DISCONNECTED;
         scheduledThreadPoolExecutor.scheduleWithFixedDelay(LOGIN_RUNNABLE, 0, 1, TimeUnit.HOURS);
     }
