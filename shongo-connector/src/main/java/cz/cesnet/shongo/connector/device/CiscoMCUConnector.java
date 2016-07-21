@@ -655,13 +655,46 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     }
 
     @Override
-    protected void onModifyRoom(Room room) throws CommandException
+    protected void onModifyRoom(final Room room) throws CommandException
     {
-        disconnectRoomParticipants(room.getId(), room.getLicenseCount());
+        String roomId = room.getId();
+        final Room oldRoom = getRoom(roomId);
+        disconnectRoomParticipants(roomId, room.getLicenseCount());
 
         Command cmd = new Command("conference.modify");
-        cmd.setParameter("conferenceName", truncateString(room.getId()));
+        cmd.setParameter("conferenceName", truncateString(roomId));
         setConferenceParametersByRoom(cmd, room);
+        if (this.lifeSizeUVCClearSea != null) {
+            new Thread() {
+                public void run() {
+                    try {
+                        Alias oldAlias = oldRoom.getAlias(AliasType.H323_E164);
+                        Alias newAlias = room.getAlias(AliasType.H323_E164);
+                        if (newAlias != null) {
+                            lifeSizeUVCClearSea.modifyAlias(oldRoom.getName(), room.getName(), newAlias.getType(), oldAlias.getValue(), newAlias.getValue());
+                        }
+                    } catch (CommandException ex) {
+                        logger.error("Failed to delete ClearSea alias: " + ex.getMessage());
+
+                        NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+                        notifyTarget.addMessage("en",
+                                "Failed to delete ClearSea alias pro místnost: " + room.getName(),
+                                "Deleting of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                                        + "Thrown exception:" + ex.getMessage());
+                        notifyTarget.addMessage("cs",
+                                "Selhalo smaznání ClearSea aliasu pro místnost: " + room.getName(),
+                                "Pro místnost \"" + room.getName() + "\" nebylo možné smazat alias pro ClearSea." + "\n"
+                                        + "Nastala následující chyba:" + ex.getMessage());
+
+                        try {
+                            performControllerAction(notifyTarget);
+                        } catch (CommandException e) {
+                            logger.error("Failed to send notification: " + e);
+                        }
+                    }
+                }
+            }.start();
+        }
         execApi(cmd);
     }
 
@@ -695,7 +728,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                     }
                 }
             }.start();
-
         }
 
         Command cmd = new Command("conference.destroy");

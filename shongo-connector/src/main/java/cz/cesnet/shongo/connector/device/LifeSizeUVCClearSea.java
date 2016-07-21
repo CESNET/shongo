@@ -124,6 +124,33 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         return roomName;
     }
 
+    /**
+     * Assigns dial string (endpoint) to a user.
+     * @param userID user id
+     * @param aliasType specifying SIP or H323 protocol
+     * @param e164Number possibly a phone number
+     * @throws CommandException
+     */
+    private void assignEndpoint(String userID, AliasType aliasType, String e164Number) throws CommandException {
+        String dialString;
+        switch (aliasType) {
+            case H323_E164: {
+                dialString = "h323:";
+                break;
+            }
+            default: {
+                String message = "Alias type must be H323_URI (SIP_URI)";
+                logger.error(message);
+                throw new CommandException(message);
+            }
+        }
+        dialString += e164Number + "@" + gatekeeperIP;
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userID", userID);
+        jsonObject.put("dialString", dialString);
+        performRequest(RequestType.POST, ACTION_ENDPOINTS, jsonObject);
+    }
+
     @Override
     public String getFullAlias(String aliasId) throws CommandException {
         performRequest(RequestType.GET, ACTION_ACCOUNTS + "/" + aliasId, null);
@@ -144,31 +171,22 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     @Override
     public void modifyAlias(String roomName, String newRoomName, AliasType aliasType, String e164Number,
                             String newE164Number) throws CommandException {
-        if (roomName == null) {
-            String message = "oldRoomName is null, null room cannot be modified";
+        if (newE164Number == null) {
+            String message = "newE164Number cannot be null";
             logger.error(message);
             throw new IllegalArgumentException(message);
         }
-        // modify name
-        if (newRoomName != null) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userID", newRoomName);
-            performRequest(RequestType.POST, ACTION_ACCOUNTS + "/" + roomName, jsonObject);
+        if (newRoomName == null) {
+            String message = "newRoomName cannot be null";
+            logger.error(message);
+            throw new IllegalArgumentException(message);
         }
-        // delete old endpoint number
-        if (e164Number != null) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userID", roomName);
-            performRequest(RequestType.DELETE, ACTION_ENDPOINTS + "/" + roomName, jsonObject);
-        }
-        // add new endpoint number
-        if (newE164Number != null) {
-            if (aliasType == null) {
-                throw new IllegalArgumentException("Provide alias type for new e164 number.");
+        if (!newE164Number.equals(e164Number) || !roomName.equals(newRoomName)) {
+            if (roomName != null) {
+                deleteAlias(roomName);
             }
-            assignEndpoint(roomName, aliasType, newE164Number);
+            createAlias(aliasType, newE164Number, newRoomName);
         }
-
     }
 
     @Override
@@ -297,7 +315,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
 
         if (connectionState != ConnectionState.DISCONNECTED) {
             checkTokenValidity();
-            logger.info("Performing action: " + action + " ...");
+            logger.info("Performing action: " + requestType + ":" + action + " ...");
         }
         else {
             logger.info("Performing action: login on server " + this.deviceAddress.getHost() + " ...");
@@ -360,33 +378,6 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             connection.disconnect();
         }
         return null;
-    }
-
-    /**
-     * Assigns dial string (endpoint) to a user.
-     * @param userID user id
-     * @param aliasType specifying SIP or H323 protocol
-     * @param e164Number possibly a phone number
-     * @throws CommandException
-     */
-    private void assignEndpoint(String userID, AliasType aliasType, String e164Number) throws CommandException {
-        String dialString;
-        switch (aliasType) {
-            case H323_E164: {
-                dialString = "h323:";
-                break;
-            }
-            default: {
-                String message = "Alias type must be H323_URI (SIP_URI)";
-                logger.error(message);
-                throw new CommandException(message);
-            }
-        }
-        dialString += e164Number + "@" + gatekeeperIP;
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("userID", userID);
-        jsonObject.put("dialString", dialString);
-        performRequest(RequestType.POST, ACTION_ENDPOINTS, jsonObject);
     }
 
     /**
