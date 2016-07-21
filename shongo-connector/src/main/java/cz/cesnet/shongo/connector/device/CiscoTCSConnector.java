@@ -56,6 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -184,7 +185,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     /**
      * Thread for checking recordings.
      */
-    private Thread checkRecordingsThread;
+    private AtomicReference<Thread> checkRecordingsThreadReference;
 
     /**
      * Storage unit for recordings (can have slow access)
@@ -263,7 +264,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
         checkServerVitality();
 
-        this.checkRecordingsThread = new Thread()
+        final AtomicReference<Thread> threadReference = new AtomicReference<>();
+        threadReference.set(new Thread(Thread.currentThread().getName() + "-recordings")
         {
             private Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
 
@@ -273,7 +275,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 setRecordingChecking(true);
                 logger.info("Checking of recordings - starting...");
                 try {
-                    while (checkRecordingsThread != null) {
+                    while (threadReference != null) {
                         try {
                             Thread.sleep(recordingsCheckTimeout);
                         }
@@ -300,12 +302,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                     setRecordingChecking(false);
                 }
             }
-        };
-        this.checkRecordingsThread.setName(Thread.currentThread().getName() + "-recordings");
+        });
 
         synchronized (this) {
-            if (!this.recordingChecking) {
-                checkRecordingsThread.start();
+            if (!recordingChecking) {
+                threadReference.get().start();
+                this.checkRecordingsThreadReference = threadReference;
             }
         }
     }
@@ -348,7 +350,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     @Override
     public void disconnect() throws CommandException
     {
-        checkRecordingsThread = null;
+        synchronized (checkRecordingsThreadReference) {
+            Thread checkRecordingsThread = this.checkRecordingsThreadReference.get();
+            this.checkRecordingsThreadReference.set(null);
+            checkRecordingsThread.interrupt();
+        }
     }
 
     /**

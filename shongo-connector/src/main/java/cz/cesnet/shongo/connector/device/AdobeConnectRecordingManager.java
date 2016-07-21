@@ -147,7 +147,11 @@ public class AdobeConnectRecordingManager
      */
     public void destroy()
     {
-        this.checkRecordingsThreadReference.set(null);
+        synchronized (checkRecordingsThreadReference) {
+            Thread checkRecordingsThread = this.checkRecordingsThreadReference.get();
+            this.checkRecordingsThreadReference.set(null);
+            checkRecordingsThread.interrupt();
+        }
     }
 
     /**

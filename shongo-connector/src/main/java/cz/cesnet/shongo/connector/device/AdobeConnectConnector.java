@@ -154,7 +154,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public void disconnect() throws CommandException
     {
-        this.capacityCheckThreadReference.set(null);
+        synchronized (capacityCheckThreadReference) {
+            Thread capacityCheckThread = this.capacityCheckThreadReference.get();
+            this.capacityCheckThreadReference.set(null);
+            capacityCheckThread.interrupt();
+        }
         this.recordingManager.destroy();
         this.connectionState = ConnectionState.DISCONNECTED;
         this.logout();
