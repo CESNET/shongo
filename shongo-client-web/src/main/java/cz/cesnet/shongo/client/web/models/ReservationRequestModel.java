@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.DateFormatSymbols;
 import java.util.*;
 
 /**
@@ -1146,7 +1145,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
                 }
-                return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withTime(23, 59, 59, 0));
+                return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withZone(timeZone).withTime(23, 59, 59, 0));
             case MEETING_ROOM:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
@@ -1252,7 +1251,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public SortedSet<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone) {
         SortedSet<PeriodicDateTimeSlot> slots = new TreeSet<PeriodicDateTimeSlot>();
         if (PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicityType)) {
-            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(getRequestStart(), getDuration(), Period.ZERO);
+            DateTime requestStart = getRequestStart();
+            if (SpecificationType.PERMANENT_ROOM.equals(getSpecificationType())) {
+                requestStart = requestStart.withTimeAtStartOfDay();
+            }
+            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(requestStart, getDuration(), Period.ZERO);
             periodicDateTimeSlot.setEnd(getStartDate());
             periodicDateTimeSlot.setTimeZone(getTimeZone());
             slots.add(periodicDateTimeSlot);
