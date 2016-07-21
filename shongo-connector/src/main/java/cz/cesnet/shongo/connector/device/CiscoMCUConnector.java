@@ -670,7 +670,21 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                     try {
                         Alias oldAlias = oldRoom.getAlias(AliasType.H323_E164);
                         Alias newAlias = room.getAlias(AliasType.H323_E164);
-                        if (newAlias != null) {
+
+                        // Parse room number from new alias (old room contains only short version)
+                        if (roomNumberFromH323Number == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
+                        }
+                        Matcher matcher = roomNumberFromH323Number.matcher(newAlias.getValue());
+                        if (!matcher.find()) {
+                            throw new CommandException("Invalid E164 number: " + newAlias.getValue());
+                        }
+                        String roomNumber = matcher.group(1);
+
+                        // Modify CS alias if changed
+                        if (newAlias != null && !(room.getName().equals(oldRoom.getName()) && roomNumber.equals(oldAlias.getValue()))) {
                             lifeSizeUVCClearSea.modifyAlias(oldRoom.getName(), room.getName(), newAlias.getType(), oldAlias.getValue(), newAlias.getValue());
                         }
                     } catch (CommandException ex) {
@@ -678,12 +692,12 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 
                         NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
                         notifyTarget.addMessage("en",
-                                "Failed to delete ClearSea alias pro místnost: " + room.getName(),
-                                "Deleting of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                                "Failed to modify ClearSea alias pro místnost: " + room.getName(),
+                                "Modify of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
                                         + "Thrown exception:" + ex.getMessage());
                         notifyTarget.addMessage("cs",
-                                "Selhalo smaznání ClearSea aliasu pro místnost: " + room.getName(),
-                                "Pro místnost \"" + room.getName() + "\" nebylo možné smazat alias pro ClearSea." + "\n"
+                                "Selhala modifikace ClearSea aliasu pro místnost: " + room.getName(),
+                                "Pro místnost \"" + room.getName() + "\" nebylo možné upravit alias pro ClearSea." + "\n"
                                         + "Nastala následující chyba:" + ex.getMessage());
 
                         try {
