@@ -275,8 +275,6 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             // If login passes, do not plan connection
             this.login();
             logged = true;
-
-            throw e;
         } finally {
             if (!logged) {
                 logger.warn(message, exception);
