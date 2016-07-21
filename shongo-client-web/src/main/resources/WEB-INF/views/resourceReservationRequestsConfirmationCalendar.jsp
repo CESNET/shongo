@@ -39,7 +39,7 @@
   };
 
   var module = angular.module('jsp:resourceReservationRequestsConfirmationCalendar', ['ngApplication', 'ui.calendar', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2']);
-  module.controller("ResourceReservationRequestConfirmationCalendarController", function($scope,$compile,uiCalendarConfig) {
+  module.controller("ResourceReservationRequestConfirmationCalendarController", function($scope, $compile ,$application ,uiCalendarConfig) {
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
@@ -97,8 +97,7 @@
           });
         });
         callback(events);
-
-      })
+      }).fail($application.handleAjaxFailure);
     };
 
     $scope.eventRender = function( event, element, view ) {

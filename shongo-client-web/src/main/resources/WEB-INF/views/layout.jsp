@@ -20,16 +20,16 @@
 
 <%-- Logged out overlay --%>
 <tag:url var="homeUrl" value="<%= ClientWebUrl.HOME %>"/>
-<tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
+<tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>" />
 <tag:url var="loggedUrl" value="<%= ClientWebUrl.LOGGED %>"/>
 <c:if test="${isAuthenticated}">
     <c:set var="sessionExpiredOverlay">
         <spring:escapeBody htmlEscape="false" javaScriptEscape="true">
             <div id="session-expired-overlay">
                 <div class="information-box">
+                    <tag:url var="reloginUrl" value="${requestScope.requestUrl}" />
                     <span><spring:message code="views.layout.autoLogout"/></span>
-                    <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
-                    <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>
+                    <a class="btn btn-primary" href="${reloginUrl}"><spring:message code="views.layout.login"/></a>
                     <a class="btn btn-default" href="${homeUrl}"><spring:message code="navigation.home"/></a>
                 </div>
             </div>

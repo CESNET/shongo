@@ -39,7 +39,7 @@
     var calendarUrlBase = hostUrl + "${meetingRoomIcsUrl}";
     var exportCalendarMessage = "<strong><spring:message code='views.index.meetingRooms.calendarExport.message'/></strong><br />";
 
-    module.controller("CalendarController", function ($scope, $compile, uiCalendarConfig) {
+    module.controller("CalendarController", function ($scope, $compile, $application, uiCalendarConfig) {
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
@@ -262,7 +262,7 @@
                 });
                 callback(events);
 
-            })
+            }).fail($application.handleAjaxFailure);
         };
         $scope.eventRender = function(event, element, view) {
             var descriptionTitle = "<spring:message code="views.room.description"/>";
