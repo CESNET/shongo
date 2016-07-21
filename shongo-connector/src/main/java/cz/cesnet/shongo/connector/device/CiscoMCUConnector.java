@@ -304,6 +304,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         //Disconnect Alias service
         if (this.lifeSizeUVCClearSea != null) {
             this.lifeSizeUVCClearSea.disconnect();
+            this.lifeSizeUVCClearSea = null;
         }
     }
 
@@ -439,38 +440,36 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 
         //TODO if CS alias
         if (this.lifeSizeUVCClearSea != null) {
-            if (!ConnectionState.DISCONNECTED.equals(this.lifeSizeUVCClearSea.getStatus())) {
-                new Thread() {
-                    public void run() {
+            new Thread() {
+                public void run() {
+                    try {
+                        // Allocate alias in ClearSea
+                        Alias alias = room.getAlias(AliasType.H323_E164);
+                        if (alias == null) {
+                            throw new CommandException("H323_E164 must be set for ClearSea alias.");
+                        }
+                        lifeSizeUVCClearSea.createAlias(alias.getType(), alias.getValue(), roomName);
+                    } catch (CommandException ex) {
+                        logger.error("Failed to create ClearSea alias: " + ex.getMessage());
+
+                        NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+                        notifyTarget.addMessage("en",
+                                "Failed to create ClearSea alias pro místnost: " + room.getName(),
+                                "Creation of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
+                                        + "Thrown exception:" + ex.getMessage());
+                        notifyTarget.addMessage("cs",
+                                "Selhalo vytvoření ClearSea aliasu pro místnost: " + room.getName(),
+                                "Pro místnost \"" + room.getName() + "\" nebylo možné vytvořit alias pro ClearSea." + "\n"
+                                        + "Nastala následující chyba:" + ex.getMessage());
+
                         try {
-                            // Allocate alias in ClearSea
-                            Alias alias = room.getAlias(AliasType.H323_E164);
-                            if (alias == null) {
-                                throw new CommandException("H323_E164 must be set for ClearSea alias.");
-                            }
-                            lifeSizeUVCClearSea.createAlias(alias.getType(), alias.getValue(), roomName);
-                        } catch (CommandException ex) {
-                            logger.error("Failed to create ClearSea alias: " + ex.getMessage());
-
-                            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
-                            notifyTarget.addMessage("en",
-                                    "Failed to create ClearSea alias pro místnost: " + room.getName(),
-                                    "Creation of ClearSea alias failed for room \"" + room.getName() + "\"." + "\n"
-                                            + "Thrown exception:" + ex.getMessage());
-                            notifyTarget.addMessage("cs",
-                                    "Selhalo vytvoření ClearSea aliasu pro místnost: " + room.getName(),
-                                    "Pro místnost \"" + room.getName() + "\" nebylo možné vytvořit alias pro ClearSea." + "\n"
-                                            + "Nastala následující chyba:" + ex.getMessage());
-
-                            try {
-                                performControllerAction(notifyTarget);
-                            } catch (CommandException e) {
-                                logger.error("Failed to send notification: " + e);
-                            }
+                            performControllerAction(notifyTarget);
+                        } catch (CommandException e) {
+                            logger.error("Failed to send notification: " + e);
                         }
                     }
-                }.start();
-            }
+                }
+            }.start();
         }
 
         return roomName;

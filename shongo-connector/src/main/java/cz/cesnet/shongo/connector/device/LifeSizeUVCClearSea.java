@@ -5,6 +5,10 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.AliasService;
 import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
+import cz.cesnet.shongo.connector.common.Command;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
+import cz.cesnet.shongo.controller.api.jade.Service;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,26 +82,20 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
                     login();
                     if (connectionState == ConnectionState.LOOSELY_CONNECTED) {
                         logger.info("Connection to ClearSea server " + deviceAddress + " established.");
-                        scheduledThreadPoolExecutor.remove(this);
+                        throw new TerminateException("Connection established. Removing runnable login from executor.");
                     } else {
                         logger.error("Failed to establish connection to ClearSea server " + deviceAddress + ".");
                     }
                 }
+                throw new TerminateException("Still connected. Removing runnable login from executor.");
+            } catch (TerminateException e) {
+                // Let the exception terminate this runnable (from ThreadPool)
             } catch (CommandException e) {
                 String message = "Error during ClearSea login attempt.";
                 logger.error(message, e);
-//                    NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
-//                    notifyTarget.addMessage("en",
-//                            "Error during ClearSea login attempt.",
-//                            "There was an exception during ClearSea login attempt: " + e.getMessage());
-//                    notifyTarget.addMessage("cs",
-//                            "Chyba počas pokusu o připojení na ClearSea.",
-//                            "Byla vyhozena výjimka počas pokusu o připojení na ClearSea:" + e.getMessage());
-//                    try {
-//                        performControllerAction(notifyTarget);
-//                    } catch (CommandException ex) {
-//                        logger.error("Failed to send notification" + ex);
-//                    }
+            } catch (Exception e) {
+                String message = "Unknown error during ClearSea login attempt.";
+                logger.error(message, e);
             }
         }
     };
@@ -190,15 +188,18 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         serviceUserPassword = password;
         connectionState = ConnectionState.DISCONNECTED;
         login();
-//        attemptConnection();
     }
 
     @Override
     public ConnectionState getConnectionState() {
-        try {
-            checkTokenValidity();
-        } finally {
-            return connectionState;
+        synchronized (this) {
+            try {
+                checkTokenValidity();
+                return connectionState;
+            } catch  (Exception e) {
+                logger.warn("Not connected", e);
+                return ConnectionState.DISCONNECTED;
+            }
         }
     }
 
@@ -223,6 +224,20 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         } catch (Exception e) {
             String message = "Login to server " + deviceAddress + " failed";
             logger.error(message);
+
+            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS);
+            notifyTarget.addMessage("en",
+                    "Error during ClearSea login attempt.",
+                    "There was an exception during ClearSea (" + deviceAddress + ") login attempt: " + e.getMessage());
+            notifyTarget.addMessage("cs",
+                    "Chyba počas pokusu o připojení na ClearSea.",
+                    "Byla vyhozena výjimka počas pokusu o připojení na ClearSea (" + deviceAddress + "):" + e.getMessage());
+            try {
+                performControllerAction(notifyTarget);
+            } catch (CommandException ex) {
+                logger.error("Failed to send notification" + ex);
+            }
+
             throw new CommandException(message, e);
         }
 
@@ -237,20 +252,26 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
             String actionUrl = buildURLString(ACTION_STATUS);
             HttpsURLConnection connection = (HttpsURLConnection)new URL(actionUrl).openConnection();
             connection.setConnectTimeout(this.requestTimeout);
-            int errorCode = connection.getResponseCode();
-            if (errorCode == 200) {
-                return;
-            }
-            attemptConnection();
+            // Throws exception when an error is found
             checkError(connection);
         } catch (SocketTimeoutException e) {
             String message = "Timeout in checkTokenValidity.";
             logger.warn(message, e);
             attemptConnection();
+
+            throw new CommandException(message, e);
         } catch (IOException e) {
             String message = "Failed to initialize connection.";
             logger.error(message, e);
             attemptConnection();
+
+            throw new CommandException(message, e);
+        } catch (CommandException e) {
+            String message = "Failed to get connection status.";
+            logger.error(message, e);
+            attemptConnection();
+
+            throw e;
         }
     }
 
@@ -265,6 +286,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
             throws CommandException {
+
         if (connectionState != ConnectionState.DISCONNECTED) {
             checkTokenValidity();
             logger.info("Performing action: " + action + " ...");
@@ -282,12 +304,12 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         catch (MalformedURLException e) {
             String message = "Malformed URL \"" + actionUrl + "\".";
             logger.error(message);
-            throw new CommandException(message,e);
+            throw new CommandException(message, e);
         }
         catch (IOException e) {
             String message = "Failed to initialize url connection for action: " + actionUrl;
             logger.error(message);
-            throw new CommandException(message,e);
+            throw new CommandException(message, e);
         }
         try {
             connection.setRequestMethod(requestType.toString());
@@ -432,8 +454,18 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     /**
      * Schedule login action in the future if something went wrong - set state according it.
      */
-    private void attemptConnection() {
+    private synchronized void attemptConnection() {
         connectionState = ConnectionState.DISCONNECTED;
-        scheduledThreadPoolExecutor.schedule(LOGIN_RUNNABLE, 3, TimeUnit.HOURS);
+        scheduledThreadPoolExecutor.scheduleWithFixedDelay(LOGIN_RUNNABLE, 0, 1, TimeUnit.HOURS);
+    }
+
+    /**
+     * Exception for removing {@link Runnable} from {@code scheduledThreadPoolExecutor}
+     */
+    private class TerminateException extends Throwable
+    {
+        public TerminateException(String s)
+        {
+        }
     }
 }
