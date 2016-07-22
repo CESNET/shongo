@@ -19,7 +19,10 @@
     <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-
+<tag:url var="meetingRoomSingleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false" />
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 
 
 <div ng-controller="PaginationController"
@@ -83,7 +86,6 @@
                 <span ng-show="room.foreignDomain">
                     <tag:help label="{{room.foreignDomain}}" selectable="true">
                         <%-- TODO: ziskavat uzivatele z cizi domeny --%>
-                        TODO
                         <%--<span>--%>
                             <%--<strong><spring:message code="views.room.ownerEmail"/></strong>--%>
                             <%--<br />--%>
@@ -114,7 +116,7 @@
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
                     | <tag:listAction code="delete" url="${meetingRoomSingleDeleteUrl}" tabindex="3"/>
-                    | <input type="checkbox" name="multipleDeleteIds" value="{{room.id}}"/>
+                    | <input type="checkbox" name="multipleDelete" value="{{room.id}}"/>
                 </span>
             </td>
         </tr>

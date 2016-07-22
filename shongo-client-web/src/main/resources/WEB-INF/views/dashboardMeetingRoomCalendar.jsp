@@ -12,7 +12,9 @@
 <tag:url var="meetingRoomIcsUrl" value="<%= ClientWebUrl.MEETING_ROOM_ICS %>">
     <tag:param name="objectUriKey" value="" escape="false" />
 </tag:url>
-<tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
+<tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>">
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 
 <tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>

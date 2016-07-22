@@ -41,7 +41,7 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     $scope.url = null;
     $scope.urlParameters = null;
 
-    //MY STUFF, CHANGED ALSO IN INIT
+    //URL for deletion of reservation requests
     $scope.deleteUrl = null;
 
 
@@ -367,32 +367,25 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     };
 
     /**
-     * Generates url with ids for deletion button
+     * Deletes multiple reservation requests
      */
     $scope.removeCheckedReservations = function () {
-        var checkboxes = document.getElementsByName('multipleDeleteIds');
-        var checkboxesChecked = [];
 
-        for (var i=0; i<checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                checkboxesChecked.push(checkboxes[i]);
-            }
+        var checkboxesChecked = document.querySelectorAll("input[type='checkbox'][name='multipleDelete']:checked");
+
+        if (checkboxesChecked.length == 0) {
+            return false;
         }
 
-        if (checkboxesChecked.length == 0)
-            return false;
-
         var deleteUrl = $scope.deleteUrl + '?';
-        for (var i=0; i<checkboxesChecked.length; i++) {
+        for (var i = 0; i < checkboxesChecked.length; i++) {
             deleteUrl += 'reservationRequestId=' + checkboxesChecked[i].getAttribute("value");
             if(i != checkboxesChecked.length-1) {
                 deleteUrl += '&';
             }
         }
         window.location = deleteUrl;
-
     }
-
 });
 
 /**
@@ -423,9 +416,11 @@ paginationModule.directive('paginationPageSize', function () {
                 '<select class="form-control" ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
                 '<option value="10" selected="true">10</option>' +
                 '<option value="15">15</option>' +
-                '<option value="20">20</option>' +optionUnlimited +
+                '<option value="20">20</option>' +
+                optionUnlimited +
                 '</select>' +
-                '</span>' + remove + refresh +
+                '</span>' +
+                remove + refresh +
                 '</div>';
             element.replaceWith(html);
         }

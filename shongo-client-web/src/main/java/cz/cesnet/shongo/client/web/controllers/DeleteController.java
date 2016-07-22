@@ -49,7 +49,52 @@ public class DeleteController
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId);
     }
 
+    /**
+     * Handle view of reservation requests for deletion.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
+    public String handleDeleteView (
+            SecurityToken securityToken,
+            MessageProvider messageProvider,
+            @RequestParam (value = "reservationRequestId", required = false) List<String> reservationRequestIds,
+            Model model)
+    {
+        List<ReservationRequestDetail> reservationDetailList = new ArrayList<>();
 
+        for (String reservationRequestId : reservationRequestIds) {
+            reservationDetailList.add(getReservationForDeletion(securityToken, reservationRequestId, messageProvider));
+        }
+
+        model.addAttribute("reservationDetailList", reservationDetailList);
+        return "reservationRequestDelete";
+    }
+
+    /**
+     * Handle confirmation of reservation requests for deletion.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.POST)
+    public String handleDeleteConfirm(
+            SecurityToken securityToken,
+            @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
+            @RequestParam (value = "reservationRequestId") List<String> reservationRequestIds)
+    {
+        for (String reservationRequestId : reservationRequestIds) {
+            if (dependencies) {
+                List<ReservationRequestSummary> reservationRequestDependencies =
+                        ReservationRequestModel.getDeleteDependencies(
+                                reservationRequestId, reservationService, securityToken);
+                for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
+                    reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
+                }
+            }
+            reservationService.deleteReservationRequest(securityToken, reservationRequestId);
+        }
+        return "redirect:" + ClientWebUrl.HOME;
+    }
+
+    /**
+     * Returns detail of reservation request for deletion specified by Id.
+     */
     private ReservationRequestDetail getReservationForDeletion (
             SecurityToken securityToken,
             String reservationRequestId,
@@ -59,28 +104,12 @@ public class DeleteController
         ReservationRequestSummary reservationRequest =
                 cache.getReservationRequestSummary(securityToken, reservationRequestId);
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-        String roomName;
-        if (SpecificationType.MEETING_ROOM.equals(specificationType)) {
-            String resourceId = reservationRequest.getResourceId();
-            ResourceSummary resource = cache.getResourceSummary(securityToken, resourceId);
-            if (resource == null) {
-                throw new IllegalStateException("Summary for resource " + resourceId + " cannot be retrieved.");
-            }
-            roomName = resource.getName();
-        }
-        else {
-            roomName = reservationRequest.getRoomName();
-        }
-        String title = messageProvider.getMessage("views.reservationRequestDelete.title",
-                messageProvider.getMessage("views.specificationType.forWithName." + specificationType,
-                        roomName != null ? roomName : ""));
+
         List<ReservationRequestSummary> dependencies =
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
 
-
         ReservationRequestDetail reservationRequestDetail = new ReservationRequestDetail();
         reservationRequestDetail.setId(reservationRequestId);
-        reservationRequestDetail.setTitleDescription(title);
         reservationRequestDetail.setSpecificationType(specificationType);
         reservationRequestDetail.setReservationRequest(reservationRequest);
         reservationRequestDetail.setDependencies(dependencies);
@@ -100,58 +129,11 @@ public class DeleteController
     }
 
     /**
-     * Handle view of reservation requests for deletion.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
-    public String handleDeleteMultipleView (
-            HttpServletRequest request,
-            SecurityToken securityToken,
-            MessageProvider messageProvider,
-            @RequestParam (value = "reservationRequestId", required = false) List<String> reservationRequestIds,
-            Model model)
-    {
-        List<ReservationRequestDetail> reservationsDetail = new ArrayList<>();
-
-        for (String reservationRequestId : reservationRequestIds) {
-            reservationsDetail.add(getReservationForDeletion(securityToken, reservationRequestId, messageProvider));
-        }
-        model.addAttribute("reservationsDetail", reservationsDetail);
-        return "reservationRequestDeleteMultiple";
-    }
-
-    /**
-     * Handle confirmation of reservation requests for deletion.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.POST)
-    public String handleDeleteMultipleConfirm(
-            HttpServletRequest request,
-            SecurityToken securityToken,
-            @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
-            @RequestParam (value = "reservationRequestId", required = false) List<String> reservationRequestIds)
-    {
-        for (String reservationRequestId : reservationRequestIds) {
-            if (dependencies) {
-                List<ReservationRequestSummary> reservationRequestDependencies =
-                        ReservationRequestModel.getDeleteDependencies(
-                                reservationRequestId, reservationService, securityToken);
-                for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
-                    reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
-                }
-            }
-            reservationService.deleteReservationRequest(securityToken, reservationRequestId);
-        }
-        return "redirect:" + ClientWebUrl.HOME;
-    }
-
-
-    /**
      * View model for deletion request
      */
     public class ReservationRequestDetail {
 
         private String id;
-
-        private String titleDescription;
 
         private SpecificationType specificationType;
 
@@ -169,7 +151,6 @@ public class DeleteController
          */
         private String slot;
 
-
         public String getId() {
             return id;
         }
@@ -184,14 +165,6 @@ public class DeleteController
 
         public void setSlot(String slot) {
             this.slot = slot;
-        }
-
-        public String getTitleDescription() {
-            return titleDescription;
-        }
-
-        public void setTitleDescription(String titleDescription) {
-            this.titleDescription = titleDescription;
         }
 
         public SpecificationType getSpecificationType() {

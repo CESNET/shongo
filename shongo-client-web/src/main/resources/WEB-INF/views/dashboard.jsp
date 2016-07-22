@@ -11,11 +11,9 @@
 
 <tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
-<tag:url var="meetingRoomMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>"/>
+<tag:url var="meetingRoomMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>" />
 
-<tag:url var="meetingRoomSingleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-   <tag:param name="reservationRequestId" value="{{room.id}}" escape="false" />
-</tag:url>
+
 
 <script type="text/javascript">
     var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngDateTime', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'ui.select2', 'ui.calendar']);
