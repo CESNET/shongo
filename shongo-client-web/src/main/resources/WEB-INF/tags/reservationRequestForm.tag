@@ -39,6 +39,12 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
+        var  roomRetainE164Number = 'false';
+        <c:if test="${reservationRequest.getClass().simpleName == 'ReservationRequestModificationModel'}">
+            roomRetainE164Number = '${reservationRequest.roomRetainE164Number == true}';
+        </c:if>
+        $scope.roomRetainE164Number = $scope.value(roomRetainE164Number, 'false');
+        $scope.roomResourceId = $scope.value('${reservationRequest.roomResourceId}', '');
 
         // Initialize dynamic html except days. Add one empty input when no slots given from request model.f
         $scope.excludeDates = [];
@@ -550,7 +556,7 @@
                 <spring:message code="views.reservationRequest.specification.resourceId"/>:
             </form:label>
             <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" tabindex="${tabIndex}"/>
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomResourceId" ng-model="roomResourceId" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="roomResourceId" cssClass="error"/>
@@ -666,22 +672,79 @@
         </div>
     </c:if>
 
+    <%-- Show retaing option H323_E164 number for permanent rooms --%>
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+        <c:choose>
+            <c:when test="${reservationRequestModification != null && not empty reservationRequest.e164Number}">
+                <div class="form-group" ng-show="technology == 'H323_SIP'">
+                    <form:label class="col-xs-3 control-label" path="e164Number">
+                        <spring:message code="views.reservationRequest.specification.e164Number" var="e164NumberLabel"/>
+                        <tag:help label="${e164NumberLabel}:">
+                            <spring:message code="views.reservationRequest.specification.retainHelp"/>
+                        </tag:help>
+                    </form:label>
+                    <div class="col-xs-3">
+                        <label class="radio-inline" for="e164-number-new">
+                            <form:radiobutton id="e164-number-new" path="roomRetainE164Number" ng-model="roomRetainE164Number" value="false" tabindex="${tabIndex}"/>
+                            <span><spring:message code="views.reservationRequest.specification.new"/></span>
+                        </label>
+                        <label class="radio-inline" for="e164-number-retain">
+                            <form:radiobutton id="e164-number-retain" path="roomRetainE164Number" ng-model="roomRetainE164Number" value="true" tabindex="${tabIndex}"/>
+                            <span><spring:message code="views.reservationRequest.specification.retain"/></span>
+                        </label>
+                    </div>
+                    <div class="col-xs-3">
+                        <c:choose>
+                            <c:when test="${administrationMode}">
+                                <form:input cssClass="form-control" path="e164Number" tabindex="${tabIndex}"  ng-disabled="roomRetainE164Number == 'false'"/>
+                            </c:when>
+                            <c:otherwise>
+                                <form:input cssClass="form-control" path="e164Number" tabindex="${tabIndex}" readonly="true"/>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <%-- Allow assigning H323_E164 number in administration mode --%>
+                <c:if test="${administrationMode}">
+                    <div class="form-group" ng-show="technology == 'H323_SIP'">
+                        <form:label class="col-xs-3 control-label" path="e164Number">
+                            <spring:message code="views.reservationRequest.specification.e164Number" var="e164NumberLabel" />
+                            <tag:help label="${e164NumberLabel}:">
+                                <spring:message code="views.reservationRequest.specification.e164Number.help"/>
+                            </tag:help>
+                        </form:label>
+                        <div class="col-xs-9 space-padding">
+                            <div class="col-xs-2">
+                                <form:input cssClass="form-control" path="e164Number" cssErrorClass="form-control error" tabindex="${tabIndex}" ng-disabled="!roomResourceId"/>
+                            </div>
+                        </div>
+                        <div class="col-xs-offset-3 col-xs-9">
+                            <form:errors path="e164Number" cssClass="error"/>
+                        </div>
+                    </div>
+                </c:if>
+            </c:otherwise>
+        </c:choose>
+    </c:if>
+
     <c:if test="${reservationRequestModification != null && reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="roomName">
                 <spring:message code="views.reservationRequest.specification.roomName" var="roomNameLabel"/>
                 <tag:help label="${roomNameLabel}:">
-                    <spring:message code="views.reservationRequest.specification.roomName.retainHelp"/>
+                    <spring:message code="views.reservationRequest.specification.retainHelp"/>
                 </tag:help>
             </form:label>
             <div class="col-xs-3">
                 <label class="radio-inline" for="room-name-new">
                     <form:radiobutton id="room-name-new" path="adhocRoomRetainRoomName" value="false" tabindex="${tabIndex}"/>
-                    <span><spring:message code="views.reservationRequest.specification.roomName.new"/></span>
+                    <span><spring:message code="views.reservationRequest.specification.new"/></span>
                 </label>
                 <label class="radio-inline" for="room-name-retain">
                     <form:radiobutton id="room-name-retain" path="adhocRoomRetainRoomName" value="true" tabindex="${tabIndex}"/>
-                    <span><spring:message code="views.reservationRequest.specification.roomName.retain"/></span>
+                    <span><spring:message code="views.reservationRequest.specification.retain"/></span>
                 </label>
             </div>
             <div class="col-xs-3">

@@ -332,6 +332,10 @@ public class ClientWebConfiguration extends CombinedConfiguration {
         return getString("recaptcha.private-key");
     }
 
+    public String getE164Pattern() {
+        return getString("virtual-room-settings.h323-e164-number");
+    }
+
     /**
      * @return true whether {@link ReCaptcha} is properly configured, false otherwise
      */

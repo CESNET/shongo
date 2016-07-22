@@ -113,6 +113,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String roomName;
 
+    protected String e164Number;
+
     protected String permanentRoomReservationRequestId;
 
     protected ReservationRequestSummary permanentRoomReservationRequest;
@@ -558,6 +560,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomName = roomName;
     }
 
+    public String getE164Number()
+    {
+        return e164Number;
+    }
+
+    public void setE164Number(String e164Number)
+    {
+        this.e164Number = e164Number;
+    }
+
     public String getPermanentRoomReservationRequestId()
     {
         return permanentRoomReservationRequestId;
@@ -832,10 +844,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 technology = TechnologyModel.find(roomEstablishment.getTechnologies());
                 roomResourceId = roomEstablishment.getResourceId();
 
-                AliasSpecification aliasSpecification =
+                AliasSpecification roomNameAlias =
                         roomEstablishment.getAliasSpecificationByType(AliasType.ROOM_NAME);
-                if (aliasSpecification != null) {
-                    roomName = aliasSpecification.getValue();
+                AliasSpecification e164NumberAlias =
+                        roomEstablishment.getAliasSpecificationByType(AliasType.H323_E164);
+                if (roomNameAlias != null) {
+                    roomName = roomNameAlias.getValue();
+                }
+                if (e164NumberAlias != null) {
+                    e164Number = e164NumberAlias.getValue();
                 }
             }
 
@@ -1070,7 +1087,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomNameSpecification.setValue(roomName);
                 roomEstablishment.addAliasSpecification(roomNameSpecification);
                 if (technology.equals(TechnologyModel.H323_SIP)) {
-                    roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_E164));
+                    AliasSpecification e164NumberSpecification = new AliasSpecification(AliasType.H323_E164);
+                    if (!Strings.isNullOrEmpty(e164Number)) {
+                        e164NumberSpecification.setValue(e164Number);
+                    }
+                    roomEstablishment.addAliasSpecification(e164NumberSpecification);
                 }
                 specification = roomSpecification;
                 break;

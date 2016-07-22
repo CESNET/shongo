@@ -19,6 +19,8 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
 {
     private boolean adhocRoomRetainRoomName = false;
 
+    private Boolean roomRetainE164Number = null;
+
     private ReservationRequestModel original;
 
     public ReservationRequestModificationModel(AbstractReservationRequest reservationRequest,
@@ -26,26 +28,34 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     {
         super(reservationRequest, cacheProvider);
 
-        if (SpecificationType.ADHOC_ROOM.equals(specificationType)) {
-            // Get allocated room name
-            ReservationRequestSummary reservationRequestSummary =
-                    cacheProvider.getAllocatedReservationRequestSummary(reservationRequest.getId());
-            if (reservationRequestSummary != null) {
-                String reservationId = reservationRequestSummary.getAllocatedReservationId();
-                if (reservationId != null) {
-                    Reservation reservation = cacheProvider.getReservation(reservationId);
-                    AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
-                    Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
-                    if (roomNameAlias == null) {
-                        throw new UnsupportedApiException("Room must have name.");
+        switch (specificationType) {
+            case ADHOC_ROOM:
+                // Get allocated room name
+                ReservationRequestSummary reservationRequestSummary =
+                        cacheProvider.getAllocatedReservationRequestSummary(reservationRequest.getId());
+                if (reservationRequestSummary != null) {
+                    String reservationId = reservationRequestSummary.getAllocatedReservationId();
+                    if (reservationId != null) {
+                        Reservation reservation = cacheProvider.getReservation(reservationId);
+                        AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
+                        Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
+                        if (roomNameAlias == null) {
+                            throw new UnsupportedApiException("Room must have name.");
+                        }
+                        roomName = roomNameAlias.getValue();
                     }
-                    roomName = roomNameAlias.getValue();
                 }
-            }
-            if (roomName != null) {
-                // Room name should be retained
-                adhocRoomRetainRoomName = true;
-            }
+                if (roomName != null) {
+                    // Room name should be retained
+                    adhocRoomRetainRoomName = true;
+                }
+                break;
+            case PERMANENT_ROOM:
+                if (e164Number != null) {
+                    // E.164 number should be retained for permanent rooms
+                    roomRetainE164Number = true;
+                }
+                break;
         }
 
         // Load user roles
@@ -73,6 +83,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         this.original.periodicityEnd = this.periodicityEnd;
         this.original.specificationType = this.specificationType;
         this.original.roomName = this.roomName;
+        this.original.e164Number = this.e164Number;
         this.original.permanentRoomReservationRequestId = this.permanentRoomReservationRequestId;
         this.original.permanentRoomReservationRequest = this.permanentRoomReservationRequest;
         this.original.roomParticipantCount = this.roomParticipantCount;
@@ -96,6 +107,16 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         this.adhocRoomRetainRoomName = adhocRoomRetainRoomName;
     }
 
+    public Boolean getRoomRetainE164Number()
+    {
+        return roomRetainE164Number;
+    }
+
+    public void setRoomRetainE164Number(Boolean roomRetainE164Number)
+    {
+        this.roomRetainE164Number = roomRetainE164Number;
+    }
+
     public ReservationRequestModel getOriginal()
     {
         return original;
@@ -116,13 +137,23 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     {
         AbstractReservationRequest abstractReservationRequest = super.toApi(request);
         Specification specification = abstractReservationRequest.getSpecification();
-        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
-            RoomSpecification roomSpecification = (RoomSpecification) specification;
-            if (adhocRoomRetainRoomName && !Strings.isNullOrEmpty(roomName)) {
-                // Room name should be retained
-                roomSpecification.getEstablishment().addAliasSpecification(
-                        new AliasSpecification(AliasType.ROOM_NAME).withValue(roomName));
-            }
+        switch (specificationType) {
+            case ADHOC_ROOM:
+                RoomSpecification roomSpecification = (RoomSpecification) specification;
+                if (adhocRoomRetainRoomName && !Strings.isNullOrEmpty(roomName)) {
+                    // Room name should be retained
+                    roomSpecification.getEstablishment().addAliasSpecification(
+                            new AliasSpecification(AliasType.ROOM_NAME).withValue(roomName));
+                }
+                break;
+            case PERMANENT_ROOM:
+                if (Boolean.FALSE.equals(roomRetainE164Number)) {
+                    // Delete E.164 number from alias specification to regenerate
+                    RoomEstablishment roomEstablishment = ((RoomSpecification) specification).getEstablishment();
+                    AliasSpecification e164numberSpecification = roomEstablishment.getAliasSpecificationByType(AliasType.H323_E164);
+                    e164numberSpecification.setValue(null);
+                }
+                break;
         }
         return abstractReservationRequest;
     }

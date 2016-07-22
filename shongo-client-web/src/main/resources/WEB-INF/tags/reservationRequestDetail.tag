@@ -119,6 +119,12 @@
         <dd>${reservationRequest.roomName}</dd>
     </c:if>
 
+    <%-- Room E.164 number --%>
+    <c:if test="${not empty reservationRequest.e164Number && (reservationRequest.getClass().simpleName == 'ReservationRequestModificationModel' && reservationRequest.roomRetainE164Number != false)}">
+        <dt><spring:message code="views.reservationRequest.specification.e164Number.requested"/>:</dt>
+        <dd>${reservationRequest.e164Number}</dd>
+    </c:if>
+
     <%-- For permanent room --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         <dt><spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:</dt>

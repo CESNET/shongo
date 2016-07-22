@@ -8,9 +8,11 @@ import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
@@ -36,6 +38,10 @@ public class ReservationRequestValidator implements Validator
     private static final Pattern PATTERN_IDENTIFIER = Pattern.compile("^[a-zA-Z0-9_-]*$");
     private static final Pattern PATTERN_ALPHA_NUM = Pattern.compile("^[a-zA-Z0-9]*$");
     private static final Pattern PATTERN_NUM = Pattern.compile("^[0-9]*$");
+    private static final Pattern PATTERN_H323_E164_NUMBER = Pattern.compile(ClientWebConfiguration.getInstance().getE164Pattern());
+
+    protected static DateTimeFormatter DATE_TIME_FORMATTER =
+            DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT);
 
     private SecurityToken securityToken;
 
@@ -139,6 +145,9 @@ public class ReservationRequestValidator implements Validator
                     validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     validateIdentifier("roomName", errors);
+                    if (TechnologyModel.H323_SIP.equals(reservationRequestModel.getTechnology())) {
+                        validateE164Number("e164Number", errors);
+                    }
                     break;
             }
         }
@@ -221,8 +230,20 @@ public class ReservationRequestValidator implements Validator
                     AllocationStateReport allocationStateReport = (AllocationStateReport) availabilityCheckResult;
                     AllocationStateReport.UserError userError = allocationStateReport.toUserError();
                     if (userError instanceof AllocationStateReport.AliasAlreadyAllocated) {
-                        errors.rejectValue(
-                                "roomName", "validation.field.roomNameNotAvailable");
+                        AllocationStateReport.AliasAlreadyAllocated aliasAlreadyAllocated;
+                        aliasAlreadyAllocated = (AllocationStateReport.AliasAlreadyAllocated) userError;
+                        DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+                        switch (aliasAlreadyAllocated.getAliasType()) {
+                            case ROOM_NAME:
+                                errors.rejectValue(
+                                    "roomName", "validation.field.roomNameNotAvailable", new Object[]{dateTimeFormatter.formatInterval(aliasAlreadyAllocated.getInterval())}, null);
+                                break;
+                            case H323_E164:
+                                errors.rejectValue("e164Number", "validation.field.E164NumberNotAvailable", new Object[]{dateTimeFormatter.formatInterval(aliasAlreadyAllocated.getInterval())},null);
+                                break;
+                            default:
+                                throw new TodoImplementException("Unsupported report: " + userError.getClass().getSimpleName());
+                        }
                     }
                     else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
                         errors.rejectValue(
@@ -471,6 +492,17 @@ public class ReservationRequestValidator implements Validator
             Integer number = Integer.parseInt(value);
             if (number < 1) {
                 errors.rejectValue(field, "validation.field.invalidPositiveNum");
+            }
+        }
+    }
+
+    public static void validateE164Number(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        if (!Strings.isNullOrEmpty(value)) {
+            Matcher matcher = PATTERN_H323_E164_NUMBER.matcher(value);
+            if (!matcher.matches()) {
+                errors.rejectValue(field, "validation.field.invalidNum.E164");
             }
         }
     }

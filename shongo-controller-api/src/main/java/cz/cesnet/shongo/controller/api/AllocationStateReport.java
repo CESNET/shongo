@@ -502,6 +502,21 @@ public class AllocationStateReport extends AbstractObjectReport
             this.interval = interval;
         }
 
+        public AliasType getAliasType()
+        {
+            return aliasType;
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public Interval getInterval()
+        {
+            return interval;
+        }
+
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
