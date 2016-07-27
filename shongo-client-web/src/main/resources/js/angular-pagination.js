@@ -39,6 +39,12 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     // URL
     $scope.url = null;
     $scope.urlParameters = null;
+
+    // URL for deletion of reservation requests
+    $scope.deleteUrl = null;
+    // Checkbox name for deleting multiple reservation requests
+    $scope.checkboxName = null;
+
     // Current page index
     $scope.pageIndex = null;
     // Current page size (number of items per page)
@@ -204,12 +210,17 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
      * @param url for listing items with ":start" and ":count" parameters
      * @param urlParameters for the url
      * @param refreshEvent to which it should listen and refresh when it happens (the first time auto refresh is skipped)
+     * @param deleteUrl for deleting multiple reservation requests at once
+     * @param checkboxName name of checkbox input for deleting multiple reservation requests
      */
-    $scope.init = function (name, url, urlParameters, refreshEvent) {
+    $scope.init = function (name, url, urlParameters, refreshEvent, deleteUrl, checkboxName) {
         // Setup name and resource
         $scope.name = name;
         $scope.url = url;
         $scope.urlParameters = urlParameters;
+        $scope.deleteUrl = deleteUrl;
+        $scope.checkboxName = checkboxName
+
         // Load configuration
         var configuration = null;
         try {
@@ -357,6 +368,30 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     $scope.refresh = function() {
         $scope.setPage($scope.pageIndex, null, true);
     };
+
+    /**
+     * Deletes multiple reservation requests
+     */
+    $scope.removeCheckedReservations = function () {
+        if ($scope.deleteUrl == null || $scope.checkboxName == null) {
+            console.error("No URL or name of checkbox element specified for deleting reservation requests.");
+            return false;
+        }
+
+        var checkboxesChecked = document.querySelectorAll("input[type='checkbox'][name='" + $scope.checkboxName + "']:checked");
+        if (checkboxesChecked.length == 0) {
+            return false;
+        }
+
+        var deleteUrl = $scope.deleteUrl + '?';
+        for (var i = 0; i < checkboxesChecked.length; i++) {
+            deleteUrl += 'reservationRequestId=' + checkboxesChecked[i].getAttribute("value");
+            if(i != checkboxesChecked.length-1) {
+                deleteUrl += '&';
+            }
+        }
+        window.location = deleteUrl;
+    }
 });
 
 /**
@@ -372,19 +407,26 @@ paginationModule.directive('paginationPageSize', function () {
             if ( attrs.unlimited != null ) {
                 optionUnlimited = '<option value="-1">' + attrs.unlimited + '</option>';
             }
+
+            var remove = '';
+            if ( attrs.remove != null ) {
+                remove += '&nbsp;&nbsp;<a href="" ng-click="removeCheckedReservations()" class="btn btn-default" title="' + attrs.remove + '"><span class="fa fa-trash-o"></span></a>'
+            }
             var refresh = '';
             if ( attrs.refresh != null ) {
                 refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn btn-default" title="' + attrs.refresh +'"><span class="fa fa-refresh"></span></a>';
             }
             var html =
                 '<div class="form-inline pagination-page-size' + attributeClass + '">' +
-                '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;' +
+                '<span ng-hide="pages.length == 1 && items.length <= 10">' + text + '&nbsp;' +
                 '<select class="form-control" ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
-                '<option value="10" selected="true">10</option>' +
+                '<option value="10">10</option>' +
                 '<option value="15">15</option>' +
-                '<option value="20">20</option>' +optionUnlimited +
+                '<option value="20">20</option>' +
+                optionUnlimited +
                 '</select>' +
-                '</span>' + refresh +
+                '</span>' +
+                remove + refresh +
                 '</div>';
             element.replaceWith(html);
         }

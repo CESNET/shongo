@@ -21,7 +21,7 @@ public class Reservation extends IdentifiedComplexType
     private String reservationRequestId;
 
     /**
-     * Slot fot which the {@link Reservation} is allocated.
+     * Slot for which the {@link Reservation} is allocated.
      */
     private Interval slot;
 

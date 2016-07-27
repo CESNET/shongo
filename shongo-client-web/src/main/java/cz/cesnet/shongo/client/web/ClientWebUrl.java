@@ -186,7 +186,7 @@ public class ClientWebUrl
     public static final String RESERVATION_REQUEST_REVERT =
             "/reservation-request/{reservationRequestId:.+}/revert";
     public static final String RESERVATION_REQUEST_DELETE =
-            "/reservation-request/{reservationRequestId:.+}/delete";
+            "/reservation-request/delete";
 
     public static final String MEETING_ROOM_RESERVATION_REQUEST_LIST_DATA =
             "/meeting-room/reservation-request/list/data";

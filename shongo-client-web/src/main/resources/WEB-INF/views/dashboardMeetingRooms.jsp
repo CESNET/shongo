@@ -12,23 +12,27 @@
     <tag:param name="specification-type" value="MEETING_ROOM"/>
 </tag:url>
 <tag:url var="meetingRoomDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
-    <tag:param name="objectId" value="{{room.id}}" escape="false"/>
+    <tag:param name="objectId" value="{{reservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
-    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="{{room.id}}" escape="false"/>
+<tag:url var="meetingRoomSingleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false" />
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
+<c:set var="deleteCheckboxName" value="multipleDeleteCheckbox" />
+
 <div ng-controller="PaginationController"
-     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms')">
+     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms', '${meetingRoomMultipleDeleteUrl}', '${deleteCheckboxName}')">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
-    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+    <spring:message code="views.button.remove" var="paginationRemove"/>
+
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>
@@ -52,68 +56,68 @@
             <th>
                 <spring:message code="views.room.description"/>
             </th>
-            <th style="min-width: 95px; width: 95px;">
+            <th style="min-width: 95px; width: 105px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
+        <tr ng-repeat="reservationRequest in items" ng-class="{'deprecated': reservationRequest.isDeprecated}">
             <td>
                 <spring:message code="views.room.name.adhoc" var="roomNameAdhoc"/>
-                <tag:help label="{{room.resourceName}}" selectable="true">
+                <tag:help label="{{reservationRequest.resourceName}}" selectable="true">
                     <span>
                         <strong><spring:message code="views.room.roomDescription"/></strong>
                         <br />
-                        {{room.resourceDescription}}
+                        {{reservationRequest.resourceDescription}}
                     </span>
                 </tag:help>
             </td>
             <td>
-                <span ng-show="room.ownerName">
-                    <tag:help label="{{room.ownerName}}" selectable="true">
+                <span ng-show="reservationRequest.ownerName">
+                    <tag:help label="{{reservationRequest.ownerName}}" selectable="true">
                         <span>
                             <strong><spring:message code="views.room.ownerEmail"/></strong>
                             <br />
-                            <a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>
+                            <a href="mailto: {{reservationRequest.ownerEmail}}">{{reservationRequest.ownerEmail}}</a>
                         </span>
                     </tag:help>
                 </span>
-                <span ng-show="room.foreignDomain">
-                    <tag:help label="{{room.foreignDomain}}" selectable="true">
+                <span ng-show="reservationRequest.foreignDomain">
+                    <tag:help label="{{reservationRequest.foreignDomain}}" selectable="true">
                         <%-- TODO: ziskavat uzivatele z cizi domeny --%>
-                        TODO
                         <%--<span>--%>
                             <%--<strong><spring:message code="views.room.ownerEmail"/></strong>--%>
                             <%--<br />--%>
-                            <%--<a href="mailto: {{room.ownerEmail}}">{{room.ownerEmail}}</a>--%>
+                            <%--<a href="mailto: {{reservationRequest.ownerEmail}}">{{reservationRequest.ownerEmail}}</a>--%>
                         <%--</span>--%>
                     </tag:help>
                 </span>
             </td>
             <td>
-                <span ng-bind-html="room.earliestSlot"></span>
-                <span ng-show="room.futureSlotCount">
-                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{room.futureSlotCount}}"/>
+                <span ng-bind-html="reservationRequest.earliestSlot"></span>
+                <span ng-show="reservationRequest.futureSlotCount">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
                     <tag:help label="(${slotMore})" cssClass="push-top">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>
             </td>
             <td class="reservation-request-state">
-                <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
-                    <span>{{room.stateHelp}}</span>
+                <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
+                    <span>{{reservationRequest.stateHelp}}</span>
                 </tag:help>
             </td>
-            <td>{{room.description}}</td>
+            <td>{{reservationRequest.description}}</td>
             <td>
                 <tag:listAction code="show" titleCode="views.index.reservations.showDetail" url="${meetingRoomDetailUrl}" tabindex="1"/>
-                <span ng-show="room.isWritable">
-                    <span ng-hide="room.state == 'ALLOCATED_FINISHED'">
+                <span ng-show="reservationRequest.isWritable">
+                    <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
-                    | <tag:listAction code="delete" url="${meetingRoomDeleteUrl}" tabindex="3"/>
+                    | <tag:listAction code="delete" url="${meetingRoomSingleDeleteUrl}" tabindex="3"/>
+                    | <input type="checkbox" name="${deleteCheckboxName}" value="{{reservationRequest.id}}"/>
                 </span>
             </td>
         </tr>

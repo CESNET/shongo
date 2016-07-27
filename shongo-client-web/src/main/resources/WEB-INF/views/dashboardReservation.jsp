@@ -219,13 +219,16 @@
     }
 </script>
 
+<c:set var="deleteCheckboxName" value="multipleDeleteCheckbox" />
+
 <div ng-controller="DashboardReservationListController">
     <div ng-controller="PaginationController"
-         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms');">
+         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms', '${meetingRoomMultipleDeleteUrl}', '${deleteCheckboxName}');">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
+        <spring:message code="views.button.remove" var="paginationRemove"/>
 
-        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}"  remove="${paginationRemove}">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
         <div>
@@ -428,6 +431,7 @@
                             | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
                         </span>
                         | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
+                        | <input type="checkbox" name="${deleteCheckboxName}" value="{{reservationRequest.id}}"/>
                     </span>
                 </td>
             </tr>

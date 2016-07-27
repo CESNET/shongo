@@ -152,7 +152,7 @@
     <definition name="reservationRequestDelete" extends="layoutAngular">
         <put-attribute name="content" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
         <put-list-attribute name="title">
-            <add-attribute expression="T(${titleDescription})"/>
+            <add-attribute expression="views.reservationRequestDelete${reservationRequestDeleteDetailList.size() >  1 ? 'Plural' : 'Singular' }.title"/>
         </put-list-attribute>
     </definition>
 
