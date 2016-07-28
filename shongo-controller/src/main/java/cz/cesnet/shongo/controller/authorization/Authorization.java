@@ -412,6 +412,13 @@ public abstract class Authorization
     {
         logger.debug("Retrieving list of user information...");
         List<UserInformation> userInformationList = new LinkedList<UserInformation>();
+        // Remove root id from request, which is static if contains.
+        if (filterUserIds.contains(ROOT_USER_ID)) {
+            filterUserIds = new HashSet<>(filterUserIds);
+            filterUserIds.remove(ROOT_USER_ID);
+            // Add root user information to result
+            userInformationList.add(ROOT_USER_DATA.getUserInformation());
+        }
         for (UserData userData : onListUserData(filterUserIds, search)) {
             userInformationList.add(userData.getUserInformation());
         }
