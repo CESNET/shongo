@@ -219,16 +219,17 @@
     }
 </script>
 
-<c:set var="deleteCheckboxName" value="multipleDeleteCheckbox" />
+<c:set var="deleteCheckboxName" value="virtualRoomsDeleteCheckbox" />
 
 <div ng-controller="DashboardReservationListController">
     <div ng-controller="PaginationController"
-         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms', '${meetingRoomMultipleDeleteUrl}', '${deleteCheckboxName}');">
+         ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', getReservationRequestListDataUrl, null, 'refresh-rooms', '${reservationRequestMultipleDeleteUrl}', '${deleteCheckboxName}');">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
         <spring:message code="views.button.remove" var="paginationRemove"/>
+        <spring:message code="views.button.removeAll" var="paginationRemoveAll"/>
 
-        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}"  remove="${paginationRemove}">
+        <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}" remove-all="${paginationRemoveAll}">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
         <div>

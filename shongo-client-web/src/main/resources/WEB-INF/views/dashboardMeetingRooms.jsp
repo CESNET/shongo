@@ -24,15 +24,17 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
-<c:set var="deleteCheckboxName" value="multipleDeleteCheckbox" />
+<c:set var="deleteCheckboxName" value="meetingRoomsDeleteCheckbox" />
+
 
 <div ng-controller="PaginationController"
-     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms', '${meetingRoomMultipleDeleteUrl}', '${deleteCheckboxName}')">
+     ng-init="init('meetingRoomList', '${meetingRoomListUrl}', null, 'refresh-meetingRooms', '${reservationRequestMultipleDeleteUrl}', '${deleteCheckboxName}')">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <spring:message code="views.button.remove" var="paginationRemove"/>
+    <spring:message code="views.button.removeAll" var="paginationRemoveAll"/>
 
-    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}">
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}" remove-all="${paginationRemoveAll}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <div class="alert alert-warning"><spring:message code="views.index.meetingRooms.description"/></div>

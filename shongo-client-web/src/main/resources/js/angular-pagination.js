@@ -372,7 +372,7 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
     /**
      * Deletes multiple reservation requests
      */
-    $scope.removeCheckedReservations = function () {
+    $scope.removeCheckedReservationRequests = function () {
         if ($scope.deleteUrl == null || $scope.checkboxName == null) {
             console.error("No URL or name of checkbox element specified for deleting reservation requests.");
             return false;
@@ -383,10 +383,33 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
             return false;
         }
 
-        var deleteUrl = $scope.deleteUrl + '?';
-        for (var i = 0; i < checkboxesChecked.length; i++) {
-            deleteUrl += 'reservationRequestId=' + checkboxesChecked[i].getAttribute("value");
-            if(i != checkboxesChecked.length-1) {
+        $scope.removeReservationRequests($scope.deleteUrl, checkboxesChecked);
+    }
+
+    $scope.removeAllReservationRequests = function () {
+        if ($scope.deleteUrl == null || $scope.checkboxName == null) {
+            console.error("No URL or name of checkbox element specified for deleting reservation requests.");
+            return false;
+        }
+
+        var checkboxes = document.querySelectorAll("input[type='checkbox'][name='" + $scope.checkboxName + "']");
+        if (checkboxes.length == 0) {
+            return false;
+        }
+
+        $scope.removeReservationRequests($scope.deleteUrl, checkboxes);
+    }
+
+    $scope.removeReservationRequests = function (deleteUrl, checkboxElements) {
+        if (deleteUrl == null || checkboxElements == null) {
+            console.error("No URL or name of checkbox element specified for deleting reservation requests.");
+            return false;
+        }
+
+        deleteUrl += '?';
+        for (var i = 0; i < checkboxElements.length; i++) {
+            deleteUrl += 'reservationRequestId=' + checkboxElements[i].getAttribute("value");
+            if(i != checkboxElements.length-1) {
                 deleteUrl += '&';
             }
         }
@@ -410,7 +433,11 @@ paginationModule.directive('paginationPageSize', function () {
 
             var remove = '';
             if ( attrs.remove != null ) {
-                remove += '&nbsp;&nbsp;<a href="" ng-click="removeCheckedReservations()" class="btn btn-default" title="' + attrs.remove + '"><span class="fa fa-trash-o"></span></a>'
+                remove += '&nbsp;&nbsp;<a href="" ng-click="removeCheckedReservationRequests()" class="btn btn-default" title="' + attrs.remove + '"><span class="fa fa-trash-o"></span></a>'
+            }
+            var removeAll = '';
+            if ( attrs.removeAll != null ) {
+                removeAll += '&nbsp;&nbsp;<a href="" ng-click="removeAllReservationRequests()" class="btn btn-default" title="' + attrs.removeAll + '"><span class="fa fa-trash-o fa-red"></span></a>'
             }
             var refresh = '';
             if ( attrs.refresh != null ) {
@@ -426,7 +453,7 @@ paginationModule.directive('paginationPageSize', function () {
                 optionUnlimited +
                 '</select>' +
                 '</span>' +
-                remove + refresh +
+                remove + removeAll + refresh +
                 '</div>';
             element.replaceWith(html);
         }

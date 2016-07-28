@@ -29,16 +29,22 @@
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
+<tag:url var="reservationRequestMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>" />
 
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestUsages', ['ngPagination']);
 </script>
 
+<c:set var="deleteCheckboxName" value="usageDeleteCheckbox" />
+
 <div ng-controller="PaginationController"
-     ng-init="init('reservationRequestDetail.usages', '${usageListUrl}', {id: '${reservationRequest.id}'})">
+     ng-init="init('reservationRequestDetail.usages', '${usageListUrl}', {id: '${reservationRequest.id}'}, null, '${reservationRequestMultipleDeleteUrl}', '${deleteCheckboxName}')">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
-    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+    <spring:message code="views.button.remove" var="paginationRemove"/>
+    <spring:message code="views.button.removeAll" var="paginationRemoveAll"/>
+
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}" remove="${paginationRemove}" remove-all="${paginationRemoveAll}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.permanentRoomCapacities"/></h2>
@@ -56,7 +62,7 @@
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
-            <th style="min-width: 85px; width: 85px;">
+            <th style="min-width: 110px; width: 110px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -89,6 +95,7 @@
                         | <tag:listAction code="duplicate" url="${usageDuplicateUrl}" tabindex="4"/>
                     </span>
                     | <tag:listAction code="delete" url="${usageDeleteUrl}" tabindex="4"/>
+                    | <input type="checkbox" name="${deleteCheckboxName}" value="{{usage.id}}"/>
                 </span>
             </td>
         </tr>
