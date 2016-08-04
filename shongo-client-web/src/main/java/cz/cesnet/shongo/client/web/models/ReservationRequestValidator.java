@@ -246,8 +246,14 @@ public class ReservationRequestValidator implements Validator
                         }
                     }
                     else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
+                        AllocationStateReport.ReusementAlreadyUsed reusementAlreadyUsed;
+                        reusementAlreadyUsed = (AllocationStateReport.ReusementAlreadyUsed) userError;
+                        Interval slot = reusementAlreadyUsed.getUsageReservationRequestSlot();
+                        DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+
                         errors.rejectValue(
-                                slotField, "validation.field.permanentRoomAlreadyUsed");
+                                slotField, "validation.field.permanentRoomAlreadyUsed", new Object[]{dateTimeFormatter.formatInterval(slot)},null);
+
                     }
                     else if (userError instanceof AllocationStateReport.ReusementInvalidSlot) {
                         errors.rejectValue(

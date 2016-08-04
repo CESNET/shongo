@@ -84,7 +84,7 @@
 
     <!-- Virtual room settings, e.g. aliases formats -->
     <virtual-room-settings>
-        <h323-e164-number>(\d{9})$</h323-e164-number>
+        <h323-e164-number>^\+?\d{9\,14}$</h323-e164-number>
     </virtual-room-settings>
 
 </configuration>

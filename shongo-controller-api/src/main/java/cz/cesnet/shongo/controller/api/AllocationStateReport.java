@@ -464,6 +464,11 @@ public class AllocationStateReport extends AbstractObjectReport
             this.usageReservationRequestSlot = usageReservationRequestSlot;
         }
 
+        public Interval getUsageReservationRequestSlot()
+        {
+            return usageReservationRequestSlot;
+        }
+
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
