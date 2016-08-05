@@ -821,7 +821,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     if (h323RoomSetting.getPin() != null) {
                         try {
-                            roomPin = String.valueOf(Integer.parseInt(h323RoomSetting.getPin()));
+                            String pin = h323RoomSetting.getPin();
+                            if (!pin.isEmpty()) {
+                                roomPin = String.valueOf(Integer.parseInt(pin));
+                            }
                         }
                         catch (NumberFormatException exception) {
                             logger.warn("Failed parsing pin", exception);

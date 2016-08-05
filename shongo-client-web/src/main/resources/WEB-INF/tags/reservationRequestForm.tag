@@ -518,7 +518,7 @@
             </div>
         </c:when>
         <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
-            <input type="hidden" name="technology" value="{{technology}}"/>
+            <input type="hidden" name="technology" id="technology" value="{{technology}}"/>
         </c:when>
     </c:choose>
 
