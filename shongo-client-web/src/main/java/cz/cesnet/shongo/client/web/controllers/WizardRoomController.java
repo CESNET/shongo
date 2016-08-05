@@ -199,13 +199,12 @@ public class WizardRoomController extends WizardParticipantsController
             )
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
-        //TODO
-//        if (reservationRequest == null) {
+        if (reservationRequest == null) {
             reservationRequest = createReservationRequest(securityToken);
             synchronized (request) {
                 WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
             }
-//        }
+        }
 
         reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
 
