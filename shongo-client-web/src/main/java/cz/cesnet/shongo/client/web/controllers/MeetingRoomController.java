@@ -27,11 +27,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import sun.misc.IOUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -360,12 +362,8 @@ public class MeetingRoomController {
     @ResponseBody
     @IgnoreDateTimeZone
     public  void handleReservationRequestListData(
-//            SecurityToken securityToken,
             @PathVariable(value = "objectUriKey") String objectUriKey,
             HttpServletResponse response) throws IOException {
-        /*ReservationListRequest request = new ReservationListRequest();
-        request.addResourceId(objectId);
-*/
         String iCalendarData = cache.getICalReservations(objectUriKey);
         if (Strings.isNullOrEmpty(iCalendarData)) {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -374,7 +372,7 @@ public class MeetingRoomController {
         response.setContentType("text/calendar");
         response.setHeader("Content-Disposition", "inline;filename=calendar.ics");
         ServletOutputStream out = response.getOutputStream();
-        out.println(iCalendarData);
+        out.write(iCalendarData.getBytes("UTF-8"));
         out.flush();
         out.close();
     }

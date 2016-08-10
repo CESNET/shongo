@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.domain.Domain;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -80,7 +79,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Set<SystemPermission> getSystemPermissions(SecurityToken securityToken)
+    public SystemPermissionSet getSystemPermissions(SecurityToken securityToken)
     {
         Set<SystemPermission> systemPermissions = new HashSet<SystemPermission>();
         for (SystemPermission systemPermission : SystemPermission.values()) {
@@ -88,7 +87,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 systemPermissions.add(systemPermission);
             }
         }
-        return systemPermissions;
+        return new SystemPermissionSet(systemPermissions);
     }
 
     @Override

@@ -33,7 +33,7 @@ public interface AuthorizationService extends Service
      * @return set of {@link SystemPermission}s which the requesting user has
      */
     @API
-    public Set<SystemPermission> getSystemPermissions(SecurityToken securityToken);
+    public SystemPermissionSet getSystemPermissions(SecurityToken securityToken);
 
     /**
      * @param request {@link UserListRequest}

@@ -1765,7 +1765,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             //TODO: consolidate periodic reservations
             cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
             event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
-            iCalendar.addEvent(event);
         }
         return iCalendar.toString();
     }
