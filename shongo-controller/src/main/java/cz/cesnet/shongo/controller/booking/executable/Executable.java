@@ -590,6 +590,13 @@ public abstract class Executable extends ExecutionTarget
                 ObjectIdentifier.formatId(this), ClassHelper.getClassShortName(configuration.getClass()));
     }
 
+    public void updateExecutableSummary(EntityManager entityManager, boolean deleteOnly)
+    {
+        entityManager.flush();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        executableManager.updateExecutableSummary(this, deleteOnly);
+    }
+
     /**
      * State of the {@link Executable}.
      */

@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
 import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
@@ -10,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Represents an {@link Executor} plan for collection of {@link Executable}s.

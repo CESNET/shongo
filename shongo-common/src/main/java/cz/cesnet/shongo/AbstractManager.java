@@ -62,7 +62,6 @@ public abstract class AbstractManager extends PersistenceTransactionHelper
         }
         else {
             entityManager.persist(persistentObject);
-            entityManager.flush();
         }
         transaction.commit();
     }

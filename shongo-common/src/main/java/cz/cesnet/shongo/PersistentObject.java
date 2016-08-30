@@ -1,7 +1,5 @@
 package cz.cesnet.shongo;
 
-import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.api.DataMap;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.Id;

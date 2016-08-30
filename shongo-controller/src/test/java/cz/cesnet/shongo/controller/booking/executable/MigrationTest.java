@@ -67,10 +67,12 @@ public class MigrationTest extends AbstractExecutorTest
         // Set the allocated room as started, because a migration is allocated only for started rooms
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        entityManager.getTransaction().begin();
         cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(
                 ObjectIdentifier.parseLocalId(reservation.getExecutable().getId(), ObjectType.EXECUTABLE));
         executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
         executableManager.update(executable);
+        entityManager.getTransaction().commit();
         entityManager.close();
 
         // Modify room

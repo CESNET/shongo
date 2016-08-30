@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -281,7 +282,12 @@ public abstract class ExecutionAction<T> extends Thread
             if (target.getState().equals(Executable.State.SKIPPED)) {
                 target.setState(target.getDefaultState());
             }
-            return super.finish(entityManager, referenceDateTime, executionResult);
+
+            boolean result = super.finish(entityManager, referenceDateTime, executionResult);
+
+            target.updateExecutableSummary(entityManager, false);
+
+            return result;
         }
 
         /**
@@ -572,6 +578,8 @@ public abstract class ExecutionAction<T> extends Thread
         @Override
         public boolean finish(EntityManager entityManager, DateTime referenceDateTime, ExecutionResult executionResult)
         {
+            target.getSourceExecutable().updateExecutableSummary(entityManager, false);
+            target.getTargetExecutable().updateExecutableSummary(entityManager, false);
             return true;
         }
 
@@ -629,6 +637,16 @@ public abstract class ExecutionAction<T> extends Thread
             else {
                 return false;
             }
+        }
+
+        @Override
+        public boolean finish(EntityManager entityManager, DateTime referenceDateTime, ExecutionResult executionResult)
+        {
+            boolean result = super.finish(entityManager, referenceDateTime, executionResult);
+
+            target.getExecutable().updateExecutableSummary(entityManager, false);
+
+            return result;
         }
 
         @Override
@@ -692,6 +710,16 @@ public abstract class ExecutionAction<T> extends Thread
             else {
                 return false;
             }
+        }
+
+        @Override
+        public boolean finish(EntityManager entityManager, DateTime referenceDateTime, ExecutionResult executionResult)
+        {
+            boolean result = super.finish(entityManager, referenceDateTime, executionResult);
+
+            target.getExecutable().updateExecutableSummary(entityManager, false);
+
+            return result;
         }
 
         @Override

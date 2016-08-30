@@ -24,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -428,6 +429,7 @@ public class ExecutableTest extends AbstractExecutorTest
 
         // Start virtual room
         ExecutionResult result = runExecutor(dateTime);
+
         Assert.assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         Assert.assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());

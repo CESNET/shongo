@@ -10,9 +10,9 @@ import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
 import cz.cesnet.shongo.controller.booking.compartment.MultiCompartmentSpecification;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceSpecification;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
-import cz.cesnet.shongo.controller.booking.streaming.StreamingServiceSpecification;
 import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
 import cz.cesnet.shongo.report.ReportableSimple;
 
@@ -95,6 +95,20 @@ public abstract class Specification extends SimplePersistentObject implements Re
      */
     public void updateTechnologies(EntityManager entityManager)
     {
+    }
+
+    public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly)
+    {
+        updateSpecificationSummary(entityManager, deleteOnly, true);
+    }
+
+    public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
+    {
+        if (flush) {
+            entityManager.flush();
+        }
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        reservationRequestManager.updateSpecificationSummary(this, deleteOnly);
     }
 
     /**

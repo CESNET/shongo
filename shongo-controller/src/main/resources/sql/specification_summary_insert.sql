@@ -1,0 +1,1 @@
+INSERT INTO specification_summary SELECT * FROM specification_summary_view WHERE id = ${specification_id}

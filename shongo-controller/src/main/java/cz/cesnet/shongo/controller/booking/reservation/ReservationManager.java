@@ -21,17 +21,13 @@ import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
-import org.eclipse.jetty.server.UserIdentity;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.*;
 
 /**
@@ -55,6 +51,10 @@ public class ReservationManager extends AbstractManager
     public void create(Reservation reservation)
     {
         super.create(reservation);
+        Executable executable = reservation.getExecutable();
+        if (executable != null) {
+            executable.updateExecutableSummary(entityManager, false);
+        }
     }
 
     /**
@@ -63,6 +63,10 @@ public class ReservationManager extends AbstractManager
     public void update(Reservation reservation)
     {
         super.update(reservation);
+        Executable executable = reservation.getExecutable();
+        if (executable != null) {
+            executable.updateExecutableSummary(entityManager, false);
+        }
     }
 
     /**
@@ -93,6 +97,10 @@ public class ReservationManager extends AbstractManager
         for (Reservation reservationToDelete : reservationsToDelete) {
             // Delete reservation
             super.delete(reservationToDelete);
+        }
+        Executable executable = reservation.getExecutable();
+        if (executable != null) {
+            executable.updateExecutableSummary(entityManager, false);
         }
     }
 

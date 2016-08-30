@@ -14,15 +14,16 @@ SELECT
     executable_summary.room_license_count AS room_license_count,
     executable_summary.room_description AS room_description,
     executable_summary.room_id AS room_id,
-    executable_summary.room_usage_slot_start AS room_usage_slot_start,
-    executable_summary.room_usage_slot_end AS room_usage_slot_end,
-    executable_summary.room_usage_state AS room_usage_state,
-    executable_summary.room_usage_license_count AS room_usage_license_count,
+    room_endpoint_earliest_usage.slot_start AS room_usage_slot_start,
+    room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,
+    room_endpoint_earliest_usage.state AS room_usage_state,
+    room_endpoint_earliest_usage.license_count AS room_usage_license_count,
     COUNT(used_room_endpoint.id) AS room_usage_count
 FROM executable_summary
 LEFT JOIN used_room_endpoint ON executable_summary.type = 'ROOM'
                             AND used_room_endpoint.room_endpoint_id = executable_summary.id
                             AND used_room_endpoint.${filterExecutableId}
+LEFT JOIN room_endpoint_earliest_usage ON room_endpoint_earliest_usage.id = executable_summary.id
 WHERE executable_summary.${filterExecutableId} AND ${filter}
     /* List only allocated executables */
     AND executable_summary.state NOT IN('NOT_ALLOCATED', 'TO_DELETE')
@@ -44,5 +45,9 @@ GROUP BY
     executable_summary.room_usage_slot_start,
     executable_summary.room_usage_slot_end,
     executable_summary.room_usage_state,
-    executable_summary.room_usage_license_count
+    executable_summary.room_usage_license_count,
+    room_endpoint_earliest_usage.slot_start,
+    room_endpoint_earliest_usage.slot_end,
+    room_endpoint_earliest_usage.state,
+    room_endpoint_earliest_usage.license_count
 ORDER BY ${order}

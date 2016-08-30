@@ -312,11 +312,8 @@ public class Executor extends SwitchableComponent
                     for (ExecutionAction executionAction : executionActions) {
                         executionAction.start();
                     }
-                    try {
-                        Thread.sleep(100);
-                    }
-                    catch (InterruptedException exception) {
-                        logger.error("Execution interrupted.", exception);
+                    for (ExecutionAction executionAction : executionActions) {
+                        executionAction.join();
                     }
                 }
 

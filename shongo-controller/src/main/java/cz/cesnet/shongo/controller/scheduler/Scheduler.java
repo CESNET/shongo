@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -24,7 +23,6 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.util.DateTimeFormatter;
-import org.eclipse.jetty.server.UserIdentity;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -230,6 +228,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                                         ObjectIdentifier.formatId(reservationRequestToReallocate)));
                         allocateReservationRequest(reservationRequestToReallocate, context);
                         reservationRequestToReallocate.getSpecification().updateTechnologies(entityManager);
+
+                        reservationRequestToReallocate.getSpecification().updateSpecificationSummary(entityManager, false);
                     }
                     contextState.enableNotifications(true);
 

@@ -6,9 +6,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:authentication property="principal.userId" var="userId"/>
-<tag:url var="meetingRoomReservationsUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>">
-    <tag:param name="specification-type" value="MEETING_ROOM"/>
-</tag:url>
+<tag:url var="meetingRoomReservationsUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>"/>
 <tag:url var="meetingRoomIcsUrl" value="<%= ClientWebUrl.MEETING_ROOM_ICS %>">
     <tag:param name="objectUriKey" value="" escape="false" />
 </tag:url>
@@ -239,7 +237,7 @@
             if (typeof $scope.reservationsFilter.resourceId == 'object') {
                 resourceId = $scope.reservationsFilter.resourceId.id;
             }
-            $.ajax("${meetingRoomReservationsUrl}&interval-from=" + start.format() + "&interval-to=" + end.format() + "&resource-id=" + resourceId, {
+            $.ajax("${meetingRoomReservationsUrl}?interval-from=" + start.format() + "&interval-to=" + end.format() + "&resource-id=" + resourceId, {
                 dataType: "json"
             }).done(function (data) {
                 var events = [];

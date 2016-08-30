@@ -197,6 +197,7 @@ public class InterDomainController implements InterDomainProtocol
             newReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
             if (previousReservationRequest == null) {
                 reservationRequestManager.create(newReservationRequest);
+                newReservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
             } else {
                 previousReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
                 reservationRequestManager.modify(previousReservationRequest, newReservationRequest);
@@ -313,6 +314,7 @@ public class InterDomainController implements InterDomainProtocol
             newReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
             if (previousReservationRequest == null) {
                 reservationRequestManager.create(newReservationRequest);
+                newReservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
             } else {
                 previousReservationRequest.setUpdatedBy(UserInformation.formatForeignUserId(userId, domainId));
                 reservationRequestManager.modify(previousReservationRequest, newReservationRequest);

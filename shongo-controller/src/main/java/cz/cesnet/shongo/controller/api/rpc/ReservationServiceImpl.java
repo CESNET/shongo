@@ -8,10 +8,7 @@ import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.Specification;
-import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -32,6 +29,7 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationRequestConfirmationNotification;
 import cz.cesnet.shongo.controller.notification.ReservationRequestDeniedNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.controller.util.iCalendar;
@@ -438,6 +436,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     authorizationManager.createAclEntriesForChildEntity(reusedReservationRequest, reservationRequest);
                 }
             }
+
+            reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -846,6 +846,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Revert the modification
             reservationRequestManager.delete(abstractReservationRequest, true);
 
+            abstractReservationRequest.getSpecification().updateSpecificationSummary(entityManager, true);
+
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
@@ -1237,6 +1239,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_LIST, parameters);
 
             ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
+
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
                 ReservationRequestSummary reservationRequestSummary = getReservationRequestSummary(record);

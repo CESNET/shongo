@@ -8,9 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:authentication property="principal.userId" var="userId"/>
-<tag:url var="meetingRoomReservationListUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>">
-    <tag:param name="specification-type" value="MEETING_ROOM"/>
-</tag:url>
+<tag:url var="meetingRoomReservationListUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>"/>
 <tag:url var="resourceListUrl" value="<%= ClientWebUrl.RESOURCE_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -59,14 +57,18 @@
         // URL for listing rooms
         $scope.getReservationListDataUrl = function() {
             var url = "${meetingRoomReservationListUrl}";
+            var firstArgument = true;
             if ($scope.reservationsFilter.intervalFrom != null && $scope.reservationsFilter.intervalFrom != "") {
-                url += "&interval-from=" + $scope.reservationsFilter.intervalFrom + "T00:00:00";
+                url += (url.indexOf('?') > -1) ? '&' : '?';
+                url += "interval-from=" + $scope.reservationsFilter.intervalFrom + "T00:00:00";
             }
             if ($scope.reservationsFilter.intervalTo != null && $scope.reservationsFilter.intervalTo != "") {
-                url += "&interval-to=" + $scope.reservationsFilter.intervalTo + "T23:59:59";
+                url += (url.indexOf('?') > -1) ? '&' : '?';
+                url += "interval-to=" + $scope.reservationsFilter.intervalTo + "T23:59:59";
             }
             if ($scope.reservationsFilter.resourceId != null && $scope.reservationsFilter.resourceId.id != null) {
-                url += "&resource-id=" + encodeURIComponent($scope.reservationsFilter.resourceId.id);
+                url += (url.indexOf('?') > -1) ? '&' : '?';
+                url += "resource-id=" + encodeURIComponent($scope.reservationsFilter.resourceId.id);
             }
             return url;
         };

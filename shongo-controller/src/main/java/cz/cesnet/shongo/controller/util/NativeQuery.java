@@ -43,6 +43,13 @@ public class NativeQuery
     public static final String ACL_ENTRY_LIST = "acl_entry_list.sql";
     public static final String REFERENCED_USER_LIST = "referenced_user_list.sql";
     public static final String MODIFY_USER_ID = "modify_user_id.sql";
+    /**
+     * Update queries for materialized views
+     */
+    public static final String EXECUTABLE_SUMMARY_DELETE = "executable_summary_delete.sql";
+    public static final String EXECUTABLE_SUMMARY_INSERT = "executable_summary_insert.sql";
+    public static final String SPECIFICATION_SUMMARY_DELETE = "specification_summary_delete.sql";
+    public static final String SPECIFICATION_SUMMARY_INSERT = "specification_summary_insert.sql";
 
     /**
      * Cached native queries (not targeted for any specific {@link EntityManagerFactory}).

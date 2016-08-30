@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
@@ -15,11 +14,11 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -38,6 +37,20 @@ public class ReservationRequestManager extends AbstractManager
     public ReservationRequestManager(EntityManager entityManager)
     {
         super(entityManager);
+    }
+
+    public void updateSpecificationSummary(Specification specification, boolean deleteOnly)
+    {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("specification_id", specification.getId().toString());
+
+        String deleteQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_DELETE, parameters);
+        entityManager.createNativeQuery(deleteQuery).executeUpdate();
+
+        if (!deleteOnly) {
+            String updateQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_INSERT, parameters);
+            entityManager.createNativeQuery(updateQuery).executeUpdate();
+        }
     }
 
     /**
@@ -71,6 +84,7 @@ public class ReservationRequestManager extends AbstractManager
             PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
+        reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
         transaction.commit();
     }
 
@@ -84,7 +98,6 @@ public class ReservationRequestManager extends AbstractManager
     {
         update(reservationRequest, true);
     }
-
 
     /**
      * @param oldReservationRequest old reservation request which is being modified
@@ -106,6 +119,10 @@ public class ReservationRequestManager extends AbstractManager
         newReservationRequest.setAllocation(allocation);
         newReservationRequest.validate();
         super.create(newReservationRequest);
+
+        entityManager.flush();
+        oldReservationRequest.getSpecification().updateSpecificationSummary(entityManager, false, false);
+        newReservationRequest.getSpecification().updateSpecificationSummary(entityManager, false, false);
     }
 
     /**
@@ -134,6 +151,8 @@ public class ReservationRequestManager extends AbstractManager
 
         // Soft delete the reservation request
         delete(reservationRequest, false);
+
+        reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
 
         transaction.commit();
     }
@@ -173,6 +192,12 @@ public class ReservationRequestManager extends AbstractManager
             delete(version, true);
         }
         allocation.setReservationRequest(null);
+
+        entityManager.flush();
+        // Update specification summary for each version AFTER everything else
+        for (AbstractReservationRequest version : versions) {
+            version.getSpecification().updateSpecificationSummary(entityManager, true, false);
+        }
 
         transaction.commit();
 

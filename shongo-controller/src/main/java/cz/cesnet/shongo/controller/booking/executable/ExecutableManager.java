@@ -1,20 +1,18 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
-import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.JadeReport;
-import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
@@ -50,6 +48,7 @@ public class ExecutableManager extends AbstractManager
     public void create(Executable executable)
     {
         super.create(executable);
+        executable.updateExecutableSummary(entityManager, false);
     }
 
     /**
@@ -58,6 +57,7 @@ public class ExecutableManager extends AbstractManager
     public void update(Executable executable)
     {
         super.update(executable);
+        executable.updateExecutableSummary(entityManager, false);
     }
 
     /**
@@ -67,6 +67,21 @@ public class ExecutableManager extends AbstractManager
     {
         authorizationManager.deleteAclEntriesForEntity(executable);
         super.delete(executable);
+        executable.updateExecutableSummary(entityManager, true);
+    }
+
+    public void updateExecutableSummary(PersistentObject executable, boolean deleteOnly)
+    {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("executable_id", executable.getId().toString());
+
+        String deleteQuery = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_SUMMARY_DELETE, parameters);
+        entityManager.createNativeQuery(deleteQuery).executeUpdate();
+
+        if (!deleteOnly) {
+            String updateQuery = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_SUMMARY_INSERT, parameters);
+            entityManager.createNativeQuery(updateQuery).executeUpdate();
+        }
     }
 
     /**

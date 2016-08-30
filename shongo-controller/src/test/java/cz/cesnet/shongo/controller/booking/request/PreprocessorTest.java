@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.person.AnonymousPerson;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -71,7 +72,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setSpecification(new CompartmentSpecification());
 
         // Save it
+        entityManager.getTransaction().begin();
         reservationRequestManager.create(reservationRequestSet);
+        entityManager.getTransaction().commit();
 
         // Run preprocessor
         preprocessor.run(new Interval(
@@ -139,7 +142,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
         compartmentSpecification.addParticipant(
                 new InvitedPersonParticipant(new AnonymousPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.setSpecification(compartmentSpecification);
+
+        entityManager.getTransaction().begin();
         reservationRequestManager.create(reservationRequestSet);
+        entityManager.getTransaction().commit();
 
         preprocessor.run(new Interval(
                 DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03")), entityManager);
@@ -176,6 +182,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         preprocessor.init();
 
         EntityManager entityManager = createEntityManager();
+
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             // Create reservation request set
@@ -185,7 +192,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
             oldReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
             oldReservationRequest.addSlot("2012-01-01", "PT1H");
             oldReservationRequest.setSpecification(new CompartmentSpecification());
+
+            entityManager.getTransaction().begin();
             reservationRequestManager.create(oldReservationRequest);
+            entityManager.getTransaction().commit();
 
             preprocessor.run(Interval.parse("2012-01-01/2012-01-02"), entityManager);
 
@@ -197,7 +207,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
             ReservationRequestSet newReservationRequest = oldReservationRequest.clone(entityManager);
             newReservationRequest.addSlot("2012-02-01", "PT1H");
             newReservationRequest.setSpecification(new MultiCompartmentSpecification());
+
+            entityManager.getTransaction().begin();
             reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
+            entityManager.getTransaction().commit();
 
             preprocessor.run(Interval.parse("2012-02-01/2012-02-02"), entityManager);
 
@@ -214,7 +227,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
             // Modify reservation request set
             newReservationRequest = oldReservationRequest.clone(entityManager);
             newReservationRequest.addSlot("2012-03-01", "PT1H");
+
+            entityManager.getTransaction().begin();
             reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
+            entityManager.getTransaction().commit();
 
             preprocessor.run(Interval.parse("2012-01-01/2012-03-02"), entityManager);
 

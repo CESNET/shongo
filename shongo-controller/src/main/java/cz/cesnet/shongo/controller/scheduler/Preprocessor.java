@@ -211,6 +211,8 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                     childReservationRequest.synchronizeFrom(reservationRequestSet, entityManager);
                     reservationRequestManager.create(childReservationRequest);
 
+                    childReservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
+
                     // Add the new reservation request as child to allocation
                     allocation.addChildReservationRequest(childReservationRequest);
 

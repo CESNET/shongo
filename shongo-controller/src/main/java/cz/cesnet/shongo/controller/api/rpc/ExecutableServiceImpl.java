@@ -711,6 +711,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 }
             }
 
+            executable.updateExecutableSummary(entityManager, false);
+
             entityManager.getTransaction().commit();
         }
         finally {
@@ -840,6 +842,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableService.activate(executor, executableManager);
             }
 
+            executableService.getExecutable().updateExecutableSummary(entityManager, false);
+
             entityManager.getTransaction().commit();
 
             // Reporting
@@ -900,6 +904,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             synchronized (executor) {
                 executableService.deactivate(executor, executableManager);
             }
+
+            executableService.getExecutable().updateExecutableSummary(entityManager, false);
 
             entityManager.getTransaction().commit();
 

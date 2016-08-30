@@ -1,10 +1,13 @@
 ﻿/** Drop all views to be created */
+DROP TABLE executable_summary IF EXISTS;
+DROP TABLE specification_summary IF EXISTS;
+
 DROP VIEW resource_summary IF EXISTS;
-DROP VIEW specification_summary IF EXISTS;
+DROP VIEW specification_summary_view IF EXISTS;
 DROP VIEW reservation_request_summary IF EXISTS;
 DROP VIEW reservation_request_state IF EXISTS;
 DROP VIEW reservation_summary IF EXISTS;
-DROP VIEW executable_summary IF EXISTS;
+DROP VIEW executable_summary_view IF EXISTS;
 
 /**
  * @see resource_summary in postgresql/init.sql
@@ -35,7 +38,7 @@ GROUP BY resource.id;
 /**
  * @see specification_summary in postgresql/init.sql
  */
-CREATE VIEW specification_summary AS
+CREATE VIEW specification_summary_view AS
 SELECT     
     specification.id AS id,
     GROUP_CONCAT(specification_technologies.technologies SEPARATOR ',') AS technologies,
@@ -134,7 +137,7 @@ SELECT
     NULL AS room_name,
     NULL AS alias_types,
     value_reservation.value AS value,
-    '' AS reservation_request_description
+    NULL AS reservation_request_description
 FROM reservation
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
 LEFT JOIN foreign_resource_reservation ON foreign_resource_reservation.id = reservation.id
@@ -147,7 +150,7 @@ LEFT JOIN recording_service_reservation ON recording_service_reservation.id = re
 /**
  * @see executable_summary in postgresql/init.sql
  */
-CREATE VIEW executable_summary AS
+CREATE VIEW executable_summary_view AS
 SELECT
     executable.id AS id,
     room_provider_capability.resource_id AS resource_id,
@@ -171,10 +174,6 @@ SELECT
     room_endpoint.room_description AS room_description,
     used_room_endpoint.room_endpoint_id AS room_id,
     0 AS room_usage_count,
-    NULL AS room_usage_slot_start,
-    NULL AS room_usage_slot_end,
-    NULL AS room_usage_state,
-    NULL AS room_usage_license_count,
     NULL AS room_has_recording_service,
     NULL AS room_has_recordings
 FROM executable
@@ -192,4 +191,7 @@ GROUP BY
     room_provider_capability.id,
     used_room_endpoint.id,
     room_configuration.id
-ORDER BY executable.id
+ORDER BY executable.id;
+
+CREATE TABLE executable_summary AS (SELECT * FROM executable_summary_view) WITH NO DATA;
+CREATE TABLE specification_summary AS (SELECT * FROM specification_summary_view) WITH NO DATA;

@@ -256,14 +256,14 @@ public class MeetingRoomController {
             @RequestParam(value = "sort", required = false,
                     defaultValue = "SLOT") ReservationListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "false") boolean sortDescending,
-            @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
             @RequestParam(value = "resource-id", required = false) String resourceId,
-            @RequestParam(value = "specification-technology", required = false) TechnologyModel specificationTechnology,
             @RequestParam(value = "interval-from", required = false) DateTime intervalFrom,
-            @RequestParam(value = "interval-to", required = false) DateTime intervalTo,
-            @RequestParam(value = "user-id", required = false) String userId,
-            @RequestParam(value = "participant-user-id", required = false) String participantUserId,
-            @RequestParam(value = "search", required = false) String search)
+            @RequestParam(value = "interval-to", required = false) DateTime intervalTo)
+//            @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
+//            @RequestParam(value = "specification-technology", required = false) TechnologyModel specificationTechnology,
+//            @RequestParam(value = "user-id", required = false) String userId,
+//            @RequestParam(value = "participant-user-id", required = false) String participantUserId,
+//            @RequestParam(value = "search", required = false) String search)
     {
         // List reservations
         ReservationListRequest request = new ReservationListRequest();
@@ -272,7 +272,7 @@ public class MeetingRoomController {
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        //request.addSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
+        request.addReservationType(ReservationSummary.Type.RESOURCE);
 
         if (intervalFrom != null || intervalTo != null) {
             if (intervalFrom == null) {

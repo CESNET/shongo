@@ -1,6 +1,9 @@
 ﻿/** Drop all views to be created */
+DROP TABLE IF EXISTS executable_summary;
+DROP TABLE IF EXISTS specification_summary;
+
 DROP VIEW IF EXISTS resource_summary;
-DROP VIEW IF EXISTS specification_summary;
+DROP VIEW IF EXISTS specification_summary_view;
 DROP VIEW IF EXISTS alias_specification_summary;
 DROP VIEW IF EXISTS reservation_request_summary;
 DROP VIEW IF EXISTS reservation_request_state;
@@ -8,7 +11,7 @@ DROP VIEW IF EXISTS reservation_request_set_earliest_child;
 DROP VIEW IF EXISTS reservation_request_active_usage;
 DROP VIEW IF EXISTS reservation_request_earliest_usage;
 DROP VIEW IF EXISTS reservation_summary;
-DROP VIEW IF EXISTS executable_summary;
+DROP VIEW IF EXISTS executable_summary_view;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
 /**
@@ -137,7 +140,7 @@ ORDER BY specification.id;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */   
-CREATE VIEW specification_summary AS
+CREATE VIEW specification_summary_view AS
 SELECT     
     specification.id AS id,
     string_agg(specification_technologies.technologies, ',') AS technologies,
@@ -478,7 +481,7 @@ ORDER BY room_endpoint_usage_slots.id, execution_target.slot_end;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-CREATE VIEW executable_summary AS
+CREATE VIEW executable_summary_view AS
 SELECT
     DISTINCT ON(executable.id)
     executable.id AS id,
@@ -502,10 +505,6 @@ SELECT
     room_configuration.license_count AS room_license_count,
     room_endpoint.room_description AS room_description,
     used_room_endpoint.room_endpoint_id AS room_id,
-    room_endpoint_earliest_usage.slot_start AS room_usage_slot_start,
-    room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,
-    room_endpoint_earliest_usage.state AS room_usage_state,
-    room_endpoint_earliest_usage.license_count AS room_usage_license_count,
     COUNT(recording_service.id) > 0 AS room_has_recording_service,
     COUNT(recording_service.id) > 0 OR COUNT(resource_room_endpoint_recording_folder_ids.recording_folder_id) > 0 AS room_has_recordings
 FROM executable
@@ -516,7 +515,6 @@ LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_confi
 LEFT JOIN room_configuration_technologies ON room_configuration_technologies.room_configuration_id = room_configuration.id
 LEFT JOIN endpoint_assigned_aliases ON endpoint_assigned_aliases.endpoint_id = executable.id OR endpoint_assigned_aliases.endpoint_id = used_room_endpoint.room_endpoint_id
 LEFT JOIN alias ON alias.id = endpoint_assigned_aliases.alias_id AND alias.type = 'ROOM_NAME'
-LEFT JOIN room_endpoint_earliest_usage ON room_endpoint_earliest_usage.id = executable.id
 LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = executable.id
 LEFT JOIN resource_room_endpoint ON resource_room_endpoint.id = room_endpoint.id OR resource_room_endpoint.id = used_room_endpoint.room_endpoint_id
 LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = resource_room_endpoint.room_provider_capability_id
@@ -530,9 +528,8 @@ GROUP BY
     room_provider_capability.id,
     used_room_endpoint.id,
     room_configuration.id,
-    alias.id,
-    room_endpoint_earliest_usage.slot_start,
-    room_endpoint_earliest_usage.slot_end,
-    room_endpoint_earliest_usage.state,
-    room_endpoint_earliest_usage.license_count
+    alias.id
 ORDER BY executable.id, alias.id;
+
+CREATE TABLE executable_summary AS SELECT * FROM executable_summary_view;
+CREATE TABLE specification_summary AS SELECT * FROM specification_summary_view;
