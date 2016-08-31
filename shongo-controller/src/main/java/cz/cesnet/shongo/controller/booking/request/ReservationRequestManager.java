@@ -39,6 +39,12 @@ public class ReservationRequestManager extends AbstractManager
         super(entityManager);
     }
 
+    /**
+     * Updates table executable_summary, DO NOT USE directly, for more see {@link Specification#updateSpecificationSummary(EntityManager, boolean)}
+     *
+     * @param specification
+     * @param deleteOnly
+     */
     public void updateSpecificationSummary(Specification specification, boolean deleteOnly)
     {
         Map<String, String> parameters = new HashMap<>();

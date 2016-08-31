@@ -590,6 +590,16 @@ public abstract class Executable extends ExecutionTarget
                 ObjectIdentifier.formatId(this), ClassHelper.getClassShortName(configuration.getClass()));
     }
 
+    /**
+     * Updates database table executable_summary used mainly for listing reservation requests {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary}.
+     * This table is initialized based on view executable_summary_view. For more see init.sql.
+     *
+     * IMPORTANT: it is necessary to call this method EVERY time change of any entity {@link Executable} is made!!!
+     * Otherwise list of reservation requests will be inconsistent.
+     *
+     * @param entityManager
+     * @param deleteOnly
+     */
     public void updateExecutableSummary(EntityManager entityManager, boolean deleteOnly)
     {
         entityManager.flush();

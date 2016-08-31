@@ -97,11 +97,25 @@ public abstract class Specification extends SimplePersistentObject implements Re
     {
     }
 
+    /**
+     * @see {@code updateSpecificationSummary}
+     */
     public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly)
     {
         updateSpecificationSummary(entityManager, deleteOnly, true);
     }
 
+    /**
+     * Updates database table specification_summary used mainly for listing reservation requests {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary}.
+     * This table is initialized based on view specification_summary_view. For more see init.sql.
+     *
+     * IMPORTANT: it is necessary to call this method EVERY time change of any entity {@link Specification} is made!!!
+     * Otherwise list of reservation requests will be inconsistent.
+     *
+     * @param entityManager
+     * @param deleteOnly
+     * @param flush
+     */
     public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
     {
         if (flush) {

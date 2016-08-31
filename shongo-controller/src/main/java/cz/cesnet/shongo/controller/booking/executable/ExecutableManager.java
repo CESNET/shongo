@@ -70,7 +70,13 @@ public class ExecutableManager extends AbstractManager
         executable.updateExecutableSummary(entityManager, true);
     }
 
-    public void updateExecutableSummary(PersistentObject executable, boolean deleteOnly)
+    /**
+     * Updates table executable_summary, DO NOT USE directly, for more see {@link Executable#updateExecutableSummary(EntityManager, boolean)}
+     *
+     * @param executable
+     * @param deleteOnly
+     */
+    public void updateExecutableSummary(Executable executable, boolean deleteOnly)
     {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("executable_id", executable.getId().toString());
