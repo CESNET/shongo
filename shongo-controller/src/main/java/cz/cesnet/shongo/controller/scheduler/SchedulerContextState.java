@@ -550,6 +550,27 @@ public class SchedulerContextState
     }
 
     /**
+     * Apply {@link #reservationTransactionByType} to given map of {@link ValueReservation}s.
+     *
+     * @param resourceId
+     * @param valueReservations
+     */
+    public <T extends TargetedReservation> void applyValueReservations(Long resourceId, Interval slot, Map<Long, Map.Entry<String, Interval>> valueReservations)
+    {
+        @SuppressWarnings("unchecked")
+        ReservationTransaction<T> reservationTransaction = (ReservationTransaction<T>)
+                reservationTransactionByType.get(getReservationTransactionType(ValueReservation.class));
+        if (reservationTransaction != null) {
+            reservationTransaction.removeSeparateReservations(resourceId, slot, valueReservations);
+            List<ValueReservation> overlapsReservations = reservationTransaction.getAllocatedOverlapsReservations(resourceId, slot, ValueReservation.class);
+            for (ValueReservation reservation : overlapsReservations) {
+                Map.Entry<String, Interval> value = new AbstractMap.SimpleEntry<>(reservation.getValue(), reservation.getSlot());
+                valueReservations.put(reservation.getId(), value);
+            }
+        }
+    }
+
+    /**
      * @return {@link #reservationsToDelete}
      */
     public List<Reservation> getReservationsToDelete()

@@ -19,6 +19,7 @@ import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.LinkedList;

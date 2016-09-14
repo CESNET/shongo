@@ -34,6 +34,14 @@ public class ObjectPermissionSet extends AbstractComplexType
         this.objectPermissions = objectPermissions;
     }
 
+    public boolean contains(ObjectPermission objectPermission)
+    {
+        if (this.objectPermissions == null) {
+            return false;
+        }
+        return this.objectPermissions.contains(objectPermission);
+    }
+
     private static final String OBJECT_PERMISSIONS = "objectPermissions";
 
     @Override

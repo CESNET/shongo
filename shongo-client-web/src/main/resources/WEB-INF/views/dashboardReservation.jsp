@@ -374,7 +374,7 @@
                 <th>
                     <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
                 </th>
-                <th style="min-width: 135px; width: 135px;">
+                <th style="min-width: 150px; width: 150px;">
                     <spring:message code="views.list.action"/>
                     <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                 </th>

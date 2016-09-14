@@ -21,37 +21,37 @@ public class AclUserState
     /**
      * Set of {@link AclEntry}s for the user.
      */
-    private Map<Long, AclEntry> aclEntries = new HashMap<Long, AclEntry>();
+    private Map<Long, AclEntry> aclEntries = new HashMap<>();
 
     /**
      * {@link cz.cesnet.shongo.controller.authorization.AclUserState.ObjectState} for the user.
      */
-    private Map<AclObjectIdentity, ObjectState> objectStateByObjectIdentity =
-            new HashMap<AclObjectIdentity, ObjectState>();
+    private Map<AclObjectIdentity, ObjectState> objectStateByObjectIdentity = new HashMap<>();
 
     /**
      * Map of objects which are accessible to the user (he has {@link ObjectPermission#READ} for them) by {@link AclObjectClass}.
      */
-    private Map<AclObjectClass, Set<Long>> accessibleObjectsByClass =
-            new HashMap<AclObjectClass, Set<Long>>();
+    private Map<AclObjectClass, Set<Long>> accessibleObjectsByClass = new HashMap<>();
 
     /**
      * Map of objects which are reservable to the user (he has {@link ObjectPermission#RESERVE_RESOURCE} for them) by {@link AclObjectClass}.
      */
-    private Map<AclObjectClass, Set<Long>> reservableObjectsByClass =
-            new HashMap<AclObjectClass, Set<Long>>();
+    private Map<AclObjectClass, Set<Long>> reservableObjectsByClass = new HashMap<>();
 
     /**
      * Map of objects which are owned by the user (he has {@link ObjectRole#OWNER} for them) by {@link AclObjectClass}.
      */
-    private Map<AclObjectClass, Set<Long>> ownedObjectsByClass =
-            new HashMap<AclObjectClass, Set<Long>>();
+    private Map<AclObjectClass, Set<Long>> ownedObjectsByClass = new HashMap<>();
 
     /**
      * Map of objects which are controllable by the user (he has {@link ObjectPermission#CONTROL_RESOURCE} for them) by {@link AclObjectClass}.
      */
-    private Map<AclObjectClass, Set<Long>> controlledObjectsByClass =
-            new HashMap<AclObjectClass, Set<Long>>();
+    private Map<AclObjectClass, Set<Long>> controlledObjectsByClass = new HashMap<>();
+
+    /**
+     * Map of objects which are writable by the user (he has {@link ObjectPermission#WRITE} for them) by {@link AclObjectClass}.
+     */
+    private Map<AclObjectClass, Set<Long>> writableObjectsByClass = new HashMap<>();
 
     /**
      * @param aclEntry to be added to the {@link AclUserState}
@@ -85,7 +85,7 @@ public class AclUserState
             if (objectState.roles.contains(ObjectRole.OWNER)) {
                 Set<Long> entities = ownedObjectsByClass.get(objectClass);
                 if (entities == null) {
-                    entities = new HashSet<Long>();
+                    entities = new HashSet<>();
                     ownedObjectsByClass.put(objectClass, entities);
                 }
                 entities.add(objectIdentity.getObjectId());
@@ -94,8 +94,17 @@ public class AclUserState
             if (objectState.permissions.contains(ObjectPermission.READ)) {
                 Set<Long> entities = accessibleObjectsByClass.get(objectClass);
                 if (entities == null) {
-                    entities = new HashSet<Long>();
+                    entities = new HashSet<>();
                     accessibleObjectsByClass.put(objectClass, entities);
+                }
+                entities.add(objectIdentity.getObjectId());
+            }
+            // Update writable entities
+            if (objectState.permissions.contains(ObjectPermission.WRITE)) {
+                Set<Long> entities = writableObjectsByClass.get(objectClass);
+                if (entities == null) {
+                    entities = new HashSet<>();
+                    writableObjectsByClass.put(objectClass, entities);
                 }
                 entities.add(objectIdentity.getObjectId());
             }
@@ -103,7 +112,7 @@ public class AclUserState
             if (objectState.permissions.contains(ObjectPermission.RESERVE_RESOURCE)) {
                 Set<Long> entities = reservableObjectsByClass.get(objectClass);
                 if (entities == null) {
-                    entities = new HashSet<Long>();
+                    entities = new HashSet<>();
                     reservableObjectsByClass.put(objectClass, entities);
                 }
                 entities.add(objectIdentity.getObjectId());
@@ -166,6 +175,16 @@ public class AclUserState
                     entities.remove(objectIdentity.getObjectId());
                     if (entities.size() == 0) {
                         accessibleObjectsByClass.remove(objectClass);
+                    }
+                }
+            }
+            // Update writable entities
+            if (!objectState.permissions.contains(ObjectPermission.WRITE)) {
+                Set<Long> entities = writableObjectsByClass.get(objectClass);
+                if (entities != null) {
+                    entities.remove(objectIdentity.getObjectId());
+                    if (entities.size() == 0) {
+                        writableObjectsByClass.remove(objectClass);
                     }
                 }
             }
@@ -291,6 +310,9 @@ public class AclUserState
                 break;
             case CONTROL_RESOURCE:
                 entities = controlledObjectsByClass.get(objectClass);
+                break;
+            case WRITE:
+                entities = writableObjectsByClass.get(objectClass);
                 break;
             default:
                 throw new TodoImplementException(objectPermission);

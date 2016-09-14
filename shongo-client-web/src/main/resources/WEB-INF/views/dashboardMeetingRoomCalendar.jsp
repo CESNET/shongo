@@ -17,12 +17,12 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
+    <tag:param name="reservationRequestId" value="\" + event.parentRequestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="childReservationDelete" value="<%= ClientWebUrl.WIZARD_ROOM_PERIODIC_REMOVE %>">
-    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+    <tag:param name="reservationRequestId" value="\" + event.parentRequestId + \"" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}" escape="false"/>
     <tag:param name="excludeReservationId" value="\" + event.id + \"" escape="false"/>
 </tag:url>
 
@@ -253,8 +253,9 @@
                         foreignDomain: event.foreignDomain,
                         start: event.start,
                         end: event.end,
-                        isOwned: event.isOwned,
+                        isWritable: event.isWritable,
                         requestId: event.requestId,
+                        parentRequestId: event.parentRequestId,
                         isPeriodic: event.isPeriodic
                     });
                 });
@@ -269,7 +270,7 @@
 
             // Show actions for owned reservations (copied from listAction.tag)
             var actions = "";
-            if (event.isOwned) {
+            if (event.isWritable) {
                 actions = "<span class='btn-group pull-right'>";
                 if (event.end.isAfter(moment())) {
                     <%--actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";--%>

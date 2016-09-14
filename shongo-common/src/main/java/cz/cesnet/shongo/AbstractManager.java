@@ -1,5 +1,6 @@
 package cz.cesnet.shongo;
 
+
 import javax.persistence.EntityManager;
 
 /**

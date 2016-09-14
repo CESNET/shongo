@@ -137,7 +137,8 @@ SELECT
     NULL AS room_name,
     NULL AS alias_types,
     value_reservation.value AS value,
-    NULL AS reservation_request_description
+    NULL AS reservation_request_description,
+    NULL AS parent_reservation_request_id
 FROM reservation
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
 LEFT JOIN foreign_resource_reservation ON foreign_resource_reservation.id = reservation.id

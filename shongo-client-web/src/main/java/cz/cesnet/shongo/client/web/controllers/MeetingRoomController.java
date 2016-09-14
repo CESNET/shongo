@@ -27,13 +27,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import sun.misc.IOUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -291,6 +289,8 @@ public class MeetingRoomController {
 
         ListResponse<ReservationSummary> response = reservationService.listReservations(request);
 
+        DateTime time = DateTime.now();
+        time = DateTime.now();
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<>();
@@ -319,33 +319,18 @@ public class MeetingRoomController {
             item.put("slot", formatter.formatInterval(slot));
             item.put("isDeprecated", slot != null && slot.getEnd().isBeforeNow());
 
-            boolean isOwned = cache.getObjectPermissions(securityToken, reservationId).contains(ObjectPermission.WRITE);
-            item.put("isOwned", isOwned);
-            if (isOwned) {
-                String reservationRequestId = reservation.getReservationRequestId();
-                AbstractReservationRequest abstractReservationRequest;
-                abstractReservationRequest = reservationService.getReservationRequest(securityToken, reservationRequestId);
-                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                String parentReservationRequestId = reservationRequest.getParentReservationRequestId();
-                if (parentReservationRequestId != null) {
-                    // Reservation request for reservation in periodic request
-                    reservationRequestId = parentReservationRequestId;
-                }
-
-                item.put("isPeriodic", parentReservationRequestId != null);
+            boolean isWritable = reservation.getIsWritableByUser();
+            item.put("isWritable", isWritable);
+            if (isWritable) {
+                item.put("isPeriodic", reservation.getParentReservationRequestId() != null);
                 // Reservation request id of whole request created by user
-                item.put("requestId", reservationRequestId);
+                item.put("requestId", reservation.getReservationRequestId());
+                item.put("parentRequestId", reservation.getParentReservationRequestId());
             }
-
-//            String reservationResourceId = reservation.getResourceId();
-//            cz.cesnet.shongo.controller.api.Resource resource = resourceService.getResource(securityToken, reservationResourceId);
-            //CALENDAR
-//            item.put("title",resource.getName());
-            //LIST
-//            item.put("resourceName",resource.getName());
-//            item.put("resourceDescription",resource.getDescription());
             items.add(item);
         }
+        System.out.println("LIST: " + DateTime.now().minus(time.getMillis()).getMillis());
+
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
         data.put("count", response.getCount());

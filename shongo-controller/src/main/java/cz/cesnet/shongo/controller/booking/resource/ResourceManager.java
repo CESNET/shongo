@@ -6,8 +6,6 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.ObjectType;
-import cz.cesnet.shongo.controller.api.ResourceSummary;
-import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
@@ -20,15 +18,14 @@ import cz.cesnet.shongo.controller.booking.value.provider.FilteredValueProvider;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import org.apache.commons.lang.RandomStringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.List;
 
 /**
@@ -382,21 +379,29 @@ public class ResourceManager extends AbstractManager
     /**
      * @param valueProviderId
      * @param interval
-     * @return list of all {@link ValueReservation}s for value provider with given {@code valueProviderId}
+     * @return list of all {@link ValueReservation}s (Tuple of [id, value, slotStar, slotEnd]) for value provider with given {@code valueProviderId}
      *         which intersects given {@code interval}
      */
-    public List<ValueReservation> listValueReservationsInInterval(Long valueProviderId, Interval interval)
+    public List<Tuple> listValueReservationsInInterval(Long valueProviderId, Interval interval)
     {
-        List<ValueReservation> valueReservations = entityManager.createQuery("SELECT reservation"
-                + " FROM ValueReservation reservation"
-                + " WHERE reservation.valueProvider.id = :id"
-                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
-                + " ORDER BY reservation.slotStart", ValueReservation.class)
-                .setParameter("id", valueProviderId)
-                .setParameter("start", interval.getStart())
-                .setParameter("end", interval.getEnd())
-                .getResultList();
-        return valueReservations;
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Tuple> query = criteriaBuilder.createQuery(Tuple.class);
+        Root<ValueReservation> reservationRoot = query.from(ValueReservation.class);
+
+        Predicate providerIdParam = criteriaBuilder.equal(reservationRoot.get("valueProvider").get("id"), valueProviderId);
+        Predicate startParam = criteriaBuilder.greaterThanOrEqualTo(reservationRoot.<DateTime>get("slotStart"), interval.getEnd());
+        Predicate endParam = criteriaBuilder.lessThanOrEqualTo(reservationRoot.<DateTime>get("slotEnd"), interval.getStart());
+        Predicate intervalParam = criteriaBuilder.or(startParam, endParam).not();
+        Order orderBy = criteriaBuilder.asc(reservationRoot.get("slotStart"));
+
+        CompoundSelection<Tuple> selection = criteriaBuilder.tuple(reservationRoot.get("id"), reservationRoot.get("value"), reservationRoot.get("slotStart"), reservationRoot.get("slotEnd"));
+
+        query.select(selection).where(criteriaBuilder.and(providerIdParam, intervalParam)).orderBy(orderBy);
+
+        TypedQuery<Tuple> typedQuery = entityManager.createQuery(query);
+
+        return typedQuery.getResultList();
     }
 
     /**

@@ -335,6 +335,7 @@ public class RoomReservationTask extends ReservationTask
             for (RoomProviderVariant roomProviderVariant : roomProviderVariants) {
                 SchedulerContextState.Savepoint schedulerContextSavepoint = schedulerContextState.createSavepoint();
                 try {
+                    Long allocateRoomTime = DateTime.now().getMillis();
                     Reservation reservation = allocateVariant(roomProviderVariant);
                     if (reservation != null) {
                         return reservation;
@@ -1415,6 +1416,7 @@ public class RoomReservationTask extends ReservationTask
             aliasReservationTask.setTargetResource(deviceResource);
             AliasReservation aliasReservation =
                     addChildReservation(aliasReservationTask, AliasReservation.class);
+
             // Assign allocated aliases to the room
             for (Alias alias : aliasReservation.getAliases()) {
                 // Assign only aliases which can be assigned to the room (according to room technologies)

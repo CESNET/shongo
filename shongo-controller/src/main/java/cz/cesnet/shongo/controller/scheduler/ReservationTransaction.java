@@ -145,4 +145,55 @@ public class ReservationTransaction<R extends Reservation>
             }
         }
     }
+
+    /**
+     * Apply {@link ReservationTransaction} to given list of reservations by Ids for given object with given {@code objectId}.
+     * ONLY removes available reservations which overlaps with given {@code slot}.
+     *
+     * @param objectId     for which the {@link ReservationTransaction} should apply
+     * @param slot
+     * @param reservationIds to which the {@link ReservationTransaction} should apply
+     */
+    public void removeSeparateReservations(Long objectId, Interval slot, Map<Long, ?> reservationIds)
+    {
+        Set<AvailableReservation<R>> availableReservationsToApply = availableReservationsByObjectId.get(objectId);
+        if (availableReservationsToApply != null) {
+            for (AvailableReservation<R> availableReservation : availableReservationsToApply) {
+                if (!availableReservation.getOriginalReservation().getSlot().overlaps(slot)) {
+                    continue;
+                }
+                Long availableReservationId = availableReservation.getTargetReservation().getId();
+                if (reservationIds.containsKey(availableReservationId)) {
+                    reservationIds.remove(availableReservationId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns allocated reservations which overlaps with given {@code slot}
+     *
+     * @param objectId for which the {@link ReservationTransaction} should apply
+     * @param slot
+     * @param reservationType to which the {@link ReservationTransaction} should apply
+     * @param <T> type of returned reservations
+     * @return
+     */
+    public <T extends Reservation> List<T> getAllocatedOverlapsReservations(Long objectId, Interval slot, Class<T> reservationType)
+    {
+        Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
+        List<T> reservations = new ArrayList<>();
+        if (allocatedReservationsToApply != null) {
+            for (R reservation : allocatedReservationsToApply) {
+                if (!reservation.getSlot().overlaps(slot)) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                T typedReservation = (T) reservation;
+                reservations.add(typedReservation);
+            }
+        }
+
+        return reservations;
+    }
 }

@@ -134,7 +134,7 @@
                 <%@ include file="dashboardMeetingRooms.jsp" %>
             </tab>
 
-            <%-- Your meeting rooms reservation request tab --%>
+            <%-- Your meeting rooms reservation request tab TODO: only for CEITEC --%>
             <%--<spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>--%>
             <%--<tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">--%>
                 <%--<%@ include file="dashboardMeetingRoomReservations.jsp" %>--%>

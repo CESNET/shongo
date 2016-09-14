@@ -27,6 +27,11 @@ public class ReservationSummary extends IdentifiedComplexType
     private String reservationRequestId;
 
     /**
+     * Id of an {@link AbstractReservationRequest} which is parent to this {@code reservationRequestId} if any.
+     */
+    private String parentReservationRequestId;
+
+    /**
      * @see Type
      */
     private Type type;
@@ -65,6 +70,11 @@ public class ReservationSummary extends IdentifiedComplexType
      * Description of ReservationRequest
      */
     private String reservationRequestDescription;
+
+    /**
+     * If reservation is writable by user (who listed them)
+     */
+    private Boolean isWritableByUser;
 
     /**
      * @return {@link #userId}
@@ -232,6 +242,38 @@ public class ReservationSummary extends IdentifiedComplexType
         this.value = value;
     }
 
+    /**
+     * @return {@link #parentReservationRequestId}
+     */
+    public String getParentReservationRequestId()
+    {
+        return parentReservationRequestId;
+    }
+
+    /**
+     * @param parentReservationRequestId sets the {@link #parentReservationRequestId}
+     */
+    public void setParentReservationRequestId(String parentReservationRequestId)
+    {
+        this.parentReservationRequestId = parentReservationRequestId;
+    }
+
+    /**
+     * @return {@link #isWritableByUser}
+     */
+    public Boolean getIsWritableByUser()
+    {
+        return isWritableByUser;
+    }
+
+    /**
+     * @param isWritableByUser sets the {@link #isWritableByUser}
+     */
+    public void setIsWritableByUser(Boolean isWritableByUser)
+    {
+        this.isWritableByUser = isWritableByUser;
+    }
+
     private static final String USER_ID = "userId";
     private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
     private static final String TYPE = "type";
@@ -242,6 +284,8 @@ public class ReservationSummary extends IdentifiedComplexType
     private static final String ALIAS_TYPES = "aliasTypes";
     private static final String VALUE = "value";
     private static final String RESERVATION_REQUEST_DESCRIPTION = "reservationRequestDescription";
+    private static final String IS_WRITABLE_BY_USER = "isWritableByUser";
+    private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -257,6 +301,8 @@ public class ReservationSummary extends IdentifiedComplexType
         dataMap.set(ALIAS_TYPES, aliasTypes);
         dataMap.set(VALUE, value);
         dataMap.set(RESERVATION_REQUEST_DESCRIPTION,reservationRequestDescription);
+        dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
+        dataMap.set(IS_WRITABLE_BY_USER, isWritableByUser);
         return dataMap;
     }
 
@@ -274,6 +320,8 @@ public class ReservationSummary extends IdentifiedComplexType
         aliasTypes = dataMap.getString(ALIAS_TYPES);
         value = dataMap.getString(VALUE);
         reservationRequestDescription = dataMap.getString(RESERVATION_REQUEST_DESCRIPTION);
+        parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
+        isWritableByUser = dataMap.getBoolean(IS_WRITABLE_BY_USER);
     }
 
     /**

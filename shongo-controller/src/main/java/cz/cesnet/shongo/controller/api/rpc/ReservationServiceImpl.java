@@ -29,7 +29,6 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationRequestConfirmationNotification;
 import cz.cesnet.shongo.controller.notification.ReservationRequestDeniedNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.controller.util.iCalendar;
@@ -362,7 +361,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
 
             } //END OF FOR-EACH LOOP
-
             // Request is available
             return Boolean.TRUE;
         }
@@ -1657,9 +1655,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             ListResponse<ReservationSummary> response = new ListResponse<ReservationSummary>();
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
+
+            Set<Long> writableReservationIds = authorization.getEntitiesWithPermission(securityToken,
+                    cz.cesnet.shongo.controller.booking.reservation.Reservation.class, ObjectPermission.WRITE);
+
             for (Object[] record : records) {
                 ReservationSummary reservationSummary = getReservationSummary(record);
                 response.addItem(reservationSummary);
+                Long reservationPersistenceId = ObjectIdentifier.parseLocalId(reservationSummary.getId(), ObjectType.RESERVATION);
+                boolean isWritable = writableReservationIds == null ? true : writableReservationIds.contains(reservationPersistenceId);
+                reservationSummary.setIsWritableByUser(isWritable);
             }
             return response;
         }
@@ -2018,6 +2023,27 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[12] != null) {
             reservationSummary.setReservationRequestDescription(record[12] != null ? record[12].toString() : null);
         }
+        if (record[13] != null) {
+            reservationSummary.setParentReservationRequestId(record[13] != null ?
+                    ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[13].toString()) : null);
+        }
         return reservationSummary;
+    }
+
+    /**
+     * @param objectId      of object which should be checked for existence
+     * @param entityManager which can be used
+     * @return {@link cz.cesnet.shongo.PersistentObject} for given {@code objectId}
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
+     *
+     */
+    private PersistentObject checkObjectExistence(ObjectIdentifier objectId, EntityManager entityManager)
+            throws CommonReportSet.ObjectNotExistsException
+    {
+        PersistentObject object = entityManager.find(objectId.getObjectClass(), objectId.getPersistenceId());
+        if (object == null) {
+            ControllerReportSetHelper.throwObjectNotExistFault(objectId);
+        }
+        return object;
     }
 }

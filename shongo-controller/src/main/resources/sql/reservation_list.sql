@@ -16,7 +16,8 @@ SELECT
     reservation_summary.room_name AS room_name,
     reservation_summary.alias_types AS alias_types,
     reservation_summary.value AS value,
-    reservation_summary.reservation_request_description AS reservation_request_description
+    reservation_summary.reservation_request_description AS reservation_request_description,
+    reservation_summary.parent_reservation_request_id AS parent_reservation_request_id
 FROM reservation_summary
 WHERE ${filter}
 ORDER BY ${order}

@@ -9,8 +9,10 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import javax.persistence.Tuple;
 import java.util.*;
 
 /**
@@ -161,16 +163,26 @@ public class ValueReservationTask extends ReservationTask
      */
     private Map<String, Interval> getUsedValues(ValueProvider valueProvider, Interval interval)
     {
-        Map<String, Interval> usedValues = new HashMap<String, Interval>();
         ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
         Long valueProviderId = valueProvider.getId();
-        List<ValueReservation> allocatedValues =
+        List<Tuple> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
 
-        schedulerContextState.applyReservations(valueProviderId, slot, allocatedValues, ValueReservation.class);
-        for (ValueReservation allocatedValue : allocatedValues) {
-            usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
+        Map<Long, Map.Entry<String, Interval>> usedReservations = new HashMap<>();
+        for (Tuple allocatedValue : allocatedValues) {
+            DateTime slotStart = (DateTime) allocatedValue.get(2);
+            DateTime slotEnd = (DateTime) allocatedValue.get(3);
+            Map.Entry<String, Interval> value = new AbstractMap.SimpleEntry<>((String) allocatedValue.get(1), new Interval(slotStart, slotEnd));
+            usedReservations.put((Long) allocatedValue.get(0), value);
         }
+
+        schedulerContextState.applyValueReservations(valueProviderId, slot, usedReservations);
+
+        Map<String, Interval> usedValues = new HashMap<>();
+        for (Map.Entry<String, Interval> reservation : usedReservations.values()) {
+            usedValues.put(reservation.getKey(), reservation.getValue());
+        }
+
         return usedValues;
     }
 }
