@@ -17,6 +17,10 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="meetingRoomDeleteAllUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="reservationRequestId" value="\" + event.parentRequestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
@@ -282,7 +286,7 @@
                     if (event.end.isAfter(moment())) {
                         actions += "<a href='${childReservationDelete}' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.single.title"/>'></b></a> | ";
                     }
-                    actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
+                    actions += "<a href='${meetingRoomDeleteAllUrl}' ><b class='fa fa-trash-o fa-red' title='<spring:message code="views.list.action.delete.all.title"/>'></b></a>";
                 }
                 actions += "</span>";
             } else {
