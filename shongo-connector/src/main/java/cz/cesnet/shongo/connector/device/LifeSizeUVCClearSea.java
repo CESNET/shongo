@@ -235,7 +235,7 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     private void login() throws CommandException {
         try {
             accessToken = (String) performRequest(RequestType.GET, "&username=" + serviceUserID +
-                    "&password=" + serviceUserPassword, null).get("access_token");
+                    "&password=" + serviceUserPassword, null, false).get("access_token");
             connectionState = ConnectionState.LOOSELY_CONNECTED;
         } catch (Exception e) {
             String message = "Login to server " + deviceAddress + " failed";
@@ -301,6 +301,11 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
         }
     }
 
+    private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
+            throws CommandException    {
+        return performRequest(requestType, action, jsonObject, true);
+    }
+
     /**
      * performRequest function performs the REST request with given action,
      * depending on request converts the attribute map to JSON string and sends the data
@@ -310,10 +315,10 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      * @return JSON object
      * @throws CommandException
      */
-    private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject)
+    private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject, boolean checkTokenValidity)
             throws CommandException {
 
-        if (connectionState != ConnectionState.DISCONNECTED) {
+        if (connectionState != ConnectionState.DISCONNECTED && checkTokenValidity) {
             checkTokenValidity();
             logger.info("Performing action: " + requestType + ":" + action + " ...");
         }
