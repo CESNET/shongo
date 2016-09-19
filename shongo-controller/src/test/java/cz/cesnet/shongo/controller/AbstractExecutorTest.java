@@ -20,12 +20,15 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.joda.time.DateTime;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -112,7 +115,36 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
      */
     protected ExecutionResult runExecutor(DateTime referenceDateTime)
     {
-        return executor.execute(referenceDateTime);
+        try {
+            return executor.execute(referenceDateTime);
+        } finally {
+            checkExecutableSummaryConsistency();
+        }
+    }
+
+    /**
+     * Checks consistency of table executable summary. For more see init.sql and entity {@link cz.cesnet.shongo.controller.booking.executable.Executable}.
+     */
+    protected void checkExecutableSummaryConsistency()
+    {
+        EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+        try {
+            String executableQuery = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_SUMMARY_CHECK);
+
+            List<Object[]> executables = entityManager.createNativeQuery(executableQuery).getResultList();
+            for (Object[] record : executables) {
+                logger.error("Uncached executables: " + Arrays.toString(record));
+            }
+            if (!executables.isEmpty()) {
+                List<Object[]> allCachedExecutables = entityManager.createNativeQuery("SELECT * FROM executable_summary").getResultList();
+                for (Object[] record : allCachedExecutables) {
+                    logger.error("Cached executables: " + Arrays.toString(record));
+                }
+            }
+            Assert.assertTrue("Some executables has not been cached in table executable_summary.", executables.isEmpty());
+        } finally {
+            entityManager.close();
+        }
     }
 
     /**

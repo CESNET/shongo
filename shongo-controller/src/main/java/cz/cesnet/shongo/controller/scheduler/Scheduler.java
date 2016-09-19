@@ -541,6 +541,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         // Allocate migration
         if (previousReservation != null && previousReservation.getClass().equals(allocatedReservation.getClass())) {
             reservationTask.migrateReservation(previousReservation, allocatedReservation, entityManager);
+            if (previousReservation.getExecutable() != null) {
+                previousReservation.getExecutable().updateExecutableSummary(entityManager, false);
+            }
         }
 
         // Create notification

@@ -402,7 +402,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             executeNotifications(entityManager);
         }
         entityManager.close();
-        checkSummaryConsistency();
+        checkSpecificationSummaryConsistency();
         return schedulerResult;
     }
 
@@ -805,27 +805,21 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Checks consistency of tables specification_summary and executable summary. For more see init.sql and entities Specification and Executable.
+     * Checks consistency of table specification_summary. For more see init.sql and entity {@link cz.cesnet.shongo.controller.booking.specification.Specification}.
      */
-    protected void checkSummaryConsistency()
+    protected void checkSpecificationSummaryConsistency()
     {
-//        EntityManager entityManager = getEntityManagerFactory().createEntityManager();
-//        try {
-//            String specificationQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_CHECK);
-//            String executableQuery = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_SUMMARY_CHECK);
-//
-//            List<Object[]> specifications = entityManager.createNativeQuery(specificationQuery).getResultList();
-//            List<Object[]> executables = entityManager.createNativeQuery(executableQuery).getResultList();
-//            for (Object[] record : specifications) {
-//                logger.error("Uncached specification: " + Arrays.toString(record));
-//            }
-//            for (Object[] record : executables) {
-//                logger.error("Uncached executables: " + Arrays.toString(record));
-//            }
-//            Assert.assertTrue("Some specifications has not been cached in table specification_summary.", specifications.isEmpty());
-//            Assert.assertTrue("Some executables has not been cached in table specification_summary.", executables.isEmpty());
-//        } finally {
-//            entityManager.close();
-//        }
+        EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+        try {
+            String specificationQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_CHECK);
+
+            List<Object[]> specifications = entityManager.createNativeQuery(specificationQuery).getResultList();
+            for (Object[] record : specifications) {
+                logger.error("Uncached specification: " + Arrays.toString(record));
+            }
+            Assert.assertTrue("Some specifications has not been cached in table specification_summary.", specifications.isEmpty());
+        } finally {
+            entityManager.close();
+        }
     }
 }

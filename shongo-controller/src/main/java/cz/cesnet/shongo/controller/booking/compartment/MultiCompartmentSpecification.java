@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.compartment;
 
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.specification.CompositeSpecification;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
@@ -95,6 +96,16 @@ public class MultiCompartmentSpecification extends Specification
             }
         }
         return state;
+    }
+
+    @Override
+    public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
+    {
+        super.updateSpecificationSummary(entityManager, deleteOnly, flush);
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        for (CompartmentSpecification compartmentSpecification : compartmentSpecifications) {
+            reservationRequestManager.updateSpecificationSummary(compartmentSpecification, deleteOnly);
+        }
     }
 
     @Override

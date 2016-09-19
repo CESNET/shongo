@@ -398,9 +398,12 @@ public class RoomSpecification extends Specification
     public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
     {
         super.updateSpecificationSummary(entityManager, deleteOnly, flush);
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.updateSpecificationSummary(serviceSpecification, deleteOnly);
+        }
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            reservationRequestManager.updateSpecificationSummary(aliasSpecification, deleteOnly);
         }
     }
 
