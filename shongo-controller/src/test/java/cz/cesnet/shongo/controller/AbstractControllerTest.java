@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 import java.util.*;
 
 /**
@@ -400,6 +402,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             executeNotifications(entityManager);
         }
         entityManager.close();
+        checkSummaryConsistency();
         return schedulerResult;
     }
 
@@ -799,5 +802,30 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             throw new RuntimeException(new AclEntry(userId, objectId, role).toString() + " doesn't exist.");
         }
         getAuthorizationService().deleteAclEntry(SECURITY_TOKEN_ROOT, aclEntry.getId());
+    }
+
+    /**
+     * Checks consistency of tables specification_summary and executable summary. For more see init.sql and entities Specification and Executable.
+     */
+    protected void checkSummaryConsistency()
+    {
+//        EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+//        try {
+//            String specificationQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_CHECK);
+//            String executableQuery = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_SUMMARY_CHECK);
+//
+//            List<Object[]> specifications = entityManager.createNativeQuery(specificationQuery).getResultList();
+//            List<Object[]> executables = entityManager.createNativeQuery(executableQuery).getResultList();
+//            for (Object[] record : specifications) {
+//                logger.error("Uncached specification: " + Arrays.toString(record));
+//            }
+//            for (Object[] record : executables) {
+//                logger.error("Uncached executables: " + Arrays.toString(record));
+//            }
+//            Assert.assertTrue("Some specifications has not been cached in table specification_summary.", specifications.isEmpty());
+//            Assert.assertTrue("Some executables has not been cached in table specification_summary.", executables.isEmpty());
+//        } finally {
+//            entityManager.close();
+//        }
     }
 }

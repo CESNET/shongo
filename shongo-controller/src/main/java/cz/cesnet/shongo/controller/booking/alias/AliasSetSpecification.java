@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
@@ -73,6 +74,16 @@ public class AliasSetSpecification extends Specification
         clearTechnologies();
         for (AliasSpecification specification : aliasSpecifications) {
             addTechnologies(specification.getTechnologies());
+        }
+    }
+
+    @Override
+    public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
+    {
+        super.updateSpecificationSummary(entityManager, deleteOnly, flush);
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            reservationRequestManager.updateSpecificationSummary(aliasSpecification, deleteOnly);
         }
     }
 

@@ -51,6 +51,9 @@ public class NativeQuery
     public static final String SPECIFICATION_SUMMARY_DELETE = "specification_summary_delete.sql";
     public static final String SPECIFICATION_SUMMARY_INSERT = "specification_summary_insert.sql";
 
+    public static final String EXECUTABLE_SUMMARY_CHECK = "executable_summary_check.sql";
+    public static final String SPECIFICATION_SUMMARY_CHECK = "specification_summary_check.sql";
+
     /**
      * Cached native queries (not targeted for any specific {@link EntityManagerFactory}).
      */

@@ -395,6 +395,16 @@ public class RoomSpecification extends Specification
     }
 
     @Override
+    public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
+    {
+        super.updateSpecificationSummary(entityManager, deleteOnly, flush);
+        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            reservationRequestManager.updateSpecificationSummary(serviceSpecification, deleteOnly);
+        }
+    }
+
+    @Override
     public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         RoomSpecification roomSpecification = (RoomSpecification) specification;
