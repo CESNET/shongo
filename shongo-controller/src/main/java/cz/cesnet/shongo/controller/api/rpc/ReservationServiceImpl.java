@@ -1237,7 +1237,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String query = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_LIST, parameters);
 
             ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
-
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
                 ReservationRequestSummary reservationRequestSummary = getReservationRequestSummary(record);
@@ -1409,6 +1408,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(objectId.getPersistenceId());
 
+            DateTime timeTTTTtime = DateTime.now();
+
             if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
             }
@@ -1416,14 +1417,34 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String historyQuery = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_HISTORY);
 
             List history = entityManager.createNativeQuery(historyQuery)
-                    .setParameter("reservationRequestId", objectId.getPersistenceId())
+                    .setParameter("allocationId", reservationRequest.getAllocation().getId())
                     .getResultList();
 
-            List<ReservationRequestSummary> reservationRequestSummaries = new LinkedList<ReservationRequestSummary>();
+            System.out.println("LIST: " + DateTime.now().minus(timeTTTTtime.getMillis()).getMillis() + " ms");
+
+            List<ReservationRequestSummary> reservationRequestSummaries = new LinkedList<>();
+            ReservationRequestSummary deletedReservationRequestSummary = null;
             for (Object historyItem : history) {
                 Object[] historyItemData = (Object[]) historyItem;
-                ReservationRequestSummary reservationRequestSummary = getReservationRequestSummary(historyItemData);
+                ReservationRequestSummary reservationRequestSummary = getReservationRequestHistory(historyItemData);
                 reservationRequestSummaries.add(reservationRequestSummary);
+
+                // Add last request as deleted to the list one more time if exists
+                if (historyItemData[22] != null) {
+                    AbstractReservationRequest.State state = AbstractReservationRequest.State.valueOf((String) historyItemData[22]);
+                    if (AbstractReservationRequest.State.DELETED == state) {
+                        if (deletedReservationRequestSummary != null) {
+                            throw new TodoImplementException("Multiple deleted requests in history.");
+                        }
+                        deletedReservationRequestSummary = getReservationRequestHistory(historyItemData);
+                        deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
+                        deletedReservationRequestSummary.setAllocationState(null);
+                        deletedReservationRequestSummary.setExecutableState(null);
+                    }
+                }
+            }
+            if (deletedReservationRequestSummary != null) {
+                reservationRequestSummaries.add(deletedReservationRequestSummary);
             }
 
             return reservationRequestSummaries;
@@ -1871,8 +1892,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     /**
+     * For record's params see {@link NativeQuery#RESERVATION_REQUEST_LIST}
+     *
      * @param record
-     * @return {@link ReservationRequestSummary} from given {@code record}
+     * @return {@link ReservationRequestSummary} from given {@code record} of current reservation request
      */
     private ReservationRequestSummary getReservationRequestSummary(Object[] record)
     {
@@ -1940,15 +1963,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         ObjectType.RESOURCE, ((Number) record[19]).longValue()));
             }
             else {
-                // Only for current reservation request
-                //TODO: verify - needed for history???
-                if (record.length >= 25) {
-                    if (record[24] != null && record[23] != null) {
-                        String domainName = record[24].toString();
-                        Long resourceId = ((Number) record[23]).longValue();
-                    String foreignResourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId);
-                    reservationRequestSummary.setResourceId(foreignResourceId);
-                    }
+                if (record[24] != null && record[23] != null) {
+                    String domainName = record[24].toString();
+                    Long resourceId = ((Number) record[23]).longValue();
+                String foreignResourceId = ObjectIdentifier.formatId(domainName, ObjectType.RESOURCE, resourceId);
+                reservationRequestSummary.setResourceId(foreignResourceId);
                 }
             }
         }
@@ -1971,10 +1990,102 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[21] != null) {
             reservationRequestSummary.setFutureSlotCount(((Number) record[21]).intValue());
         }
-        if (record.length >= 26) {
-            if (record[25] != null) {
-                reservationRequestSummary.setAllowCache((Boolean) record[25]);
+        if (record[25] != null) {
+            reservationRequestSummary.setAllowCache((Boolean) record[25]);
+        }
+        return reservationRequestSummary;
+    }
+
+    /**
+     * For record's params see {@link NativeQuery#RESERVATION_REQUEST_HISTORY}.
+     *
+     * @param record
+     * @return {@link ReservationRequestSummary} from given {@code record} of reservation request history
+     */
+    private ReservationRequestSummary getReservationRequestHistory(Object[] record)
+    {
+        ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
+        reservationRequestSummary.setId(ObjectIdentifier.formatId(
+                ObjectType.RESERVATION_REQUEST, record[0].toString()));
+        if (record[1] != null) {
+            reservationRequestSummary.setParentReservationRequestId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION_REQUEST, record[1].toString()));
+        }
+        reservationRequestSummary.setType(ReservationRequestType.valueOf(record[2].toString().trim()));
+        reservationRequestSummary.setDateTime(new DateTime(record[3]));
+        reservationRequestSummary.setUserId(record[4].toString());
+        reservationRequestSummary.setDescription(record[5] != null ? record[5].toString() : null);
+        reservationRequestSummary.setPurpose(ReservationRequestPurpose.valueOf(record[6].toString().trim()));
+        reservationRequestSummary.setEarliestSlot(new Interval(
+                new DateTime(record[7]), new DateTime(record[8])));
+        if (record[9] != null) {
+            reservationRequestSummary.setAllocationState(
+                    ReservationRequest.AllocationState.valueOf(
+                            record[9].toString().trim()).toApi());
+        }
+        if (record[10] != null) {
+            reservationRequestSummary.setExecutableState(
+                    Executable.State.valueOf(
+                            record[10].toString().trim()).toApi());
+        }
+        reservationRequestSummary.setReusedReservationRequestId(record[11] != null ?
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[11].toString()) : null);
+        if (record[12] != null) {
+            reservationRequestSummary.setLastReservationId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION, record[12].toString()));
+        }
+        String type = record[13].toString().trim();
+        if (type.equals("ALIAS")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ALIAS);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+        }
+        else if (type.equals("ROOM")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
+            reservationRequestSummary.setRoomParticipantCount(
+                    record[15] != null ? ((Number) record[15]).intValue() : null);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
+        }
+        else if (type.equals("PERMANENT_ROOM")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
+        }
+        else if (type.equals("USED_ROOM")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
+            reservationRequestSummary.setRoomParticipantCount(
+                    record[15] != null ? ((Number) record[15]).intValue() : null);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
+        }
+        else if (type.equals("RESOURCE")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
+            if (record[19] != null) {
+                reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
+                        ObjectType.RESOURCE, ((Number) record[19]).longValue()));
             }
+        }
+        else {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
+        }
+        if (record[14] != null) {
+            String technologies = record[14].toString();
+            if (!technologies.isEmpty()) {
+                for (String technology : technologies.split(",")) {
+                    reservationRequestSummary.addSpecificationTechnology(Technology.valueOf(technology.trim()));
+                }
+            }
+        }
+        if (record[20] != null) {
+            reservationRequestSummary.setUsageExecutableState(
+                    cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
+                            record[20].toString().trim()).toApi());
+        }
+        if (record[21] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number) record[21]).intValue());
         }
         return reservationRequestSummary;
     }
