@@ -1426,8 +1426,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             ReservationRequestSummary deletedReservationRequestSummary = null;
             for (Object historyItem : history) {
                 Object[] historyItemData = (Object[]) historyItem;
-                ReservationRequestSummary reservationRequestSummary = getReservationRequestHistory(historyItemData);
-                reservationRequestSummaries.add(reservationRequestSummary);
 
                 // Add last request as deleted to the list one more time if exists
                 if (historyItemData[22] != null) {
@@ -1440,12 +1438,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
                         deletedReservationRequestSummary.setAllocationState(null);
                         deletedReservationRequestSummary.setExecutableState(null);
+                        reservationRequestSummaries.add(deletedReservationRequestSummary);
                     }
                 }
+
+                ReservationRequestSummary reservationRequestSummary = getReservationRequestHistory(historyItemData);
+                reservationRequestSummaries.add(reservationRequestSummary);
             }
-            if (deletedReservationRequestSummary != null) {
-                reservationRequestSummaries.add(deletedReservationRequestSummary);
-            }
+
 
             return reservationRequestSummaries;
         }
