@@ -43,7 +43,7 @@ public class InterDomainTest extends AbstractControllerTest
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, "false");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT, "PT10S");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD, INTERDOMAIN_LOCAL_PASSWORD);
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, "PT10S");
+        System.setProperty(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE, "PT5S");
 
         super.before();
 
@@ -244,14 +244,14 @@ public class InterDomainTest extends AbstractControllerTest
                 Assert.assertTrue("Cache should be initialized by now.", i < 20);
                 i++;
                 System.out.println("Waiting for cache to be initialized ...");
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             }
             System.out.println("Cache was INITIALIZED");
 
             getResourceService().removeDomainResource(SECURITY_TOKEN_ROOT, loopbackDomain.getId(), meetingRoom2Id);
 
             System.out.println("Waiting for cache to be refreshed");
-            Thread.sleep(15000);
+            Thread.sleep(5000);
             System.out.println("Cached shoud be refreshed");
 
             // After cache refresh, it should return only 1 resource for loopback domain
