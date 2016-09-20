@@ -289,8 +289,6 @@ public class MeetingRoomController {
 
         ListResponse<ReservationSummary> response = reservationService.listReservations(request);
 
-        DateTime time = DateTime.now();
-        time = DateTime.now();
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<>();
@@ -329,7 +327,6 @@ public class MeetingRoomController {
             }
             items.add(item);
         }
-        System.out.println("LIST: " + DateTime.now().minus(time.getMillis()).getMillis());
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
