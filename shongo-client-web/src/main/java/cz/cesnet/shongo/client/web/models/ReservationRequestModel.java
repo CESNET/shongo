@@ -966,7 +966,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
                 int dayIndex = (periodicSlot.getStart().getDayOfWeek() == 7 ? 1  : periodicSlot.getStart().getDayOfWeek() + 1);
                 if (startDate == null || startDate.isAfter(periodicSlot.getStart().toLocalDate())) {
-                    start = periodicSlot.getStart().toLocalTime();
+                    start = periodicSlot.getStart().toDateTime(timeZone).toLocalTime();
                     startDate = periodicSlot.getStart().toLocalDate();
                     end = periodicSlot.getStart().plus(duration);
                 }
