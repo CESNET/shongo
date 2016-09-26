@@ -225,7 +225,7 @@
             <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="recordings" ng-controller="TabController" disabled="!((reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomHasRecordings) || (reservationRequest.permanentRoomHasRecordings))"
+            <tab id="recordings" ng-controller="TabController" disabled="!(reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomHasRecordings) && !reservationRequest.permanentRoomHasRecordings"
                  heading="${detailRecordingsTitle}"
                  content-url="${detailRecordingsUrl}">
             </tab>
