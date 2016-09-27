@@ -347,9 +347,9 @@ public class WizardRoomController extends WizardParticipantsController
         // Init of DataBinder for binding results (normally done by Spring MVC)
         DataBinder dataBinder = new DataBinder(reservationRequestModel);
         dataBinder.setConversionService(new DefaultFormattingConversionService());
-        BindingResult errors = dataBinder.getBindingResult();
+        BindingResult bindingResult = dataBinder.getBindingResult();
 
-        return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, errors);
+        return handleRoomAttributesProcess(userSession, securityToken, sessionStatus, false, false, reservationRequestModel, bindingResult);
     }
 
     /**

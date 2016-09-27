@@ -12,9 +12,10 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -230,7 +231,11 @@ public class WizardModifyController extends AbstractWizardController
         WizardView wizardView = getView(Page.RECORDED, "wizardModifyRecorded.jsp", reservationRequestModel);
 
         // Validate recorded
-        BindingResult bindingResult = new BeanPropertyBindingResult(reservationRequestModel, "reservationRequest");
+        // Init of DataBinder for binding results (normally done by Spring MVC)
+        DataBinder dataBinder = new DataBinder(reservationRequestModel);
+        dataBinder.setConversionService(new DefaultFormattingConversionService());
+        BindingResult bindingResult = dataBinder.getBindingResult();
+
         ReservationRequestValidator validator = new ReservationRequestValidator(
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequestModel, bindingResult);
