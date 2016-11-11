@@ -671,6 +671,8 @@ public class Design
                         add(new LinkSeparatorContext());
                         add(new LinkContext("navigation.resourceReservations",
                                 ClientWebUrl.RESOURCE_RESERVATIONS_VIEW));
+                        add(new LinkContext("navigation.resources",
+                                ClientWebUrl.RESOURCE_RESOURCES));
                         // Show reservation request link only when there are some valid resources
                         ResourceListRequest listRequest = new ResourceListRequest(user.securityToken);
                         listRequest.setPermission(ObjectPermission.CONTROL_RESOURCE);

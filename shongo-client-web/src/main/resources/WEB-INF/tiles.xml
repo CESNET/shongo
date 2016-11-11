@@ -156,6 +156,16 @@
         </put-list-attribute>
     </definition>
 
+    <definition name="resourceManagement" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceManagement.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceManagement.jsp" type="template"/>
+    </definition>
+
+    <definition name="resourceAttributes" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceAttributes.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceAttributes.jsp" type="template"/>
+    </definition>
+
     <definition name="detail" extends="layoutAngularForm">
         <put-attribute name="heading" value=""/>
         <put-attribute name="content" value="/WEB-INF/views/detail.jsp" type="template"/>

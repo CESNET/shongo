@@ -9,6 +9,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
+import cz.cesnet.shongo.client.web.models.ResourceModel;
 import cz.cesnet.shongo.client.web.resource.ResourceCapacity;
 import cz.cesnet.shongo.client.web.resource.ResourceCapacityUtilization;
 import cz.cesnet.shongo.client.web.resource.ResourcesUtilization;
@@ -18,6 +19,7 @@ import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -25,12 +27,15 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.*;
+import org.omg.CORBA.Request;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -79,35 +84,7 @@ public class ResourceController
             @RequestParam(value = "tag", required = false) String tag)
             throws ClassNotFoundException
     {
-        ResourceListRequest resourceListRequest = new ResourceListRequest();
-        resourceListRequest.setSecurityToken(securityToken);
-        resourceListRequest.setAllocatable(true);
-        if (capabilityClassName != null) {
-            Class<? extends Capability> capabilityType = ClassHelper.getClassFromShortName(capabilityClassName);
-            resourceListRequest.addCapabilityClass(capabilityType);
-        }
-        if (technology != null) {
-            resourceListRequest.setTechnologies(technology.getTechnologies());
-        }
-        if (tag != null) {
-            resourceListRequest.setTagName(tag);
-        }
-
-        // Filter only reservable resources
-        List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
-        resourceListRequest.setPermission(ObjectPermission.RESERVE_RESOURCE);
-        ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
-        for (ResourceSummary resourceSummary : accessibleResources) {
-            Map<String, Object> resource = new HashMap<String, Object>();
-            resource.put("id", resourceSummary.getId());
-            resource.put("name", resourceSummary.getName());
-            resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
-            resource.put("description", resourceSummary.getDescription());
-            resource.put("domainName", resourceSummary.getDomainName());
-            resource.put("allocatable", resourceSummary.getAllocatable());
-            resources.add(resource);
-        }
-        return resources;
+        return getResourceListData(securityToken, capabilityClassName, technology, tag, ObjectPermission.RESERVE_RESOURCE);
     }
 
     /**
@@ -175,6 +152,32 @@ public class ResourceController
             reservations.add(reservation);
         }
         return reservations;
+    }
+
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_RESOURCES, method = RequestMethod.GET)
+    public ModelAndView handleResourceManagement (SecurityToken securityToken) throws ClassNotFoundException {
+
+        List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, ObjectPermission.READ);
+
+        ModelAndView modelAndView = new ModelAndView("resourceManagement");
+        modelAndView.addObject("readableResources", readableResources);
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_MODIFY, method = RequestMethod.GET)
+    public ModelAndView handleResourceModify (
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId)
+    {
+        ModelAndView modelAndView = new ModelAndView("resourceAttributes");
+
+        Resource resource = resourceService.getResource(securityToken, resourceId);
+/*        ResourceModel resourceModel = new ResourceModel(resource);
+        modelAndView.addObject("resource", resourceModel);*/
+        modelAndView.addObject("resource", resource);
+        return modelAndView;
     }
 
     /**
@@ -414,4 +417,57 @@ public class ResourceController
     {
         reservationService.denyReservationRequest(securityToken, reservationRequestId, reason);
     }
+
+    public List<Map<String, Object>> getResourceListData (
+            SecurityToken securityToken,
+            String capabilityClassName,
+            TechnologyModel technology,
+            String tag,
+            ObjectPermission objectPermission)
+            throws ClassNotFoundException
+    {
+        ResourceListRequest resourceListRequest = new ResourceListRequest();
+        resourceListRequest.setSecurityToken(securityToken);
+        resourceListRequest.setAllocatable(true);
+        if (capabilityClassName != null) {
+            Class<? extends Capability> capabilityType = ClassHelper.getClassFromShortName(capabilityClassName);
+            resourceListRequest.addCapabilityClass(capabilityType);
+        }
+        if (technology != null) {
+            resourceListRequest.setTechnologies(technology.getTechnologies());
+        }
+        if (tag != null) {
+            resourceListRequest.setTagName(tag);
+        }
+        if (objectPermission != null) {
+            resourceListRequest.setPermission(objectPermission);
+        }
+
+
+        List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
+        ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);
+
+        //Get permissions for resources
+        Map<String, Set<ObjectPermission>> permissionsByResourceId =
+                cache.getResourcePermissions(securityToken, accessibleResources.getItems());
+
+        for (ResourceSummary resourceSummary : accessibleResources) {
+            Map<String, Object> resource = new HashMap<String, Object>();
+            String resourceId = resourceSummary.getId();
+            resource.put("id", resourceId);
+            resource.put("name", resourceSummary.getName());
+            resource.put("technology", TechnologyModel.find(resourceSummary.getTechnologies()));
+            resource.put("description", resourceSummary.getDescription());
+            resource.put("domainName", resourceSummary.getDomainName());
+            resource.put("allocatable", resourceSummary.getAllocatable());
+
+            //Set permission for resource
+            Set<ObjectPermission> objectPermissions = permissionsByResourceId.get(resourceId);
+            resource.put("isWritable", objectPermissions.contains(ObjectPermission.WRITE));
+
+            resources.add(resource);
+        }
+        return resources;
+    }
+
 }

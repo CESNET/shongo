@@ -54,6 +54,8 @@ public enum ClientWebNavigation
             "navigation.resourceReservations"),
     RESOURCE_CAPACITY_UTILIZATION(RESOURCE_MANAGEMENT, ClientWebUrl.RESOURCE_CAPACITY_UTILIZATION,
             "navigation.resourceCapacityUtilization"),
+    RESOURCE_RESOURCES(RESOURCE_MANAGEMENT, ClientWebUrl.RESOURCE_RESOURCES,
+            "navigation.resources"),
 
     RESOURCE_RESERVATIONS_CONFIRMATION(HOME, ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION,
                                   "navigation.resourceReservationsConfirmation");

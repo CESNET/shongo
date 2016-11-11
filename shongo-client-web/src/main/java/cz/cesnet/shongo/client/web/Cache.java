@@ -376,6 +376,33 @@ public class Cache
 
     /**
      * @param securityToken
+     * @param resources
+     * @return map of {@link ObjectPermission}s by resource identifier
+     */
+    public Map<String, Set<ObjectPermission>> getResourcePermissions(SecurityToken securityToken,
+                                                                                Collection<ResourceSummary> resources)
+    {
+        Map<String, Set<ObjectPermission>> permissionsByResourceId = new HashMap<String, Set<ObjectPermission>>();
+        Set<String> resourceIds = new HashSet<String>();
+        for (ResourceSummary resource : resources) {
+            String resourceId = resource.getId();
+            Set<ObjectPermission> objectPermissions =
+                    getObjectPermissionsWithoutFetching(securityToken, resourceId);
+            if (objectPermissions != null) {
+                permissionsByResourceId.put(resourceId, objectPermissions);
+            }
+            else {
+                resourceIds.add(resourceId);
+            }
+        }
+        if (resourceIds.size() > 0) {
+            permissionsByResourceId.putAll(fetchObjectPermissions(securityToken, resourceIds));
+        }
+        return permissionsByResourceId;
+    }
+
+    /**
+     * @param securityToken
      * @param reservationRequests
      * @return map of {@link ObjectPermission}s by reservation request identifier
      */
