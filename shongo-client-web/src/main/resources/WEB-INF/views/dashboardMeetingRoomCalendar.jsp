@@ -12,10 +12,14 @@
 </tag:url>
 <%-- Has to be without back-url for form action --%>
 <tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>"/>
-<tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
+<tag:url var="meetingRoomModifyWholeUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
+<%--<tag:url var="meetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">--%>
+    <%--<tag:param name="reservationRequestId" value="{{event.id}}" escape="false"/>--%>
+    <%--<tag:param name="back-url" value="${requestScope.requestUrl}"/>--%>
+<%--</tag:url>--%>
 <tag:url var="meetingRoomDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="reservationRequestId" value="\" + event.requestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -278,7 +282,7 @@
                 actions = "<span class='btn-group pull-right'>";
                 if (event.end.isAfter(moment())) {
                     <%--actions += "<a href='/wizard/" + event.requestId + "/modify?back-url=/' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";--%>
-                    actions += "<a href='${meetingRoomModifyUrl}' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
+                    actions += "<a href='${meetingRoomModifyWholeUrl}' ><b class='fa fa-pencil' title='<spring:message code="views.list.action.modify.title"/>'></b></a> | ";
                 }
                 if (!event.isPeriodic) {
                     actions += "<a href='${meetingRoomDeleteUrl}' ><b class='fa fa-trash-o' title='<spring:message code="views.list.action.delete.title"/>'></b></a>";
