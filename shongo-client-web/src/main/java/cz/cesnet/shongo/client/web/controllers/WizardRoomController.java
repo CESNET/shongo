@@ -720,6 +720,9 @@ public class WizardRoomController extends WizardParticipantsController
 //            if (!Strings.isNullOrEmpty(userRole.getId())) {
 //                continue;
 //            }
+            if (!userRole.isNew()) {
+                continue;
+            }
             userRole.setObjectId(reservationRequestId);
             authorizationService.createAclEntry(securityToken, userRole.toApi());
         }
