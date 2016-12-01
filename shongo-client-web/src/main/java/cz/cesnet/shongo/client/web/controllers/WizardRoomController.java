@@ -717,9 +717,9 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
-            if (!Strings.isNullOrEmpty(userRole.getId())) {
-                continue;
-            }
+//            if (!Strings.isNullOrEmpty(userRole.getId())) {
+//                continue;
+//            }
             userRole.setObjectId(reservationRequestId);
             authorizationService.createAclEntry(securityToken, userRole.toApi());
         }
