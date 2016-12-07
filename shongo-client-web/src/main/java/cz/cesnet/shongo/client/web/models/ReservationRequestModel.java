@@ -1794,4 +1794,22 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 reservationService.listReservationRequests(reservationRequestListRequest);
         return reservationRequests.getItems();
     }
+
+    @Override
+    public String toString()
+    {
+        return "ReservationRequestModel{" +
+                "id='" + id + '\'' +
+                ", description='" + description + '\'' +
+                ", type=" + type +
+                ", dateTime=" + dateTime +
+                ", technology=" + technology +
+                ", start=" + start +
+                ", end=" + end +
+                ", excludeDates=" + excludeDates +
+                ", roomName='" + roomName + '\'' +
+                ", roomResourceId='" + roomResourceId + '\'' +
+                ", meetingRoomResourceId='" + meetingRoomResourceId + '\'' +
+                '}';
+    }
 }

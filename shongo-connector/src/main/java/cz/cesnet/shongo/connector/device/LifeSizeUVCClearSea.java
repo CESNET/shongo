@@ -317,15 +317,16 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
      */
     private JSONObject performRequest(RequestType requestType, String action, JSONObject jsonObject, boolean checkTokenValidity)
             throws CommandException {
-
+        String actionUrl;
         if (connectionState != ConnectionState.DISCONNECTED && checkTokenValidity) {
             checkTokenValidity();
             logger.info("Performing action: " + requestType + ":" + action + " ...");
+            actionUrl = buildURLString(action);
         }
         else {
             logger.info("Performing action: login on server " + this.deviceAddress.getHost() + " ...");
+            actionUrl = buildLoginUrlString(action);
         }
-        String actionUrl = buildURLString(action);
 
         HttpsURLConnection connection;
         try {
@@ -442,17 +443,21 @@ public class LifeSizeUVCClearSea extends AbstractDeviceConnector implements Alia
     }
 
     /**
-     * Forms a URL request. If the connection is disconnected request for a token is made.
-     * Disconnected state is ensured by connect() and by checkTokenValidity() functions.
-     * @param action either request token action or standard action
+     * Forms a URL request with access token.
+     * @param action
      * @return url string
      */
     private String buildURLString(String action) {
-        if (connectionState == ConnectionState.DISCONNECTED) {
-            return baseURL + "/api/v1/access-token/?grant_type=password" + action;
-        } else {
-            return baseURL + API_V2 + action + ACCESS_TOKEN_BASE + accessToken;
-        }
+        return baseURL + API_V2 + action + ACCESS_TOKEN_BASE + accessToken;
+    }
+
+    /**
+     * Forms login URL action with given credentials.
+     * @param credentials in format "&username=<serviceUserID>&password=<serviceUserPassword>"
+     * @return
+     */
+    private String buildLoginUrlString(String credentials) {
+        return baseURL + "/api/v1/access-token/?grant_type=password" + credentials;
     }
 
     /**
