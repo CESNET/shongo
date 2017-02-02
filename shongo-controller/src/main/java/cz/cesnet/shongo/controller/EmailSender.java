@@ -172,6 +172,7 @@ public class EmailSender
             message.setReplyTo(email.replyTo.toArray(new Address[email.replyTo.size()]));
         }
         message.setSubject(subjectPrefix + email.subject, "utf-8");
+        message.addHeader("Precedence","bulk");
 
         // Create content multipart
         MimeMultipart contentMultipart = new MimeMultipart("alternative");
