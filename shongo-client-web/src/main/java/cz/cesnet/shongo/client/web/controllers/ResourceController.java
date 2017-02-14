@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.sun.deploy.util.SessionState;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
@@ -7,6 +8,7 @@ import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWeb;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.models.ResourceModel;
@@ -154,7 +156,6 @@ public class ResourceController
         return reservations;
     }
 
-
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESOURCES, method = RequestMethod.GET)
     public ModelAndView handleResourceManagement (SecurityToken securityToken) throws ClassNotFoundException {
 
@@ -163,20 +164,6 @@ public class ResourceController
         ModelAndView modelAndView = new ModelAndView("resourceManagement");
         modelAndView.addObject("readableResources", readableResources);
 
-        return modelAndView;
-    }
-
-    @RequestMapping(value = ClientWebUrl.RESOURCE_MODIFY, method = RequestMethod.GET)
-    public ModelAndView handleResourceModify (
-            SecurityToken securityToken,
-            @PathVariable(value = "resourceId") String resourceId)
-    {
-        ModelAndView modelAndView = new ModelAndView("resourceAttributes");
-
-        Resource resource = resourceService.getResource(securityToken, resourceId);
-/*        ResourceModel resourceModel = new ResourceModel(resource);
-        modelAndView.addObject("resource", resourceModel);*/
-        modelAndView.addObject("resource", resource);
         return modelAndView;
     }
 
@@ -442,7 +429,6 @@ public class ResourceController
         if (objectPermission != null) {
             resourceListRequest.setPermission(objectPermission);
         }
-
 
         List<Map<String, Object>> resources = new LinkedList<Map<String, Object>>();
         ListResponse<ResourceSummary> accessibleResources = resourceService.listResources(resourceListRequest);

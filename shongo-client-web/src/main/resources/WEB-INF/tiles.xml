@@ -42,6 +42,7 @@
             <add-attribute value="moment.min.js"/>
             <add-attribute value="jquery-select2.min.js"/>
             <add-attribute value="angular-ui-select2.js"/>
+            <add-attribute value="bootstrap-multiselect.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
             <add-attribute value="bootstrap-datetimepicker"/>

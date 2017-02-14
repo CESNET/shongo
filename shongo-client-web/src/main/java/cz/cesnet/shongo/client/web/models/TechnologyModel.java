@@ -66,6 +66,22 @@ public enum TechnologyModel
     }
 
     /**
+     *
+     * @param title for specific technology set
+     * @return  technologies matching specific title
+     */
+    public static Set<Technology> getTechnologies (String title) {
+            if (title != null) {
+                for (TechnologyModel technologyModel : TechnologyModel.values()) {
+                    if (title.equalsIgnoreCase(technologyModel.title)) {
+                        return technologyModel.getTechnologies();
+                    }
+                }
+            }
+        throw new IllegalArgumentException("No constant with title " + title + " found in TechnologyModel");
+    }
+
+    /**
      * @param technologies which must the returned {@link TechnologyModel} contain
      * @return {@link TechnologyModel} which contains all given {@code technologies}
      */

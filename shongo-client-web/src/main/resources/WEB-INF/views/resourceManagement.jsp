@@ -7,12 +7,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_ATTRIBUTES %>"/>
 
-<html>
-<head>
-    <title>Title</title>
-</head>
-<body>
 
         <table class="table table-striped table-hover" ng-show="ready">
             <thead>
@@ -61,6 +57,6 @@
             </tbody>
         </table>
 
-
-</body>
-</html>
+<a class="btn btn-default" href="${resourceCreateUrl}">
+    Create new
+</a>
