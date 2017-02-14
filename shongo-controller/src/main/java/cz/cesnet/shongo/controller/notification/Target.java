@@ -23,6 +23,8 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import org.joda.time.DateTime;
+import org.joda.time.Hours;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -368,9 +370,46 @@ public abstract class Target
                         ReservationManager reservationManager = new ReservationManager(entityManager);
                         List<RoomReservation> roomReservations =
                                 reservationManager.getRoomReservations(roomProviderCapability, slot);
+
+                        DateTime startDate = slot.getStart().hourOfDay().roundFloorCopy();
+                        DateTime endDate = slot.getEnd().hourOfDay().roundCeilingCopy();
+
+                        int hours = Hours.hoursBetween(startDate, endDate).getHours();
+                        short licencesHourly[] = new short[hours];
+
                         for (RoomReservation roomReservation : roomReservations) {
-                            availableLicenseCount -= roomReservation.getLicenseCount();
+                            int startingHour = Hours.hoursBetween(startDate, roomReservation.getSlotStart()).getHours();
+                            int endingHour = Hours.hoursBetween(startDate, roomReservation.getSlotEnd()).getHours();
+                            // do not count another hour if reservation ends on the hour
+                            if(roomReservation.getSlotEnd().getMinuteOfHour() == 0) {
+                                endingHour--;
+                            }
+
+                            //if reservation starts/ends before/after the main reservation set range to border values
+                            if (startingHour < 0) {
+                                startingHour = 0;
+                            }
+                            if (endingHour >= hours) {
+                                endingHour = hours-1;
+                            }
+
+                            for (int i = startingHour; i <= endingHour; i++) {
+                                licencesHourly[i] += roomReservation.getLicenseCount();
+                            }
                         }
+
+                        short maxLicences = 0;
+
+                        for (short n : licencesHourly) {
+                            if (n > maxLicences) {
+                                maxLicences = n;
+                            }
+                            if (maxLicences == availableLicenseCount) {
+                                break;
+                            }
+                        }
+
+                        availableLicenseCount -= maxLicences;
                         return availableLicenseCount;
                     }
                 };
