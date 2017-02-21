@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import com.sun.deploy.util.SessionState;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
