@@ -2,7 +2,6 @@ package cz.cesnet.shongo.client.web.models;
 
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.DeviceResource;
 import cz.cesnet.shongo.controller.api.Resource;
@@ -16,12 +15,15 @@ import java.util.Set;
 /**
  * Created by Marek Perichta.
  */
-public class ResourceModel {
+public class ResourceModel
+{
 
-    public ResourceModel () {
+    public ResourceModel()
+    {
     }
 
-    public ResourceModel(Resource resource) {
+    public ResourceModel(Resource resource)
+    {
         if (resource instanceof DeviceResource) {
             this.setType(ResourceType.DEVICE_RESOURCE);
             DeviceResource deviceResource = (DeviceResource) resource;
@@ -39,30 +41,28 @@ public class ResourceModel {
         this.calendarPublic = resource.isCalendarPublic();
         this.confirmByOwner = resource.isConfirmByOwner();
         if (resource.getMaximumFuture() instanceof Period) {
-            Period maxFuturePeriod = (Period)resource.getMaximumFuture();
+            Period maxFuturePeriod = (Period) resource.getMaximumFuture();
             this.maximumFuture = maxFuturePeriod.getMonths();
         }
     }
 
-    protected String id;
+    private String id;
 
-    protected String name;
+    private String name;
 
-    protected String description;
+    private String description;
 
-    protected ResourceType type;
+    private ResourceType type;
 
-    protected boolean allocatable;
+    private boolean allocatable;
 
-    protected boolean calendarPublic;
+    private boolean calendarPublic;
 
-    protected boolean confirmByOwner;
+    private boolean confirmByOwner;
 
-    protected Integer maximumFuture;
+    private Integer maximumFuture;
 
-    protected List<String> technologies;
-
-    protected String ttype;
+    private List<String> technologies;
 
     public List<String> getTechnologies() {
         return technologies;

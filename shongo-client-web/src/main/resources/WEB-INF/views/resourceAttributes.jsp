@@ -56,7 +56,9 @@
             </form:label>
             <div class="col-xs-4">
                 <form:select cssClass="form-control" ng-model="type" path="type" ng-change="resourceTypeChange()" ng-disabled="id">
-                    <form:options items="${ResourceType.values()}"></form:options>
+                    <c:forEach items="${resourceTypes}" var="resourceType">
+                        <form:option value="${resourceType}"><spring:message code="${resourceType.getCode()}"/></form:option>
+                    </c:forEach>
                 </form:select>
                 <c:if test="${resource.id != null}">
                     <input type="hidden" name="type" value="${resource.type}"/>
@@ -65,7 +67,7 @@
             </div>
         </div>
 
-        <%--Show Id if its set--%>
+        <%--Show Id if it is set--%>
         <c:if test="${not empty resource.id}">
             <div class="form-group">
                 <form:label class="col-xs-3 control-label" path="id">

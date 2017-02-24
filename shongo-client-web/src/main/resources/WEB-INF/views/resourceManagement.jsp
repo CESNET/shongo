@@ -10,53 +10,55 @@
 <tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_ATTRIBUTES %>"/>
 
 
-        <table class="table table-striped table-hover" ng-show="ready">
-            <thead>
+    <table class="table table-striped table-hover" ng-show="ready">
+        <thead>
+        <tr>
+            <th width="200px">
+                <spring:message code="views.resource.name"/>
+            </th>
+            <th width="200px">
+                <spring:message code="views.resource.id"/>
+            </th>
+            <th width="200px">
+                <spring:message code="views.resource.technology"/>
+            </th>
+            <th width="200px">
+                <spring:message code="views.resource.description"/>
+            </th>
+            <th style="min-width: 95px; width: 105px;">
+                <spring:message code="views.list.action"/>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <c:forEach items="${readableResources}" var="resource">
+            <tag:url var="resourceModifyUrl" value="<%= ClientWebUrl.RESOURCE_MODIFY %>">
+                <tag:param name="resourceId" value="${resource.id}" escape="false"/>
+            </tag:url>
             <tr>
-                <th width="200px">
-                    <spring:message code="views.resource.name"/>
-                </th>
-                <th width="200px">
-                    <spring:message code="views.resource.id"/>
-                </th>
-                <th width="200px">
-                    <spring:message code="views.resource.technology"/>
-                </th>
-                <th width="200px">
-                    <spring:message code="views.resource.description"/>
-                </th>
-                <th style="min-width: 95px; width: 105px;">
-                    <spring:message code="views.list.action"/>
-                </th>
+                <td>${resource.get("name")}</td>
+                <td>${resource.get("id")}</td>
+                <td>${resource.get("technology").getTitle()}</td>
+                <td>${resource.get("description")}</td>
+                <td>
+                    <tag:listAction code="show" titleCode="views.resourceManagement.showDetail" url="" tabindex="1"/>
+                    <c:choose>
+                        <c:when test="${resource.isWritable}">
+                            | <tag:listAction code="modify" url="${resourceModifyUrl}" tabindex="2"/>
+                        </c:when>
+                        <c:otherwise>
+                            | <tag:listAction code="modify" disabled="true" tabindex="2"/>
+                        </c:otherwise>
+                    </c:choose>
+
+                </td>
             </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${readableResources}" var="resource">
-                <tag:url var="resourceModifyUrl" value="<%= ClientWebUrl.RESOURCE_MODIFY %>">
-                    <tag:param name="resourceId" value="${resource.id}" escape="false"/>
-                </tag:url>
-                <tr>
-                    <td>${resource.get("name")}</td>
-                    <td>${resource.get("id")}</td>
-                    <td>${resource.get("technology")}</td>
-                    <td>${resource.get("description")}</td>
-                    <td>
-                        <tag:listAction code="show" titleCode="views.resourceManagement.showDetail" url="" tabindex="1"/>
-                        <c:choose>
-                            <c:when test="${resource.isWritable}">
-                                | <tag:listAction code="modify" url="${resourceModifyUrl}" tabindex="2"/>
-                            </c:when>
-                            <c:otherwise>
-                                | <tag:listAction code="modify" disabled="true" tabindex="2"/>
-                            </c:otherwise>
-                        </c:choose>
+        </c:forEach>
+        </tbody>
+    </table>
 
-                    </td>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
+    <hr/>
 
-<a class="btn btn-default" href="${resourceCreateUrl}">
-    Create new
-</a>
+    <a class="btn btn-default" href="${resourceCreateUrl}">
+        <spring:message code="views.resource.add"/>
+    </a>

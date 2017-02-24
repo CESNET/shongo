@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ResourceModel;
+import cz.cesnet.shongo.client.web.models.ResourceType;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.Resource;
@@ -50,7 +51,11 @@ public class ResourceManagementController {
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resourceModel)
     {
+        if (resourceModel.getType() == null) {
+            resourceModel.setType(ResourceType.RESOURCE);
+        }
         ModelAndView modelAndView = new ModelAndView("resourceAttributes");
+        modelAndView.addObject("resourceTypes", ResourceType.values());
         modelAndView.addObject("resource", resourceModel);
 
         return modelAndView;
