@@ -16,6 +16,8 @@
 </c:choose>--%>
 
 <script type="text/javascript">
+
+
     var module = angular.module('jsp:resourceAttributes', []);
     module.controller("ResourceFormController", ['$scope', '$log', function($scope, $log) {
         // Get value or default value if null
@@ -37,9 +39,12 @@
 
     }])
 
-/*    $(document).ready(function() {
-        $('#technologies').multiselect();
-    });*/
+
+   $(document).ready(function() {
+       $('#emailAddresses').select2({
+           tags: true
+       });
+    });
 </script>
 
 <div ng-app="jsp:resourceAttributes">
@@ -147,6 +152,19 @@
             </div>
         </div>
 
+        <%--Administrator emails--%>
+        <%--<div class="form-group">
+            <form:label class="col-xs-3 control-label" path="administratorEmails">
+                <spring:message code="views.resource.administratorEmails"/>:
+            </form:label>
+            <div class="col-xs-3">
+                <c:forEach items="${resource.getAdministratorEmails()}" var="email">
+                    <form:input id="emailAddresses" path="administratorEmails" value="${email}"></form:input>
+                </c:forEach>
+            </div>
+        </div>--%>
+
+        <%--Technologies--%>
         <c:if test="${!(resource.id != null and resource.type == 'RESOURCE') }">
             <div class="form-group" ng-show="isDeviceResource" class="ng-hide">
                 <form:label class="col-xs-3 control-label" path="technologies">
@@ -161,8 +179,6 @@
                 </div>
             </div>
         </c:if>
-
-
 
     </form:form>
 

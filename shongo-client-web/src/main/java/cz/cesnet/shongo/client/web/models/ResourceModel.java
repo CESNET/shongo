@@ -40,6 +40,7 @@ public class ResourceModel
         this.allocatable = resource.getAllocatable();
         this.calendarPublic = resource.isCalendarPublic();
         this.confirmByOwner = resource.isConfirmByOwner();
+        this.administratorEmails = resource.getAdministratorEmails();
         if (resource.getMaximumFuture() instanceof Period) {
             Period maxFuturePeriod = (Period) resource.getMaximumFuture();
             this.maximumFuture = maxFuturePeriod.getMonths();
@@ -63,6 +64,34 @@ public class ResourceModel
     private Integer maximumFuture;
 
     private List<String> technologies;
+
+    private List<String> administratorEmails = new LinkedList<String>();
+
+    private List<Capability> capabilities = new LinkedList<Capability>();
+
+    public List<Capability> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(List<Capability> capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    public void addCapability (Capability capability) {
+        this.capabilities.add(capability);
+    }
+
+    public List<String> getAdministratorEmails() {
+        return administratorEmails;
+    }
+
+    public void setAdministratorEmails(List<String> administratorEmails) {
+        this.administratorEmails = administratorEmails;
+    }
+
+    public void addAdministratorEmail(String administratorEmail) {
+        this.administratorEmails.add(administratorEmail);
+    }
 
     public List<String> getTechnologies() {
         return technologies;
