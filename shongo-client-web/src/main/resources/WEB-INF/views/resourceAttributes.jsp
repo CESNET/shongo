@@ -5,7 +5,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 
-
 <%--<c:choose>
     <c:when test="${not empty resource.id}">
         <h1><spring:message code="views.resource.modify"/></h1>
@@ -19,7 +18,7 @@
 
 
     var module = angular.module('jsp:resourceAttributes', []);
-    module.controller("ResourceFormController", ['$scope', '$log', function($scope, $log) {
+    module.controller("ResourceFormController", ['$scope', '$log', function ($scope, $log) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '' || value == 0) ? defaultValue : value);
@@ -29,7 +28,7 @@
         $scope.isDeviceResource = ${resource.type == "DEVICE_RESOURCE"};
 
 
-        $scope.resourceTypeChange = function() {
+        $scope.resourceTypeChange = function () {
             if ($scope.type == "DEVICE_RESOURCE") {
                 $scope.isDeviceResource = true;
             } else {
@@ -39,11 +38,36 @@
 
     }])
 
+    function validateEmail(email) {
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
 
-   $(document).ready(function() {
-       $('#emailAddresses').select2({
-           tags: true
-       });
+    $(document).ready(function () {
+
+        $("#emailAddresses").select2({
+            tags: [],
+            tokenSeparators: [",", " "],
+            formatNoMatches: function () {
+                return '';
+            },
+            dropdownCssClass: 'select2-hidden',
+            createSearchChoice: function (term, data) {
+                if ($(data).filter(function () {
+                            return this.text.localeCompare(term) === 0;
+                        }).length === 0) {
+                    if (validateEmail(term)) {
+                        return {
+                            id: term,
+                            text: term
+                        };
+                    } else {
+                        return null;
+                    }
+                }
+            },
+        });
+
     });
 </script>
 
@@ -60,9 +84,11 @@
                 <spring:message code="views.resource.type"/>:
             </form:label>
             <div class="col-xs-4">
-                <form:select cssClass="form-control" ng-model="type" path="type" ng-change="resourceTypeChange()" ng-disabled="id">
+                <form:select cssClass="form-control" ng-model="type" path="type" ng-change="resourceTypeChange()"
+                             ng-disabled="id">
                     <c:forEach items="${resourceTypes}" var="resourceType">
-                        <form:option value="${resourceType}"><spring:message code="${resourceType.getCode()}"/></form:option>
+                        <form:option value="${resourceType}"><spring:message
+                                code="${resourceType.getCode()}"/></form:option>
                     </c:forEach>
                 </form:select>
                 <c:if test="${resource.id != null}">
@@ -148,21 +174,20 @@
                 <spring:message code="views.resource.maximumFuture"/>:
             </form:label>
             <div class="col-xs-3">
-                <form:input cssStyle="display:inline; margin-right: 10px;width: 50%;" cssClass="form-control" path="maximumFuture"/><spring:message code="views.period.monthsN"/>
+                <form:input cssStyle="display:inline; margin-right: 10px;width: 50%;" cssClass="form-control"
+                            path="maximumFuture"/><spring:message code="views.period.monthsN"/>
             </div>
         </div>
 
         <%--Administrator emails--%>
-        <%--<div class="form-group">
+        <div class="form-group">
             <form:label class="col-xs-3 control-label" path="administratorEmails">
                 <spring:message code="views.resource.administratorEmails"/>:
             </form:label>
-            <div class="col-xs-3">
-                <c:forEach items="${resource.getAdministratorEmails()}" var="email">
-                    <form:input id="emailAddresses" path="administratorEmails" value="${email}"></form:input>
-                </c:forEach>
+            <div class="col-xs-4">
+                <form:input id="emailAddresses" path="administratorEmails" cssStyle="width: 100%;"/>
             </div>
-        </div>--%>
+        </div>
 
         <%--Technologies--%>
         <c:if test="${!(resource.id != null and resource.type == 'RESOURCE') }">
@@ -171,7 +196,7 @@
                     <spring:message code="views.resource.technology"/>:
                 </form:label>
                 <div class="col-xs-4">
-                    <form:select cssClass="form-control" path="technologies" >
+                    <form:select cssClass="form-control" path="technologies">
                         <c:forEach items="<%=TechnologyModel.values()%>" var="technology">
                             <form:option value="${technology.title}"></form:option>
                         </c:forEach>

@@ -33,7 +33,6 @@ public class ResourceModel
             this.setType(ResourceType.RESOURCE);
         }
 
-
         this.id = resource.getId();
         this.name = resource.getName();
         this.description = resource.getDescription();
@@ -68,6 +67,7 @@ public class ResourceModel
     private List<String> administratorEmails = new LinkedList<String>();
 
     private List<Capability> capabilities = new LinkedList<Capability>();
+
 
     public List<Capability> getCapabilities() {
         return capabilities;
@@ -179,6 +179,9 @@ public class ResourceModel
         res.setDescription(description);
         res.setCalendarPublic(calendarPublic);
         res.setConfirmByOwner(confirmByOwner);
+        for (String email : getAdministratorEmails()) {
+            res.addAdministratorEmail(email);
+        }
 
         Period maxFuturePeriod = new Period().withMonths(maximumFuture);
         res.setMaximumFuture(maxFuturePeriod);

@@ -54,7 +54,6 @@ public class ResourceManagementController {
         if (resourceModel.getType() == null) {
             resourceModel.setType(ResourceType.RESOURCE);
         }
-
         ModelAndView modelAndView = new ModelAndView("resourceAttributes");
         modelAndView.addObject("resourceTypes", ResourceType.values());
         modelAndView.addObject("resource", resourceModel);

@@ -1102,3 +1102,10 @@ div.error {
   border-left-color: #008AEC;
 }
 
+.select2-hidden {
+  display:none !important;
+}
+
+input[type=checkbox] {
+  margin-left: 0px !important;
+}
