@@ -1708,6 +1708,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Check if reservation has set calendar as public and if there is only one resource requested
             if (request.getResourceIds().size() == 1) {
                 String resourceId = request.getResourceIds().iterator().next();
+                if  (isCachedResourceNullOrNotPublicCalnedar(resourceId)) {
+                    //To prevent DoS
+                    return "";
+                }
                 Long persistentResourceId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -1795,7 +1799,48 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), reservation.getId(), reservation.getReservationRequestDescription());
             event.setInterval(reservation.getSlot(), DateTimeZone.getDefault());
         }
+
+
         return iCalendar.toString();
+    }
+
+    @Override
+    public String getCachedResourceReservationsICalendar (ReservationListRequest request) {
+
+        if (request.getResourceIds().size() == 1) {
+            String resourceId = request.getResourceIds().iterator().next();
+            String iCalendarData = cache.getICalReservation(resourceId);
+            if (iCalendarData == null) {
+                if  (isCachedResourceNullOrNotPublicCalnedar(resourceId)) {
+                    //To prevent DoS
+                    return "";
+                }
+
+                iCalendarData = getResourceReservationsICalendar(request);
+                cache.addICalReservation(resourceId, iCalendarData);
+            }
+            return iCalendarData;
+        } else {
+            throw new TodoImplementException("ReservationService.getCachedResourceReservationsICalendar() support just one resource ID.");
+        }
+
+    }
+
+    /**
+     * Check whether resource with given resourceId is cached and it has public calendar.
+     *
+     * @param resourceId
+     * @return
+     */
+    private boolean isCachedResourceNullOrNotPublicCalnedar(String resourceId)
+    {
+        Long persistentId = ObjectIdentifier.parseLocalId(resourceId, ObjectType.RESOURCE);
+        Resource resource = cache.getResourceCache().getObject(persistentId);
+
+        if (resource == null || !resource.isCalendarPublic()) {
+            return true;
+        }
+        return false;
     }
 
     /**

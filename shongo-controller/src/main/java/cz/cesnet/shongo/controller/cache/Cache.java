@@ -27,10 +27,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
+     * iCalendar reservation data for resources with public calendar.
+     */
+    private Map<String,String> iCalReservationsByResourceId = new HashMap<>();
+
+    /**
      * Maximum duration of a {@link cz.cesnet.shongo.controller.booking.room.RoomReservation}.
      */
     private Period roomReservationMaximumDuration;
-
     /**
      * @see ResourceCache
      */
@@ -63,6 +67,27 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         this.resourceCache = new ResourceCache();
         domainCache = new DomainCache();
         this.entityManagerFactory = entityManagerFactory;
+    }
+
+    public void addICalReservation (String resourceId, String iCalendarData)
+    {
+        iCalReservationsByResourceId.put(resourceId, iCalendarData);
+    }
+
+    public String getICalReservation (String resourceId)
+    {
+        return iCalReservationsByResourceId.get(resourceId);
+
+    }
+
+    public void removeICalReservation (String resourceId)
+    {
+        iCalReservationsByResourceId.remove(resourceId);
+    }
+
+    public void refreshICalReservation (String resourceId) {
+        removeICalReservation(resourceId);
+
     }
 
     /**

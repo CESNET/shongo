@@ -346,7 +346,15 @@ public class MeetingRoomController {
     public  void handleReservationRequestListData(
             @PathVariable(value = "objectUriKey") String objectUriKey,
             HttpServletResponse response) throws IOException {
-        String iCalendarData = cache.getICalReservations(objectUriKey);
+        String resourceId = cache.getResourceIdWithUriKey(objectUriKey);
+        if (Strings.isNullOrEmpty(resourceId)) {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return;
+        }
+        ReservationListRequest request = new ReservationListRequest();
+        request.addResourceId(resourceId);
+
+        String iCalendarData = reservationService.getCachedResourceReservationsICalendar(request);
         if (Strings.isNullOrEmpty(iCalendarData)) {
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;

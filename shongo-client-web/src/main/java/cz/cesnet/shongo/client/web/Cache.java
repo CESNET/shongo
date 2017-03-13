@@ -94,12 +94,6 @@ public class Cache
             new ExpirationMap<String, Reservation>();
 
     /**
-     * iCalendar {@link String} reservations data  by resource identifier.
-     */
-    private ExpirationMap<String, String> iCalReservationsByResourceId =
-            new ExpirationMap<String, String>();
-
-    /**
      * Ids of resources with public calendar by their calendarUriKey
      */
     private ExpirationMap<String,String> resourceIdsWithPublicCalendarByUriKey =
@@ -152,7 +146,6 @@ public class Cache
         reservationById.setExpiration(Duration.standardMinutes(5));
         executableById.setExpiration(Duration.standardSeconds(10));
         resourcesUtilizationByToken.setExpiration(Duration.standardMinutes(10));
-        iCalReservationsByResourceId.setExpiration(Duration.standardMinutes(10));
         resourceIdsWithPublicCalendarByUriKey.setExpiration(Duration.standardMinutes(10));
     }
 
@@ -175,7 +168,6 @@ public class Cache
         reservationById.clearExpired(dateTimeNow);
         executableById.clearExpired(dateTimeNow);
         resourcesUtilizationByToken.clearExpired(dateTimeNow);
-        iCalReservationsByResourceId.clearExpired(dateTimeNow);
         resourceIdsWithPublicCalendarByUriKey.clearExpired(dateTimeNow);
     }
 
@@ -703,15 +695,17 @@ public class Cache
     }
 
     /**
-     * Returns iCalendar data of resource reservations by given URI key (MIME: text/calendar).
-     * Data and accessible resource IDs are cached.
+     * Returns resource's ID for given uriKey.
+     * Accessible resource IDs are cached.
      *
      * @param uriKey
      * @return resource's reservations iCalendar text for export
      */
-    public String getICalReservations(String uriKey)
+    public String getResourceIdWithUriKey(String uriKey)
     {
-        //Check if resource really exists first
+
+        resourceIdsWithPublicCalendarByUriKey.clearExpired(DateTime.now());
+        //Check if resource really exists
         if (resourceIdsWithPublicCalendarByUriKey.size() == 0) {
             for (ResourceSummary resourceSummary: resourceService.getResourceIdsWithPublicCalendar()) {
                 resourceIdsWithPublicCalendarByUriKey.put(resourceSummary.getCalendarUriKey(),resourceSummary.getId());
@@ -720,23 +714,7 @@ public class Cache
         if (!resourceIdsWithPublicCalendarByUriKey.contains(uriKey)) {
             return null;
         }
-
-        String resourceId = resourceIdsWithPublicCalendarByUriKey.get(uriKey);
-        String iCalendarData = iCalReservationsByResourceId.get(resourceId);
-        if (iCalendarData == null) {
-            ReservationListRequest request = new ReservationListRequest();
-            request.addResourceId(resourceId);
-            try {
-                iCalendarData = reservationService.getResourceReservationsICalendar(request);
-                iCalReservationsByResourceId.put(resourceId, iCalendarData);
-            } catch (Exception ex) {
-                // If there is an error while getting iCalendar, store empty {@link String} to prevent DoS
-                iCalReservationsByResourceId.put(resourceId, "");
-                logger.warn("Error while getting iCal for resource: " + ex);
-                return "";
-            }
-        }
-        return iCalendarData;
+        return resourceIdsWithPublicCalendarByUriKey.get(uriKey);
     }
 
     /**
