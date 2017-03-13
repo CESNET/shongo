@@ -184,4 +184,12 @@ public interface ReservationService extends Service
      */
     @API
     public String getResourceReservationsICalendar(ReservationListRequest request);
+
+    /**
+     * Returns iCalendar data of reservations for specified resource (MIME: text/calendar).
+     * @param request
+     * @return
+     */
+    @API
+    public String getCachedResourceReservationsICalendar(ReservationListRequest request);
 }
