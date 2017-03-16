@@ -8,6 +8,9 @@ import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.calendar.CalendarManager;
+import cz.cesnet.shongo.controller.calendar.connector.CalDAVConnector;
+import cz.cesnet.shongo.controller.calendar.connector.CalendarConnector;
 import cz.cesnet.shongo.controller.domains.BasicAuthFilter;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.domains.SSLClientCertFilter;
@@ -158,6 +161,10 @@ public class Controller
      */
     private NotificationManager notificationManager = new NotificationManager();
 
+    private CalDAVConnector calendarConnector;
+
+    private CalendarManager calendarManager = new CalendarManager();
+
     /**
      * Constructor.
      *
@@ -241,6 +248,9 @@ public class Controller
         localDomain.setShortName(this.configuration.getString(ControllerConfiguration.DOMAIN_SHORT_NAME));
         localDomain.setOrganization(this.configuration.getString(ControllerConfiguration.DOMAIN_ORGANIZATION));
         LocalDomain.setLocalDomain(localDomain);
+
+        //Create CalDAVConnector
+        this.calendarConnector = new CalDAVConnector(this.configuration);
 
         // Create email sender
         this.emailSender = new EmailSender(this.configuration);
@@ -439,6 +449,11 @@ public class Controller
         return emailSender;
     }
 
+    public CalendarConnector getCalendarConnector()
+    {
+        return calendarConnector;
+    }
+
     /**
      * @return {@link #notificationManager}
      */
@@ -447,12 +462,22 @@ public class Controller
         return notificationManager;
     }
 
+    public CalendarManager getCalendarManager()
+    {
+        return calendarManager;
+    }
+
     /**
      * @param notificationExecutor to be added to the {@link #notificationManager}
      */
     public void addNotificationExecutor(NotificationExecutor notificationExecutor)
     {
         notificationManager.addNotificationExecutor(notificationExecutor);
+    }
+
+    public void addCalendarConnector (CalendarConnector calendarConnector)
+    {
+        calendarManager.addCalendarConnector(calendarConnector);
     }
 
     /**
@@ -479,6 +504,7 @@ public class Controller
 
         // Add common components
         addComponent(notificationManager);
+        addComponent(calendarManager);
 
         // Initialize components
         for (Component component : components) {
@@ -711,7 +737,7 @@ public class Controller
     public void startWorkerThread()
     {
         WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
-                notificationManager, entityManagerFactory);
+                notificationManager, calendarManager, entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(ControllerConfiguration.WORKER_PERIOD));
         workerThread.setLookahead(configuration.getPeriod(ControllerConfiguration.WORKER_LOOKAHEAD));
         addThread(workerThread);
@@ -1030,6 +1056,7 @@ public class Controller
         final Controller controller = Controller.create(configurationFileName);
         ControllerConfiguration configuration = controller.getConfiguration();
         NotificationManager notificationManager = controller.getNotificationManager();
+        CalendarManager calendarManager = controller.getCalendarManager();
 
         // Configure SSL
         ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
@@ -1061,13 +1088,15 @@ public class Controller
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(cache);
         controller.addComponent(preprocessor);
-        Scheduler scheduler = new Scheduler(cache, notificationManager);
+        Scheduler scheduler = new Scheduler(cache, notificationManager, calendarManager);
         controller.addComponent(scheduler);
         Executor executor = new Executor(notificationManager);
         controller.addComponent(executor);
 
         // Add mail notification executor
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender(), configuration));
+
+        controller.addCalendarConnector(controller.getCalendarConnector());
 
         // Initialize Inter Domain agent
         if (configuration.isInterDomainConfigured()) {

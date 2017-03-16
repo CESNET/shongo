@@ -61,7 +61,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             preprocessor.setAuthorization(authorization);
             preprocessor.init();
 
-            scheduler = new Scheduler(getCache(), null);
+            scheduler = new Scheduler(getCache(), null, null);
             scheduler.setAuthorization(authorization);
             scheduler.init();
 

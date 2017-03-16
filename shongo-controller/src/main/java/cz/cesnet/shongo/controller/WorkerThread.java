@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.controller.calendar.CalendarManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
@@ -48,6 +49,8 @@ public class WorkerThread extends Thread
      */
     private NotificationManager notificationManager;
 
+    private CalendarManager calendarManager;
+
     /**
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
@@ -66,7 +69,7 @@ public class WorkerThread extends Thread
      * @param notificationManager  sets the {@link #notificationManager}
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, NotificationManager notificationManager,
+    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, NotificationManager notificationManager, CalendarManager calendarManager,
             EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
@@ -76,6 +79,7 @@ public class WorkerThread extends Thread
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
         this.notificationManager = notificationManager;
+        this.calendarManager = calendarManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -162,6 +166,7 @@ public class WorkerThread extends Thread
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager, bypassEntityManager);
                 notificationManager.executeNotifications(entityManager);
+                calendarManager.sendCalendarNotifications();
 
                 // Clear reporter cache once per hour
                 DateTime clearCacheDateTime = Temporal.nowRoundedToHours();

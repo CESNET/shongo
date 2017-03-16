@@ -241,7 +241,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         preprocessor.setAuthorization(authorization);
         preprocessor.init(controller.getConfiguration());
 
-        scheduler = new Scheduler(cache, controller.getNotificationManager());
+        scheduler = new Scheduler(cache, controller.getNotificationManager(), controller.getCalendarManager());
         scheduler.setAuthorization(authorization);
         scheduler.init(controller.getConfiguration());
 

@@ -21,6 +21,8 @@ import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.calendar.CalendarManager;
+import cz.cesnet.shongo.controller.calendar.ReservationCalendar;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -53,6 +55,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     private NotificationManager notificationManager;
 
     /**
+     * @see CalendarManager
+     */
+    private CalendarManager calendarManager;
+
+    /**
      * @see Authorization
      */
     private Authorization authorization;
@@ -65,10 +72,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
      * @param cache               sets the {@link #cache}
      * @param notificationManager sets the {@link #notificationManager}
      */
-    public Scheduler(Cache cache, NotificationManager notificationManager)
+    public Scheduler(Cache cache, NotificationManager notificationManager, CalendarManager calendarManager)
     {
         this.cache = cache;
         this.notificationManager = notificationManager;
+        this.calendarManager = calendarManager;
     }
 
     @Override
@@ -208,6 +216,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 notificationManager.addNotifications(reservationNotifications, entityManager);
             }
 
+
             // Get all reservation requests which should be allocated
             ReservationRequestQueue reservationRequestQueue = new ReservationRequestQueue();
             reservationRequestQueue.add(reservationRequestManager.listCompletedReservationRequests(interval));
@@ -265,6 +274,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
                     //TODO premazat cache
                     removeModifiedReservationsFromCache();
+
 
                     // Add context notifications
                     if (notificationManager != null) {
@@ -564,6 +574,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             if (previousReservation.getExecutable() != null) {
                 previousReservation.getExecutable().updateExecutableSummary(entityManager, false);
             }
+        }
+
+        if (calendarManager != null) {
+            calendarManager.addCalendar(new ReservationCalendar.New(allocatedReservation, reservationRequest, authorizationManager));
         }
 
         // Create notification
