@@ -11,7 +11,9 @@ import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
 import org.joda.time.Period;
+import org.postgresql.util.Base64;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -91,6 +93,15 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SMTP_PORT = "smtp.port";
     public static final String SMTP_USERNAME = "smtp.username";
     public static final String SMTP_PASSWORD = "smtp.password";
+
+    /**
+     * CalDAV connector configuration.
+     */
+    public static final String CALDAV_SERVER = "caldav-connector.server";
+    public static final String CALDAV_BASIC_AUTH_USERNAME = "caldav-connector.basic-auth.username";
+    public static final String CALDAV_BASIC_AUTH_PASSWORD = "caldav-connector.basic-auth.password";
+
+
 
     /**
      * Period in which the executor works.
@@ -526,5 +537,25 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     public Integer getInterDomainCacheRefreshRate() {
         return getDuration(ControllerConfiguration.INTERDOMAIN_CACHE_REFRESH_RATE).toStandardSeconds().getSeconds();
+    }
+
+    public boolean hasCalDAVBasicAuth()
+    {
+        if (Strings.isNullOrEmpty(getCalDAVEncodedBasicAuth())) {
+            return false;
+        }
+        return true;
+    }
+
+    public String getCalDAVEncodedBasicAuth()
+    {
+        String username = getString(ControllerConfiguration.CALDAV_BASIC_AUTH_USERNAME);
+        String password = getString(ControllerConfiguration.CALDAV_BASIC_AUTH_PASSWORD);
+        if (Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(username)) {
+            return null;
+        }
+        String authString = username + ":" + password;
+        String authStringEnc = Base64.encodeBytes(authString.getBytes(StandardCharsets.UTF_8));
+        return authStringEnc;
     }
 }

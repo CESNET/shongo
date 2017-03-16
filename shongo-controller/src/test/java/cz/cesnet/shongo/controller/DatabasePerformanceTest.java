@@ -96,7 +96,7 @@ public class DatabasePerformanceTest
         preprocessor.setAuthorization(authorization);
         preprocessor.init();
 
-        Scheduler scheduler = new Scheduler(cache, controller.getNotificationManager());
+        Scheduler scheduler = new Scheduler(cache, controller.getNotificationManager(), controller.getCalendarManager());
         scheduler.setAuthorization(authorization);
         scheduler.init();
 
