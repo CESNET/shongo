@@ -166,6 +166,12 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                             InterDomainAgent.getInstance().getConnector().notifyDomain(domain.toApi(), reservationRequestId, message);
                         }
                         //TODO zber ID na refresh cache SWITCH ak je to resourceReservation tak ulozim id pre ostatne TODO not implemented exception (do metody)
+                        //Add deleted reservation to calendarManager
+                        if (calendarManager != null) {
+                            if (reservation instanceof ResourceReservation) {
+                                calendarManager.addCalendar(new ReservationCalendar.Deleted(reservation), entityManager);
+                            }
+                        }
                         recordModifiedReservationId(reservation);
                     } catch (ForeignDomainConnectException e) {
                         // When deallocate of foreign reservation fails, try again next time
@@ -190,6 +196,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
                 //TODO zozbieraj ID
                 recordModifiedReservationId(reservation);
+                if (calendarManager != null) {
+                    if (reservation instanceof ResourceReservation) {
+                        calendarManager.addCalendar(new ReservationCalendar.Deleted(reservation), entityManager);
+                    }
+                }
             }
 
 
@@ -576,8 +587,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
         }
 
+        //Add new reservation to calendarManager
         if (calendarManager != null) {
-            calendarManager.addCalendar(new ReservationCalendar.New(allocatedReservation, reservationRequest, authorizationManager));
+            if (allocatedReservation instanceof ResourceReservation) {
+                calendarManager.addCalendar(new ReservationCalendar.New(allocatedReservation, authorizationManager), entityManager);
+            }
         }
 
         // Create notification
@@ -634,8 +648,17 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         // Remove the old reservation from allocation
         Allocation allocation = reservation.getAllocation();
         allocation.removeReservation(reservation);
+
+        //Add deleted reservation to calendarManager
+        if (calendarManager != null) {
+            if (reservation instanceof ResourceReservation) {
+                calendarManager.addCalendar(new ReservationCalendar.Deleted(reservation), entityManager);
+            }
+        }
         // Delete the old reservation
         schedulerContextState.addReservationToDelete(reservation);
+
+
     }
 
     /**

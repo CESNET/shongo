@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.controller.calendar.connector;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.calendar.ReservationCalendar;
+import cz.cesnet.shongo.controller.util.iCalendar;
+import org.joda.time.DateTimeZone;
 import org.postgresql.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +16,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Created by Marek Perichta on 15.3.2017.
+ * Connector for sending iCalendar notifications to CalDAV server specified in configuration.
+ *
+ * @author Marek Perichta <mperichta@cesnet.cz>
  */
+
 public class CalDAVConnector implements CalendarConnector
 {
 
@@ -21,17 +28,18 @@ public class CalDAVConnector implements CalendarConnector
 
     private final ControllerConfiguration configuration;
 
-    private String calDAVServer;
 
     public CalDAVConnector (ControllerConfiguration configuration) {
 
         this.configuration = configuration;
-        if (!configuration.containsKey(ControllerConfiguration.CALDAV_SERVER)) {
+        if (!configuration.containsKey(ControllerConfiguration.CALDAV_URL)) {
             logger.warn("Cannot initialize CalDAV connector because server configuration is empty.");
             return;
         }
+    }
 
-        this.calDAVServer = configuration.getString(ControllerConfiguration.CALDAV_SERVER);
+    public boolean isInitialized() {
+        return configuration.containsKey(ControllerConfiguration.CALDAV_URL);
     }
 
     protected void processError(HttpsURLConnection connection) throws CalendarServerConnectException
@@ -47,11 +55,12 @@ public class CalDAVConnector implements CalendarConnector
                 case 403:
                     throw new CalendarServerConnectException(actionUrl, "401 Forbidden - " + connection.getResponseMessage());
                 case 404:
-                    throw new CalendarServerConnectException(actionUrl, "404 Not Found - " + connection.getResponseMessage());
+                    //throw new CalendarServerConnectException(actionUrl, "404 Not Found - " + connection.getResponseMessage());
+                    break;
                 case 500:
                     throw new CalendarServerConnectException(actionUrl, "500 Internal Server Error - " + connection.getResponseMessage());
                 default:
-                    if (errorCode > 400) {
+                    if (errorCode > 400 && errorCode != 404) {
                         throw new CalendarServerConnectException(actionUrl, errorCode + " " + connection.getResponseMessage());
                     }
             }
@@ -61,24 +70,30 @@ public class CalDAVConnector implements CalendarConnector
         }
     }
 
-    protected HttpsURLConnection buildConnection (String reservationId) {
+    /**
+     *  Creates connection to CalDAV server.
+     *
+     * @param reservationId component of url
+     * @param calendarName component of url
+     * @return
+     */
+    protected HttpsURLConnection buildConnection (String reservationId, String calendarName) {
         HttpsURLConnection urlConnection = null;
-        String serverUrl = configuration.getString(ControllerConfiguration.CALDAV_SERVER);
-        serverUrl = serverUrl + reservationId + ".ics";
+        String calendarUrl = configuration.getString(ControllerConfiguration.CALDAV_URL);
+        String actionUrl = calendarUrl + "/" + calendarName + "/" + reservationId + ".ics";
 
-
-        logger.debug("Buliding connection to " + serverUrl);
+        //logger.debug("Building connection to " + actionUrl);
         try {
 
             String authStringEnc = null;
             if (configuration.hasCalDAVBasicAuth()) {
                 authStringEnc = configuration.getCalDAVEncodedBasicAuth();
             }
-            URL url = new URL(serverUrl);
+            URL url = new URL(actionUrl);
             urlConnection = (HttpsURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
         } catch (Exception e) {
-            String message = "Failed to get connection for " + serverUrl;
+            String message = "Failed to get connection for " + actionUrl;
             logger.error(message);
             e.printStackTrace();
         }
@@ -86,28 +101,40 @@ public class CalDAVConnector implements CalendarConnector
 
     }
 
-    //TODO should this method be public?
-    public void sendCalendarNotification (ReservationCalendar calendar) {
-        if (!configuration.containsKey(ControllerConfiguration.CALDAV_SERVER)) return;
-        HttpsURLConnection connection = buildConnection(calendar.getReservationId());
-        if (connection == null) return;
-        try {
+    /**
+     * Sends http request to CalDAV server with iCalendar.
+     * @param calendar to be sent
+     */
+    public boolean sendCalendarNotification (ReservationCalendar calendar) {
+        if (Strings.isNullOrEmpty(calendar.getRemoteCalendarName())) {
+            logger.warn("Cannot send calendar notification. Calendar name is not set.");
+            return false ;
+        }
+        HttpsURLConnection connection = buildConnection(calendar.getReservationId(), calendar.getRemoteCalendarName());
 
-            if (calendar.getType().equals("NEW")) {
+        if (connection == null ) {
+            return false;
+        }
+        try {
+            logger.debug("Sending calendar notification of '{}' to calendar '{}'...",
+                    new Object[]{calendar.getReservationId(), calendar.getRemoteCalendarName()});
+
+            if (calendar.getType().equals(ReservationCalendar.Type.NEW)) {
                 connection.setRequestMethod("PUT");
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "text/calendar");
-                String message = calendar.getCalendarString();
+                String message = renderiCalendarString(calendar);
                 connection.getOutputStream().write(message.getBytes());
-                processError(connection);
-
-            } else if (calendar.getType().equals("DELETE")) {
+            } else if (calendar.getType().equals(ReservationCalendar.Type.DELETED)) {
                 connection.setRequestMethod("DELETE");
+                connection.connect();
             }
-
+            processError(connection);
+            return true;
         } catch (Exception e) {
             String message = "Failed to perform request for reservation (" + calendar.getReservationId() + ")";
             logger.error(message, e);
+            return false;
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -115,5 +142,29 @@ public class CalDAVConnector implements CalendarConnector
         }
     }
 
+    /**
+     *
+     * @param calendar to be converted
+     * @return iCalendar string
+     */
+    protected String renderiCalendarString (ReservationCalendar calendar) {
+        switch (calendar.getType()) {
+            case NEW:
+                ReservationCalendar.New newReservationCalendar = (ReservationCalendar.New)calendar;
+                iCalendar iCalendar = new iCalendar();
+
+                cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), newReservationCalendar.getReservationId(), newReservationCalendar.getDescription());
+                event.setInterval(newReservationCalendar.getSlot(), DateTimeZone.getDefault());
+                event.setOrganizer("mailto:" + newReservationCalendar.getOrganizerEmail());
+                event.setOrganizerName(newReservationCalendar.getOrganizerName());
+                event.setLocation(newReservationCalendar.getResourceName());
+                return iCalendar.toString();
+            case DELETED:
+                return "";
+        }
+
+        logger.error("Cannot match calendar type when rendering iCalendar string.");
+        return "";
+    }
 
 }

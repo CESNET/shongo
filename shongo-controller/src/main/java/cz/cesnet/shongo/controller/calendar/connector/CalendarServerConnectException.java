@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.controller.calendar.connector;
 
 /**
- * Created by Marek Perichta on 15.3.2017.
+ *
+ *
+ * @author Marek Perichta <mperichta@cesnet.cz>
  */
+
 public class CalendarServerConnectException extends Exception
 {
     /**

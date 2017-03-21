@@ -79,6 +79,11 @@ public class Resource extends IdentifiedComplexType
     private String calendarUriKey;
 
     /**
+     * Name of calendar on calendar server.
+     */
+    private String remoteCalendarName;
+
+    /**
      * If all reservation request must be first confirmed by owner.
      */
     private boolean confirmByOwner;
@@ -296,6 +301,14 @@ public class Resource extends IdentifiedComplexType
         this.calendarUriKey = calendarUriKey;
     }
 
+    public String getRemoteCalendarName() {
+        return remoteCalendarName;
+    }
+
+    public void setRemoteCalendarName(String remoteCalendarName) {
+        this.remoteCalendarName = remoteCalendarName;
+    }
+
     public static final String USER_ID = "userId";
     public static final String PARENT_RESOURCE_ID = "parentResourceId";
     public static final String NAME = "name";
@@ -308,6 +321,7 @@ public class Resource extends IdentifiedComplexType
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
     public static final String IS_CALENDAR_PUBLIC = "calendarPublic";
     public static final String CALENDAR_URI_KEY = "calendarUriKey";
+    public static final String REMOTE_CALENDAR_NAME = "remoteCalendarName";
     public static final String CONFIRM_BY_OWNER = "confirmByOwner";
 
     @Override
@@ -325,6 +339,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
         dataMap.set(IS_CALENDAR_PUBLIC, calendarPublic);
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
+        dataMap.set(REMOTE_CALENDAR_NAME, remoteCalendarName);
         dataMap.set(CONFIRM_BY_OWNER, confirmByOwner);
 
         if (maximumFuture instanceof DateTime) {
@@ -356,6 +371,7 @@ public class Resource extends IdentifiedComplexType
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
         calendarPublic = dataMap.getBool(IS_CALENDAR_PUBLIC);
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
+        remoteCalendarName = dataMap.getString(REMOTE_CALENDAR_NAME);
         confirmByOwner = dataMap.getBool(CONFIRM_BY_OWNER);
     }
 }

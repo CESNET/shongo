@@ -97,7 +97,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * CalDAV connector configuration.
      */
-    public static final String CALDAV_SERVER = "caldav-connector.server";
+    public static final String CALDAV_URL = "caldav-connector.url";
     public static final String CALDAV_BASIC_AUTH_USERNAME = "caldav-connector.basic-auth.username";
     public static final String CALDAV_BASIC_AUTH_PASSWORD = "caldav-connector.basic-auth.password";
 

@@ -59,6 +59,8 @@ public class ResourceSummary extends IdentifiedComplexType
      */
     private String calendarUriKey;
 
+    private String remoteCalendarName;
+
     /**
      * Name of the resource {@link Domain}, should be null when resource is local.
      */
@@ -212,6 +214,14 @@ public class ResourceSummary extends IdentifiedComplexType
         this.confirmByOowner = confirmByOowner;
     }
 
+    public String getRemoteCalendarName() {
+        return remoteCalendarName;
+    }
+
+    public void setRemoteCalendarName(String remoteCalendarName) {
+        this.remoteCalendarName = remoteCalendarName;
+    }
+
     /**
      * @param allocationOrder sets the {@link #allocationOrder}
      */
@@ -231,6 +241,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String CALENDAR_URI_KEY = "calendarUriKey";
     private static final String DOMAIN_NAME = "domainName";
     private static final String CONFIRM_BY_OWNER = "confirmByOwner";
+    public static final String REMOTE_CALENDAR_NAME = "remoteCalendarName";
 
     @Override
     public DataMap toData()
@@ -247,6 +258,7 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
         dataMap.set(DOMAIN_NAME, domainName);
         dataMap.set(CONFIRM_BY_OWNER, confirmByOowner);
+        dataMap.set(REMOTE_CALENDAR_NAME, remoteCalendarName);
         return dataMap;
     }
 
@@ -265,5 +277,6 @@ public class ResourceSummary extends IdentifiedComplexType
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
         domainName = dataMap.getString(DOMAIN_NAME);
         confirmByOowner = dataMap.getBool(CONFIRM_BY_OWNER);
+        remoteCalendarName = dataMap.getString(REMOTE_CALENDAR_NAME);
     }
 }

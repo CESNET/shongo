@@ -34,6 +34,9 @@ public class DomainCapability //extends IdentifiedComplexType
     @JsonProperty("calendarUriKey")
     private String calendarUriKey;
 
+    @JsonProperty("remoteCalendarName")
+    private String remoteCalendarName;
+
     @JsonProperty("licenseCount")
     private Integer licenseCount;
 
@@ -84,6 +87,14 @@ public class DomainCapability //extends IdentifiedComplexType
     public void setCalendarUriKey(String calendarUriKey)
     {
         this.calendarUriKey = calendarUriKey;
+    }
+
+    public String getRemoteCalendarName() {
+        return remoteCalendarName;
+    }
+
+    public void setRemoteCalendarName(String remoteCalendarName) {
+        this.remoteCalendarName = remoteCalendarName;
     }
 
     public void setLicenseCount(Integer licenseCount)
@@ -183,6 +194,7 @@ public class DomainCapability //extends IdentifiedComplexType
         resourceSummary.setAllocatable(available);
         resourceSummary.setCalendarPublic(calendarPublic);
         resourceSummary.setCalendarUriKey(calendarUriKey);
+        resourceSummary.setRemoteCalendarName(remoteCalendarName);
         resourceSummary.setTechnologies(technologies);
 
         return resourceSummary;
@@ -194,6 +206,7 @@ public class DomainCapability //extends IdentifiedComplexType
         resource.setId(id);
         resource.setName(name);
         resource.setDescription(description);
+        resource.setRemoteCalendarName(remoteCalendarName);
         resource.setAllocatable(available);
         resource.setCalendarPublic(calendarPublic);
         resource.setCalendarUriKey(calendarUriKey);
