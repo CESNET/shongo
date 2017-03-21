@@ -302,6 +302,12 @@ public class iCalendar
             }
         }
 
+        public void setOrganizerName (String name) {
+            ParameterList params = event.getProperty(Property.ORGANIZER).getParameters();
+            removeParameter(params, Parameter.CN);
+            params.add(new Cn(name));
+        }
+
         public void setLocation(String location)
         {
             PropertyList properties = event.getProperties();
@@ -315,6 +321,13 @@ public class iCalendar
         Property property = properties.getProperty(propertyName);
         if (property != null) {
             properties.remove(property);
+        }
+    }
+
+    private static void removeParameter(ParameterList parameters, String parameterName) {
+        Parameter parameter =  parameters.getParameter(parameterName);
+        if (parameter != null) {
+            parameters.remove(parameter);
         }
     }
 

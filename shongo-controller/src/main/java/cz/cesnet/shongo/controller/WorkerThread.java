@@ -166,7 +166,7 @@ public class WorkerThread extends Thread
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager, bypassEntityManager);
                 notificationManager.executeNotifications(entityManager);
-                calendarManager.sendCalendarNotifications();
+                calendarManager.sendCalendarNotifications(entityManager);
 
                 // Clear reporter cache once per hour
                 DateTime clearCacheDateTime = Temporal.nowRoundedToHours();

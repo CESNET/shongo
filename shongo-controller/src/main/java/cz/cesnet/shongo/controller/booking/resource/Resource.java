@@ -105,6 +105,11 @@ public class Resource extends PersistentObject implements ReportableComplex
     private String calendarUriKey;
 
     /**
+     * Name of calendar on calendar server.
+     */
+    private String remoteCalendarName;
+
+    /**
      * Constructor.
      */
     public Resource()
@@ -193,6 +198,15 @@ public class Resource extends PersistentObject implements ReportableComplex
 
     public void setCalendarUriKey(String calendarUriKey) {
         this.calendarUriKey = calendarUriKey;
+    }
+
+    @Column
+    public String getRemoteCalendarName () {
+        return remoteCalendarName;
+    }
+
+    public void setRemoteCalendarName (String calendarName) {
+        this.remoteCalendarName = calendarName;
     }
 
     /**
@@ -514,6 +528,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         resourceApi.setDescription(getDescription());
         resourceApi.setCalendarPublic(isCalendarPublic());
         resourceApi.setCalendarUriKey(getCalendarUriKey());
+        resourceApi.setRemoteCalendarName(getRemoteCalendarName());
         resourceApi.setConfirmByOwner(isConfirmByOwner());
 
         if (maximumFuture != null) {
@@ -571,6 +586,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setAllocationOrder(resourceApi.getAllocationOrder());
         setCalendarPublic(resourceApi.isCalendarPublic());
         setCalendarUriKey(resourceApi.getCalendarUriKey());
+        setRemoteCalendarName(resourceApi.getRemoteCalendarName());
         setConfirmByOwner(resourceApi.isConfirmByOwner());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {

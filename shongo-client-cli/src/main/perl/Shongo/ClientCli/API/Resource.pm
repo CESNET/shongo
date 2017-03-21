@@ -79,6 +79,9 @@ sub new()
         'type' => 'bool',
         'required' => 1
     });
+    $self->add_attribute('remoteCalendarName', {
+        'title' => 'Remote calendar name',
+        });
     $self->add_attribute('childResourceIds', {
         'title' => 'Children',
         'format' => sub {
