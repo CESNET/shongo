@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.calendar;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.calendar.connector.CalendarConnector;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class CalendarManager extends Component {
 
 
     public synchronized void addCalendar(ReservationCalendar calendar, EntityManager entityManager) {
-        //Add only calendar with calendar name set
+        //Add only calendar with calendar name set by Resource
         if (!Strings.isNullOrEmpty(calendar.getRemoteCalendarName())) {
             calendar.checkNotPersisted();
             entityManager.persist(calendar);
@@ -89,6 +90,10 @@ public class CalendarManager extends Component {
             logger.warn("Cannot send '{}' because calendar notifications are disabled.", calendar);
         }
         boolean notificationSuccessful = false;
+
+        if (calendars.size() > 1 ) {
+            throw new TodoImplementException();
+        }
 
         if (enabled) {
 

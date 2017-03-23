@@ -150,11 +150,11 @@ public class CalDAVConnector implements CalendarConnector
     protected String renderiCalendarString (ReservationCalendar calendar) {
         switch (calendar.getType()) {
             case NEW:
-                ReservationCalendar.New newReservationCalendar = (ReservationCalendar.New)calendar;
+                ReservationCalendar.New newReservationCalendar = (ReservationCalendar.New) calendar;
                 iCalendar iCalendar = new iCalendar();
 
                 cz.cesnet.shongo.controller.util.iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), newReservationCalendar.getReservationId(), newReservationCalendar.getDescription());
-                event.setInterval(newReservationCalendar.getSlot(), DateTimeZone.getDefault());
+                event.setInterval(newReservationCalendar.getSlot(), newReservationCalendar.getSlot().getChronology().getZone());
                 event.setOrganizer("mailto:" + newReservationCalendar.getOrganizerEmail());
                 event.setOrganizerName(newReservationCalendar.getOrganizerName());
                 event.setLocation(newReservationCalendar.getResourceName());
