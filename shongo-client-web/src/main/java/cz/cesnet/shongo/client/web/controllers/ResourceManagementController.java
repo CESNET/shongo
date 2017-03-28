@@ -1,21 +1,21 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ResourceModel;
 import cz.cesnet.shongo.client.web.models.ResourceType;
-import cz.cesnet.shongo.client.web.models.TechnologyModel;
-import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+
 
 /**
  * Created by Marek Perichta.
@@ -36,7 +36,9 @@ public class ResourceManagementController {
     public String handleResourceAttributesPost (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resourceModel)
+
     {
+
         if (resourceModel.getId() != null) {
             resourceService.modifyResource(securityToken, resourceModel.toApi());
         } else {
@@ -69,8 +71,26 @@ public class ResourceManagementController {
     {
         Resource resource = resourceService.getResource(securityToken, resourceId);
         ResourceModel resourceModel = new ResourceModel(resource);
+
+
         redirectAttributes.addFlashAttribute("resource", resourceModel);
 
         return "redirect:" + ClientWebUrl.RESOURCE_ATTRIBUTES;
     }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES, method = RequestMethod.GET)
+    public ModelAndView handleResourceCapabilitiesView (
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId
+    )
+    {
+        Resource resource = resourceService.getResource(securityToken, resourceId);
+        List<Capability> capabilities = resource.getCapabilities();
+
+        ModelAndView modelAndView = new ModelAndView("capabilities");
+        modelAndView.addObject("capabilities", capabilities);
+
+        return modelAndView;
+    }
+
 }

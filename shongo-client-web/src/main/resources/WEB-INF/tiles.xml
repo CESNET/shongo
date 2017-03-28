@@ -166,6 +166,11 @@
         <put-attribute name="content" value="/WEB-INF/views/resourceAttributes.jsp" type="template"/>
     </definition>
 
+    <definition name="capabilities" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.capabilities.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/capabilities.jsp" type="template"/>
+    </definition>
+
     <definition name="detail" extends="layoutAngularForm">
         <put-attribute name="heading" value=""/>
         <put-attribute name="content" value="/WEB-INF/views/detail.jsp" type="template"/>

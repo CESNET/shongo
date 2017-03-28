@@ -40,6 +40,7 @@ public class ResourceModel
         this.calendarPublic = resource.isCalendarPublic();
         this.confirmByOwner = resource.isConfirmByOwner();
         this.administratorEmails = resource.getAdministratorEmails();
+        this.capabilities = resource.getCapabilities();
         if (resource.getMaximumFuture() instanceof Period) {
             Period maxFuturePeriod = (Period) resource.getMaximumFuture();
             this.maximumFuture = maxFuturePeriod.getMonths();

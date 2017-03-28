@@ -233,6 +233,8 @@ public class ClientWebUrl
             "/resource/{resourceId:.+}/modify";
     public static final String RESOURCE_ATTRIBUTES =
             "/resource/attributes";
+    public static final String RESOURCE_CAPABILITES =
+            "/resource/{resourceId:.+}/capabilities";
     public static final String RESERVATION_REQUEST_CONFIRMATION =
             "/resource/reservation-request/confirmation";
     public static final String RESERVATION_REQUEST_CONFIRMATION_DATA =

@@ -11,44 +11,44 @@ public enum AliasType
     /**
      * Represents an unique room name.
      */
-    ROOM_NAME(Technology.ALL, AliasValueType.STRING),
+    ROOM_NAME(Technology.ALL, AliasValueType.STRING, "views.AliasType.ROOM_NAME"),
 
     /**
      * @see cz.cesnet.shongo.Technology#H323
      * @see cz.cesnet.shongo.AliasValueType#E164
      */
-    H323_E164(Technology.H323, AliasValueType.E164),
+    H323_E164(Technology.H323, AliasValueType.E164, "views.AliasType.H323_E164"),
 
     /**
      * Represents {@link cz.cesnet.shongo.Technology#H323} URI (like an "<number>@<ip-address>").
      */
-    H323_URI(Technology.H323, AliasValueType.URI),
+    H323_URI(Technology.H323, AliasValueType.URI, "views.AliasType.H323_URI"),
 
     /**
      * Represents {@link cz.cesnet.shongo.Technology#H323} IP (like an "<ip-address> <number>#").
      */
-    H323_IP(Technology.H323, AliasValueType.IP),
+    H323_IP(Technology.H323, AliasValueType.IP, "views.AliasType.H323_IP"),
 
     /**
      * @see cz.cesnet.shongo.Technology#SIP
      * @see cz.cesnet.shongo.AliasValueType#URI
      */
-    SIP_URI(Technology.SIP, AliasValueType.URI),
+    SIP_URI(Technology.SIP, AliasValueType.URI, "views.AliasType.SIP_URI"),
 
     /**
      * Represents {@link cz.cesnet.shongo.Technology#SIP} IP (like an "<ip-address> <number>#").
      */
-    SIP_IP(Technology.H323, AliasValueType.IP),
+    SIP_IP(Technology.H323, AliasValueType.IP, "views.AliasType.SIP_IP"),
 
     /**
      * Represents guest dial string for SW client LifeSize ClearSea
      */
-    CS_DIAL_STRING(Technology.H323, AliasValueType.STRING),
+    CS_DIAL_STRING(Technology.H323, AliasValueType.STRING, "views.AliasType.CS_DIAL_STRING"),
 
     /**
      * Represents room URL for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
      */
-    ADOBE_CONNECT_URI(Technology.ADOBE_CONNECT, AliasValueType.URI);
+    ADOBE_CONNECT_URI(Technology.ADOBE_CONNECT, AliasValueType.URI, "views.AliasType.ADOBE_CONNECT_URI");
 
     /**
      * @see cz.cesnet.shongo.Technology
@@ -60,16 +60,19 @@ public enum AliasType
      */
     private AliasValueType valueType;
 
+    private String name;
+
     /**
      * Constructor.
      *
      * @param technology sets the {@link #technology}
      * @param valueType  sets the {@link #valueType}
      */
-    private AliasType(Technology technology, AliasValueType valueType)
+    private AliasType(Technology technology, AliasValueType valueType, String name)
     {
         this.technology = technology;
         this.valueType = valueType;
+        this.name = name;
     }
 
     /**
@@ -88,6 +91,9 @@ public enum AliasType
         return valueType;
     }
 
+    public String getName() {
+        return name;
+    }
     /**
      * @return {@link AliasValueType#callable} for {@link #valueType}
      */

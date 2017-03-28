@@ -1,8 +1,12 @@
 <%@ page import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITES %>">
+    <tag:param name="resourceId" value="${resource.id}" escape="false"/>
+</tag:url>
 
 
 <%--<c:choose>
@@ -26,6 +30,7 @@
         $scope.id = $scope.value('${resource.id}', null);
         $scope.type = $scope.value('${resource.type}', null);
         $scope.isDeviceResource = ${resource.type == "DEVICE_RESOURCE"};
+        $scope.capabalities = ${capabalities};
 
 
         $scope.resourceTypeChange = function () {
@@ -35,6 +40,8 @@
                 $scope.isDeviceResource = false;
             }
         };
+
+
 
     }])
 
@@ -205,11 +212,18 @@
             </div>
         </c:if>
 
+
+
     </form:form>
+
+
 
 
     <hr/>
     <div>
+        <a class="btn btn-default pull-right" href="${resourceCapabilities}">
+            Spravovat schopnosti
+        </a>
         <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
             <spring:message code="views.resource.save"/>
         </a>

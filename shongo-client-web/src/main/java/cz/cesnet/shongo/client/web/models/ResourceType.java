@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.client.web.models;
 
-import java.util.ResourceBundle;
-
 /**
  * Created by Marek Perichta.
  */
