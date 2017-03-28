@@ -1,8 +1,27 @@
 <%@ page import="cz.cesnet.shongo.controller.FilterType" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 
+<script type="text/javascript">
+    var module = angular.module('jsp:capabilities', []);
+    module.controller("CapabilitiesController", ['$scope', '$log', function ($scope, $log) {
+
+
+
+        $(".submitCapability").bind("click",function() {
+            $('#example').submit();
+        });
+
+
+
+
+    }])
+
+</script>
+
+<div ng-app="jsp:capabilities" ng-controller="CapabilitiesController">
 
 <c:forEach items="${capabilities}" var="capability">
     <div class="bordered" style="float: left;
@@ -67,3 +86,63 @@
     <div class="fc-clear"></div>
 </c:forEach>
 
+    <button class="btn btn-primary" data-toggle="modal" data-target="#largePopup">Open</button>
+
+    <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Popup</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Select which type of capability you want to create.</p>
+                    <div>
+                        <select class="selectpicker" ng-model="addCapabilityType">
+                            <option selected="selected">ValueProviderCapability</option>
+                            <option>RoomProviderCapability</option>
+                            <option>StreamingCapability</option>
+                            <option>TerminalCapability</option>
+                            <option>AliasProviderCapability</option>
+                            <option>RecordingCapability</option>
+                        </select>
+                    </div>
+                    <form:form class="capabilityForm form-horizontal"
+                               modelAttribute="terminalcapability"
+                               method="post"
+                               ng-show="addCapabilityType=='TerminalCapability'">
+                        terminal capa
+                    </form:form>
+                    <form:form class="capabilityForm form-horizontal"
+                               modelAttribute="streamingcapability"
+                               method="post"
+                               ng-show="addCapabilityType=='StreamingCapability'">
+                        streaming capa
+                    </form:form>
+                    <form:form class="capabilityForm form-horizontal"
+                               modelAttribute="recordingcapability"
+                               method="post"
+                               ng-show="addCapabilityType=='RecordingCapability'">
+                        <form:label class="col-xs-3 control-label" path="id">
+                            License count
+                        </form:label>
+                        <div class="col-xs-4">
+                            <form:input cssClass="form-control" path="licenseCount" />
+                        </div>
+                    </form:form>
+
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default" href="javascript: $('.capabilityForm').submit();">
+
+                    </a>
+                    <button type="button" class="btn btn-success">Add</button>
+                    <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <button ng-click="dialogue()">Add capability</button>
+</div>

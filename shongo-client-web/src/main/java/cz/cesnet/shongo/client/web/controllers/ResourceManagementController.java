@@ -4,12 +4,11 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ResourceModel;
 import cz.cesnet.shongo.client.web.models.ResourceType;
-import cz.cesnet.shongo.controller.api.Capability;
-import cz.cesnet.shongo.controller.api.Resource;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -92,5 +91,28 @@ public class ResourceManagementController {
 
         return modelAndView;
     }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES, method = RequestMethod.POST)
+    public String handleResourceAddRecordingCapability (
+            SecurityToken securityToken,
+            @ModelAttribute("recordingcapability") RecordingCapability recordingCapability,
+            @ModelAttribute("terminalcapability") TerminalCapability terminalCapability,
+            @ModelAttribute("streamingcapability") StreamingCapability streamingCapability,
+            BindingResult bindingResult,
+            BindingResult bindingResult1,
+            BindingResult bindingResult2
+    )
+    {
+        if (recordingCapability != null)
+            System.out.println(recordingCapability);
+        if (terminalCapability != null)
+            System.out.println(terminalCapability);
+        if (streamingCapability != null)
+            System.out.println(streamingCapability);
+
+        return "capabilities.jsp";
+
+    }
+
 
 }
