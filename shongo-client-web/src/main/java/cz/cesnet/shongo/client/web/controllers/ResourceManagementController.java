@@ -88,31 +88,50 @@ public class ResourceManagementController {
 
         ModelAndView modelAndView = new ModelAndView("capabilities");
         modelAndView.addObject("capabilities", capabilities);
-
+        modelAndView.addObject("resourceId", resourceId);
         return modelAndView;
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/recording", method = RequestMethod.POST)
     public String handleResourceAddRecordingCapability (
             SecurityToken securityToken,
             @ModelAttribute("recordingcapability") RecordingCapability recordingCapability,
-            @ModelAttribute("terminalcapability") TerminalCapability terminalCapability,
-            @ModelAttribute("streamingcapability") StreamingCapability streamingCapability,
-            BindingResult bindingResult,
-            BindingResult bindingResult1,
-            BindingResult bindingResult2
+            BindingResult bindingResult
     )
     {
         if (recordingCapability != null)
             System.out.println(recordingCapability);
-        if (terminalCapability != null)
-            System.out.println(terminalCapability);
-        if (streamingCapability != null)
-            System.out.println(streamingCapability);
 
-        return "capabilities.jsp";
+        return "capabilities";
 
     }
 
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/terminal", method = RequestMethod.POST)
+    public String handleResourceAddRecordingCapability (
+            SecurityToken securityToken,
+            @ModelAttribute("terminalcapability") TerminalCapability terminalCapability,
+            BindingResult bindingResult
+    )
+    {
+        if (terminalCapability != null)
+            System.out.println(terminalCapability);
 
+        return "capabilities";
+
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/streaming", method = RequestMethod.POST)
+    public String handleResourceAddRecordingCapability (
+            SecurityToken securityToken,
+            @ModelAttribute("streamingcapability") StreamingCapability streamingCapability,
+            BindingResult bindingResult
+            )
+    {
+
+        if (streamingCapability != null)
+            System.out.println(streamingCapability);
+
+        return "capabilities";
+
+    }
 }

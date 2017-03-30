@@ -10,15 +10,11 @@
 
 
 
-        $(".submitCapability").bind("click",function() {
-            $('#example').submit();
-        });
-
-
-
-
     }])
 
+    $("#submitCapability").bind("click",function() {
+        $('#example').submit();
+    });
 </script>
 
 <div ng-app="jsp:capabilities" ng-controller="CapabilitiesController">
@@ -86,7 +82,9 @@
     <div class="fc-clear"></div>
 </c:forEach>
 
-    <button class="btn btn-primary" data-toggle="modal" data-target="#largePopup">Open</button>
+    <hr/>
+
+    <button class="btn btn-primary" data-toggle="modal" data-target="#largePopup">Add capability</button>
 
     <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -99,50 +97,60 @@
                     <p>Select which type of capability you want to create.</p>
                     <div>
                         <select class="selectpicker" ng-model="addCapabilityType">
-                            <option selected="selected">ValueProviderCapability</option>
-                            <option>RoomProviderCapability</option>
-                            <option>StreamingCapability</option>
-                            <option>TerminalCapability</option>
-                            <option>AliasProviderCapability</option>
-                            <option>RecordingCapability</option>
+                            <option value="valueProviderCapabilityForm" selected="selected">ValueProviderCapability</option>
+                            <option value="roomProviderCapabilityForm">RoomProviderCapability</option>
+                            <option value="streamingCapabilityForm">StreamingCapability</option>
+                            <option value="terminalCapabilityForm">TerminalCapability</option>
+                            <option value="aliaspPoviderCapabilityForm">AliasProviderCapability</option>
+                            <option value="recordingCapabilityForm">RecordingCapability</option>
                         </select>
                     </div>
-                    <form:form class="capabilityForm form-horizontal"
+                    <form:form
+                                id="terminalCapabilityForm"
+                                class="form-horizontal"
                                modelAttribute="terminalcapability"
                                method="post"
-                               ng-show="addCapabilityType=='TerminalCapability'">
+                               action="/resource/${resourceId}/capabilities/terminal"
+                               ng-show="addCapabilityType=='terminalCapabilityForm'">
                         terminal capa
                     </form:form>
-                    <form:form class="capabilityForm form-horizontal"
+                    <form:form
+                                id="streamingCapabilityForm"
+                            class="form-horizontal"
                                modelAttribute="streamingcapability"
                                method="post"
-                               ng-show="addCapabilityType=='StreamingCapability'">
+                               action="/resource/${resourceId}/capabilities/streaming"
+                               ng-show="addCapabilityType=='streamingCapabilityForm'">
                         streaming capa
                     </form:form>
-                    <form:form class="capabilityForm form-horizontal"
+                    <form:form
+                                id="recordingCapabilityForm"
+                                class="form-horizontal"
                                modelAttribute="recordingcapability"
                                method="post"
-                               ng-show="addCapabilityType=='RecordingCapability'">
-                        <form:label class="col-xs-3 control-label" path="id">
-                            License count
-                        </form:label>
-                        <div class="col-xs-4">
-                            <form:input cssClass="form-control" path="licenseCount" />
-                        </div>
+                               action="/resource/${resourceId}/capabilities/recording"
+                               ng-show="addCapabilityType=='recordingCapabilityForm'">
+                        recording capa
+                        <input type="number" name="licenseCount">
+                    </form:form>
+                    <form:form
+                            id="valueProviderCapabilityForm"
+                            class="form-horizontal"
+                            modelAttribute="valueprovidercapability"
+                            method="post"
+                            action="/resource/${resourceId}/capabilities/valueProvider"
+                            ng-show="addCapabilityType=='valueProviderCapabilityForm'">
+                        <h3>Value Provider Capability</h3>
+s
                     </form:form>
 
                 </div>
                 <div class="modal-footer">
-                    <a class="btn btn-default" href="javascript: $('.capabilityForm').submit();">
-
-                    </a>
-                    <button type="button" class="btn btn-success">Add</button>
+                    <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit">Submit</button>
                     <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <button ng-click="dialogue()">Add capability</button>
 </div>
