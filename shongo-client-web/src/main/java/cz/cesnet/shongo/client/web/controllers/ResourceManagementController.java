@@ -1,9 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ResourceModel;
 import cz.cesnet.shongo.client.web.models.ResourceType;
+import cz.cesnet.shongo.client.web.models.ValueProviderCapabilityModel;
+import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
@@ -13,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
 /**
- * Created by Marek Perichta.
+ * @author Marek Perichta <mperichta@cesnet.cz>
  */
 @Controller
 public class ResourceManagementController {
@@ -87,6 +93,9 @@ public class ResourceManagementController {
         List<Capability> capabilities = resource.getCapabilities();
 
         ModelAndView modelAndView = new ModelAndView("capabilities");
+
+
+        modelAndView.addObject("aliasTypes", AliasType.values());
         modelAndView.addObject("capabilities", capabilities);
         modelAndView.addObject("resourceId", resourceId);
         return modelAndView;
@@ -102,8 +111,7 @@ public class ResourceManagementController {
         if (recordingCapability != null)
             System.out.println(recordingCapability);
 
-        return "capabilities";
-
+        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITES;
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/terminal", method = RequestMethod.POST)
@@ -131,6 +139,72 @@ public class ResourceManagementController {
         if (streamingCapability != null)
             System.out.println(streamingCapability);
 
+        return "capabilities";
+
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/valueProvider", method = RequestMethod.POST)
+    public String handleResourceAddValueProviderCapability (
+            SecurityToken securityToken,
+            @ModelAttribute("valueprovidercapability") ValueProviderCapabilityModel valueProviderCapabilityModel,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
+    )
+    {
+        String resourceId = valueProviderCapabilityModel.getOwnerResourceId();
+        if (valueProviderCapabilityModel != null) {
+
+            ValueProviderCapability valueProviderCapability = new ValueProviderCapability();
+            switch (valueProviderCapabilityModel.getValueProviderType()) {
+                case "pattern":
+                    ValueProvider.Pattern patternValueProvider = new ValueProvider.Pattern();
+                    patternValueProvider.setAllowAnyRequestedValue(valueProviderCapabilityModel.getAllowAnyRequestedValue());
+                    //add patterns
+                    for (String pattern : valueProviderCapabilityModel.getPatterns()) {
+                        patternValueProvider.addPattern(pattern);
+                    }
+                    valueProviderCapability.setValueProvider(patternValueProvider);
+                    break;
+
+                case "filtered":
+                    ValueProvider.Filtered filteredValueProvider = new ValueProvider.Filtered();
+                    filteredValueProvider.setValueProvider(valueProviderCapabilityModel.getFilteredResourceId());
+                    filteredValueProvider.setFilterType(FilterType.CONVERT_TO_URL);
+                    valueProviderCapability.setValueProvider(filteredValueProvider);
+                    //TODO finish the filter type
+                    break;
+
+                default:
+                    throw new TodoImplementException();
+
+            }
+
+            //TODO decide how add the capability, but create function for that
+            Resource resource = resourceService.getResource(securityToken, resourceId);
+            resource.addCapability(valueProviderCapability);
+            resourceService.modifyResource(securityToken, resource);
+
+        }
+
+        return "capabilities";
+
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITES + "/roomProvider", method = RequestMethod.POST)
+    public String handleResourceAddRoomProviderCapability (
+            SecurityToken securityToken,
+            @PathVariable(value="resourceId") String resourceId,
+            @ModelAttribute("roomprovidercapability") RoomProviderCapability roomProviderCapability,
+            BindingResult bindingResult
+    )
+    {
+
+
+        if (roomProviderCapability != null) {
+            Resource resource = resourceService.getResource(securityToken, resourceId);
+            resource.addCapability(roomProviderCapability);
+            resourceService.modifyResource(securityToken, resource);
+        }
         return "capabilities";
 
     }

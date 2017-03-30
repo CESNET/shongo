@@ -1,4 +1,5 @@
 <%@ page import="cz.cesnet.shongo.controller.FilterType" %>
+<%@ page import="cz.cesnet.shongo.AliasType" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
@@ -91,20 +92,42 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Popup</h4>
+                    <h4 class="modal-title" id="myModalLabel">Add capability</h4>
                 </div>
                 <div class="modal-body">
-                    <p>Select which type of capability you want to create.</p>
+                    <p>Select which type of capability you want to add.</p>
                     <div>
-                        <select class="selectpicker" ng-model="addCapabilityType">
-                            <option value="valueProviderCapabilityForm" selected="selected">ValueProviderCapability</option>
+                        <select ng-model="addCapabilityType" class="selectpicker">
+                            <option disabled selected value> -- select an option -- </option>
+                            <option value="valueProviderCapabilityForm" selected>ValueProviderCapability</option>
                             <option value="roomProviderCapabilityForm">RoomProviderCapability</option>
                             <option value="streamingCapabilityForm">StreamingCapability</option>
                             <option value="terminalCapabilityForm">TerminalCapability</option>
-                            <option value="aliaspPoviderCapabilityForm">AliasProviderCapability</option>
+                            <option value="aliasProviderCapabilityForm">AliasProviderCapability</option>
                             <option value="recordingCapabilityForm">RecordingCapability</option>
                         </select>
                     </div>
+                    <%-- Room Provider Capability --%>
+                    <form:form
+                            id="roomProviderCapabilityForm"
+                            class="form-horizontal"
+                            modelAttribute="roomprovidercapability"
+                            method="post"
+                            action="/resource/${resourceId}/capabilities/roomProvider"
+                            ng-show="addCapabilityType=='roomProviderCapabilityForm'">
+                        License count:<input type="number" name="licenseCount">
+                        AliasType :
+                        <select name="requiredAliasTypes" multiple="true">
+                        <option disabled selected value> -- select an option -- </option>
+                            <c:forEach items="${aliasTypes}" var="aliasType">
+                                <option >
+                                    <%--<spring:message code="${aliasType.name}"/>--%>${aliasType}
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </form:form>
+
+                    <%-- Terminal Capability --%>
                     <form:form
                                 id="terminalCapabilityForm"
                                 class="form-horizontal"
@@ -112,8 +135,28 @@
                                method="post"
                                action="/resource/${resourceId}/capabilities/terminal"
                                ng-show="addCapabilityType=='terminalCapabilityForm'">
-                        terminal capa
+                        <div ng-init="aliases = [[]];">
+
+                            <div ng-repeat="alias in aliases">
+                                Alias type {{$index+1}}:
+                                <select name="alias[{{$index}}].type">
+                                    <option disabled selected value> -- select an option -- </option>
+                                    <c:forEach items="${aliasTypes}" var="aliasType">
+                                        <option value="${aliasType}">
+                                            <spring:message code="${aliasType.name}"/>
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                                Alias value {{$index+1}}: <input type="text" name="alias[{{$index}}].value">
+                            </div>
+                            <br/>
+                            <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
+                                Add alias</a>
+
+                        </div>
                     </form:form>
+
+                    <%-- Streaming Capability --%>
                     <form:form
                                 id="streamingCapabilityForm"
                             class="form-horizontal"
@@ -121,8 +164,10 @@
                                method="post"
                                action="/resource/${resourceId}/capabilities/streaming"
                                ng-show="addCapabilityType=='streamingCapabilityForm'">
-                        streaming capa
+                        <%-- empty form --%>
                     </form:form>
+
+                    <%-- Recording Capability --%>
                     <form:form
                                 id="recordingCapabilityForm"
                                 class="form-horizontal"
@@ -133,18 +178,47 @@
                         recording capa
                         <input type="number" name="licenseCount">
                     </form:form>
-                    <form:form
-                            id="valueProviderCapabilityForm"
-                            class="form-horizontal"
-                            modelAttribute="valueprovidercapability"
-                            method="post"
-                            action="/resource/${resourceId}/capabilities/valueProvider"
-                            ng-show="addCapabilityType=='valueProviderCapabilityForm'">
-                        <h3>Value Provider Capability</h3>
-s
-                    </form:form>
 
-                </div>
+                    <%-- Value Provider Capability --%>
+                    <div ng-show="addCapabilityType=='valueProviderCapabilityForm'">
+                        <h3>Value Provider Capability</h3>
+                        <form:form
+                                id="valueProviderCapabilityForm"
+                                class="form-horizontal"
+                                modelAttribute="valueprovidercapability"
+                                method="post"
+                                action="/resource/${resourceId}/capabilities/valueProvider">
+
+                            Select type:
+                            <select name="valueProviderType" class="selectpicker" ng-model="addValueProviderType" >
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="pattern">Pattern</option>
+                                <option value="filtered">Filtered</option>
+                            </select>
+
+                            <div ng-show="addValueProviderType=='pattern'">
+                                <input type="checkbox" name="allowAnyRequestedValue"> Allow any requested value<br>
+
+
+                                <div ng-init="patterns = [[]];">
+
+                                    <div ng-repeat="pattern in patterns">
+                                        Pattern {{$index+1}}: <input type="text" name="pattern[{{$index}}]">
+                                    </div>
+                                    <br/>
+                                    <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
+                                        Add pattern</a>
+
+                                </div>
+                            </div>
+
+                            <div ng-show="addValueProviderType=='filtered'">
+                                <input type="text" name="filteredResourceId">
+                            </div>
+                            <input type="hidden" name="ownerResourceId" value="${resourceId}">
+                        </form:form>
+
+                     </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit">Submit</button>
                     <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
@@ -152,5 +226,5 @@ s
             </div>
         </div>
     </div>
-
+    </div>
 </div>
