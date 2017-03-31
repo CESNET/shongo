@@ -2,6 +2,11 @@ package cz.cesnet.shongo.client.web.models;
 
 
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.FilterType;
+import cz.cesnet.shongo.controller.api.ValueProvider;
+import cz.cesnet.shongo.controller.api.ValueProviderCapability;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,5 +76,34 @@ public class ValueProviderCapabilityModel {
     public void setFilteredResourceId(String filteredResourceId)
     {
         this.filteredResourceId = filteredResourceId;
+    }
+
+    public ValueProviderCapability toApi() {
+        ValueProviderCapability valueProviderCapability = new ValueProviderCapability();
+        switch (valueProviderType) {
+            case "pattern":
+                ValueProvider.Pattern patternValueProvider = new ValueProvider.Pattern();
+                patternValueProvider.setAllowAnyRequestedValue(getAllowAnyRequestedValue());
+                //add patterns
+                for (String pattern : getPatterns()) {
+                    patternValueProvider.addPattern(pattern);
+                }
+                valueProviderCapability.setValueProvider(patternValueProvider);
+                break;
+
+            case "filtered":
+                ValueProvider.Filtered filteredValueProvider = new ValueProvider.Filtered();
+                filteredValueProvider.setValueProvider(getFilteredResourceId());
+                filteredValueProvider.setFilterType(FilterType.CONVERT_TO_URL);
+                valueProviderCapability.setValueProvider(filteredValueProvider);
+                //TODO finish the filter type
+                break;
+
+            default:
+                throw new TodoImplementException();
+
+        }
+
+        return valueProviderCapability;
     }
 }

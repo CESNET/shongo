@@ -30,7 +30,6 @@
         $scope.id = $scope.value('${resource.id}', null);
         $scope.type = $scope.value('${resource.type}', null);
         $scope.isDeviceResource = ${resource.type == "DEVICE_RESOURCE"};
-        $scope.capabalities = ${capabalities};
 
 
         $scope.resourceTypeChange = function () {
@@ -55,14 +54,15 @@
         $("#emailAddresses").select2({
             tags: [],
             tokenSeparators: [",", " "],
+            selectOnBlur: true,
             formatNoMatches: function () {
                 return '';
             },
             dropdownCssClass: 'select2-hidden',
             createSearchChoice: function (term, data) {
                 if ($(data).filter(function () {
-                            return this.text.localeCompare(term) === 0;
-                        }).length === 0) {
+                        return this.text.localeCompare(term) === 0;
+                    }).length === 0) {
                     if (validateEmail(term)) {
                         return {
                             id: term,

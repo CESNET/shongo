@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
@@ -15,12 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
 /**
+ *
+ * Controller for managing resource and its capabilities.
+ *
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
 @Controller
@@ -38,8 +37,8 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)
     public String handleResourceAttributesPost (
             SecurityToken securityToken,
-            @ModelAttribute("resource") ResourceModel resourceModel)
-
+            @ModelAttribute("resource") ResourceModel resourceModel
+    )
     {
 
         if (resourceModel.getId() != null) {
@@ -103,12 +102,12 @@ public class ResourceManagementController {
     public String handleResourceAddRecordingCapability (
             SecurityToken securityToken,
             @PathVariable(value="resourceId") String resourceId,
-            @ModelAttribute("recordingcapability") RecordingCapability recordingCapability,
+            @ModelAttribute("recordingcapability") RecordingCapabilityModel recordingCapabilityModel,
             BindingResult bindingResult
     )
     {
         Resource resource = resourceService.getResource(securityToken, resourceId);
-        resource.addCapability(recordingCapability);
+        resource.addCapability(recordingCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource);
 
         return "redirect:/resource/" + resourceId + "/capabilities";
@@ -118,12 +117,12 @@ public class ResourceManagementController {
     public String handleResourceAddTerminalCapability (
             SecurityToken securityToken,
             @PathVariable(value="resourceId") String resourceId,
-            @ModelAttribute("terminalcapability") TerminalCapability terminalCapability,
+            @ModelAttribute("terminalcapability") TerminalCapabilityModel terminalCapabilityModel,
             BindingResult bindingResult
     )
     {
         Resource resource = resourceService.getResource(securityToken, resourceId);
-        resource.addCapability(terminalCapability);
+        resource.addCapability(terminalCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource);
 
         return "redirect:/resource/" + resourceId + "/capabilities";
@@ -134,13 +133,14 @@ public class ResourceManagementController {
     public String handleResourceAddStreamingCapability (
             SecurityToken securityToken,
             @PathVariable(value="resourceId") String resourceId,
-            @ModelAttribute("streamingcapability") StreamingCapability streamingCapability,
+            @ModelAttribute("streamingcapability") StreamingCapabilityModel streamingCapabilityModel,
             BindingResult bindingResult
             )
     {
 
-        if (streamingCapability != null)
-            System.out.println(streamingCapability);
+        Resource resource = resourceService.getResource(securityToken, resourceId);
+        resource.addCapability(streamingCapabilityModel.toApi());
+        resourceService.modifyResource(securityToken, resource);
 
         return "redirect:/resource/" + resourceId + "/capabilities";
 
@@ -155,39 +155,10 @@ public class ResourceManagementController {
             RedirectAttributes redirectAttributes
     )
     {
-        if (valueProviderCapabilityModel != null) {
-
-            ValueProviderCapability valueProviderCapability = new ValueProviderCapability();
-            switch (valueProviderCapabilityModel.getValueProviderType()) {
-                case "pattern":
-                    ValueProvider.Pattern patternValueProvider = new ValueProvider.Pattern();
-                    patternValueProvider.setAllowAnyRequestedValue(valueProviderCapabilityModel.getAllowAnyRequestedValue());
-                    //add patterns
-                    for (String pattern : valueProviderCapabilityModel.getPatterns()) {
-                        patternValueProvider.addPattern(pattern);
-                    }
-                    valueProviderCapability.setValueProvider(patternValueProvider);
-                    break;
-
-                case "filtered":
-                    ValueProvider.Filtered filteredValueProvider = new ValueProvider.Filtered();
-                    filteredValueProvider.setValueProvider(valueProviderCapabilityModel.getFilteredResourceId());
-                    filteredValueProvider.setFilterType(FilterType.CONVERT_TO_URL);
-                    valueProviderCapability.setValueProvider(filteredValueProvider);
-                    //TODO finish the filter type
-                    break;
-
-                default:
-                    throw new TodoImplementException();
-
-            }
-
             //TODO decide how add the capability, but create function for that
             Resource resource = resourceService.getResource(securityToken, resourceId);
-            resource.addCapability(valueProviderCapability);
+            resource.addCapability(valueProviderCapabilityModel.toApi());
             resourceService.modifyResource(securityToken, resource);
-
-        }
 
         return "redirect:/resource/" + resourceId + "/capabilities";
 
@@ -203,21 +174,11 @@ public class ResourceManagementController {
     )
     {
 
-
-        if (roomProviderCapabilityModel != null) {
-            Resource resource = resourceService.getResource(securityToken, resourceId);
-            RoomProviderCapability roomProviderCapability = new RoomProviderCapability();
-            roomProviderCapability.setLicenseCount(roomProviderCapabilityModel.getLicenseCount());
-            for (AliasType aliasType: roomProviderCapabilityModel.getRequiredAliasTypes()) {
-                roomProviderCapability.addRequiredAliasType(aliasType);
-            }
-
-            resource.addCapability(roomProviderCapability);
-            resourceService.modifyResource(securityToken, resource);
-        }
+        Resource resource = resourceService.getResource(securityToken, resourceId);
+        resource.addCapability(roomProviderCapabilityModel.toApi());
+        resourceService.modifyResource(securityToken, resource);
 
         return "redirect:/resource/" + resourceId + "/capabilities";
-
 
     }
 

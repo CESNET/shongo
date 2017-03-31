@@ -183,9 +183,10 @@ public class ResourceModel
         for (String email : getAdministratorEmails()) {
             res.addAdministratorEmail(email);
         }
-
-        Period maxFuturePeriod = new Period().withMonths(maximumFuture);
-        res.setMaximumFuture(maxFuturePeriod);
+        if (maximumFuture != null) {
+            Period maxFuturePeriod = new Period().withMonths(maximumFuture);
+            res.setMaximumFuture(maxFuturePeriod);
+        }
 
         if (this.type == ResourceType.DEVICE_RESOURCE) {
             if (getTechnologies() != null) {
