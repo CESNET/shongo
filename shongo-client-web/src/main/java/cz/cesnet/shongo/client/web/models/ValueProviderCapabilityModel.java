@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class ValueProviderCapabilityModel {
 
-    String valueProviderType;
+    private String valueProviderType;
 
     private List<String> patterns = new LinkedList<String>();
 

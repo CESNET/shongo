@@ -23,6 +23,7 @@
 <c:forEach items="${capabilities}" var="capability">
     <div class="bordered" style="float: left;
     width: 70%;">
+
     <%-- Room Provider Capability --%>
     <c:if test="${capability['class'].simpleName == 'RoomProviderCapability'}">
         <h4>Room Provider Capability</h4>
@@ -79,8 +80,24 @@
             <dd><c:out value="${capability.licenseCount}"/></dd>
         </dl>
     </c:if>
+
+        <%-- Value Provider Capability --%>
+    <c:if test="${capability['class'].simpleName == 'TerminalCapability'}">
+        <h4>Terminal Capability</h4>
+        <dl class="dl-horizontal">
+            <dt><spring:message code="views.capabilities.AliasProvider.aliases"/>:</dt>
+            <c:forEach items="${capability.aliases}" var="alias">
+                <dd>ALIAS(type: <spring:message code="${alias.type.name}"/>, value: <c:out value="${alias.value}"/>)</dd>
+            </c:forEach>
+        </dl>
+
+
+    </c:if>
+
     </div>
     <div class="fc-clear"></div>
+
+
 </c:forEach>
 
     <hr/>
@@ -107,6 +124,7 @@
                             <option value="recordingCapabilityForm">RecordingCapability</option>
                         </select>
                     </div>
+                    <br/>
                     <%-- Room Provider Capability --%>
                     <form:form
                             id="roomProviderCapabilityForm"
@@ -120,8 +138,8 @@
                         <select name="requiredAliasTypes" multiple="true">
                         <option disabled selected value> -- select an option -- </option>
                             <c:forEach items="${aliasTypes}" var="aliasType">
-                                <option >
-                                    <%--<spring:message code="${aliasType.name}"/>--%>${aliasType}
+                                <option value="${aliasType}">
+                                    <spring:message code="${aliasType.name}"/>
                                 </option>
                             </c:forEach>
                         </select>
@@ -139,7 +157,7 @@
 
                             <div ng-repeat="alias in aliases">
                                 Alias type {{$index+1}}:
-                                <select name="alias[{{$index}}].type">
+                                <select name="aliases[{{$index}}].type">
                                     <option disabled selected value> -- select an option -- </option>
                                     <c:forEach items="${aliasTypes}" var="aliasType">
                                         <option value="${aliasType}">
@@ -147,7 +165,7 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                                Alias value {{$index+1}}: <input type="text" name="alias[{{$index}}].value">
+                                Alias value {{$index+1}}: <input type="text" name="aliases[{{$index}}].value">
                             </div>
                             <br/>
                             <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
@@ -165,6 +183,71 @@
                                action="/resource/${resourceId}/capabilities/streaming"
                                ng-show="addCapabilityType=='streamingCapabilityForm'">
                         <%-- empty form --%>
+                    </form:form>
+
+                    <%-- Alias Provider Capability --%>
+                    <form:form
+                            id="aliasProviderCapabilityForm"
+                            class="form-horizontal"
+                            modelAttribute="aliasprovidercapability"
+                            method="post"
+                            action="/resource/${resourceId}/capabilities/aliasProvider"
+                            ng-show="addCapabilityType=='aliasProviderCapabilityForm'">
+                        <h5>Value Provider</h5>
+                            Select type:
+                            <select name="valueProviderType" class="selectpicker" ng-model="addValueProviderType" >
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="resource">Resource</option>
+                                <option value="pattern">Pattern</option>
+                                <option value="filtered">Filtered</option>
+                            </select>
+
+
+                            <div ng-show="addValueProviderType=='resource'" >
+                                Resource id:<input type="text" name="remoteResourceString">
+                            </div>
+                            <div ng-show="addValueProviderType=='pattern'">
+                                <input type="checkbox" name="allowAnyRequestedValue"> Allow any requested value<br>
+                                <div ng-init="patterns = [[]];">
+
+                                    <div ng-repeat="pattern in patterns">
+                                        Pattern {{$index+1}}: <input type="text" name="patterns[{{$index}}]">
+                                    </div>
+                                    <br/>
+                                    <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
+                                        Add pattern</a>
+                                </div>
+                            </div>
+
+                            <div ng-show="addValueProviderType=='filtered'">
+                                Filtered resource id:<input type="text" name="filteredResourceId">
+                            </div>
+
+                        <br/>
+                        <h5>Aliases</h5>
+                            <div ng-init="aliases = [[]];" >
+                                <div ng-repeat="alias in aliases">
+                                    Alias type {{$index+1}}:
+                                    <select name="aliases[{{$index}}].type">
+                                        <option disabled selected value> -- select an option -- </option>
+                                        <c:forEach items="${aliasTypes}" var="aliasType">
+                                            <option value="${aliasType}">
+                                                <spring:message code="${aliasType.name}"/>
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                    Alias value {{$index+1}}: <input type="text" name="aliases[{{$index}}].value">
+                                </div>
+                                <br/>
+                                <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
+                                    Add alias</a>
+                            </div>
+                        <br/>
+                        <div>
+                            Capability restricted to resource: <input type="checkbox" name="restrictedToResource">
+                        </div>
+                        <br/>
+
                     </form:form>
 
                     <%-- Recording Capability --%>
@@ -198,33 +281,30 @@
 
                             <div ng-show="addValueProviderType=='pattern'">
                                 <input type="checkbox" name="allowAnyRequestedValue"> Allow any requested value<br>
-
-
                                 <div ng-init="patterns = [[]];">
 
-                                    <div ng-repeat="pattern in patterns">
-                                        Pattern {{$index+1}}: <input type="text" name="pattern[{{$index}}]">
-                                    </div>
-                                    <br/>
-                                    <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
-                                        Add pattern</a>
+                                   <div ng-repeat="pattern in patterns">
+                                       Pattern {{$index+1}}: <input type="text" name="patterns[{{$index}}]">
+                                   </div>
+                                   <br/>
+                                   <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
+                                       Add pattern</a>
 
-                                </div>
-                            </div>
+                               </div>
+                        </div>
 
-                            <div ng-show="addValueProviderType=='filtered'">
-                                <input type="text" name="filteredResourceId">
-                            </div>
-                            <input type="hidden" name="ownerResourceId" value="${resourceId}">
-                        </form:form>
+                        <div ng-show="addValueProviderType=='filtered'">
+                            <input type="text" name="filteredResourceId">
+                        </div>
+                    </form:form>
 
-                     </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit">Submit</button>
-                    <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
-                </div>
+                 </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit">Submit</button>
+                <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
-    </div>
+</div>
+</div>
 </div>
