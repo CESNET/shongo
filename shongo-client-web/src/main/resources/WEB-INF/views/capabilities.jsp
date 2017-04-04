@@ -16,6 +16,10 @@
     $("#submitCapability").bind("click",function() {
         $('#example').submit();
     });
+
+    $(document).ready(function() {
+        $("#requiredAliasTypes").select2();
+    });
 </script>
 
 <div ng-app="jsp:capabilities" ng-controller="CapabilitiesController">
@@ -104,8 +108,8 @@
 
     <button class="btn btn-primary" data-toggle="modal" data-target="#largePopup">Add capability</button>
 
-    <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -133,16 +137,25 @@
                             method="post"
                             action="/resource/${resourceId}/capabilities/roomProvider"
                             ng-show="addCapabilityType=='roomProviderCapabilityForm'">
-                        License count:<input type="number" name="licenseCount">
-                        AliasType :
-                        <select name="requiredAliasTypes" multiple="true">
-                        <option disabled selected value> -- select an option -- </option>
-                            <c:forEach items="${aliasTypes}" var="aliasType">
-                                <option value="${aliasType}">
-                                    <spring:message code="${aliasType.name}"/>
-                                </option>
-                            </c:forEach>
-                        </select>
+                        <div class="form-group">
+                            <label class="col-xs-3 control-label" for="licenseCount">
+                                License count:
+                            </label>
+                            <input class="col-xs-3" type="text" id="licenseCount" name="licenseCount">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-3 control-label" for="requiredAliasTypes">
+                            Alias types:
+                            </label>
+                            <select class="col-xs-4" style="padding-left:0;" id="requiredAliasTypes" name="requiredAliasTypes" multiple="true">
+                            <option disabled selected value> -- select an option -- </option>
+                                <c:forEach items="${aliasTypes}" var="aliasType">
+                                    <option value="${aliasType}">
+                                        <spring:message code="${aliasType.name}"/>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
                     </form:form>
 
                     <%-- Terminal Capability --%>
@@ -154,10 +167,12 @@
                                action="/resource/${resourceId}/capabilities/terminal"
                                ng-show="addCapabilityType=='terminalCapabilityForm'">
                         <div ng-init="aliases = [[]];">
+                            <div class="form-group" ng-repeat="alias in aliases">
 
-                            <div ng-repeat="alias in aliases">
-                                Alias type {{$index+1}}:
-                                <select name="aliases[{{$index}}].type">
+                                <label class="control-label col-xs-2" for="aliases[0].type">
+                                    Alias type {{$index}}:
+                                </label>
+                                <select class="col-xs-3" name="aliases[{{$index}}].type">
                                     <option disabled selected value> -- select an option -- </option>
                                     <c:forEach items="${aliasTypes}" var="aliasType">
                                         <option value="${aliasType}">
@@ -165,12 +180,14 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                                Alias value {{$index+1}}: <input type="text" name="aliases[{{$index}}].value">
+                                <label class="control-label col-xs-2" for="aliases[0].value">
+                                    Alias value {{$index}}:
+                                </label>
+                                 <input class="col-xs-3" type="text" name="aliases[{{$index}}].value">
                             </div>
                             <br/>
                             <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
                                 Add alias</a>
-
                         </div>
                     </form:form>
 
