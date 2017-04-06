@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class RoomProviderCapabilityModel {
+public class RoomProviderCapabilityModel extends DeviceCapability{
 
     private int licenseCount;
 

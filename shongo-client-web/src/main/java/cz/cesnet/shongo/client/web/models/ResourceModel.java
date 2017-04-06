@@ -180,6 +180,9 @@ public class ResourceModel
         res.setDescription(description);
         res.setCalendarPublic(calendarPublic);
         res.setConfirmByOwner(confirmByOwner);
+        for (Capability capability : getCapabilities()) {
+            res.addCapability(capability);
+        }
         for (String email : getAdministratorEmails()) {
             res.addAdministratorEmail(email);
         }

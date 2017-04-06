@@ -118,7 +118,6 @@
                     <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
-                    | <tag:listAction code="delete" url="${meetingRoomSingleDeleteUrl}" tabindex="3"/>
                     | <input type="checkbox" name="${deleteCheckboxName}" value="{{reservationRequest.id}}"/>
                 </span>
             </td>

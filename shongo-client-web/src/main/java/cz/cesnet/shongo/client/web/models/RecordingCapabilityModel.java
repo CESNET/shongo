@@ -6,7 +6,7 @@ import cz.cesnet.shongo.controller.api.RecordingCapability;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class RecordingCapabilityModel {
+public class RecordingCapabilityModel extends DeviceCapability{
 
     private Integer licenseCount;
 

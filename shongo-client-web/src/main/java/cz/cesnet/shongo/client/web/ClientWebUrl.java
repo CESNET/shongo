@@ -231,10 +231,14 @@ public class ClientWebUrl
             "/resource/resources";
     public static final String RESOURCE_MODIFY =
             "/resource/{resourceId:.+}/modify";
+    public static final String RESOURCE_NEW =
+            "/resource/new";
+    public static final String RESOURCE_SINGLE_DELETE =
+            "/resource/{resourceId:.+}/delete";
     public static final String RESOURCE_ATTRIBUTES =
             "/resource/attributes";
-    public static final String RESOURCE_CAPABILITES =
-            "/resource/{resourceId:.+}/capabilities";
+    public static final String RESOURCE_CAPABILITIES =
+            "/resource/capabilities";
     public static final String RESERVATION_REQUEST_CONFIRMATION =
             "/resource/reservation-request/confirmation";
     public static final String RESERVATION_REQUEST_CONFIRMATION_DATA =

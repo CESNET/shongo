@@ -4,11 +4,11 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITES %>">
-    <tag:param name="resourceId" value="${resource.id}" escape="false"/>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>">
 </tag:url>
 
-
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <%--<c:choose>
     <c:when test="${not empty resource.id}">
         <h1><spring:message code="views.resource.modify"/></h1>
@@ -221,9 +221,11 @@
 
     <hr/>
     <div>
+        <c:if test="${administrationMode}">
         <a class="btn btn-default pull-right" href="${resourceCapabilities}">
             Spravovat schopnosti
         </a>
+        </c:if>
         <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
             <spring:message code="views.resource.save"/>
         </a>

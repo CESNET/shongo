@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class TerminalCapabilityModel {
+public class TerminalCapabilityModel extends DeviceCapability{
 
     private List<Alias> aliases = new LinkedList<Alias>();
 

@@ -122,10 +122,12 @@
                             <option disabled selected value> -- select an option -- </option>
                             <option value="valueProviderCapabilityForm" selected>ValueProviderCapability</option>
                             <option value="aliasProviderCapabilityForm">AliasProviderCapability</option>
-                            <option value="roomProviderCapabilityForm">RoomProviderCapability</option>
-                            <option value="terminalCapabilityForm">TerminalCapability</option>
-                            <option value="recordingCapabilityForm">RecordingCapability</option>
-                            <option value="streamingCapabilityForm">StreamingCapability</option>
+                            <c:if test="${isDeviceResource}">
+                                <option value="roomProviderCapabilityForm">RoomProviderCapability</option>
+                                <option value="terminalCapabilityForm">TerminalCapability</option>
+                                <option value="recordingCapabilityForm">RecordingCapability</option>
+                                <option value="streamingCapabilityForm">StreamingCapability</option>
+                            </c:if>
                         </select>
                     </div>
                     <br/>
@@ -135,7 +137,7 @@
                             class="form-horizontal"
                             modelAttribute="roomprovidercapability"
                             method="post"
-                            action="/resource/${resourceId}/capabilities/roomProvider"
+                            action="/resource/capabilities/roomProvider"
                             ng-show="addCapabilityType=='roomProviderCapabilityForm'">
                         <h3>Room Provider Capability</h3>
 
@@ -170,7 +172,7 @@
                                 class="form-horizontal"
                                modelAttribute="terminalcapability"
                                method="post"
-                               action="/resource/${resourceId}/capabilities/terminal"
+                               action="/resource/capabilities/terminal"
                                ng-show="addCapabilityType=='terminalCapabilityForm'">
                         <h3>Terminal Capability</h3>
 
@@ -208,7 +210,7 @@
                             class="form-horizontal"
                                modelAttribute="streamingcapability"
                                method="post"
-                               action="/resource/${resourceId}/capabilities/streaming"
+                               action="/resource/capabilities/streaming"
                                ng-show="addCapabilityType=='streamingCapabilityForm'">
                         <h3>Streaming Capability</h3>
 
@@ -221,7 +223,7 @@
                             class="form-horizontal"
                             modelAttribute="aliasprovidercapability"
                             method="post"
-                            action="/resource/${resourceId}/capabilities/aliasProvider"
+                            action="/resource/capabilities/aliasProvider"
                             ng-show="addCapabilityType=='aliasProviderCapabilityForm'">
                         <h3>Alias Provider Capability</h3>
 
@@ -339,7 +341,7 @@
                                 class="form-horizontal"
                                modelAttribute="recordingcapability"
                                method="post"
-                               action="/resource/${resourceId}/capabilities/recording"
+                               action="/resource/capabilities/recording"
                                ng-show="addCapabilityType=='recordingCapabilityForm'">
                     <h3>Recording Capability</h3>
 
@@ -359,7 +361,7 @@
                             class="form-horizontal"
                             modelAttribute="valueprovidercapability"
                             method="post"
-                            action="/resource/${resourceId}/capabilities/valueProvider"
+                            action="/resource/capabilities/valueProvider"
                             ng-show="addCapabilityType=='valueProviderCapabilityForm'">
                         <h3>Value Provider Capability</h3>
 

@@ -7,7 +7,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
-<tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_ATTRIBUTES %>"/>
+<tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_NEW %>"/>
 
 
     <table class="table table-striped table-hover" ng-show="ready">
@@ -35,6 +35,9 @@
             <tag:url var="resourceModifyUrl" value="<%= ClientWebUrl.RESOURCE_MODIFY %>">
                 <tag:param name="resourceId" value="${resource.id}" escape="false"/>
             </tag:url>
+            <tag:url var="resourceSingleDeleteUrl" value="<%= ClientWebUrl.RESOURCE_SINGLE_DELETE %>">
+                <tag:param name="resourceId" value="${resource.id}" escape="false"/>
+            </tag:url>
             <tr>
                 <td>${resource.get("name")}</td>
                 <td>${resource.get("id")}</td>
@@ -50,6 +53,7 @@
                             | <tag:listAction code="modify" disabled="true" tabindex="2"/>
                         </c:otherwise>
                     </c:choose>
+                    | <tag:listAction code="delete" url="${resourceSingleDeleteUrl}" tabindex="3"/>
 
                 </td>
             </tr>

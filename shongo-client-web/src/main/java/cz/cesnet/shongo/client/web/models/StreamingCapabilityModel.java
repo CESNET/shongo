@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.api.StreamingCapability;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class StreamingCapabilityModel {
+public class StreamingCapabilityModel extends DeviceCapability{
 
     public StreamingCapabilityModel() {
     }
