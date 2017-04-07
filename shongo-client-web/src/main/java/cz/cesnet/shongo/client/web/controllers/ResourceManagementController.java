@@ -39,6 +39,17 @@ public class ResourceManagementController {
     @javax.annotation.Resource
     protected Cache cache;
 
+    @RequestMapping(value = ClientWebUrl.RESOURCE_DETAIL, method = RequestMethod.GET)
+    public ModelAndView handleResourceDetailPreview(
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId) {
+        Resource resource = resourceService.getResource(securityToken, resourceId);
+        ResourceModel resourceModel = new ResourceModel(resource);
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject(resourceModel);
+        return modelAndView;
+    }
+
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)
     public String handleResourceAttributesPost (
             SecurityToken securityToken,
@@ -123,7 +134,6 @@ public class ResourceManagementController {
             @ModelAttribute("resource") ResourceModel resource,
             @ModelAttribute("recordingcapability") RecordingCapabilityModel recordingCapabilityModel,
             BindingResult bindingResult) {
-        //Resource resource = resourceService.getResource(securityToken, resourceId);
         resource.addCapability(recordingCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 

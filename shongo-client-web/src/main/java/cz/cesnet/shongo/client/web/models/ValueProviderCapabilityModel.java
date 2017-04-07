@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class ValueProviderCapabilityModel {
+public class ValueProviderCapabilityModel extends DeviceCapability{
 
     private String valueProviderType;
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
-public class AliasProviderCapabilityModel {
+public class AliasProviderCapabilityModel extends DeviceCapability {
 
     private String valueProviderType;
 

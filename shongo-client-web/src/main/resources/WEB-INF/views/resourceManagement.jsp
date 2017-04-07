@@ -32,6 +32,9 @@
         </thead>
         <tbody>
         <c:forEach items="${readableResources}" var="resource">
+            <tag:url var="resourceShowDetail" value="<%= ClientWebUrl.RESOURCE_DETAIL %>">
+                <tag:param name="resourceId" value="${resource.id}" escape="false"/>
+            </tag:url>
             <tag:url var="resourceModifyUrl" value="<%= ClientWebUrl.RESOURCE_MODIFY %>">
                 <tag:param name="resourceId" value="${resource.id}" escape="false"/>
             </tag:url>
@@ -44,7 +47,7 @@
                 <td>${resource.get("technology").getTitle()}</td>
                 <td>${resource.get("description")}</td>
                 <td>
-                    <tag:listAction code="show" titleCode="views.resourceManagement.showDetail" url="" tabindex="1"/>
+                    <tag:listAction code="show" titleCode="views.resourceManagement.showDetail" url="${resourceShowDetail}" tabindex="1"/>
                     <c:choose>
                         <c:when test="${resource.isWritable}">
                             | <tag:listAction code="modify" url="${resourceModifyUrl}" tabindex="2"/>

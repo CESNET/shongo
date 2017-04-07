@@ -233,6 +233,8 @@ public class ClientWebUrl
             "/resource/{resourceId:.+}/modify";
     public static final String RESOURCE_NEW =
             "/resource/new";
+    public static final String RESOURCE_DETAIL =
+            "/resource/{resourceId:.+}/detail";
     public static final String RESOURCE_SINGLE_DELETE =
             "/resource/{resourceId:.+}/delete";
     public static final String RESOURCE_ATTRIBUTES =
