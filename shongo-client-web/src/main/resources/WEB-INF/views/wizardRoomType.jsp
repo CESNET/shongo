@@ -18,11 +18,16 @@
 <div class="jspWizardRoomType">
     <div class="actions">
         <span><spring:message code="views.wizard.room.type"/></span>
-        <ul>
+        <ul style="list-style-type:none; padding-right: 40px;">
             <li>
                 <a href="${createAdhocRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.adhoc"/></a>
                 <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
-                <table>
+                <ul style="line-height:170%; list-style-type:none; margin: 20px; font-size: .8em;">
+                    <li><i style="color:green" class="fa fa-plus" aria-hidden="true"></i> <spring:message code="views.help.roomType.ADHOC_ROOM.positive"/></li>
+                    <li><i style="color:red" class="fa fa-minus" aria-hidden="true"></i> <spring:message code="views.help.roomType.ADHOC_ROOM.negative1"/></li>
+                    <li><i style="color:red" class="fa fa-minus" aria-hidden="true"></i> <spring:message code="views.help.roomType.ADHOC_ROOM.negative2"/></li>
+                </ul>
+                <%--<table style="margin: 20px; font-size: .8em;">
                     <tr>
                         <td colspan="3">
                             <strong><spring:message code="views.wizard.room.type.adhoc.quick"/>:</strong>
@@ -44,20 +49,29 @@
                                 <td>
                                     <c:forEach var="minutes" items="30,60,120,180">
                                         <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
-                                        <a class="btn btn-default" href="${createAdhocRoomUrl}&technology=${technology}&participantCount=${participantCount}&duration=${duration}&confirm=false"><tag:format value="${duration}"/></a>
+                                        <a class="btn-sm btn-default" href="${createAdhocRoomUrl}&technology=${technology}&participantCount=${participantCount}&duration=${duration}&confirm=false"><tag:format value="${duration}"/></a>
                                     </c:forEach>
                                 </td>
                             </c:forEach>
                         </tr>
                     </c:forEach>
-                </table>
+                </table>--%>
+                <a class="btn btn-success" href="${createAdhocRoomUrl}" tabindex="1"><b><spring:message code="views.wizard.room.attributes.create.ADHOC_ROOM"/></b></a>
             </li>
+            <br/>
             <li>
                 <a href="${createPermanentRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.permanent"/></a>
                 <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
+                <ul style="line-height:170%; list-style-type:none; margin: 20px; font-size: .8em;">
+                    <li><i  style="color:green" class="fa fa-plus" aria-hidden="true"></i> <spring:message code="views.help.roomType.PERMANENT_ROOM.positive1"/></li>
+                    <li><i  style="color:green" class="fa fa-plus" aria-hidden="true"></i> <spring:message code="views.help.roomType.PERMANENT_ROOM.positive2"/></li>
+                    <li><i style="color:red" class="fa fa-minus" aria-hidden="true"></i> <spring:message code="views.help.roomType.PERMANENT_ROOM.negative"/></li>
+                </ul>
+                <a class="btn btn-success" href="${createPermanentRoomUrl}" tabindex="1"><b><spring:message code="views.wizard.room.attributes.create.PERMANENT_ROOM"/></b></a>
             </li>
-            <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">
-                <b><spring:message code="views.help.rooms.display"/></b>
+            <br/>
+            <a  href="${helpUrl}#rooms" target="_blank">
+                <spring:message code="views.help.rooms.display"/>
             </a>
         </ul>
     </div>
