@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.DeviceResource;
@@ -43,7 +44,7 @@ public class ResourceModel
         this.capabilities = resource.getCapabilities();
         if (resource.getMaximumFuture() instanceof Period) {
             Period maxFuturePeriod = (Period) resource.getMaximumFuture();
-            this.maximumFuture = maxFuturePeriod.getMonths();
+            this.maximumFuture = Integer.toString(maxFuturePeriod.getMonths());
         }
     }
 
@@ -61,7 +62,7 @@ public class ResourceModel
 
     private boolean confirmByOwner;
 
-    private Integer maximumFuture;
+    private String maximumFuture;
 
     private List<String> technologies;
 
@@ -106,11 +107,11 @@ public class ResourceModel
         this.technologies = technologies;
     }
 
-    public Integer getMaximumFuture() {
+    public String getMaximumFuture() {
         return maximumFuture;
     }
 
-    public void setMaximumFuture(Integer maximumFuture) {
+    public void setMaximumFuture(String maximumFuture) {
         this.maximumFuture = maximumFuture;
     }
 
@@ -190,8 +191,8 @@ public class ResourceModel
         for (String email : getAdministratorEmails()) {
             res.addAdministratorEmail(email);
         }
-        if (maximumFuture != null) {
-            Period maxFuturePeriod = new Period().withMonths(maximumFuture);
+        if (!Strings.isNullOrEmpty(maximumFuture)) {
+            Period maxFuturePeriod = new Period().withMonths(Integer.parseInt(maximumFuture));
             res.setMaximumFuture(maxFuturePeriod);
         }
 

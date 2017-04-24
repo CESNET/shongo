@@ -85,7 +85,7 @@ public class ResourceController
             @RequestParam(value = "tag", required = false) String tag)
             throws ClassNotFoundException
     {
-        return getResourceListData(securityToken, capabilityClassName, technology, tag, ObjectPermission.RESERVE_RESOURCE);
+        return getResourceListData(securityToken, capabilityClassName, technology, tag, Boolean.TRUE, ObjectPermission.RESERVE_RESOURCE);
     }
 
     /**
@@ -158,7 +158,7 @@ public class ResourceController
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESOURCES, method = RequestMethod.GET)
     public ModelAndView handleResourceManagement (SecurityToken securityToken) throws ClassNotFoundException {
 
-        List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, ObjectPermission.READ);
+        List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, Boolean.FALSE, ObjectPermission.READ);
 
         ModelAndView modelAndView = new ModelAndView("resourceManagement");
         modelAndView.addObject("readableResources", readableResources);
@@ -409,12 +409,13 @@ public class ResourceController
             String capabilityClassName,
             TechnologyModel technology,
             String tag,
+            Boolean allocatable,
             ObjectPermission objectPermission)
             throws ClassNotFoundException
     {
         ResourceListRequest resourceListRequest = new ResourceListRequest();
         resourceListRequest.setSecurityToken(securityToken);
-        resourceListRequest.setAllocatable(true);
+        resourceListRequest.setAllocatable(allocatable);
         if (capabilityClassName != null) {
             Class<? extends Capability> capabilityType = ClassHelper.getClassFromShortName(capabilityClassName);
             resourceListRequest.addCapabilityClass(capabilityType);

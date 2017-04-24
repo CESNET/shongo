@@ -1,12 +1,14 @@
-<%@ page import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
-<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
-<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>">
-</tag:url>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%--<%@attribute name="resource" required="true" type="cz.cesnet.shongo.client.web.models.ResourceModel" %>
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>--%>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>"/>
+
 
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <%--<c:choose>
@@ -21,7 +23,7 @@
 <script type="text/javascript">
 
 
-    var module = angular.module('jsp:resourceAttributes', []);
+    var module = angular.module('jsp:resourceAttributes', ['ngTooltip']);
     module.controller("ResourceFormController", ['$scope', '$log', function ($scope, $log) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
@@ -40,7 +42,9 @@
             }
         };
 
-        $("#technologies").select2();
+        $("#technologies").select2({
+            placeholder: "<spring:message code="views.resource.technologies.placeholder"/>",
+        });
 
     }])
 
@@ -136,7 +140,7 @@
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="description">
                 <spring:message code="views.resource.description" var="descriptionLabel"/>
-                <tag:help cssClass="hasTooltip" label="${descriptionLabel}:"><spring:message code="views.resourceAttributes.descriptionHelp"/></tag:help>
+                <tag:help label="${descriptionLabel}:"><spring:message code="views.resourceAttributes.descriptionHelp"/></tag:help>
             </form:label>
             <div class="col-xs-4">
                 <form:input path="description" cssClass="form-control" cssErrorClass="form-control error"
@@ -194,7 +198,7 @@
                 <spring:message code="views.resource.administratorEmails"/>:
             </form:label>
             <div class="col-xs-4">
-                <form:input id="emailAddresses" path="administratorEmails" cssStyle="width: 100%;"/>
+                <form:input placeholder="example@domain.com" id="emailAddresses" path="administratorEmails" cssStyle="width: 100%;"/>
             </div>
         </div>
 
@@ -206,25 +210,23 @@
                 </form:label>
                 <div class="col-xs-4">
                     <form:select cssClass="form-control" path="technologies">
-                        <c:forEach items="<%=TechnologyModel.values()%>" var="technology">
+
+                        <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
+                        <c:forEach items="<%= TechnologyModel.values() %>" var="technology">
                             <form:option value="${technology.title}"></form:option>
                         </c:forEach>
                     </form:select>
                 </div>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="technologies" cssClass="error"/>
+                </div>
             </div>
         </c:if>
-
-
-
     </form:form>
 
-
-
-
     <hr/>
+
     <div>
-
-
         <c:if test="${administrationMode}">
             <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
                 Spravovat schopnosti

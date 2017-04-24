@@ -64,8 +64,8 @@
         </tbody>
     </table>
 
-    <hr/>
 
-    <a class="btn btn-default pull-right" href="${resourceCreateUrl}">
+
+    <a class="btn btn-default pull-right" style="margin-top: 15px;" href="${resourceCreateUrl}">
         <spring:message code="views.resource.add"/>
     </a>
