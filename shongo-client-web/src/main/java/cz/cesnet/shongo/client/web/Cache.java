@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
+import com.google.common.collect.Sets;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.ExpirationSet;
@@ -22,6 +23,7 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.validation.ObjectError;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -399,6 +401,18 @@ public class Cache
             permissionsByResourceId.putAll(fetchObjectPermissions(securityToken, resourceIds));
         }
         return permissionsByResourceId;
+    }
+
+    public Set<ObjectPermission> getSingleResourcePermissions(SecurityToken securityToken, String resourceId) {
+        Set<ObjectPermission> objectPermissions =
+                getObjectPermissionsWithoutFetching(securityToken, resourceId);
+        if (objectPermissions == null) {
+            Set<ObjectPermission> fetchedPermissions = fetchObjectPermissions(securityToken, Sets.newHashSet(resourceId)).get(resourceId);
+            if (fetchedPermissions.size() != 0) {
+                objectPermissions.addAll(fetchedPermissions);
+            }
+        }
+        return objectPermissions;
     }
 
     /**

@@ -82,6 +82,10 @@ public class ResourceModel
         this.capabilities.add(capability);
     }
 
+    public void removeCapability (Capability capability) {
+        capabilities.remove(capability);
+    }
+
     public List<String> getAdministratorEmails() {
         return administratorEmails;
     }

@@ -646,7 +646,7 @@
     </c:if>
 
     <div class="form-group">
-        <form:label class="col-xs-3 control-label" path="description">
+        <form:label class="col-xs-3 control-label" path="">
             <spring:message code="views.reservationRequest.description" var="descriptionLabel"/>
             <tag:help label="${descriptionLabel}:"><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
         </form:label>

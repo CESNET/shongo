@@ -66,6 +66,6 @@
 
     <hr/>
 
-    <a class="btn btn-default" href="${resourceCreateUrl}">
+    <a class="btn btn-default pull-right" href="${resourceCreateUrl}">
         <spring:message code="views.resource.add"/>
     </a>

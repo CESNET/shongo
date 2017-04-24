@@ -40,7 +40,7 @@
             }
         };
 
-
+        $("#technologies").select2();
 
     }])
 
@@ -76,6 +76,7 @@
         });
 
     });
+
 </script>
 
 <div ng-app="jsp:resourceAttributes">
@@ -134,7 +135,8 @@
         <%--Description input--%>
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="description">
-                <spring:message code="views.resource.description"/>:
+                <spring:message code="views.resource.description" var="descriptionLabel"/>
+                <tag:help cssClass="hasTooltip" label="${descriptionLabel}:"><spring:message code="views.resourceAttributes.descriptionHelp"/></tag:help>
             </form:label>
             <div class="col-xs-4">
                 <form:input path="description" cssClass="form-control" cssErrorClass="form-control error"
@@ -221,10 +223,12 @@
 
     <hr/>
     <div>
+
+
         <c:if test="${administrationMode}">
-        <a class="btn btn-default pull-right" href="${resourceCapabilities}">
-            Spravovat schopnosti
-        </a>
+            <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+                Spravovat schopnosti
+            </a>
         </c:if>
         <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
             <spring:message code="views.resource.save"/>

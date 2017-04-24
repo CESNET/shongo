@@ -6,18 +6,22 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.controller.SystemPermission;
+import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -29,6 +33,8 @@ import java.util.List;
 @Controller
 @SessionAttributes({"resource"})
 public class ResourceManagementController {
+
+    private static Logger logger = LoggerFactory.getLogger(ResourceManagementController.class);
 
     @javax.annotation.Resource
     protected ResourceService resourceService;
@@ -45,17 +51,30 @@ public class ResourceManagementController {
             @PathVariable(value = "resourceId") String resourceId) {
         Resource resource = resourceService.getResource(securityToken, resourceId);
         ResourceModel resourceModel = new ResourceModel(resource);
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.addObject(resourceModel);
+        ModelAndView modelAndView = new ModelAndView("resourceDetail");
+        modelAndView.addObject("resource", resourceModel);
         return modelAndView;
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)
-    public String handleResourceAttributesPost (
+    public Object handleResourceAttributesPost (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resourceModel,
-            SessionStatus sessionStatus)  {
+            SessionStatus sessionStatus,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes)  {
 
+        ResourceValidator validator = new ResourceValidator();
+        validator.validate(resourceModel, bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
+            //TODO how to get view with errors shown
+            ModelAndView modelAndView = new ModelAndView("resourceAttributes");
+            modelAndView.addObject("errors", bindingResult);
+            modelAndView.addObject("resource", resourceModel);
+            modelAndView.addObject("resourceTypes", ResourceType.values());
+            return modelAndView;
+        }
         if (resourceModel.getId() != null) {
             resourceService.modifyResource(securityToken, resourceModel.toApi());
         } else {
@@ -70,8 +89,10 @@ public class ResourceManagementController {
     public ModelAndView handleResourceAttributes (
             SecurityToken securityToken,
             UserSession userSession,
-            @ModelAttribute("resource") ResourceModel resourceModel) {
+            @ModelAttribute("resource") ResourceModel resourceModel,
+            BindingResult bindingResult) {
         ModelAndView modelAndView = new ModelAndView("resourceAttributes");
+        modelAndView.addObject("errors", bindingResult);
         modelAndView.addObject("resourceTypes", ResourceType.values());
         modelAndView.addObject("resource", resourceModel);
         modelAndView.addObject("administrationMode", userSession.getUserSettings().isAdministrationMode());
@@ -93,6 +114,10 @@ public class ResourceManagementController {
             SecurityToken securityToken,
             @PathVariable(value = "resourceId") String resourceId,
             RedirectAttributes redirectAttributes) {
+        Set<ObjectPermission> permissions = cache.getSingleResourcePermissions(securityToken, resourceId);
+        if (!permissions.contains(ObjectPermission.WRITE)) {
+            throw new PageNotAuthorizedException();
+        }
         Resource resource = resourceService.getResource(securityToken, resourceId);
         ResourceModel resourceModel = new ResourceModel(resource);
 
@@ -104,9 +129,13 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.GET)
     public String handleResourceDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "resourceId") String resourceId
-    ) {
-        resourceService.deleteResource(securityToken, resourceId);
+            @PathVariable(value = "resourceId") String resourceId) {
+        try {
+            resourceService.deleteResource(securityToken, resourceId);
+        } catch (ControllerReportSet.SecurityNotAuthorizedException ex) {
+            throw new PageNotAuthorizedException();
+        }
+
         return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
     }
 
