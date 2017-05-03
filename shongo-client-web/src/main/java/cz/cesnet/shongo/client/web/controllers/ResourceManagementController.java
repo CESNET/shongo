@@ -1,16 +1,21 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWeb;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +31,7 @@ import java.util.Set;
 
 /**
  *
- * Controller for managing resource and its capabilities.
+ * Controller for managing resources and its capabilities.
  *
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
@@ -43,6 +48,9 @@ public class ResourceManagementController {
     protected AuthorizationService authorizationService;
 
     @javax.annotation.Resource
+    protected ReservationService reservationService;
+
+    @javax.annotation.Resource
     protected Cache cache;
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_DETAIL, method = RequestMethod.GET)
@@ -56,19 +64,35 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
+    @RequestMapping(value = ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION, method = RequestMethod.GET)
+    public ModelAndView handleResourceMaintenanceReservation(
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId) {
+/*        ReservationRequest reservationRequest = new ReservationRequest();
+        ResourceSpecification specification = new ResourceSpecification();
+        specification.setResourceId(resourceId);
+        reservationRequest.setSpecification(specification);
+        reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
+        reservationRequest.setDescription("MAINTENANCE RESERVATION 2");
+        reservationRequest.setSlot(DateTime.parse("2017-04-28T18:00+02:00"), DateTime.parse("2017-04-28T20:00+02:00"));
+        reservationRequest.setPriority(1);
+        reservationService.createReservationRequest(securityToken, reservationRequest);*/
+        ModelAndView modelAndView = new ModelAndView("maintenanceReservation");
+
+        return modelAndView;
+    }
+
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)
     public Object handleResourceAttributesPost (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resourceModel,
             SessionStatus sessionStatus,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes)  {
+            BindingResult bindingResult)  {
 
         ResourceValidator validator = new ResourceValidator();
         validator.validate(resourceModel, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-            //TODO how to get view with errors shown
             ModelAndView modelAndView = new ModelAndView("resourceAttributes");
             modelAndView.addObject("errors", bindingResult);
             modelAndView.addObject("resource", resourceModel);
@@ -95,7 +119,7 @@ public class ResourceManagementController {
         modelAndView.addObject("errors", bindingResult);
         modelAndView.addObject("resourceTypes", ResourceType.values());
         modelAndView.addObject("resource", resourceModel);
-        modelAndView.addObject("administrationMode", userSession.getUserSettings().isAdministrationMode());
+        modelAndView.addObject("administrationMode", userSession.isAdministrationMode());
         return modelAndView;
     }
 
@@ -129,11 +153,14 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.GET)
     public String handleResourceDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "resourceId") String resourceId) {
+            @PathVariable(value = "resourceId") String resourceId,
+            RedirectAttributes redirectAttributes) {
         try {
             resourceService.deleteResource(securityToken, resourceId);
         } catch (ControllerReportSet.SecurityNotAuthorizedException ex) {
             throw new PageNotAuthorizedException();
+        } catch (CommonReportSet.ObjectNotDeletableReferencedException ex) {
+             redirectAttributes.addFlashAttribute("error", "views.resourceManagement.resourceStillReferenced");
         }
 
         return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
@@ -142,19 +169,29 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES, method = RequestMethod.GET)
     public ModelAndView handleResourceCapabilitiesView (
             SecurityToken securityToken,
-            @ModelAttribute(value = "resource") ResourceModel resource) {
+            @ModelAttribute(value = "resource") ResourceModel resource,
+            UserSession userSession) {
         //Capabilities management accessible only for administrators
-        if (!cache.hasUserPermission(securityToken, UserPermission.ADMINISTRATION)) {
+        if (!userSession.isAdministrationMode()) {
             throw new PageNotAuthorizedException();
         }
-        List<Capability> capabilities = resource.getCapabilities();
+        resource = new ResourceModel(resourceService.getResource(securityToken, resource.getId()));
         ModelAndView modelAndView = new ModelAndView("capabilities");
         Boolean isDeviceResource = Boolean.valueOf(resource.getType().equals(ResourceType.DEVICE_RESOURCE) );
-
         modelAndView.addObject("aliasTypes", AliasType.values());
-        modelAndView.addObject("capabilities", capabilities);
+        modelAndView.addObject("resource", resource);
         modelAndView.addObject("isDeviceResource", isDeviceResource);
         return modelAndView;
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
+    public String handleResourceCapabilityDelete (
+            SecurityToken securityToken,
+            @PathVariable(value = "capabilityId") String capabilityId,
+            @ModelAttribute("resource") ResourceModel resource) {
+        resource.removeCapabilityById(capabilityId);
+        resourceService.modifyResource(securityToken, resource.toApi());
+        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/recording", method = RequestMethod.POST)
@@ -166,7 +203,7 @@ public class ResourceManagementController {
         resource.addCapability(recordingCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:/resource" + "/capabilities";
+        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/terminal", method = RequestMethod.POST)

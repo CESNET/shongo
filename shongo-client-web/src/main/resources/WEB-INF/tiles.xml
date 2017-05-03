@@ -166,6 +166,11 @@
         <put-attribute name="content" value="/WEB-INF/views/resourceDetail.jsp" type="template"/>
     </definition>
 
+    <definition name="maintenanceReservation" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.maintenanceReservation.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/maintenanceReservation.jsp" type="template"/>
+    </definition>
+
     <definition name="resourceAttributes" extends="layoutAngularForm">
         <put-attribute name="title" value="views.resourceAttributes.title"/>
         <put-attribute name="content" value="/WEB-INF/views/resourceAttributes.jsp" type="template"/>

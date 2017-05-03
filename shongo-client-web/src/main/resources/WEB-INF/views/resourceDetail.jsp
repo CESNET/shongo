@@ -1,6 +1,12 @@
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+
+<tag:url var="maintenanceReservation" value="<%= ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION %>">
+    <tag:param name="resourceId" value="${resource.id}"/>
+</tag:url>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/accordion.css">
 <script>
     $(document).ready(function() {
@@ -91,6 +97,11 @@
             </c:forEach>
         </c:if>
     </dl>
+    <div style="display: inline-block" class="pull-right">
+        <a class="btn btn-default" style="margin-left: 5px;" href="${maintenanceReservation}">
+            Maintenance Reservation
+        </a>
+    </div>
     <div class="full-width" style="margin:50px;">
         <h2>Vlastnosti</h2>
         <hr/>

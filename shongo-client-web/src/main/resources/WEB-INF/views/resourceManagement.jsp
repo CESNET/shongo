@@ -8,7 +8,23 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_NEW %>"/>
-
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
+<c:choose>
+    <c:when test="${not empty  message}">
+        <div class="alert alert-warning" style="margin: 20px;">
+                ${message}
+            <br/>
+        </div>
+    </c:when>
+</c:choose>
+<c:choose>
+    <c:when test="${not empty  error}">
+        <div class="alert alert-danger" style="margin: 20px;">
+            <spring:message code="${error}"/>
+            <br/>
+        </div>
+    </c:when>
+</c:choose>
 
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
@@ -49,22 +65,26 @@
                 <td>
                     <tag:listAction code="show" titleCode="views.resourceManagement.showDetail" url="${resourceShowDetail}" tabindex="1"/>
                     <c:choose>
-                        <c:when test="${resource.isWritable}">
+                        <c:when test="${resource.isWritable || administrationMode}">
                             | <tag:listAction code="modify" url="${resourceModifyUrl}" tabindex="2"/>
                         </c:when>
                         <c:otherwise>
                             | <tag:listAction code="modify" disabled="true" tabindex="2"/>
                         </c:otherwise>
                     </c:choose>
-                    | <tag:listAction code="delete" url="${resourceSingleDeleteUrl}" tabindex="3"/>
-
+                    <c:choose>
+                    <c:when test="${resource.isWritable || administrationMode}">
+                        | <tag:listAction code="delete" url="${resourceSingleDeleteUrl}" tabindex="3"/>
+                    </c:when>
+                    <c:otherwise>
+                        | <tag:listAction code="delete" disabled="true" url="${resourceSingleDeleteUrl}" tabindex="3"/>
+                    </c:otherwise>
+                </c:choose>
                 </td>
             </tr>
         </c:forEach>
         </tbody>
     </table>
-
-
 
     <a class="btn btn-default pull-right" style="margin-top: 15px;" href="${resourceCreateUrl}">
         <spring:message code="views.resource.add"/>

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by Marek Perichta.
+ * @author Marek Perichta <mperichta@cesnet.cz>
  */
 public class ResourceModel
 {
@@ -70,6 +70,15 @@ public class ResourceModel
 
     private List<Capability> capabilities = new LinkedList<Capability>();
 
+    private String mode;
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
 
     public List<Capability> getCapabilities() {
         return capabilities;
@@ -85,6 +94,15 @@ public class ResourceModel
 
     public void removeCapability (Capability capability) {
         capabilities.remove(capability);
+    }
+
+    public void removeCapabilityById (String capabilityId) {
+        for (Capability capability: capabilities) {
+            if (capabilityId.equals(capability.getId())) {
+                capabilities.remove(capability);
+                break;
+            }
+        }
     }
 
     public List<String> getAdministratorEmails() {

@@ -1,10 +1,12 @@
 <%@ page import="cz.cesnet.shongo.controller.FilterType" %>
 <%@ page import="cz.cesnet.shongo.AliasType" %>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-
+<c:set value="${resource.capabilities}" var="capabilities"/>
 <script type="text/javascript">
     var module = angular.module('jsp:capabilities', []);
     module.controller("CapabilitiesController", ['$scope', '$log', function ($scope, $log) {
@@ -25,8 +27,9 @@
 <div ng-app="jsp:capabilities" ng-controller="CapabilitiesController">
 
 <c:forEach items="${capabilities}" var="capability">
-    <div>
-        <hr/>
+    <hr/>
+    <div style="display: inline-block">
+
             <%-- Room Provider Capability --%>
         <c:if test="${capability['class'].simpleName == 'RoomProviderCapability'}">
             <h4>Room Provider Capability</h4>
@@ -99,6 +102,12 @@
 
 
     </div>
+    <span class="pull-right" style="size: 20px;">
+        <tag:url var="deleteCapability" value="<%= ClientWebUrl.RESOURCE_CAPABILITY_DELETE %>">
+            <tag:param name="capabilityId" value="${capability.id}" escape="false"/>
+        </tag:url>
+            <tag:listAction  code="delete" url="${deleteCapability}"/>
+        </span>
     <div class="fc-clear"></div>
 
 

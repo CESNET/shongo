@@ -407,8 +407,9 @@ public class Cache
         Set<ObjectPermission> objectPermissions =
                 getObjectPermissionsWithoutFetching(securityToken, resourceId);
         if (objectPermissions == null) {
+            objectPermissions = new HashSet<ObjectPermission>();
             Set<ObjectPermission> fetchedPermissions = fetchObjectPermissions(securityToken, Sets.newHashSet(resourceId)).get(resourceId);
-            if (fetchedPermissions.size() != 0) {
+            if (fetchedPermissions != null || fetchedPermissions.size() != 0) {
                 objectPermissions.addAll(fetchedPermissions);
             }
         }

@@ -4,21 +4,11 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%--<%@attribute name="resource" required="true" type="cz.cesnet.shongo.client.web.models.ResourceModel" %>
-<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
-<%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>--%>
+
 <tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>"/>
 
 
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
-<%--<c:choose>
-    <c:when test="${not empty resource.id}">
-        <h1><spring:message code="views.resource.modify"/></h1>
-    </c:when>
-    <c:otherwise>
-        <h1><spring:message code="views.resource.create"/></h1>
-    </c:otherwise>
-</c:choose>--%>
 
 <script type="text/javascript">
 
@@ -83,13 +73,12 @@
 
 </script>
 
-<div ng-app="jsp:resourceAttributes">
+<div ng-app="jsp:resourceAttributes" ng-controller="ResourceFormController">
     <hr/>
 
     <form:form class="form-horizontal"
                commandName="resource"
-               method="post"
-               ng-controller="ResourceFormController">
+               method="post">
 
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="type">
@@ -153,8 +142,9 @@
 
         <%--Allocatable checkbox--%>
         <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="allocatable">
-                <spring:message code="views.resource.allocatable"/>:
+            <form:label  class="col-xs-3 control-label" path="allocatable">
+                <spring:message code="views.resource.allocatable" var="allocatableLabel"/>
+                <tag:help label="${allocatableLabel}:"><spring:message code="views.resourceAttributes.allocatableHelp"/></tag:help>
             </form:label>
             <div class="col-xs-4 checkbox">
                 <form:checkbox path="allocatable"/>
@@ -164,7 +154,8 @@
         <%--Calendar public checkbox--%>
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="calendarPublic">
-                <spring:message code="views.resource.calendarPublic"/>:
+                <spring:message code="views.resource.calendarPublic" var="calendarPublicLabel"/>
+                <tag:help label="${calendarPublicLabel}:"><spring:message code="views.resourceAttributes.calendarPublicHelp"/></tag:help>
             </form:label>
             <div class="col-xs-4 checkbox">
                 <form:checkbox path="calendarPublic"/>
@@ -199,6 +190,7 @@
             </form:label>
             <div class="col-xs-4">
                 <form:input placeholder="example@domain.com" id="emailAddresses" path="administratorEmails" cssStyle="width: 100%;"/>
+                <span style="font-size:0.9em; color:#9b9b9b;"><spring:message code="views.resourceAttributes.administratorEmailsHelp"/></span>
             </div>
         </div>
 
@@ -227,11 +219,11 @@
     <hr/>
 
     <div>
-        <c:if test="${administrationMode}">
-            <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+        <%--<c:if test="${administrationMode}">--%>
+            <a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
                 Spravovat schopnosti
             </a>
-        </c:if>
+        <%--</c:if>--%>
         <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
             <spring:message code="views.resource.save"/>
         </a>

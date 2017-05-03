@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
@@ -21,6 +22,7 @@ import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -31,9 +33,11 @@ import org.joda.time.*;
 import org.omg.CORBA.Request;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -156,11 +160,21 @@ public class ResourceController
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_RESOURCES, method = RequestMethod.GET)
-    public ModelAndView handleResourceManagement (SecurityToken securityToken) throws ClassNotFoundException {
+    public ModelAndView handleResourceManagement (
+            SecurityToken securityToken,
+            Model model
+    ) throws ClassNotFoundException {
 
-        List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, Boolean.FALSE, ObjectPermission.READ);
+        List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, Boolean.FALSE, ObjectPermission.WRITE);
 
         ModelAndView modelAndView = new ModelAndView("resourceManagement");
+        if(authorizationService.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION)) {
+            modelAndView.addObject("message", "User is system administrator!");
+        }
+        String error = (String) model.asMap().get("error");
+        if (!Strings.isNullOrEmpty(error)) {
+            modelAndView.addObject("error", error);
+        }
         modelAndView.addObject("readableResources", readableResources);
 
         return modelAndView;
