@@ -663,7 +663,7 @@ public class Cache
      */
     public synchronized String getReservationRequestId(SecurityToken securityToken, String objectId)
     {
-        if (objectId.contains(":req:")) {
+        if (objectId.contains(":req:") || objectId.contains(":res:")) {
             return objectId;
         }
         else if (objectId.contains(":rsv:")) {

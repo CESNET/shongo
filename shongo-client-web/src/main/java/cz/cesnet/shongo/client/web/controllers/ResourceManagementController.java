@@ -99,14 +99,15 @@ public class ResourceManagementController {
             modelAndView.addObject("resourceTypes", ResourceType.values());
             return modelAndView;
         }
-        if (resourceModel.getId() != null) {
+        String resourceId = resourceModel.getId();
+        if (resourceId != null) {
             resourceService.modifyResource(securityToken, resourceModel.toApi());
         } else {
-            resourceService.createResource(securityToken, resourceModel.toApi());
+            resourceId = resourceService.createResource(securityToken, resourceModel.toApi());
         }
         sessionStatus.setComplete();
 
-        return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, resourceId);
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.GET)
@@ -126,7 +127,11 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_NEW, method = RequestMethod.GET)
     public String handleCreateNewResource (
             SecurityToken securityToken,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            UserSession userSession) {
+        if (!userSession.isAdministrationMode()) {
+            throw new PageNotAuthorizedException();
+        }
         ResourceModel resource = new ResourceModel();
         resource.setType(ResourceType.RESOURCE);
         redirectAttributes.addFlashAttribute("resource", resource);

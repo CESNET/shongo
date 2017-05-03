@@ -9,18 +9,11 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_NEW %>"/>
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
+
 <c:choose>
-    <c:when test="${not empty  message}">
-        <div class="alert alert-warning" style="margin: 20px;">
-                ${message}
-            <br/>
-        </div>
-    </c:when>
-</c:choose>
-<c:choose>
-    <c:when test="${not empty  error}">
+    <c:when test="${not empty errorMessage}">
         <div class="alert alert-danger" style="margin: 20px;">
-            <spring:message code="${error}"/>
+            <spring:message code="${errorMessage}"/>
             <br/>
         </div>
     </c:when>
@@ -86,6 +79,9 @@
         </tbody>
     </table>
 
+
+    <c:if test="administrationMode">
     <a class="btn btn-default pull-right" style="margin-top: 15px;" href="${resourceCreateUrl}">
         <spring:message code="views.resource.add"/>
     </a>
+    </c:if>

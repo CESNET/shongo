@@ -168,12 +168,9 @@ public class ResourceController
         List<Map<String, Object>> readableResources = getResourceListData(securityToken, null, null, null, Boolean.FALSE, ObjectPermission.WRITE);
 
         ModelAndView modelAndView = new ModelAndView("resourceManagement");
-        if(authorizationService.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION)) {
-            modelAndView.addObject("message", "User is system administrator!");
-        }
         String error = (String) model.asMap().get("error");
         if (!Strings.isNullOrEmpty(error)) {
-            modelAndView.addObject("error", error);
+            modelAndView.addObject("errorMessage", error);
         }
         modelAndView.addObject("readableResources", readableResources);
 

@@ -219,11 +219,11 @@
     <hr/>
 
     <div>
-        <%--<c:if test="${administrationMode}">--%>
+        <c:if test="${administrationMode}">
             <a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
                 Spravovat schopnosti
             </a>
-        <%--</c:if>--%>
+        </c:if>
         <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
             <spring:message code="views.resource.save"/>
         </a>

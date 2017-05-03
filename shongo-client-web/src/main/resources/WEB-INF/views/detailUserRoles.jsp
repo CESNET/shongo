@@ -17,7 +17,19 @@
     <tag:param name="objectId" value="${objectId}"/>
     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
-<tag:userRoleList dataUrl="${userRoleDataUrl}" dataUrlParameters="id: '${reservationRequestId}'"
+
+<c:choose>
+    <c:when test="${not empty reservationRequestId}">
+        <c:set var="objectId" value="${reservationRequestId}"/>
+    </c:when>
+    <c:otherwise>
+        <c:set var="objectId" value="${resourceId}"/>
+    </c:otherwise>
+</c:choose>
+
+
+<tag:userRoleList dataUrl="${userRoleDataUrl}"
+                  dataUrlParameters="id: '${objectId}'"
                   createUrl="${userRoleCreateUrl}" deleteUrl="${userRoleDeleteUrl}">
 
     <spring:message code="views.wizard.room.roles.description"/>

@@ -34,19 +34,14 @@
         });
     });
 
-    var module = angular.module('jsp:resourceDetail', []);
+    var module = angular.module('jsp:resourceDetail', ['ngApplication', 'ngPagination']);
     module.controller("ResourceDetailController", function($scope){
 
-
-        $scope.capabilities = [
-            <c:forEach items="${resource.capabilities}" var="capability">
-                <c:out value="${capability.class.simpleName}"/>,
-            </c:forEach> ]
 
     })
 
 </script>
-<div  ng-app="jsp:resourceDetail" ng-controller="ResourceDetailController" class="bordered" style="overflow:hidden">
+<div ng-app="jsp:resourceDetail" ng-controller="ResourceDetailController" class="bordered" style="overflow:hidden">
     <dl class="dl-horizontal" style="display:inline-block; vertical-align:top;">
 
         <dt>Typ:</dt>
@@ -102,91 +97,109 @@
             Maintenance Reservation
         </a>
     </div>
-    <div class="full-width" style="margin:50px;">
-        <h2>Vlastnosti</h2>
-        <hr/>
 
-        <c:choose>
-            <c:when test="${fn:length(resource.capabilities) gt 0}">
-                <div class="accordion" >
-                <c:forEach items="${resource.capabilities}" var="capability" varStatus="loop">
-                    <div class="accordion-section">
-                        <div class="accordion-section-title" href="#accordion-${loop.index}">> <c:out value="${capability.class.simpleName}"/></div>
-                        <div id="accordion-${loop.index}" class="accordion-section-content">
-                                <%-- Room Provider Capability --%>
-                            <c:if test="${capability['class'].simpleName == 'RoomProviderCapability'}">
-                                <dl class="dl-horizontal">
-                                    <dt><spring:message code="views.capabilities.RoomProvider.licencesNumber"/>:</dt>
+    <hr/>
 
-                                    <dd><c:out value="${capability.licenseCount}"/></dd>
+    <tabset>
+        <tab heading="Vlastnosti" ng-controller="TabController">
+            <div class="full-width" style="margin:50px;">
 
+                <c:choose>
+                    <c:when test="${fn:length(resource.capabilities) gt 0}">
+                        <div class="accordion" >
+                            <c:forEach items="${resource.capabilities}" var="capability" varStatus="loop">
+                                <div class="accordion-section">
+                                    <div class="accordion-section-title" href="#accordion-${loop.index}">> <c:out value="${capability.class.simpleName}"/></div>
+                                    <div id="accordion-${loop.index}" class="accordion-section-content">
+                                            <%-- Room Provider Capability --%>
+                                        <c:if test="${capability['class'].simpleName == 'RoomProviderCapability'}">
+                                            <dl class="dl-horizontal">
+                                                <dt><spring:message code="views.capabilities.RoomProvider.licencesNumber"/>:</dt>
 
-                                    <dt><spring:message code="views.capabilities.RoomProvider.AliasType"/>:</dt>
-                                    <c:forEach items="${capability.requiredAliasTypes}" var="aliasType">
-                                        <dd><spring:message code="${aliasType.name}"/></dd>
-                                    </c:forEach>
-                                </dl>
-                            </c:if>
-
-                                <%-- Alias Provider Capability --%>
-                            <c:if test="${capability['class'].simpleName == 'AliasProviderCapability'}">
-                                <dl class="dl-horizontal">
-                                    <dt><spring:message code="views.capabilities.AliasProvider.aliases"/>:</dt>
-
-                                    <c:forEach items="${capability.aliases}" var="alias">
-                                        <dd>ALIAS(type: <spring:message code="${alias.type.name}"/>, value: <c:out value="${alias.value}"/>)</dd>
-                                    </c:forEach>
-
-                                    <dt>Value provider:</dt>
-                                    <c:set var="valueProvider" scope="request" value="${capability.valueProvider}"/>
-                                    <c:if test="${!(valueProvider['class'].simpleName == 'String')}">
-                                        <div class="fc-clear"></div>
-                                    </c:if>
-                                    <dd><div><c:import url="/WEB-INF/views/valueProviderCapability.jsp"/></div></dd>
-
-                                    <dt>Restricted to owner:</dt>
-                                    <dd><c:out value="${alias.restrictedToOwner == true}"/></dd>
-                                </dl>
-
-                            </c:if>
-
-                                <%-- Value Provider Capability --%>
-                            <c:if test="${capability['class'].simpleName == 'ValueProviderCapability'}">
-
-                                <c:set var="valueProvider" scope="request" value="${capability.valueProvider}"/>
-                                <c:import url="/WEB-INF/views/valueProviderCapability.jsp"/>
-                            </c:if>
-
-                                <%-- Recording Capability --%>
-                            <c:if test="${capability['class'].simpleName == 'RecordingCapability'}">
-                                <dl class="dl-horizontal">
-                                    <dt>License count:</dt>
-
-                                    <dd><c:out value="${capability.licenseCount}"/></dd>
-                                </dl>
-                            </c:if>
-
-                                <%-- Value Provider Capability --%>
-                            <c:if test="${capability['class'].simpleName == 'TerminalCapability'}">
-                                <dl class="dl-horizontal">
-                                    <dt><spring:message code="views.capabilities.AliasProvider.aliases"/>:</dt>
-                                    <c:forEach items="${capability.aliases}" var="alias">
-                                        <dd>ALIAS(type: <spring:message code="${alias.type.name}"/>, value: <c:out value="${alias.value}"/>)</dd>
-                                    </c:forEach>
-                                </dl>
+                                                <dd><c:out value="${capability.licenseCount}"/></dd>
 
 
-                            </c:if>
+                                                <dt><spring:message code="views.capabilities.RoomProvider.AliasType"/>:</dt>
+                                                <c:forEach items="${capability.requiredAliasTypes}" var="aliasType">
+                                                    <dd><spring:message code="${aliasType.name}"/></dd>
+                                                </c:forEach>
+                                            </dl>
+                                        </c:if>
 
+                                            <%-- Alias Provider Capability --%>
+                                        <c:if test="${capability['class'].simpleName == 'AliasProviderCapability'}">
+                                            <dl class="dl-horizontal">
+                                                <dt><spring:message code="views.capabilities.AliasProvider.aliases"/>:</dt>
+
+                                                <c:forEach items="${capability.aliases}" var="alias">
+                                                    <dd>ALIAS(type: <spring:message code="${alias.type.name}"/>, value: <c:out value="${alias.value}"/>)</dd>
+                                                </c:forEach>
+
+                                                <dt>Value provider:</dt>
+                                                <c:set var="valueProvider" scope="request" value="${capability.valueProvider}"/>
+                                                <c:if test="${!(valueProvider['class'].simpleName == 'String')}">
+                                                    <div class="fc-clear"></div>
+                                                </c:if>
+                                                <dd><div><c:import url="/WEB-INF/views/valueProviderCapability.jsp"/></div></dd>
+
+                                                <dt>Restricted to owner:</dt>
+                                                <dd><c:out value="${alias.restrictedToOwner == true}"/></dd>
+                                            </dl>
+
+                                        </c:if>
+
+                                            <%-- Value Provider Capability --%>
+                                        <c:if test="${capability['class'].simpleName == 'ValueProviderCapability'}">
+
+                                            <c:set var="valueProvider" scope="request" value="${capability.valueProvider}"/>
+                                            <c:import url="/WEB-INF/views/valueProviderCapability.jsp"/>
+                                        </c:if>
+
+                                            <%-- Recording Capability --%>
+                                        <c:if test="${capability['class'].simpleName == 'RecordingCapability'}">
+                                            <dl class="dl-horizontal">
+                                                <dt>License count:</dt>
+
+                                                <dd><c:out value="${capability.licenseCount}"/></dd>
+                                            </dl>
+                                        </c:if>
+
+                                            <%-- Value Provider Capability --%>
+                                        <c:if test="${capability['class'].simpleName == 'TerminalCapability'}">
+                                            <dl class="dl-horizontal">
+                                                <dt><spring:message code="views.capabilities.AliasProvider.aliases"/>:</dt>
+                                                <c:forEach items="${capability.aliases}" var="alias">
+                                                    <dd>ALIAS(type: <spring:message code="${alias.type.name}"/>, value: <c:out value="${alias.value}"/>)</dd>
+                                                </c:forEach>
+                                            </dl>
+
+
+                                        </c:if>
+
+                                    </div>
+                                </div>
+                            </c:forEach>
                         </div>
-                    </div>
-                </c:forEach>
-                </div>
-            </c:when>
-            <c:otherwise>
-                <div class="center-content">- - - none - - -</div>
-            </c:otherwise>
-        </c:choose>
-    </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="center-content">- - - none - - -</div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </tab>
+
+            <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
+            <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
+                <tag:param name="objectId" value="${resource.id}"/>
+            </tag:url>
+            <tab id="userRoles" ng-controller="TabController"
+                 heading="${detailUserRolesTitle}"
+                 content-url="${detailUserRolesUrl}">
+            </tab>
+
+    </tabset>
+
+
+
 
 </div>
