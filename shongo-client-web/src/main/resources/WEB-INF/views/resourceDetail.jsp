@@ -101,6 +101,16 @@
     <hr/>
 
     <tabset>
+
+        <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
+        <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
+            <tag:param name="objectId" value="${resource.id}"/>
+        </tag:url>
+        <tab id="userRoles" ng-controller="TabController"
+             heading="${detailUserRolesTitle}"
+             content-url="${detailUserRolesUrl}">
+        </tab>
+
         <tab heading="Vlastnosti" ng-controller="TabController">
             <div class="full-width" style="margin:50px;">
 
@@ -187,16 +197,6 @@
                 </c:choose>
             </div>
         </tab>
-
-            <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
-            <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
-                <tag:param name="objectId" value="${resource.id}"/>
-            </tag:url>
-            <tab id="userRoles" ng-controller="TabController"
-                 heading="${detailUserRolesTitle}"
-                 content-url="${detailUserRolesUrl}">
-            </tab>
-
     </tabset>
 
 

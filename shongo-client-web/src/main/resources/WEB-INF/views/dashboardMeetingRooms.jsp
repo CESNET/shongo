@@ -90,9 +90,9 @@
                     <tag:help label="{{reservationRequest.foreignDomain}}" selectable="true">
                         <%-- TODO: ziskavat uzivatele z cizi domeny --%>
                         <%--<span>--%>
-                            <%--<strong><spring:message code="views.room.ownerEmail"/></strong>--%>
-                            <%--<br />--%>
-                            <%--<a href="mailto: {{reservationRequest.ownerEmail}}">{{reservationRequest.ownerEmail}}</a>--%>
+                        <%--<strong><spring:message code="views.room.ownerEmail"/></strong>--%>
+                        <%--<br />--%>
+                        <%--<a href="mailto: {{reservationRequest.ownerEmail}}">{{reservationRequest.ownerEmail}}</a>--%>
                         <%--</span>--%>
                     </tag:help>
                 </span>
@@ -118,6 +118,7 @@
                     <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
                         | <tag:listAction code="modify" url="${meetingRoomModifyUrl}" tabindex="2"/>
                     </span>
+                    | <tag:listAction code="delete" url="${meetingRoomSingleDeleteUrl}" tabindex="3"/>
                     | <input type="checkbox" name="${deleteCheckboxName}" value="{{reservationRequest.id}}"/>
                 </span>
             </td>
