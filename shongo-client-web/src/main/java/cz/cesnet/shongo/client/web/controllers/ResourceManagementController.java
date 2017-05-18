@@ -11,6 +11,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -142,11 +143,16 @@ public class ResourceManagementController {
     public String handleResourceModify (
             SecurityToken securityToken,
             @PathVariable(value = "resourceId") String resourceId,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            UserSession userSession) {
         Set<ObjectPermission> permissions = cache.getSingleResourcePermissions(securityToken, resourceId);
-        if (!permissions.contains(ObjectPermission.WRITE)) {
-            throw new PageNotAuthorizedException();
+        //if user does not have administration mode on and does not have the permission to write, throw exception
+        if (!userSession.isAdministrationMode()) {
+            if (!permissions.contains(ObjectPermission.WRITE)) {
+                throw new PageNotAuthorizedException();
+            }
         }
+
         Resource resource = resourceService.getResource(securityToken, resourceId);
         ResourceModel resourceModel = new ResourceModel(resource);
 
