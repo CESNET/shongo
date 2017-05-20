@@ -5,6 +5,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<tag:url var="resourceFinish" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES_FINISH %>"/>
 
 <c:set value="${resource.capabilities}" var="capabilities"/>
 <script type="text/javascript">
@@ -115,7 +116,7 @@
 
     <hr/>
 
-    <button class="btn btn-primary" data-toggle="modal" data-target="#largePopup">Add capability</button>
+    <button class="btn btn-default" data-toggle="modal" data-target="#largePopup">Add capability</button>
 
     <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -439,3 +440,6 @@
 </div>
 </div>
 </div>
+<a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceFinish}">
+    Dokončit
+</a>

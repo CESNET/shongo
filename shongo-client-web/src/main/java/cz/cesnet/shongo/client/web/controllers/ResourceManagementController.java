@@ -3,21 +3,15 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.ClientWeb;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
-import cz.cesnet.shongo.client.web.auth.UserPermission;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -26,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.List;
 import java.util.Set;
 
 
@@ -64,6 +57,7 @@ public class ResourceManagementController {
         modelAndView.addObject("resource", resourceModel);
         return modelAndView;
     }
+
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION, method = RequestMethod.GET)
     public ModelAndView handleResourceMaintenanceReservation(
@@ -113,12 +107,9 @@ public class ResourceManagementController {
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.GET)
     public ModelAndView handleResourceAttributes (
-            SecurityToken securityToken,
             UserSession userSession,
-            @ModelAttribute("resource") ResourceModel resourceModel,
-            BindingResult bindingResult) {
+            @ModelAttribute("resource") ResourceModel resourceModel) {
         ModelAndView modelAndView = new ModelAndView("resourceAttributes");
-        modelAndView.addObject("errors", bindingResult);
         modelAndView.addObject("resourceTypes", ResourceType.values());
         modelAndView.addObject("resource", resourceModel);
         modelAndView.addObject("administrationMode", userSession.isAdministrationMode());
@@ -127,7 +118,6 @@ public class ResourceManagementController {
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_NEW, method = RequestMethod.GET)
     public String handleCreateNewResource (
-            SecurityToken securityToken,
             RedirectAttributes redirectAttributes,
             UserSession userSession) {
         if (!userSession.isAdministrationMode()) {
@@ -139,6 +129,9 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.RESOURCE_ATTRIBUTES;
     }
 
+    /**
+     * Handle resource modification request
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_MODIFY, method = RequestMethod.GET)
     public String handleResourceModify (
             SecurityToken securityToken,
@@ -162,6 +155,18 @@ public class ResourceManagementController {
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.GET)
+    public ModelAndView handleResourceDelete(
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId) {
+        ResourceSummary resource =  cache.getResourceSummary(securityToken, resourceId);
+        ModelAndView modelAndView = new ModelAndView("resourceDelete");
+        modelAndView.addObject("resourceName", resource.getName());
+        modelAndView.addObject("resourceDescription", resource.getDescription());
+        modelAndView.addObject("resourceId", resourceId);
+        return modelAndView;
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.POST)
     public String handleResourceDelete(
             SecurityToken securityToken,
             @PathVariable(value = "resourceId") String resourceId,
@@ -177,6 +182,9 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
     }
 
+    /**
+     *  Handles capabilities view. Accessible only in administrator's mode.
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES, method = RequestMethod.GET)
     public ModelAndView handleResourceCapabilitiesView (
             SecurityToken securityToken,
@@ -195,7 +203,18 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES_FINISH, method = RequestMethod.GET)
+    public String handleResourceCapabilitiesFinish (
+            SessionStatus sessionStatus,
+            @ModelAttribute(value = "resource") ResourceModel resource
+    ) {
+        String resourceId = resource.getId();
+        sessionStatus.setComplete();
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, resourceId);
+    }
+
+
+            @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
     public String handleResourceCapabilityDelete (
             SecurityToken securityToken,
             @PathVariable(value = "capabilityId") String capabilityId,

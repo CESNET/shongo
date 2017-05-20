@@ -3,6 +3,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<tag:url var="resourceManagement" value="<%= ClientWebUrl.RESOURCE_RESOURCES %>"/>
 
 <tag:url var="maintenanceReservation" value="<%= ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION %>">
     <tag:param name="resourceId" value="${resource.id}"/>
@@ -41,15 +42,16 @@
     })
 
 </script>
-<div ng-app="jsp:resourceDetail" ng-controller="ResourceDetailController" class="bordered" style="overflow:hidden">
+<div ng-app="jsp:resourceDetail" ng-controller="ResourceDetailController" class="bordered" style="overflow:hidden; border: 1px solid #dddddd; ">
     <dl class="dl-horizontal" style="display:inline-block; vertical-align:top;">
+
 
         <dt>Typ:</dt>
         <dd><spring:message code="${resource.type.getCode()}"/></dd>
 
 
         <dt>Jméno zdroje:</dt>
-        <dd>${resource.name}</dd>
+        <dd><strong>${resource.name}</strong></dd>
 
         <c:if test="${not empty resource.description}">
             <dt>Popis:</dt>
@@ -92,7 +94,7 @@
             </c:forEach>
         </c:if>
     </dl>
-    <div style="display: inline-block" class="pull-right">
+    <div style="display: inline-block; margin: 15px;" class="pull-right">
         <a class="btn btn-default" style="margin-left: 5px;" href="${maintenanceReservation}">
             Maintenance Reservation
         </a>
@@ -199,7 +201,7 @@
         </tab>
     </tabset>
 
-
-
-
+</div>
+<div class="table-actions">
+    <a class="btn btn-default pull-right" href="${resourceManagement}"><spring:message code="views.button.end"/></a>
 </div>

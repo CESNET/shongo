@@ -148,7 +148,7 @@ public class DetailUserRoleController extends AbstractDetailController
         }
         authorizationService.createAclEntry(securityToken, userRole.toApi());
 
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);
+        return returnView(objectId);
     }
 
     /**
@@ -174,7 +174,8 @@ public class DetailUserRoleController extends AbstractDetailController
             return modelAndView;
         }
         authorizationService.deleteAclEntry(securityToken, userRoleId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);
+
+        return returnView(objectId);
     }
 
     /**
@@ -185,5 +186,16 @@ public class DetailUserRoleController extends AbstractDetailController
         ModelAndView modelAndView = new ModelAndView("userRole");
         modelAndView.addObject(USER_ROLE_ATTRIBUTE, userRole);
         return modelAndView;
+    }
+
+    /**
+     *  Returns the appropriate view for object specified by objectId.
+     */
+    private String returnView (String objectId) {
+        if (objectId.contains("res")) {
+            return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, objectId);
+        } else {
+            return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);
+        }
     }
 }
