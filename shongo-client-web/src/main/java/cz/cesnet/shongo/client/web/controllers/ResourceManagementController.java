@@ -6,16 +6,21 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
@@ -47,6 +52,19 @@ public class ResourceManagementController {
     @javax.annotation.Resource
     protected Cache cache;
 
+    /**
+     * Initialize model editors for additional types.
+     *
+     * @param binder to be initialized
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder, DateTimeZone timeZone) {
+        binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+        binder.registerCustomEditor(DateTimeZone.class, new DateTimeZoneEditor());
+        binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
+        binder.registerCustomEditor(LocalTime.class, new LocalTimeEditor());
+    }
+
     @RequestMapping(value = ClientWebUrl.RESOURCE_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleResourceDetailPreview(
             SecurityToken securityToken,
@@ -63,18 +81,46 @@ public class ResourceManagementController {
     public ModelAndView handleResourceMaintenanceReservation(
             SecurityToken securityToken,
             @PathVariable(value = "resourceId") String resourceId) {
-/*        ReservationRequest reservationRequest = new ReservationRequest();
-        ResourceSpecification specification = new ResourceSpecification();
-        specification.setResourceId(resourceId);
-        reservationRequest.setSpecification(specification);
-        reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
-        reservationRequest.setDescription("MAINTENANCE RESERVATION 2");
-        reservationRequest.setSlot(DateTime.parse("2017-04-28T18:00+02:00"), DateTime.parse("2017-04-28T20:00+02:00"));
-        reservationRequest.setPriority(1);
-        reservationService.createReservationRequest(securityToken, reservationRequest);*/
-        ModelAndView modelAndView = new ModelAndView("maintenanceReservation");
+        AclEntryListRequest listRequest = new AclEntryListRequest(securityToken);
+        listRequest.addObjectId(resourceId);
+        listRequest.addRole(ObjectRole.OWNER);
+        if (authorizationService.listAclEntries(listRequest).getCount() == 0) {
+            throw new PageNotAuthorizedException();
+        }
+        ResourceSummary resource = cache.getResourceSummary(securityToken, resourceId);
 
+        MaintenanceReservationModel maintenanceReservation = new MaintenanceReservationModel();
+        maintenanceReservation.setResourceId(resource.getId());
+        maintenanceReservation.setPriority(1);
+        maintenanceReservation.setStartDate(LocalDate.now());
+        maintenanceReservation.setEndDate(LocalDate.now());
+        ModelAndView modelAndView = new ModelAndView("maintenanceReservation");
+        modelAndView.addObject("resourceName", resource.getName());
+        modelAndView.addObject("maintenanceReservation", maintenanceReservation);
         return modelAndView;
+    }
+
+    @RequestMapping(value = ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION, method = RequestMethod.POST)
+    public Object handleResourceMaintenanceReservationPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "resourceId") String resourceId,
+            @ModelAttribute("maintenanceReservation") MaintenanceReservationModel maintenanceReservationModel,
+            BindingResult bindingResult) {
+        AclEntryListRequest listRequest = new AclEntryListRequest(securityToken);
+        listRequest.addObjectId(resourceId);
+        listRequest.addRole(ObjectRole.OWNER);
+        MaintenanceReservationValidator validator = new MaintenanceReservationValidator();
+        validator.validate(maintenanceReservationModel, bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
+            ModelAndView modelAndView = new ModelAndView("maintenanceReservation");
+            modelAndView.addObject("errors", bindingResult);
+            modelAndView.addObject("maintenanceReservation", maintenanceReservationModel);
+            return modelAndView;
+        }
+        String reservationRequestId = reservationService.createReservationRequest(securityToken, maintenanceReservationModel.toApi());
+        //redirect to reservationDetail
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId);
     }
 
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)

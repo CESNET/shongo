@@ -33,7 +33,7 @@ public class ResourceValidator extends GeneralValidator{
         }
 
         //Technologies must be set for DeviceResource
-        if (resourceModel.getType() == ResourceType.DEVICE_RESOURCE) {
+        if (resourceType == ResourceType.DEVICE_RESOURCE) {
             List<String> technologies = resourceModel.getTechnologies();
             if (technologies == null || technologies.size() < 1) {
                 errors.rejectValue("technologies", "validation.field.noTechnologiesSelected");
