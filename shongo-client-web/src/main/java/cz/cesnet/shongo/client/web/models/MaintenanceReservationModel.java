@@ -28,12 +28,6 @@ public class MaintenanceReservationModel {
 
     private LocalDate endDate;
 
-    private Integer durationCount;
-
-    private DurationType durationType;
-
-
-
     private Integer priority;
 
     public MaintenanceReservationModel() {
@@ -73,28 +67,12 @@ public class MaintenanceReservationModel {
         this.start = start;
     }
 
-    public DurationType getDurationType() {
-        return durationType;
-    }
-
-    public void setDurationType(DurationType durationType) {
-        this.durationType = durationType;
-    }
-
     public LocalDate getStartDate() {
         return startDate;
     }
 
     public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
-    }
-
-    public Integer getDurationCount() {
-        return durationCount;
-    }
-
-    public void setDurationCount(Integer durationCount) {
-        this.durationCount = durationCount;
     }
 
     public String getResourceId() {
