@@ -234,13 +234,13 @@ public class ResourceManagementController {
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES, method = RequestMethod.GET)
     public ModelAndView handleResourceCapabilitiesView (
             SecurityToken securityToken,
-            @ModelAttribute(value = "resource") ResourceModel resource,
+            @RequestParam(value="resourceId", required=true) String resourceId,
             UserSession userSession) {
         //Capabilities management accessible only for administrators
         if (!userSession.isAdministrationMode()) {
             throw new PageNotAuthorizedException();
         }
-        resource = new ResourceModel(resourceService.getResource(securityToken, resource.getId()));
+        ResourceModel resource = new ResourceModel(resourceService.getResource(securityToken, resourceId));
         ModelAndView modelAndView = new ModelAndView("capabilities");
         Boolean isDeviceResource = Boolean.valueOf(resource.getType().equals(ResourceType.DEVICE_RESOURCE) );
         modelAndView.addObject("aliasTypes", AliasType.values());
@@ -259,6 +259,13 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, resourceId);
     }
 
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CANCEL, method = RequestMethod.GET)
+    public String handleResourceCancel (
+            SessionStatus sessionStatus
+    ) {
+        sessionStatus.setComplete();
+        return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
+    }
 
             @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
     public String handleResourceCapabilityDelete (

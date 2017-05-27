@@ -247,6 +247,8 @@ public class ClientWebUrl
             "/resource/capabilities/finish/";
     public static final String RESOURCE_CAPABILITY_DELETE =
             "/resource/capability/{capabilityId}/delete";
+    public static final String RESOURCE_CANCEL =
+            "/resource/cancel";
     public static final String RESERVATION_REQUEST_CONFIRMATION =
             "/resource/reservation-request/confirmation";
     public static final String RESERVATION_REQUEST_CONFIRMATION_DATA =

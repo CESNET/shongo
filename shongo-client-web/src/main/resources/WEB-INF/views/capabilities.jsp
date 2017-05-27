@@ -83,8 +83,17 @@
             <h4>Recording Capability</h4>
             <dl class="dl-horizontal">
                 <dt>License count:</dt>
-
-                <dd><c:out value="${capability.licenseCount}"/></dd>
+                <c:set var="recordingLicenseCount" value="${capability.licenseCount}"/>
+                <dd>
+                    <c:choose>
+                        <c:when test="${recordingLicenseCount}">
+                            <c:out value="${recordingLicenseCount}"/>
+                        </c:when>
+                        <c:otherwise>
+                            <spring:message code="views.capabilities.licenseNumber.unlimited"/>
+                        </c:otherwise>
+                    </c:choose>
+                </dd>
             </dl>
         </c:if>
 

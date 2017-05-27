@@ -5,7 +5,10 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>"/>
+<tag:url var="resourceCancel" value="<%= ClientWebUrl.RESOURCE_CANCEL %>"/>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>">
+    <tag:param name="resourceId" value="${resource.id}"/>
+</tag:url>
 
 
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
@@ -219,13 +222,28 @@
     <hr/>
 
     <div>
+        <a class="btn btn-default pull-left" href="${resourceCancel}">
+            <spring:message code="views.button.cancel"/>
+        </a>
         <c:if test="${administrationMode}">
-            <a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
-                Spravovat schopnosti
+            <a  ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+                Spravovat vlastnosti
             </a>
+<%--            <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+                Spravovat schopnosti
+            </a>--%>
         </c:if>
-        <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
-            <spring:message code="views.resource.save"/>
+        <a class="btn btn-primary pull-right" href="javascript: document.getElementById('resource').submit();">
+            <c:choose>
+                <c:when test="${resource.id == null}">
+                    <spring:message code="views.button.create"/>
+                </c:when>
+                <c:otherwise>
+                    <spring:message code="views.button.save"/>
+                </c:otherwise>
+            </c:choose>
+
+
         </a>
     </div>
 </div>

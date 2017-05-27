@@ -8,6 +8,10 @@
 <tag:url var="maintenanceReservation" value="<%= ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION %>">
     <tag:param name="resourceId" value="${resource.id}"/>
 </tag:url>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>">
+    <tag:param name="resourceId" value="${resource.id}"/>
+</tag:url>
+<c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/accordion.css">
 <script>
     $(document).ready(function() {
@@ -114,8 +118,7 @@
         </tab>
 
         <tab heading="Vlastnosti" ng-controller="TabController">
-            <div class="full-width" style="margin:50px;">
-
+            <div class="full-width" style="padding:45px;">
                 <c:choose>
                     <c:when test="${fn:length(resource.capabilities) gt 0}">
                         <div class="accordion" >
@@ -172,7 +175,17 @@
                                             <dl class="dl-horizontal">
                                                 <dt>License count:</dt>
 
-                                                <dd><c:out value="${capability.licenseCount}"/></dd>
+                                                <c:set var="recordingLicenseCount" value="${capability.licenseCount}"/>
+                                                <dd>
+                                                    <c:choose>
+                                                        <c:when test="${recordingLicenseCount}">
+                                                            <c:out value="${recordingLicenseCount}"/>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <spring:message code="views.capabilities.licenseNumber.unlimited"/>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </dd>
                                             </dl>
                                         </c:if>
 
@@ -197,6 +210,13 @@
                         <div class="center-content">- - - none - - -</div>
                     </c:otherwise>
                 </c:choose>
+                    <c:if test="${administrationMode}">
+                        <div class="table-actions">
+                            <a  class="btn btn-primary pull-left " style="margin-top: 10px;" href="${resourceCapabilities}">
+                                Spravovat vlastnosti
+                            </a>
+                        </div>
+                    </c:if>
             </div>
         </tab>
     </tabset>
