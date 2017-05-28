@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.api.DeviceResource;
+import cz.cesnet.shongo.controller.api.ManagedMode;
 import cz.cesnet.shongo.controller.api.Resource;
 import org.joda.time.Period;
 
@@ -30,6 +31,11 @@ public class ResourceModel
             DeviceResource deviceResource = (DeviceResource) resource;
             this.technologies = new LinkedList<String>();
             this.technologies.add(TechnologyModel.find(deviceResource.getTechnologies()).getTitle());
+            Object mode = deviceResource.getMode();
+            if (mode != null && mode instanceof ManagedMode) {
+                ManagedMode managedMode = (ManagedMode) mode;
+                this.connectorAgentName = managedMode.getConnectorAgentName();
+            }
         } else {
             this.setType(ResourceType.RESOURCE);
         }
@@ -70,14 +76,14 @@ public class ResourceModel
 
     private List<Capability> capabilities = new LinkedList<Capability>();
 
-    private String mode;
+    private String connectorAgentName;
 
-    public String getMode() {
-        return mode;
+    public String getConnectorAgentName() {
+        return connectorAgentName;
     }
 
-    public void setMode(String mode) {
-        this.mode = mode;
+    public void setConnectorAgentName(String connectorAgentName) {
+        this.connectorAgentName = connectorAgentName;
     }
 
     public List<Capability> getCapabilities() {
@@ -215,16 +221,20 @@ public class ResourceModel
         }
 
         if (this.type == ResourceType.DEVICE_RESOURCE) {
-            if (getTechnologies() != null) {
-                DeviceResource deviceResource = (DeviceResource) res;
-                Set<Technology> technologySet = new HashSet<Technology>();
+            DeviceResource deviceResource = (DeviceResource) res;
 
+            if (getTechnologies() != null) {
+                Set<Technology> technologySet = new HashSet<Technology>();
                 for (String technologySetString : getTechnologies()) {
                     technologySet.addAll(TechnologyModel.getTechnologies(technologySetString));
                 }
                 for (Technology technology : technologySet) {
                     deviceResource.addTechnology(technology);
                 }
+            }
+            if (!Strings.isNullOrEmpty(connectorAgentName)) {
+                ManagedMode managedMode = new ManagedMode(connectorAgentName);
+                deviceResource.setMode(managedMode);
             }
         }
 

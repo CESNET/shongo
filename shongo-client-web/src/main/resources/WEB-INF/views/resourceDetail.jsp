@@ -50,20 +50,20 @@
     <dl class="dl-horizontal" style="display:inline-block; vertical-align:top;">
 
 
-        <dt>Typ:</dt>
+        <dt><spring:message code="views.resource.type"/>:</dt>
         <dd><spring:message code="${resource.type.getCode()}"/></dd>
 
 
-        <dt>Jméno zdroje:</dt>
+        <dt><spring:message code="views.resource.name"/>:</dt>
         <dd><strong>${resource.name}</strong></dd>
 
         <c:if test="${not empty resource.description}">
-            <dt>Popis:</dt>
+            <dt><spring:message code="views.resource.description"/>:</dt>
             <dd>${resource.description}</dd>
         </c:if>
 
         <c:if test="${not empty resource.allocatable}">
-            <dt>Rezervovatelný:</dt>
+            <dt><spring:message code="views.resource.allocatable"/>:</dt>
             <dd>${resource.allocatable}</dd>
         </c:if>
 
@@ -73,18 +73,18 @@
         </c:if>
 
         <c:if test="${not empty resource.confirmByOwner}">
-            <dt>Potvrzování rezervací:</dt>
+            <dt><spring:message code="views.resource.confirmByOwner"/>:</dt>
             <dd>${resource.confirmByOwner}</dd>
         </c:if>
 
         <c:if test="${not empty resource.maximumFuture}">
-            <dt>Max. rezervovatelné na:</dt>
+            <dt><spring:message code="views.resource.maximumFuture"/>:</dt>
             <dd>${resource.maximumFuture} měsíců</dd>
         </c:if>
 
 
         <c:if test="${fn:length(resource.administratorEmails) gt 0}">
-            <dt>Emaily administrátorů:</dt>
+            <dt><spring:message code="views.resource.administratorEmails"/>:</dt>
             <c:forEach items="${resource.administratorEmails}" var="email">
                 <dd>${email}</dd>
             </c:forEach>
@@ -92,15 +92,20 @@
 
 
         <c:if test="${resource.type == 'DEVICE_RESOURCE' and fn:length(resource.technologies) gt 0}">
-            <dt>Technologie:</dt>
+            <dt><spring:message code="views.resource.technology"/>:</dt>
             <c:forEach items="${resource.technologies}" var="technology">
                 <dd>${technology}</dd>
             </c:forEach>
         </c:if>
+
+        <c:if test="${not empty resource.connectorAgentName}">
+            <dt><spring:message code="views.resource.connectorAgentName"/>:</dt>
+            <dd><c:out value="${resource.connectorAgentName}"/></dd>
+        </c:if>
     </dl>
     <div style="display: inline-block; margin: 15px;" class="pull-right">
         <a class="btn btn-default" style="margin-left: 5px;" href="${maintenanceReservation}">
-            Maintenance Reservation
+            <spring:message code="views.resource.maintenanceReservation"/>
         </a>
     </div>
 
@@ -117,8 +122,10 @@
              content-url="${detailUserRolesUrl}">
         </tab>
 
-        <tab heading="Vlastnosti" ng-controller="TabController">
+        <tab heading="<spring:message code="views.resourceDetail.capabilities"/>" ng-controller="TabController">
+            <h2><spring:message code="views.resourceDetail.capabilitiesTitle"/></h2>
             <div class="full-width" style="padding:45px;">
+
                 <c:choose>
                     <c:when test="${fn:length(resource.capabilities) gt 0}">
                         <div class="accordion" >
@@ -178,7 +185,7 @@
                                                 <c:set var="recordingLicenseCount" value="${capability.licenseCount}"/>
                                                 <dd>
                                                     <c:choose>
-                                                        <c:when test="${recordingLicenseCount}">
+                                                        <c:when test="${not empty recordingLicenseCount}">
                                                             <c:out value="${recordingLicenseCount}"/>
                                                         </c:when>
                                                         <c:otherwise>
@@ -207,16 +214,16 @@
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <div class="center-content">- - - none - - -</div>
+                        <div class="center-content"><spring:message code="views.list.none"/></div>
                     </c:otherwise>
                 </c:choose>
-                    <c:if test="${administrationMode}">
-                        <div class="table-actions">
-                            <a  class="btn btn-primary pull-left " style="margin-top: 10px;" href="${resourceCapabilities}">
-                                Spravovat vlastnosti
-                            </a>
-                        </div>
-                    </c:if>
+                <c:if test="${administrationMode}">
+                    <div class="table-actions">
+                        <a  class="btn btn-primary pull-left " style="margin-top: 10px;" href="${resourceCapabilities}">
+                            Spravovat vlastnosti
+                        </a>
+                    </div>
+                </c:if>
             </div>
         </tab>
     </tabset>

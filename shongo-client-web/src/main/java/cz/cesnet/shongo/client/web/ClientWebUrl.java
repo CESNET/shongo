@@ -242,6 +242,8 @@ public class ClientWebUrl
     public static final String RESOURCE_ATTRIBUTES =
             "/resource/attributes";
     public static final String RESOURCE_CAPABILITIES =
+            "/resource/{resourceId:.+}/capabilities";
+    public static final String RESOURCE_ADD_CAPABILITY =
             "/resource/capabilities";
     public static final String RESOURCE_CAPABILITIES_FINISH =
             "/resource/capabilities/finish/";

@@ -7,6 +7,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <tag:url var="resourceCreateUrl" value="<%= ClientWebUrl.RESOURCE_NEW %>"/>
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
 
@@ -76,6 +77,9 @@
                 </td>
             </tr>
         </c:forEach>
+        <c:if test="${fn:length(readableResources) eq 0}">
+            <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
+        </c:if>
         </tbody>
     </table>
 

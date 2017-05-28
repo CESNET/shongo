@@ -117,7 +117,7 @@
         <%--Name input--%>
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="name">
-                <spring:message code="views.resource.name"/>:
+                <spring:message code="views.resource.name"/>*:
             </form:label>
             <div class="col-xs-4">
                 <form:input path="name" cssClass="form-control" cssErrorClass="form-control error"
@@ -201,7 +201,7 @@
         <c:if test="${!(resource.id != null and resource.type == 'RESOURCE') }">
             <div class="form-group" ng-show="isDeviceResource" class="ng-hide">
                 <form:label class="col-xs-3 control-label" path="technologies">
-                    <spring:message code="views.resource.technology"/>:
+                    <spring:message code="views.resource.technology"/>*:
                 </form:label>
                 <div class="col-xs-4">
                     <form:select cssClass="form-control" path="technologies">
@@ -214,6 +214,16 @@
                 </div>
                 <div class="col-xs-offset-3 col-xs-9">
                     <form:errors path="technologies" cssClass="error"/>
+                </div>
+            </div>
+            <div class="form-group" ng-show="isDeviceResource" class="ng-hide">
+                <form:label class="col-xs-3 control-label" path="connectorAgentName">
+                    <spring:message code="views.resource.connectorAgentName"/>:
+                </form:label>
+                <div class="col-xs-4">
+                    <form:input path="connectorAgentName" cssClass="form-control" cssErrorClass="form-control error"
+                                tabindex="${tabIndex}"/>
+                    <span style="font-size:0.9em; color:#9b9b9b;"><spring:message code="views.resourceAttributes.agentNameHelp"/></span>
                 </div>
             </div>
         </c:if>

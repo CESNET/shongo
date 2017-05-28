@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWeb;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.PageNotAuthorizedException;
 import cz.cesnet.shongo.client.web.models.*;
@@ -29,7 +30,6 @@ import java.util.Set;
 
 
 /**
- *
  * Controller for managing resources and its capabilities.
  *
  * @author Marek Perichta <mperichta@cesnet.cz>
@@ -65,6 +65,13 @@ public class ResourceManagementController {
         binder.registerCustomEditor(LocalTime.class, new LocalTimeEditor());
     }
 
+    /**
+     * Handle preview of {@link Resource}'s detail.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId to show detail of
+     * @return view of the resource
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleResourceDetailPreview(
             SecurityToken securityToken,
@@ -76,7 +83,13 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
-
+    /**
+     * Handle view of formula for maintenance reservation.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId for for the requested maintenance reservation
+     * @return view of the maintenance reservation request form
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION, method = RequestMethod.GET)
     public ModelAndView handleResourceMaintenanceReservation(
             SecurityToken securityToken,
@@ -100,6 +113,15 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
+    /**
+     * Validate and create maintenance reservation request.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId for the requested maintenance reservation
+     * @param maintenanceReservationModel model of the reservation request
+     * @param bindingResult
+     * @return redirection to reservation request detail
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_MAINTENANCE_RESERVATION, method = RequestMethod.POST)
     public Object handleResourceMaintenanceReservationPost(
             SecurityToken securityToken,
@@ -123,6 +145,14 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId);
     }
 
+    /**
+     * Validate and store {@link Resource}.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceModel to be validated and stored
+     * @param sessionStatus to be completed after persisting
+     * @return redirection to the detail of persisted resource
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.POST)
     public Object handleResourceAttributesPost (
             SecurityToken securityToken,
@@ -151,6 +181,12 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, resourceId);
     }
 
+    /**
+     * Show form for modified resource.
+     *
+     * @param resourceModel to be modified
+     * @return view of the form for resource
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_ATTRIBUTES, method = RequestMethod.GET)
     public ModelAndView handleResourceAttributes (
             UserSession userSession,
@@ -162,6 +198,11 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
+    /**
+     * Handle request for new resource.
+     *
+     * @return redirection to the form with new resource
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_NEW, method = RequestMethod.GET)
     public String handleCreateNewResource (
             RedirectAttributes redirectAttributes,
@@ -176,7 +217,12 @@ public class ResourceManagementController {
     }
 
     /**
-     * Handle resource modification request
+     * Handle resource modification request.
+     * Retrieves resource from service.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId to be modified
+     * @return redirection to form filled with resource attributes
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_MODIFY, method = RequestMethod.GET)
     public String handleResourceModify (
@@ -200,6 +246,13 @@ public class ResourceManagementController {
         return "redirect:" + ClientWebUrl.RESOURCE_ATTRIBUTES;
     }
 
+    /**
+     * Handle view of confirmation for deletion of resource.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId to be asked for deletion
+     * @return view questioning deletion
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.GET)
     public ModelAndView handleResourceDelete(
             SecurityToken securityToken,
@@ -212,6 +265,13 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
+    /**
+     * Handle deletion of single resource.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId to be deleted
+     * @return redirection to view with list of resources and error if catched
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_SINGLE_DELETE, method = RequestMethod.POST)
     public String handleResourceDelete(
             SecurityToken securityToken,
@@ -229,12 +289,16 @@ public class ResourceManagementController {
     }
 
     /**
-     *  Handles capabilities view. Accessible only in administrator's mode.
+     * Handle capabilities view. Accessible only in administrator's mode.
+     *
+     * @param securityToken of the user requesting action
+     * @param resourceId of the capabilities shown
+     * @return view of capabilities management
      */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES, method = RequestMethod.GET)
     public ModelAndView handleResourceCapabilitiesView (
             SecurityToken securityToken,
-            @RequestParam(value="resourceId", required=true) String resourceId,
+            @PathVariable(value = "resourceId") String resourceId,
             UserSession userSession) {
         //Capabilities management accessible only for administrators
         if (!userSession.isAdministrationMode()) {
@@ -249,35 +313,53 @@ public class ResourceManagementController {
         return modelAndView;
     }
 
+    /**
+     * Removes model from session context and redirects to detail of the resource
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES_FINISH, method = RequestMethod.GET)
     public String handleResourceCapabilitiesFinish (
             SessionStatus sessionStatus,
-            @ModelAttribute(value = "resource") ResourceModel resource
-    ) {
+            @ModelAttribute(value = "resource") ResourceModel resource) {
         String resourceId = resource.getId();
         sessionStatus.setComplete();
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_DETAIL, resourceId);
     }
 
+    /**
+     * Removes model from session context and redirects to resource management view.
+     */
     @RequestMapping(value = ClientWebUrl.RESOURCE_CANCEL, method = RequestMethod.GET)
     public String handleResourceCancel (
-            SessionStatus sessionStatus
-    ) {
+            SessionStatus sessionStatus) {
         sessionStatus.setComplete();
         return "redirect:" + ClientWebUrl.RESOURCE_RESOURCES;
     }
 
-            @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
+    /**
+     * Handle deletion of single capability.
+     * @param securityToken of the user requesting action
+     * @param capabilityId to be deleted
+     * @param resource from the session context
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITY_DELETE, method = RequestMethod.GET)
     public String handleResourceCapabilityDelete (
             SecurityToken securityToken,
             @PathVariable(value = "capabilityId") String capabilityId,
             @ModelAttribute("resource") ResourceModel resource) {
         resource.removeCapabilityById(capabilityId);
         resourceService.modifyResource(securityToken, resource.toApi());
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/recording", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link RecordingCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param recordingCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/recording", method = RequestMethod.POST)
     public String handleResourceAddRecordingCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
@@ -286,10 +368,17 @@ public class ResourceManagementController {
         resource.addCapability(recordingCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/terminal", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link TerminalCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param terminalCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/terminal", method = RequestMethod.POST)
     public String handleResourceAddTerminalCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
@@ -298,11 +387,18 @@ public class ResourceManagementController {
         resource.addCapability(terminalCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
 
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/streaming", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link StreamingCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param streamingCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/streaming", method = RequestMethod.POST)
     public String handleResourceAddStreamingCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
@@ -312,52 +408,69 @@ public class ResourceManagementController {
         resource.addCapability(streamingCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
 
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/valueProvider", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link ValueProviderCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param valueProviderCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/valueProvider", method = RequestMethod.POST)
     public String handleResourceAddValueProviderCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
             @ModelAttribute("valueprovidercapability") ValueProviderCapabilityModel valueProviderCapabilityModel,
             BindingResult bindingResult) {
-            //TODO decide how add the capability, but create function for that
+        resource.addCapability(valueProviderCapabilityModel.toApi());
+        resourceService.modifyResource(securityToken, resource.toApi());
 
-            resource.addCapability(valueProviderCapabilityModel.toApi());
-            resourceService.modifyResource(securityToken, resource.toApi());
-
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
 
 
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/roomProvider", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link RoomProviderCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param roomProviderCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/roomProvider", method = RequestMethod.POST)
     public String handleResourceAddRoomProviderCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
             @ModelAttribute("roomprovidercapability") RoomProviderCapabilityModel roomProviderCapabilityModel,
             BindingResult bindingResult) {
-
-
         resource.addCapability(roomProviderCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
 
     }
 
-    @RequestMapping(value = ClientWebUrl.RESOURCE_CAPABILITIES + "/aliasProvider", method = RequestMethod.POST)
+    /**
+     * Handle adding of {@link AliasProviderCapability} to resource.
+     * @param securityToken of the user requesting action
+     * @param resource from the session to add capability to
+     * @param aliasProviderCapabilityModel to be added to resource
+     * @return redirection to capabilities management of the resource in session
+     */
+    @RequestMapping(value = ClientWebUrl.RESOURCE_ADD_CAPABILITY + "/aliasProvider", method = RequestMethod.POST)
     public String handleResourceAddAliasProviderCapability (
             SecurityToken securityToken,
             @ModelAttribute("resource") ResourceModel resource,
-            @ModelAttribute("aliasprovidercapability") AliasProviderCapabilityModel aliasProviderCapabilityModel,
+            @ModelAttribute("AliasProviderCapabilityModel") AliasProviderCapabilityModel aliasProviderCapabilityModel,
             BindingResult bindingResult) {
-
         resource.addCapability(aliasProviderCapabilityModel.toApi());
         resourceService.modifyResource(securityToken, resource.toApi());
 
-        return "redirect:" + ClientWebUrl.RESOURCE_CAPABILITIES;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESOURCE_CAPABILITIES, resource.getId());
 
     }
+
 }

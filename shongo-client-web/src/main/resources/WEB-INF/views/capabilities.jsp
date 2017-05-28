@@ -5,6 +5,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <tag:url var="resourceFinish" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES_FINISH %>"/>
 
 <c:set value="${resource.capabilities}" var="capabilities"/>
@@ -86,7 +87,7 @@
                 <c:set var="recordingLicenseCount" value="${capability.licenseCount}"/>
                 <dd>
                     <c:choose>
-                        <c:when test="${recordingLicenseCount}">
+                        <c:when test="${not empty recordingLicenseCount}">
                             <c:out value="${recordingLicenseCount}"/>
                         </c:when>
                         <c:otherwise>
@@ -122,30 +123,37 @@
 
 
 </c:forEach>
+    <c:if test="${fn:length(capabilities) eq 0}">
+        <div colspan="6" class="full-width" style="padding:30px;">
+            <div class="center-content"><spring:message code="views.list.none"/></div>
+        </div>
+    </c:if>
 
     <hr/>
 
-    <button class="btn btn-default" data-toggle="modal" data-target="#largePopup">Add capability</button>
+    <button class="btn btn-default" data-toggle="modal" data-target="#largePopup"><spring:message code="views.button.add"/></button>
+
+
 
     <div class="modal fade" id="largePopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Add capability</h4>
+                    <h4 class="modal-title" id="myModalLabel"><spring:message code="views.capabilities.modal.title"/> </h4>
                 </div>
                 <div class="modal-body">
-                    <p>Select which type of capability you want to add.</p>
+                    <p><spring:message code="views.capabilities.modal.selectionTitle"/></p>
                     <div>
                         <select ng-model="addCapabilityType" class="selectpicker form-control">
-                            <option disabled selected value> -- select an option -- </option>
-                            <option value="valueProviderCapabilityForm" selected>ValueProviderCapability</option>
-                            <option value="aliasProviderCapabilityForm">AliasProviderCapability</option>
+                            <option disabled selected value> -- <spring:message code="views.select.choose"/> -- </option>
+                            <option value="valueProviderCapabilityForm" selected><spring:message code="views.capabilities.ValueProviderCapability"/></option>
+                            <option value="aliasProviderCapabilityForm"><spring:message code="views.capabilities.AliasProviderCapability"/></option>
                             <c:if test="${isDeviceResource}">
-                                <option value="roomProviderCapabilityForm">RoomProviderCapability</option>
-                                <option value="terminalCapabilityForm">TerminalCapability</option>
-                                <option value="recordingCapabilityForm">RecordingCapability</option>
-                                <option value="streamingCapabilityForm">StreamingCapability</option>
+                                <option value="roomProviderCapabilityForm"><spring:message code="views.capabilities.RoomProviderCapability"/></option>
+                                <option value="terminalCapabilityForm"><spring:message code="views.capabilities.TerminalCapability"/></option>
+                                <option value="recordingCapabilityForm"><spring:message code="views.capabilities.RecordingCapability"/></option>
+                                <option value="streamingCapabilityForm"><spring:message code="views.capabilities.StreamingCapability"/></option>
                             </c:if>
                         </select>
                     </div>
@@ -158,11 +166,11 @@
                             method="post"
                             action="/resource/capabilities/roomProvider"
                             ng-show="addCapabilityType=='roomProviderCapabilityForm'">
-                        <h3>Room Provider Capability</h3>
-
+                        <h3><spring:message code="views.capabilities.RoomProviderCapability"/></h3>
+                        <p><spring:message code="views.capabilities.RoomProvider.description"/></p>
                         <div class="form-group">
                             <label class="col-xs-3 control-label" for="licenseCount">
-                                License count:
+                                <spring:message code="views.capabilities.RoomProvider.licencesNumber"/>
                             </label>
                             <div class="col-xs-4">
                                 <input class="form-control" type="text" id="licenseCount" name="licenseCount">
@@ -170,7 +178,7 @@
                         </div>
                         <div class="form-group">
                             <label class="col-xs-3 control-label" for="requiredAliasTypes">
-                            Alias types:
+                                <spring:message code="views.capabilities.RoomProvider.AliasType"/>
                             </label>
                             <div class="col-xs-4">
                                 <select class="form-control" style="padding-left:0;" id="requiredAliasTypes" name="requiredAliasTypes" multiple="true">
@@ -192,12 +200,12 @@
                                method="post"
                                action="/resource/capabilities/terminal"
                                ng-show="addCapabilityType=='terminalCapabilityForm'">
-                        <h3>Terminal Capability</h3>
-
+                        <h3><spring:message code="views.capabilities.TerminalCapability"/></h3>
+                        <p><spring:message code="views.capabilities.Terminal.description"/></p>
                         <div ng-init="aliases = [[]];">
                             <div class="form-group" ng-repeat="alias in aliases">
                                 <label class="control-label col-xs-2" for="aliases[{{$index}}].type">
-                                    Alias type {{$index}}:
+                                    <spring:message code="views.capabilities.AliasProvider.aliasType"/> {{$index}}:
                                 </label>
                                 <div class="col-xs-3">
                                     <select class="form-control" name="aliases[{{$index}}].type" id="aliases[{{$index}}].type">
@@ -210,7 +218,7 @@
                                     </select>
                                 </div>
                                 <label class="control-label col-xs-2" for="aliases[{{$index}}].value">
-                                    Alias value {{$index}}:
+                                    <spring:message code="views.capabilities.AliasProvider.aliasValue"/> {{$index}}:
                                 </label>
                                 <div class="col-xs-3">
                                     <input class="col-xs-3 form-control" type="text" name="aliases[{{$index}}].value" id="aliases[{{$index}}].value">
@@ -218,7 +226,7 @@
                             </div>
                             <br/>
                             <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
-                                Add alias</a>
+                                <spring:message code="views.capabilities.AliasProvider.addAlias"/></a>
                         </div>
                     </form:form>
 
@@ -230,8 +238,8 @@
                                method="post"
                                action="/resource/capabilities/streaming"
                                ng-show="addCapabilityType=='streamingCapabilityForm'">
-                        <h3>Streaming Capability</h3>
-
+                        <h3><spring:message code="views.capabilities.StreamingCapability"/></h3>
+                        <p><spring:message code="views.capabilities.Streaming.description"/></p>
                         <%-- empty form --%>
                     </form:form>
 
@@ -243,19 +251,19 @@
                             method="post"
                             action="/resource/capabilities/aliasProvider"
                             ng-show="addCapabilityType=='aliasProviderCapabilityForm'">
-                        <h3>Alias Provider Capability</h3>
-
+                        <h3><spring:message code="views.capabilities.AliasProviderCapability"/></h3>
+                        <p><spring:message code="views.capabilities.AliasProvider.description"/></p>
                         <h5>Value Provider</h5>
                             <div class="form-group">
                                 <label class="control-label col-xs-2" for="valueProviderTypeForAlias">
-                                    Select type:
+                                    <spring:message code="views.capabilities.ValueProviderCapability.type"/>
                                 </label>
                                 <div class="col-xs-3">
                                     <select id="valueProviderTypeForAlias" name="valueProviderType" class="selectpicker form-control" ng-model="addValueProviderType" >
-                                        <option disabled selected value> -- select an option -- </option>
-                                        <option value="resource">Resource</option>
-                                        <option value="pattern">Pattern</option>
-                                        <option value="filtered">Filtered</option>
+                                        <option disabled selected value> -- <spring:message code="views.select.choose"/> -- </option>
+                                        <option value="resource"><spring:message code="views.capabilities.ValueProviderCapability.resource"/></option>
+                                        <option value="pattern"><spring:message code="views.capabilities.ValueProviderCapability.pattern"/></option>
+                                        <option value="filtered"><spring:message code="views.capabilities.ValueProviderCapability.filtered"/></option>
                                     </select>
                                 </div>
                             </div>
@@ -264,7 +272,7 @@
                             <div ng-show="addValueProviderType=='resource'">
                                 <div class="form-group">
                                     <label class="control-label col-xs-2" for="remoteResourceString">
-                                        Resource id:
+                                        <spring:message code="views.capabilities.ValueProviderCapability.resourceId"/>
                                     </label>
                                     <div class="col-xs-4">
                                         <input class="form-control" id="remoteResourceString" type="text" name="remoteResourceString">
@@ -275,7 +283,7 @@
                             <div ng-show="addValueProviderType=='pattern'">
                                 <div class="form-group">
                                     <label class="col-xs-3 control-label" for="allowAnyRequestedValueForAP">
-                                        Allow any requested value:
+                                        <spring:message code="views.capabilities.ValueProviderCapability.anyValues"/>:
                                     </label>
                                     <div class="checkbox col-xs-4">
                                         <input id="allowAnyRequestedValueForAP" name="allowAnyRequestedValue" type="checkbox">
@@ -286,7 +294,7 @@
 
                                     <div class="form-group" ng-repeat="pattern in patterns">
                                         <label class="col-xs-3 control-label" for="patterns[{{$index}}]ForAP">
-                                            Pattern {{$index+1}}:
+                                            <spring:message code="views.capabilities.ValueProviderCapability.pattern"/>: {{$index+1}}:
                                         </label>
                                         <div class="col-xs-4">
                                             <input id="patterns[{{$index}}]ForAP" class="form-control" type="text" name="patterns[{{$index}}]">
@@ -294,7 +302,7 @@
                                     </div>
 
                                     <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
-                                        Add pattern</a>
+                                        <spring:message code="views.capabilities.ValueProviderCapability.addPattern"/>:</a>
 
                                 </div>
                             </div>
@@ -302,9 +310,8 @@
                             <div ng-show="addValueProviderType=='filtered'">
                                 <div class="form-group">
                                     <label class="col-xs-3 control-label" for="filteredResourceIdForAP">
-                                        Filtered resource:
+                                        <spring:message code="views.capabilities.ValueProviderCapability.filteredResource"/>::
                                     </label>
-                                        <%--TODO add available resources into model--%>
                                     <div class="col-xs-4">
                                         <input id="filteredResourceIdForAP" class="form-control" type="text" name="filteredResourceId">
                                     </div>
@@ -312,15 +319,15 @@
                             </div>
 
                         <br/>
-                        <h5>Aliases</h5>
+                        <h5><spring:message code="views.capabilities.AliasProvider.aliases"/>:</h5>
                             <div ng-init="aliases = [[]];" >
                                 <div class="form-group" ng-repeat="alias in aliases">
                                     <label class="control-label col-xs-2" for="aliases[{{$index}}].typeForAP">
-                                        Alias type {{$index}}:
+                                        <spring:message code="views.capabilities.AliasProvider.aliasType"/> {{$index}}:
                                     </label>
                                     <div class="col-xs-3">
                                         <select class="form-control" name="aliases[{{$index}}].type" id="aliases[{{$index}}].typeForAP">
-                                            <option disabled selected value> -- select an option -- </option>
+                                            <option disabled selected value> -- <spring:message code="views.select.choose"/> -- </option>
                                             <c:forEach items="${aliasTypes}" var="aliasType">
                                                 <option value="${aliasType}">
                                                     <spring:message code="${aliasType.name}"/>
@@ -329,7 +336,7 @@
                                         </select>
                                     </div>
                                     <label class="control-label col-xs-2" for="aliases[{{$index}}].valueForAP">
-                                        Alias value {{$index}}:
+                                        <spring:message code="views.capabilities.AliasProvider.aliasTemplate"/> {{$index}}:
                                     </label>
                                     <div class="col-xs-3">
                                         <input class="col-xs-3 form-control" type="text" name="aliases[{{$index}}].value" id="aliases[{{$index}}].valueForAP">
@@ -337,13 +344,13 @@
                                 </div>
                                 <br/>
                                 <a ng-click="aliases.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
-                                    Add alias</a>
+                                    <spring:message code="views.capabilities.AliasProvider.addAlias"/></a>
                             </div>
                         <br/>
 
                         <div class="form-group">
                             <label class="col-xs-4 control-label" for="restrictedToResource">
-                                Capability restricted to resource:
+                                <spring:message code="views.capabilities.AliasProvider.capabilityRestricted"/>:
                             </label>
                             <div class="checkbox col-xs-4">
                                 <input id="restrictedToResource" name="restrictedToResource" type="checkbox">
@@ -361,11 +368,11 @@
                                method="post"
                                action="/resource/capabilities/recording"
                                ng-show="addCapabilityType=='recordingCapabilityForm'">
-                    <h3>Recording Capability</h3>
-
+                    <h3><spring:message code="views.capabilities.RecordingCapability"/></h3>
+                        <p><spring:message code="views.capabilities.Recording.description"/></p>
                         <div class="form-group">
                             <label class="col-xs-3 control-label" for="recordingLicenseCount">
-                                Number of licences:
+                                <spring:message code="views.capabilities.Recording.licencesNumber"/>:
                             </label>
                             <div class="col-xs-4">
                                 <input class="form-control" id="recordingLicenseCount" name="licenseCount" type="text">
@@ -381,17 +388,17 @@
                             method="post"
                             action="/resource/capabilities/valueProvider"
                             ng-show="addCapabilityType=='valueProviderCapabilityForm'">
-                        <h3>Value Provider Capability</h3>
-
+                        <h3><spring:message code="views.capabilities.ValueProviderCapability"/></h3>
+                        <p><spring:message code="views.capabilities.ValueProvider.description"/></p>
                         <div class="form-group">
                             <label class="col-xs-2 control-label" for="valueProviderType">
-                                Select type:
+                                <spring:message code="views.capabilities.ValueProviderCapability.type"/>
                             </label>
                             <div class="col-xs-4">
                                 <select id="valueProviderType" name="valueProviderType" class="form-control" ng-model="addValueProviderType" >
-                                    <option disabled selected value> -- select an option -- </option>
-                                    <option value="pattern">Pattern</option>
-                                    <option value="filtered">Filtered</option>
+                                    <option disabled selected value> -- <spring:message code="views.select.choose"/> -- </option>
+                                    <option value="pattern"><spring:message code="views.capabilities.ValueProviderCapability.pattern"/></option>
+                                    <option value="filtered"><spring:message code="views.capabilities.ValueProviderCapability.filtered"/></option>
                                 </select>
                             </div>
                         </div>
@@ -401,7 +408,7 @@
 
                             <div class="form-group">
                                 <label class="col-xs-3 control-label" for="allowAnyRequestedValue">
-                                    Allow any requested value:
+                                    <spring:message code="views.capabilities.ValueProviderCapability.anyValues"/>:
                                 </label>
                                 <div class="checkbox col-xs-4">
                                     <input id="allowAnyRequestedValue" name="allowAnyRequestedValue" type="checkbox">
@@ -412,7 +419,7 @@
 
                                 <div class="form-group" ng-repeat="pattern in patterns">
                                     <label class="col-xs-3 control-label" for="patterns[{{$index}}]">
-                                        Pattern {{$index+1}}:
+                                        <spring:message code="views.capabilities.ValueProviderCapability.pattern"/> {{$index+1}}:
                                     </label>
                                     <div class="col-xs-4">
                                         <input id="patterns[{{$index}}]" class="form-control" type="text" name="patterns[{{$index}}]">
@@ -420,7 +427,7 @@
                                 </div>
 
                                <a ng-click="patterns.push([])" class="btn btn-default"><i class="fa fa-plus" aria-hidden="true"></i>
-                                   Add pattern</a>
+                                   <spring:message code="views.capabilities.ValueProviderCapability.addPattern"/></a>
 
                             </div>
 
@@ -429,9 +436,8 @@
                         <div ng-show="addValueProviderType=='filtered'">
                             <div class="form-group">
                                 <label class="col-xs-3 control-label" for="filteredResourceId">
-                                    Filtered resource:
+                                    <spring:message code="views.capabilities.ValueProviderCapability.filteredResource"/>:
                                 </label>
-                                <%--TODO add available resources into model--%>
                                 <div class="col-xs-4">
                                     <input id="filteredResourceId" class="form-control" type="text" name="filteredResourceId">
                                 </div>
@@ -440,15 +446,16 @@
 
                     </form:form>
 
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit">Submit</button>
-                <button type="button" class="btn btn-tertiary" data-dismiss="modal">Close</button>
+                    <div class="modal-footer">
+                <button type="submit" class="btn btn-success" form="{{addCapabilityType}}" value="Submit"><spring:message code="views.button.create"/> </button>
+                <button type="button" class="btn btn-tertiary" data-dismiss="modal"><spring:message code="views.button.cancel"/> </button>
+            </div>
+                </div>
             </div>
         </div>
     </div>
+    <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceFinish}">
+        <spring:message code="views.button.finish"/>
+    </a>
+
 </div>
-</div>
-</div>
-<a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceFinish}">
-    Dokončit
-</a>

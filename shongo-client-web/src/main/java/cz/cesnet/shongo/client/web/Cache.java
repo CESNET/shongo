@@ -403,6 +403,9 @@ public class Cache
         return permissionsByResourceId;
     }
 
+    /**
+     * @return map of {@link ObjectPermission}s by resource identifier
+     */
     public Set<ObjectPermission> getSingleResourcePermissions(SecurityToken securityToken, String resourceId) {
         Set<ObjectPermission> objectPermissions =
                 getObjectPermissionsWithoutFetching(securityToken, resourceId);
