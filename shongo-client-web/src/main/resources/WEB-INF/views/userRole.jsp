@@ -6,8 +6,16 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<c:set var="objectType"><%= ObjectType.RESERVATION_REQUEST %></c:set>
+<c:choose>
+    <c:when test="${fn:contains(userRole.objectId, 'res')}">
+        <c:set var="objectType"><%= ObjectType.RESOURCE %></c:set>
+    </c:when>
+    <c:otherwise>
+        <c:set var="objectType"><%= ObjectType.RESERVATION_REQUEST %></c:set>
+    </c:otherwise>
+</c:choose>
 
 <script type="text/javascript">
     var module = angular.module('jsp:userRole', ['ngApplication', 'tag:userRoleForm']);
