@@ -658,6 +658,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 throw new CommandException("User " + userInformation.getFullName() + " has no principal names.");
             }
             for (String principalName : principalNames) {
+                //Skip configuring principal name if too long
+                if (principalName.length() > 60) {
+                    logger.warn("Skipping configuration of principal name '{}'. Name to long.",
+                            new Object[]{principalName});
+                    continue;
+                }
                 String principalId = createAdobeConnectUser(principalName, userInformation);
                 String role = "remove";
                 switch (participant.getRole()) {
