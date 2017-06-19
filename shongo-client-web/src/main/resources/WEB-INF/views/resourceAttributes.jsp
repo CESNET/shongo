@@ -5,7 +5,10 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>"/>
+<tag:url var="resourceCancel" value="<%= ClientWebUrl.RESOURCE_CANCEL %>"/>
+<tag:url var="resourceCapabilities" value="<%= ClientWebUrl.RESOURCE_CAPABILITIES %>">
+    <tag:param name="resourceId" value="${resource.id}"/>
+</tag:url>
 
 
 <c:set var="administrationMode" value="${sessionScope.SHONGO_USER.administrationMode}"/>
@@ -114,7 +117,7 @@
         <%--Name input--%>
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="name">
-                <spring:message code="views.resource.name"/>:
+                <spring:message code="views.resource.name"/>*:
             </form:label>
             <div class="col-xs-4">
                 <form:input path="name" cssClass="form-control" cssErrorClass="form-control error"
@@ -198,7 +201,7 @@
         <c:if test="${!(resource.id != null and resource.type == 'RESOURCE') }">
             <div class="form-group" ng-show="isDeviceResource" class="ng-hide">
                 <form:label class="col-xs-3 control-label" path="technologies">
-                    <spring:message code="views.resource.technology"/>:
+                    <spring:message code="views.resource.technology"/>*:
                 </form:label>
                 <div class="col-xs-4">
                     <form:select cssClass="form-control" path="technologies">
@@ -213,19 +216,44 @@
                     <form:errors path="technologies" cssClass="error"/>
                 </div>
             </div>
+            <div class="form-group" ng-show="isDeviceResource" class="ng-hide">
+                <form:label class="col-xs-3 control-label" path="connectorAgentName">
+                    <spring:message code="views.resource.connectorAgentName"/>:
+                </form:label>
+                <div class="col-xs-4">
+                    <form:input path="connectorAgentName" cssClass="form-control" cssErrorClass="form-control error"
+                                tabindex="${tabIndex}"/>
+                    <span style="font-size:0.9em; color:#9b9b9b;"><spring:message code="views.resourceAttributes.agentNameHelp"/></span>
+                </div>
+            </div>
         </c:if>
     </form:form>
 
     <hr/>
 
     <div>
+        <a class="btn btn-default pull-left" href="${resourceCancel}">
+            <spring:message code="views.button.cancel"/>
+        </a>
         <c:if test="${administrationMode}">
-            <a ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
-                Spravovat schopnosti
+            <a  ng-show="id" class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+                Spravovat vlastnosti
             </a>
+<%--            <a class="btn btn-default pull-right" style="margin-left: 5px;" href="${resourceCapabilities}">
+                Spravovat schopnosti
+            </a>--%>
         </c:if>
-        <a class="btn btn-default pull-right" href="javascript: document.getElementById('resource').submit();">
-            <spring:message code="views.resource.save"/>
+        <a class="btn btn-primary pull-right" href="javascript: document.getElementById('resource').submit();">
+            <c:choose>
+                <c:when test="${resource.id == null}">
+                    <spring:message code="views.button.create"/>
+                </c:when>
+                <c:otherwise>
+                    <spring:message code="views.button.save"/>
+                </c:otherwise>
+            </c:choose>
+
+
         </a>
     </div>
 </div>
