@@ -50,32 +50,34 @@
         <dd><spring:message code="${resource.type.getCode()}"/></dd>
 
 
-        <dt>Jméno zdroje:</dt>
+        <dt><spring:message code="views.resource.name"/>:</dt>
         <dd><strong>${resource.name}</strong></dd>
 
         <c:if test="${not empty resource.description}">
-            <dt>Popis:</dt>
+            <dt><spring:message code="views.resource.description"/>:</dt>
             <dd>${resource.description}</dd>
         </c:if>
 
         <c:if test="${not empty resource.allocatable}">
-            <dt>Rezervovatelný:</dt>
-            <dd>${resource.allocatable}</dd>
+            <dt><spring:message code="views.resource.allocatable"/>:</dt>
+            <dd>
+                <tag:trueFalseIcon value="${resource.allocatable}"/>
+            </dd>
         </c:if>
 
         <c:if test="${not empty resource.calendarPublic}">
-            <dt>Veřejne rezervovatelný:</dt>
-            <dd>${resource.calendarPublic}</dd>
+            <dt><spring:message code="views.resource.calendarPublic"/>:</dt>
+            <dd><tag:trueFalseIcon value="${resource.calendarPublic}"/></dd>
         </c:if>
 
         <c:if test="${not empty resource.confirmByOwner}">
-            <dt>Potvrzování rezervací:</dt>
-            <dd>${resource.confirmByOwner}</dd>
+            <dt><spring:message code="views.resource.confirmByOwner"/>:</dt>
+            <dd><tag:trueFalseIcon value="${resource.confirmByOwner}"/></dd>
         </c:if>
 
         <c:if test="${not empty resource.maximumFuture}">
-            <dt>Max. rezervovatelné na:</dt>
-            <dd>${resource.maximumFuture} měsíců</dd>
+            <dt><spring:message code="views.resource.maximumFuture"/>:</dt>
+            <dd>${resource.maximumFuture}&nbsp;<spring:message code="views.period.monthsN"/></dd>
         </c:if>
 
 

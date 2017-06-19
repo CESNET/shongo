@@ -148,4 +148,8 @@
         <name>userRoleList</name>
         <path>/WEB-INF/tags/userRoleList.tag</path>
     </tag-file>
+    <tag-file>
+        <name>trueFalseIcon</name>
+        <path>/WEB-INF/tags/trueFalseIcon.tag</path>
+    </tag-file>
 </taglib>
