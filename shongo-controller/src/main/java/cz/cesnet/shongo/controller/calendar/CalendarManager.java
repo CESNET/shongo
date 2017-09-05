@@ -65,7 +65,6 @@ public class CalendarManager extends Component {
     }
 
     public synchronized void sendCalendarNotifications(EntityManager entityManager) {
-        // Execute notifications
         List<ReservationCalendar> removedCalendars = new LinkedList<>();
 
         boolean notificationSuccessful = false;
@@ -91,10 +90,6 @@ public class CalendarManager extends Component {
         }
         boolean notificationSuccessful = false;
 
-        if (calendars.size() > 1 ) {
-            throw new TodoImplementException();
-        }
-
         if (enabled) {
 
             // Perform notification in every calendar connector
@@ -107,8 +102,7 @@ public class CalendarManager extends Component {
                 //TODO following section needs to be modified if another connector is to be added
                 if (notificationSuccessful) {
                     entityManager.getTransaction().begin();
-                    entityManager.merge(calendar);
-                    entityManager.remove(calendar);
+                    entityManager.remove(entityManager.contains(calendar) ? calendar : entityManager.merge(calendar));
                     entityManager.getTransaction().commit();
                 }
             }

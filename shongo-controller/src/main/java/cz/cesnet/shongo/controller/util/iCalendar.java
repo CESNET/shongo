@@ -8,6 +8,7 @@ import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.*;
+import org.joda.time.DateTimeZone;
 
 import java.net.URISyntaxException;
 import java.util.LinkedList;
@@ -50,6 +51,12 @@ public class iCalendar
         this.calendar.getProperties().add(new ProdId("-//" + author + "//" + description + "//" + language));
         this.calendar.getProperties().add(Version.VERSION_2_0);
         this.calendar.getProperties().add(CalScale.GREGORIAN);
+
+        TimeZoneRegistry registry = new TimeZoneRegistryImpl("zoneinfo-outlook/");
+        org.joda.time.DateTimeZone dateTimeZone = DateTimeZone.getDefault();
+        VTimeZone timeZone = registry.getTimeZone(dateTimeZone.getID()).getVTimeZone();
+
+        this.calendar.getComponents().add(timeZone);
     }
 
     /**

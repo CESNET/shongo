@@ -55,8 +55,7 @@ public class CalDAVConnector implements CalendarConnector
                 case 403:
                     throw new CalendarServerConnectException(actionUrl, "401 Forbidden - " + connection.getResponseMessage());
                 case 404:
-                    //throw new CalendarServerConnectException(actionUrl, "404 Not Found - " + connection.getResponseMessage());
-                    break;
+                    throw new CalendarServerConnectException(actionUrl, "404 Not Found - " + connection.getResponseMessage());
                 case 500:
                     throw new CalendarServerConnectException(actionUrl, "500 Internal Server Error - " + connection.getResponseMessage());
                 default:
