@@ -479,12 +479,15 @@ public class ReservationManager extends AbstractManager
         Set<AbstractReservationRequest> reservationRequests = new HashSet<AbstractReservationRequest>();
 
         // Add top reservation requests by reused allocation
+        long startTime = System.currentTimeMillis();
         List<AbstractReservationRequest> reservationRequestsWithReusedAllocation = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
                         + " WHERE reservationRequest.reusedAllocation = :allocation",
                 AbstractReservationRequest.class)
                 .setParameter("allocation", allocation)
                 .getResultList();
+        long estimatedTime = System.currentTimeMillis() - startTime;
+        System.out.println("------------------------------------------IsDeletable INSIDE INSIDE1: " + estimatedTime + "ms------------------------------------------");
         for (AbstractReservationRequest reservationRequest : reservationRequestsWithReusedAllocation) {
             if (!reservationRequest.getState().equals(AbstractReservationRequest.State.ACTIVE)) {
                 continue;
@@ -505,11 +508,14 @@ public class ReservationManager extends AbstractManager
         }
         if (reservations.size() > 0) {
             // Add top reservation requests by existing reservations
+            long startTime1 = System.currentTimeMillis();
             List<ExistingReservation> existingReservations = entityManager.createQuery(
                     "SELECT reservation FROM ExistingReservation reservation"
                             + " WHERE reservation.reusedReservation IN(:reservations)", ExistingReservation.class)
                     .setParameter("reservations", reservations)
                     .getResultList();
+            long estimatedTime1 = System.currentTimeMillis() - startTime1;
+            System.out.println("------------------------------------------IsDeletable INSIDE INSIDE2: " + estimatedTime1 + "ms------------------------------------------");
             for (ExistingReservation reservation : existingReservations) {
                 AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
                 if (reservationRequest != null) {

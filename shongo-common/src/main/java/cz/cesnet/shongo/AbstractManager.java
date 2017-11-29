@@ -46,9 +46,12 @@ public abstract class AbstractManager extends PersistenceTransactionHelper
     protected void create(PersistentObject persistentObject)
     {
         persistentObject.checkNotPersisted();
+        long startTime2 = System.currentTimeMillis();
         PersistenceTransaction transaction = beginPersistenceTransaction();
         entityManager.persist(persistentObject);
         transaction.commit();
+        long estimatedTime2 = System.currentTimeMillis() - startTime2;
+        System.out.println("---------------------------Create "+ persistentObject.getClass() +" : " + estimatedTime2+"ms--------------------------------------------");
     }
 
     /**

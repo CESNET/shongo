@@ -118,11 +118,18 @@ public abstract class Specification extends SimplePersistentObject implements Re
      */
     public void updateSpecificationSummary(EntityManager entityManager, boolean deleteOnly, boolean flush)
     {
+
         if (flush) {
+            long startTime = System.currentTimeMillis();
+
             entityManager.flush();
+            long estimatedTime = System.currentTimeMillis() - startTime;
+            System.out.println("------------------------------------------FLUSH BEFORE - UpdateSpecificationSummary: " + estimatedTime + "ms------------------------------------------");
         }
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
         reservationRequestManager.updateSpecificationSummary(this, deleteOnly);
+
     }
 
     /**

@@ -373,6 +373,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public String createReservationRequest(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
+        System.out.println("Create reservationReq START");
         authorization.validate(securityToken);
         checkNotNull("reservationRequest", reservationRequestApi);
 
@@ -421,8 +422,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequest.setCreatedBy(userId);
             reservationRequest.setUpdatedBy(userId);
 
+            /*ODMERANE VNUTRI*/
             reservationRequestManager.create(reservationRequest);
 
+            /*ODMERANE VNUTRI*/
             reservationRequest.getSpecification().updateTechnologies(entityManager);
 
             authorizationManager.createAclEntry(AclIdentityType.USER, userId, reservationRequest, ObjectRole.OWNER);
@@ -434,11 +437,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     authorizationManager.createAclEntriesForChildEntity(reusedReservationRequest, reservationRequest);
                 }
             }
-
+            /*ODMERANE VNUTRI*/
             reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
 
+            long startTime2 = System.currentTimeMillis();
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+            long estimatedTime2 = System.currentTimeMillis() - startTime2;
+            System.out.println("---------------------------COMMIT: " + estimatedTime2+"ms--------------------------------------------");
 
             if (reservationRequest instanceof ReservationRequest) {
                 ReservationRequest simpleReservationRequest = (ReservationRequest) reservationRequest;
@@ -469,7 +475,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
+            long startTime3 = System.currentTimeMillis();
             entityManager.close();
+            long estimatedTime3 = System.currentTimeMillis() - startTime3;
+            System.out.println("---------------------------COMMIT: " + estimatedTime3+"ms--------------------------------------------");
+            System.out.println("Create reservationReq END");
         }
     }
 
@@ -865,6 +875,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public void deleteReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
+        System.out.println("Detelete reservationReq START");
         authorization.validate(securityToken);
         checkNotNull("reservationRequestId", reservationRequestId);
 
@@ -895,10 +906,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             reservationRequest.setUpdatedBy(securityToken.getUserId());
+
+            /*MERANE VNUTRI*/
             reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
+            /*TOTOK CHCEM MERAT*/
+            long startTime1 = System.currentTimeMillis();
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+            long estimatedTime1 = System.currentTimeMillis() - startTime1;
+            System.out.println("---------------------------ReservationServiceCommit: " + estimatedTime1+"ms--------------------------------------------");
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -907,8 +924,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
+            long startTime3 = System.currentTimeMillis();
             entityManager.close();
+            long estimatedTime3 = System.currentTimeMillis() - startTime3;
+            System.out.println("---------------------------CLOSE: " + estimatedTime3+"ms--------------------------------------------");
         }
+        System.out.println("Detelete reservationReq END");
     }
 
     @Override
