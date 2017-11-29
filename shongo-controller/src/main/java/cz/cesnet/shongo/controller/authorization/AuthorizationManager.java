@@ -150,14 +150,10 @@ public class AuthorizationManager extends AclEntryManager
     public UserIdSet getUserIdsWithRole(PersistentObject object, ObjectRole objectRole)
     {
         AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(object);
-        List<AclEntry> entries;
-        long startTime2 = System.currentTimeMillis();
-        entries = entityManager.createNamedQuery("AclEntry.findByObjectIdentityAndRole", AclEntry.class)
+        List<AclEntry> entries = entityManager.createNamedQuery("AclEntry.findByObjectIdentityAndRole", AclEntry.class)
                 .setParameter("objectIdentity", objectIdentity)
                 .setParameter("role", objectRole.toString())
                 .getResultList();
-        long estimatedTime2 = System.currentTimeMillis() - startTime2;
-        System.out.println("---------------------------GETUserIdsWithRole: " + estimatedTime2+"ms--------------------------------------------");
         UserIdSet userIds = new UserIdSet();
         for (AclEntry entry : entries) {
             userIds.addAll(authorization.getUserIds(entry.getIdentity()));

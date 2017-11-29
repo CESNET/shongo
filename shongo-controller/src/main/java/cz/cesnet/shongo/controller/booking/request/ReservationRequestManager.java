@@ -50,18 +50,12 @@ public class ReservationRequestManager extends AbstractManager
         Map<String, String> parameters = new HashMap<>();
         parameters.put("specification_id", specification.getId().toString());
 
-        long startTime = System.currentTimeMillis();
         String deleteQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_DELETE, parameters);
         entityManager.createNativeQuery(deleteQuery).executeUpdate();
-        long estimatedTime = System.currentTimeMillis() - startTime;
-        System.out.println("------------------------------------------UpdateSpecificationSummary DELETE: " + estimatedTime + "ms------------------------------------------");
 
         if (!deleteOnly) {
             String updateQuery = NativeQuery.getNativeQuery(NativeQuery.SPECIFICATION_SUMMARY_INSERT, parameters);
-            long startTime1 = System.currentTimeMillis();
             entityManager.createNativeQuery(updateQuery).executeUpdate();
-            long estimatedTime1 = System.currentTimeMillis() - startTime;
-            System.out.println("------------------------------------------UpdateSpecificationSummary INSERT: " + estimatedTime1 + "ms------------------------------------------");
         }
     }
 
@@ -160,19 +154,13 @@ public class ReservationRequestManager extends AbstractManager
                 reservationRequestVersion.clearReports();
             }
         }
-        long startTime = System.currentTimeMillis();
+
         // Soft delete the reservation request
         delete(reservationRequest, false);
-        long estimatedTime = System.currentTimeMillis() - startTime;
-        System.out.println("---------------------------Delete altogother: " + estimatedTime+"ms--------------------------------------------");
 
-        /*Merane vnutri*/
         reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
 
-        long startTime1 = System.currentTimeMillis();
         transaction.commit();
-        long estimatedTime1 = System.currentTimeMillis() - startTime1;
-        System.out.println("---------------------------Soft delete just COMMIT: " + estimatedTime1+"ms--------------------------------------------");
     }
 
     /**
@@ -287,15 +275,10 @@ public class ReservationRequestManager extends AbstractManager
      */
     private List<AbstractReservationRequest> listVersions(AbstractReservationRequest reservationRequest)
     {
-        List<AbstractReservationRequest> list = entityManager.createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+        return entityManager.createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
                 + " WHERE reservationRequest.allocation = :allocation", AbstractReservationRequest.class)
                 .setParameter("allocation", reservationRequest.getAllocation())
                 .getResultList();
-        long startTime3 = System.currentTimeMillis();
-
-        long estimatedTime3 = System.currentTimeMillis() - startTime3;
-        System.out.println("---------------------------ListVersions: " + estimatedTime3+"ms--------------------------------------------");
-        return list;
     }
 
     /**
@@ -306,17 +289,12 @@ public class ReservationRequestManager extends AbstractManager
      */
     public AbstractReservationRequest get(Long reservationRequestId) throws CommonReportSet.ObjectNotExistsException
     {
-        long startTime1;
-        long estimatedTime1;
         try {
-            startTime1 = System.currentTimeMillis();
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
                     "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
                             + " WHERE reservationRequest.id = :id",
                     AbstractReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
-            estimatedTime1 = System.currentTimeMillis() - startTime1;
-            System.out.println("---------------------------Get reservationRequest: " + estimatedTime1+"ms--------------------------------------------");
             return reservationRequest;
         }
         catch (NoResultException exception) {
@@ -355,16 +333,12 @@ public class ReservationRequestManager extends AbstractManager
             throws CommonReportSet.ObjectNotExistsException
     {
         try {
-            long startTime2 = System.currentTimeMillis();
-            AbstractReservationRequest req = entityManager.createQuery(
+            return entityManager.createQuery(
                     "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
                             + " WHERE reservationRequest.specification.id = :specificationId",
                     AbstractReservationRequest.class)
                     .setParameter("specificationId", specification.getId())
                     .getSingleResult();
-            long estimatedTime2 = System.currentTimeMillis() - startTime2;
-            System.out.println("---------------------------getSpecification: " + estimatedTime2+"ms--------------------------------------------");
-            return req;
         }
         catch (NoResultException exception) {
             return null;

@@ -508,10 +508,7 @@ public abstract class Authorization
     public boolean hasObjectPermission(SecurityToken securityToken,
             PersistentObject entity, ObjectPermission objectPermission)
     {
-        long startTime2 = System.currentTimeMillis();
         AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(entity);
-        long estimatedTime2 = System.currentTimeMillis() - startTime2;
-        System.out.println("---------------------------GetObjectIdentity: " + estimatedTime2+"ms--------------------------------------------");
         return hasObjectPermission(securityToken, objectIdentity, objectPermission);
     }
 
