@@ -5,15 +5,11 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.calendar.ReservationCalendar;
 import cz.cesnet.shongo.controller.util.iCalendar;
-import org.joda.time.DateTimeZone;
-import org.postgresql.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Connector for sending iCalendar notifications to CalDAV server specified in configuration.
