@@ -1,12 +1,17 @@
 package cz.cesnet.shongo.connector.device;
 
-import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.api.RecordingService;
+import cz.cesnet.shongo.connector.api.RecordingSettings;
+import cz.cesnet.shongo.connector.api.UsageStats;
 import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
-import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.connector.common.RequestAttributeList;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import org.jdom2.Attribute;
@@ -1131,7 +1136,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         String queryString = "";
         if (attributes != null) {
-            for (Entry entry : attributes) {
+            for (RequestAttributeList.Entry entry : attributes) {
                 try {
                     queryString += '&' + entry.getKey() + '=' + URLEncoder.encode(entry.getValue(),"UTF8");
                 } catch (UnsupportedEncodingException e) {
@@ -1666,7 +1671,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
-    public static class RequestAttributeList extends LinkedList<Entry>
+    /*public static class RequestAttributeList extends LinkedList<Entry>
     {
         public void add(String key, String value) throws CommandException
         {
@@ -1701,7 +1706,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             return null;
         }
     }
-    
+
     public static class Entry
     {
         private String key;
@@ -1732,5 +1737,5 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         {
             this.value = value;
         }
-    }
+    }*/
 }

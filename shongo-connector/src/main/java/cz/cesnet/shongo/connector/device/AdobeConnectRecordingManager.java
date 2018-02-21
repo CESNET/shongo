@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
+import cz.cesnet.shongo.connector.common.RequestAttributeList;
 import cz.cesnet.shongo.controller.RecordingUnavailableException;
 import cz.cesnet.shongo.controller.RoomNotExistsException;
 import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
@@ -167,7 +168,7 @@ public class AdobeConnectRecordingManager
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("content".equals(sco.getAttributeValue("type"))) {
                     // Find sco-id of recordings-folder folder
-                    AdobeConnectConnector.RequestAttributeList searchAttributes = new AdobeConnectConnector.RequestAttributeList();
+                    RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
 
@@ -183,7 +184,7 @@ public class AdobeConnectRecordingManager
                         logger.debug("Folder /{} for shongo meetings does not exists, creating...",
                                 recordingsFolderName);
 
-                        AdobeConnectConnector.RequestAttributeList folderAttributes = new AdobeConnectConnector.RequestAttributeList();
+                        RequestAttributeList folderAttributes = new RequestAttributeList();
                         folderAttributes.add("folder-id", sco.getAttributeValue("sco-id"));
                         folderAttributes.add("name", recordingsFolderName);
                         folderAttributes.add("type", "folder");
@@ -200,7 +201,7 @@ public class AdobeConnectRecordingManager
         }
 
         // Check if permission for this folder is denied, or sets it
-        AdobeConnectConnector.RequestAttributeList permissionsInfoAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList permissionsInfoAttributes = new RequestAttributeList();
         permissionsInfoAttributes.add("acl-id", recordingsFolderId);
         permissionsInfoAttributes.add("filter-principal-id", "public-access");
 
@@ -209,7 +210,7 @@ public class AdobeConnectRecordingManager
                         "permission-id");
 
         if (!"denied".equals(permissions)) {
-            AdobeConnectConnector.RequestAttributeList permissionsUpdateAttributes = new AdobeConnectConnector.RequestAttributeList();
+            RequestAttributeList permissionsUpdateAttributes = new RequestAttributeList();
             permissionsUpdateAttributes.add("acl-id", recordingsFolderId);
             permissionsUpdateAttributes.add("principal-id", "public-access");
             permissionsUpdateAttributes.add("permission-id", "denied");
@@ -230,7 +231,7 @@ public class AdobeConnectRecordingManager
         Integer index = 0;
         // Check if folder with the same name doesn't already exists on AC server
         while (true) {
-            AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+            RequestAttributeList attributes = new RequestAttributeList();
             attributes.add("sco-id", getRecordingsFolderId());
             attributes.add("filter-name", recordingFolderName + suffix);
             Element recFolders = connector.execApi("sco-contents", attributes);
@@ -242,7 +243,7 @@ public class AdobeConnectRecordingManager
             suffix = "_" + index.toString();
         }
 
-        AdobeConnectConnector.RequestAttributeList folderAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList folderAttributes = new RequestAttributeList();
         folderAttributes.add("folder-id", getRecordingsFolderId());
         folderAttributes.add("name", recordingFolderName);
         folderAttributes.add("type", "folder");
@@ -266,7 +267,7 @@ public class AdobeConnectRecordingManager
         boolean isRecordingFolderPublic = isRecordingFolderPublic(recordingFolder.getId());
         connector.resetPermissions(recordingFolder.getId());
 
-        AdobeConnectConnector.RequestAttributeList userAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList userAttributes = new RequestAttributeList();
         userAttributes.add("acl-id", recordingFolder.getId());
 
         for (Map.Entry<String, RecordingFolder.UserPermission> userPermissions : recordingFolder.getUserPermissions()
@@ -322,7 +323,7 @@ public class AdobeConnectRecordingManager
     {
         ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", recordingFolderId);
         attributes.add("filter-icon", RECORDING_ICON);
         attributes.add("filter-out-date-end", "null");
@@ -356,7 +357,7 @@ public class AdobeConnectRecordingManager
     {
         String path = connector.getLastPathSegmentFromURI(alias.getValue());
         String scoId = connector.getScoByUrl(path);
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", scoId);
         attributes.add("filter-icon", RECORDING_ICON);
         attributes.add("filter-date-end", "null");
@@ -382,7 +383,7 @@ public class AdobeConnectRecordingManager
     public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
 
         String recordingName = formatRecordingName(folderId, alias, DateTime.now());
         String path = connector.getLastPathSegmentFromURI(alias.getValue());
@@ -407,7 +408,7 @@ public class AdobeConnectRecordingManager
             throw exception;
         }
 
-        AdobeConnectConnector.RequestAttributeList recAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList recAttributes = new RequestAttributeList();
         recAttributes.add("sco-id", scoId);
 
         Element response;
@@ -463,7 +464,7 @@ public class AdobeConnectRecordingManager
         }
 
         // Stop recording
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("active", "false");
         connector.execApi("meeting-recorder-activity-update", attributes);
@@ -583,7 +584,7 @@ public class AdobeConnectRecordingManager
     public void setRecordingPermissionsAsMeetings(String roomId, Element permissions) throws CommandException
     {
         //TODO: remove if not used
-        AdobeConnectConnector.RequestAttributeList userAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList userAttributes = new RequestAttributeList();
 
         String recordingFolderId = (String) connector.performControllerAction(new GetRecordingFolderId(roomId));
 
@@ -627,7 +628,7 @@ public class AdobeConnectRecordingManager
     public void backupRoomRecordings(String roomId) throws CommandException
     {
         // Recordings
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("filter-icon", RECORDING_ICON);
         List<Element> recordings = connector.execApi("sco-contents", attributes).getChild("scos").getChildren();
@@ -756,7 +757,7 @@ public class AdobeConnectRecordingManager
             }
         }
 
-        AdobeConnectConnector.RequestAttributeList recFoldersAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList recFoldersAttributes = new RequestAttributeList();
         recFoldersAttributes.add("sco-id", getRecordingsFolderId());
         List<Element> recFolders = connector.execApi("sco-contents", recFoldersAttributes)
                 .getChild("scos").getChildren();
@@ -789,7 +790,7 @@ public class AdobeConnectRecordingManager
             return;
         }
 
-        AdobeConnectConnector.RequestAttributeList moveAttributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList moveAttributes = new RequestAttributeList();
         moveAttributes.add("sco-id", recordingId);
         moveAttributes.add("folder-id", recordingFolderId);
 
@@ -824,8 +825,8 @@ public class AdobeConnectRecordingManager
      */
     public synchronized void checkRecordings() throws CommandException
     {
-        AdobeConnectConnector.RequestAttributeList recordingsAttributes =
-                new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList recordingsAttributes =
+                new RequestAttributeList();
         // choose only recordings
         recordingsAttributes.add("filter-icon", RECORDING_ICON);
         // filter out all recordings in progress
@@ -885,7 +886,7 @@ public class AdobeConnectRecordingManager
     private Set<String> getRoomIds() throws CommandException
     {
         // Get all shongo meetings
-        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", connector.getMeetingsFolderId());
         attributes.add("type", "meeting");
         Element shongoRoomsElement = connector.execApi("sco-contents", attributes);
