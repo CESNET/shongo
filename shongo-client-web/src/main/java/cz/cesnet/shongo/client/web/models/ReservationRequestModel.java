@@ -1131,6 +1131,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
                 roomSpecification.addParticipant(participant.toApi());
             }
+
+            if (TechnologyModel.FREEPBX.equals(technology)) {
+                //TODO do I need a roomSetting here?
+            }
+
             if (TechnologyModel.H323_SIP.equals(technology) && roomPin != null) {
                 H323RoomSetting h323RoomSetting = new H323RoomSetting();
                 h323RoomSetting.setPin(roomPin);

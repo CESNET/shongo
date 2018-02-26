@@ -21,7 +21,12 @@ public enum TechnologyModel
     /**
      * {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}
      */
-    ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT);
+    ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT),
+
+    /**
+     *  {@link cz.cesnet.shongo.Technology#FREEPBX}
+     */
+    FREEPBX("Teleconference", cz.cesnet.shongo.Technology.FREEPBX);
 
     /**
      * Title which can be displayed to user.
