@@ -131,6 +131,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String roomPin;
 
+    protected String adminPin;
+
     protected boolean roomRecorded;
 
     protected String roomRecordingResourceId;
@@ -358,6 +360,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void setPeriodicDaysInWeek(PeriodicDateTimeSlot.DayOfWeek[] periodicDaysInWeek) {
         this.periodicDaysInWeek = periodicDaysInWeek;
+    }
+
+    public String getAdminPin()
+    {
+        return adminPin;
+    }
+
+    public void setAdminPin(String adminPin)
+    {
+        this.adminPin = adminPin;
     }
 
     public int getPeriodicityCycle() {
@@ -1133,7 +1145,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
 
             if (TechnologyModel.FREEPBX.equals(technology)) {
-                //TODO do I need a roomSetting here?
+                FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
+                freePBXRoomSetting.setAdminPin(adminPin);
+                freePBXRoomSetting.setUserPin(roomPin);
             }
 
             if (TechnologyModel.H323_SIP.equals(technology) && roomPin != null) {

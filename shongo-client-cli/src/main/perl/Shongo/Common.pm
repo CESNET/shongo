@@ -50,7 +50,8 @@ use constant NULL => '__null__';
 our $Technology = ordered_hash(
     'H323' => 'H.323',
     'SIP' => 'SIP',
-    'ADOBE_CONNECT' => 'Adobe Connect'
+    'ADOBE_CONNECT' => 'Adobe Connect',
+    'FREEPBX' => 'FreePBX'
 );
 
 #
