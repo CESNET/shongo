@@ -56,14 +56,71 @@ public class FreePBXRoomSetting extends RoomSetting{
         this.userPin = pin;
     }
 
+
+    @Override
+    public RoomSetting clone() throws CloneNotSupportedException
+    {
+        FreePBXRoomSetting roomSetting = (FreePBXRoomSetting) super.clone();
+        roomSetting.setAdminPin(getAdminPin());
+        roomSetting.setUserPin(getUserPin());
+        return roomSetting;
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
+    {
+        super.toApi(roomSettingApi);
+
+        cz.cesnet.shongo.api.FreePBXRoomSetting roomSettingFreePBXApi =
+                (cz.cesnet.shongo.api.FreePBXRoomSetting) roomSettingApi;
+
+        if (adminPin != null) {
+            roomSettingFreePBXApi.setAdminPin(adminPin);
+        }
+        if (userPin != null) {
+            roomSettingFreePBXApi.setUserPin(userPin);
+        }
+
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
+    {
+        super.fromApi(roomSettingApi);
+
+        cz.cesnet.shongo.api.FreePBXRoomSetting roomSettingFreePBXApi =
+                (cz.cesnet.shongo.api.FreePBXRoomSetting) roomSettingApi;
+
+        setAdminPin(roomSettingFreePBXApi.getAdminPin());
+        setUserPin(roomSettingFreePBXApi.getUserPin());
+    }
+
     @Override
     protected cz.cesnet.shongo.api.RoomSetting createApi()
     {
-        return null;
+        return new cz.cesnet.shongo.api.FreePBXRoomSetting();
     }
 
     @Override
     public boolean isSame(Object object) {
-        return false;
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        FreePBXRoomSetting that = (FreePBXRoomSetting) object;
+
+
+        if (adminPin!= null ? !adminPin.equals(that.adminPin) : that.adminPin != null) {
+            return false;
+        }
+
+        if (userPin != null ? !userPin.equals(that.userPin) : that.userPin != null) {
+            return false;
+        }
+
+        return true;
     }
 }
