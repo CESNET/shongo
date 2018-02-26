@@ -29,6 +29,11 @@ public enum Technology
      */
     ADOBE_CONNECT("Adobe Connect"),
 
+    /**
+     * @see <a href="https://www.freepbx.org/">FreePBX</>
+     */
+    FREEPBX("Teleconference"),
+
     SKYPE("Skype"),
 
     BIG_BLUE_BUTTON("BigBlueButton"),
