@@ -48,7 +48,12 @@ public enum AliasType
     /**
      * Represents room URL for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
      */
-    ADOBE_CONNECT_URI(Technology.ADOBE_CONNECT, AliasValueType.URI);
+    ADOBE_CONNECT_URI(Technology.ADOBE_CONNECT, AliasValueType.URI),
+
+    /**
+     * Represents conference (room) number for {@link cz.cesnet.shongo.Technology#FREEPBX}.
+     */
+    FREEPBX_CONFERENCE_NUMBER(Technology.FREEPBX, AliasValueType.STRING);
 
     /**
      * @see cz.cesnet.shongo.Technology

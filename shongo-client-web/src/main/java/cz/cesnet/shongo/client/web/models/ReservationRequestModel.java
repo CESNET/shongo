@@ -1148,6 +1148,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
                 freePBXRoomSetting.setAdminPin(adminPin);
                 freePBXRoomSetting.setUserPin(roomPin);
+                roomSpecification.addRoomSetting(freePBXRoomSetting);
             }
 
             if (TechnologyModel.H323_SIP.equals(technology) && roomPin != null) {

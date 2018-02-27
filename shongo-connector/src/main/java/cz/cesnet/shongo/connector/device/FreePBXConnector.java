@@ -60,9 +60,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     }
 
     @Override
-    public void disconnect() throws CommandException {
-        // TODO
-    }
+    public void disconnect() throws CommandException {}
 
     @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException {
@@ -71,7 +69,10 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     public void deleteRoom(String roomId) throws CommandException {
-        // TODO ?
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("id", roomId);
+        logger.debug("DELETE " + getCallUrl("/conferences/", attributes));
+        //execApi("/conferences/", attributes, "DELETE");
     }
 
     @Override
@@ -83,15 +84,37 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     public String createRoom(Room room) throws CommandException {
         RequestAttributeList attributes = new RequestAttributeList();
 
+
+        setRoomAttributes(attributes, room);
+
+        // Room name and id must be filled
+        if (attributes.getValue("name") == null) {
+            throw new RuntimeException("Room name must be filled for the new room.");
+        }
+        if (attributes.getValue("id") == null) {
+            throw new RuntimeException("Room number must be filled for the new room.");
+        }
+
+        logger.debug("PUT " + getCallUrl("/conferences/", attributes));
+
+        //execApi("/conferences/" , attributes, "PUT"); //TODO add conference ID to create
+        return null; // TODO return ID of created room
+    }
+
+    public void setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
+
         if (room.getDescription() != null) {
-            attributes.add("description", room.getDescription());
+            attributes.add("name", room.getDescription());
         }
 
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
-                    case ROOM_NAME:
+/*                    case ROOM_NAME: //TODO how to set name of conference room? description vs special name input
                         attributes.add("name", alias.getValue());
+                        break;*/
+                    case FREEPBX_CONFERENCE_NUMBER:
+                        attributes.add("id", alias.getValue());
                         break;
                     default:
                         throw new RuntimeException("Unrecognized alias: " + alias.toString());
@@ -99,14 +122,17 @@ public class FreePBXConnector extends AbstractMultipointConnector {
             }
         }
 
-        // Room name must be filled
-        if (attributes.getValue("name") == null) {
-            throw new RuntimeException("Room name must be filled for the new room.");
+        String adminPin = "";
+        String userPin = "";
+        FreePBXRoomSetting freePBXRoomSetting = room.getRoomSetting(FreePBXRoomSetting.class);
+        if (freePBXRoomSetting != null) {
+            adminPin = freePBXRoomSetting.getAdminPin() == null ? "" : freePBXRoomSetting.getAdminPin();
+            userPin = freePBXRoomSetting.getUserPin();
         }
 
+        attributes.add("userpin", userPin);
+        attributes.add("adminpin", adminPin);
 
-        execApi("/conferences/" , attributes, "PUT"); //TODO add conference ID to create
-        return null; // TODO return ID of created room
     }
 
     @Override
@@ -155,6 +181,18 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     }
 
     @Override
+    public ConnectionState getConnectionState()
+    {
+        try {
+            execApi("/conferences", null, "GET");
+            return ConnectionState.CONNECTED;
+        }
+        catch (Exception exception) {
+            logger.warn("Not connected", exception);
+            return ConnectionState.DISCONNECTED;
+        }
+    }
+    @Override
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException {
         throw new CommandUnsupportedException();
     }
@@ -179,10 +217,6 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         // TODO
     }
 
-    @Override
-    public ConnectionState getConnectionState() {
-        return null;  // TODO
-    }
 
     public static void main(String[] args) throws Exception {
         String token = "token";
@@ -194,6 +228,16 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     }
 
+    /**
+     * Connects to the FreePBX server and sets up device information.
+     * The communication protocol is stateless, though, so it just gets some info and does not hold the line.
+     *
+     * @param deviceAddress  device address to connect to
+     * @param token token for authentication on the device
+     * @param tokenKey token key for authentication on the device
+     * @throws cz.cesnet.shongo.api.jade.CommandException
+     *
+     */
     @Override
     public void connect(DeviceAddress deviceAddress, String token, String tokenKey) throws CommandException {
 
@@ -217,7 +261,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
      * @param callPath   to the action to perform
      * @return the URL to perform the action
      */
-    protected String getCallUrl(String callPath, RequestAttributeList attributes) throws UnsupportedEncodingException, CommandException
+    protected String getCallUrl(String callPath, RequestAttributeList attributes) throws CommandException
     {
         if (callPath == null || callPath.isEmpty()) {
             throw new CommandException("FreePBX rest call path cannot be empty.");
@@ -225,7 +269,12 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
         String queryString = "";
         if (attributes != null) {
-            queryString = "?" + attributes.getAttributesQuery();
+            try {
+                queryString = "?" + attributes.getAttributesQuery();
+
+            } catch (UnsupportedEncodingException e) {
+                throw new CommandException("Failed to process command " + callPath + ": ", e);
+            }
         }
         return deviceAddress.getFullUrl() + "/restapi/rest.php/rest" + callPath + queryString;
     }
@@ -245,6 +294,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
             int retryCount = 5;
             while (retryCount > 0) {
                 try {
+                    logger.debug(String.format("Calling action %s on %s", actionPath, deviceAddress));
                     HttpURLConnection connection = execApi(callUrl, reqMethod);
                     return connection.getInputStream(); //TODO solve 401 authorizatioon error (should get errorStream)
                 } catch (IOException exception) {
