@@ -85,28 +85,29 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         RequestAttributeList attributes = new RequestAttributeList();
 
 
-        setRoomAttributes(attributes, room);
+        String roomId = setRoomAttributes(attributes, room);
 
         // Room name and id must be filled
         if (attributes.getValue("name") == null) {
             throw new RuntimeException("Room name must be filled for the new room.");
         }
-        if (attributes.getValue("id") == null) {
+        if (roomId == null) {
             throw new RuntimeException("Room number must be filled for the new room.");
         }
 
         logger.debug("PUT " + getCallUrl("/conferences/", attributes));
 
         //execApi("/conferences/" , attributes, "PUT"); //TODO add conference ID to create
-        return null; // TODO return ID of created room
+
+        return roomId; // TODO return ID of created room
     }
 
-    public void setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
+    public String setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
 
         if (room.getDescription() != null) {
             attributes.add("name", room.getDescription());
         }
-
+        String roomId = null;
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
@@ -114,7 +115,8 @@ public class FreePBXConnector extends AbstractMultipointConnector {
                         attributes.add("name", alias.getValue());
                         break;*/
                     case FREEPBX_CONFERENCE_NUMBER:
-                        attributes.add("id", alias.getValue());
+                        roomId = alias.getValue();
+                        attributes.add("id", roomId);
                         break;
                     default:
                         throw new RuntimeException("Unrecognized alias: " + alias.toString());
@@ -132,7 +134,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
         attributes.add("userpin", userPin);
         attributes.add("adminpin", adminPin);
-
+        return roomId;
     }
 
     @Override
