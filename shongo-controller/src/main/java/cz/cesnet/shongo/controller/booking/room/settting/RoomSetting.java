@@ -41,6 +41,9 @@ public abstract class RoomSetting extends SimplePersistentObject implements Obje
         else if (api instanceof cz.cesnet.shongo.api.AdobeConnectRoomSetting) {
             roomSetting = new AdobeConnectRoomSetting();
         }
+        else if (api instanceof cz.cesnet.shongo.api.FreePBXRoomSetting) {
+            roomSetting = new FreePBXRoomSetting();
+        }
         else {
             throw new TodoImplementException(api.getClass());
         }
