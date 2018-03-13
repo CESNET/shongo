@@ -31,5 +31,7 @@ ${context.message(indent, "alias.SIP_IP")}: ${alias.value!aliasValueAny}
 ${context.message(indent, "alias.ADOBE_CONNECT_URI")}: ${alias.value!aliasValueAny}
 <#elseif alias.type == "CS_DIAL_STRING">
 ${context.message(indent, "alias.CS_DIAL_STRING")}: ${alias.value}
+<#elseif alias.type == "FREEPBX_CONFERENCE_NUMBER">
+${context.message(indent, "alias.FREEPBX_CONFERENCE_NUMBER")}: ${alias.value}
 </#if>
 </#macro>

@@ -165,7 +165,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                             String message = "TODO: Reservation deleted unexpectedly (possible maintenance reasons).";
                             InterDomainAgent.getInstance().getConnector().notifyDomain(domain.toApi(), reservationRequestId, message);
                         }
-                        //TODO zber ID na refresh cache SWITCH ak je to resourceReservation tak ulozim id pre ostatne TODO not implemented exception (do metody)
                         //Add deleted reservation to calendarManager
                         if (calendarManager != null) {
                             if (reservation instanceof ResourceReservation) {
@@ -194,7 +193,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             for (Reservation reservation : reservationManager.getOrphanReservationsForDeletion()) {
                 DeallocateReservationTask deallocateTask = DeallocateReservationTaskProvider.create(reservation);
                 deallocateTask.perform(interval, result, entityManager, reservationManager, authorizationManager);
-                //TODO zozbieraj ID
                 recordModifiedReservationId(reservation);
                 if (calendarManager != null) {
                     if (reservation instanceof ResourceReservation) {
@@ -219,7 +217,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
-            //TODO precistit cache
             removeModifiedReservationsFromCache();
 
             // Add reservation notifications
@@ -270,7 +267,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                         Reservation reservation = allocation.getCurrentReservation();
                         while (reservation != null) {
                             deleteReservation(reservation, context);
-                            //TODO zbierat ID
                             recordModifiedReservationId(reservation);
                             reservation = allocation.getCurrentReservation();
                         }
@@ -283,7 +279,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
 
-                    //TODO premazat cache
                     removeModifiedReservationsFromCache();
 
 
@@ -488,7 +483,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         // Allocate reservation
         Reservation allocatedReservation = reservationTask.perform(allocation.getCurrentReservation());
         recordModifiedReservationId(allocatedReservation);
-        //TODO pridat refresh cache
 
         // Check mandatory reusable reservation
         if (reusableReservation != null && reservationRequest.isReusedAllocationMandatory()) {

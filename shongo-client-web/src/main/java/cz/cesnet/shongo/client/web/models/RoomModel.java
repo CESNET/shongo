@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
@@ -496,6 +497,9 @@ public class RoomModel extends ParticipantConfigurationModel
                 case H323_E164:
                     aliasValue = alias.getValue();
                     break;
+                case FREEPBX_CONFERENCE_NUMBER:
+                    aliasValue = alias.getValue();
+                    break;
                 case ADOBE_CONNECT_URI:
                     aliasValue = alias.getValue();
 //                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
@@ -580,6 +584,13 @@ public class RoomModel extends ParticipantConfigurationModel
                     stringBuilder.append("</td></tr>");
                     break;
                 case CS_DIAL_STRING:
+                    stringBuilder.append("<tr><td class=\"title\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case FREEPBX_CONFERENCE_NUMBER:
                     stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");

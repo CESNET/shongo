@@ -1,5 +1,12 @@
 package cz.cesnet.shongo.connector.device;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.jdom2.Attribute;
+import org.json.*;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -11,14 +18,14 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.org.mozilla.javascript.internal.json.JsonParser;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -27,10 +34,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
-import java.util.Collection;
-import java.util.Formatter;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
@@ -69,10 +73,8 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     public void deleteRoom(String roomId) throws CommandException {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("id", roomId);
-        logger.debug("DELETE " + getCallUrl("/conferences/", attributes));
-        //execApi("/conferences/", attributes, "DELETE");
+        logger.debug("DELETE " + getCallUrl("/conferences/" + roomId, null));
+        execApi("/conferences/" + roomId, null, "DELETE");
     }
 
     @Override
@@ -95,11 +97,11 @@ public class FreePBXConnector extends AbstractMultipointConnector {
             throw new RuntimeException("Room number must be filled for the new room.");
         }
 
-        logger.debug("PUT " + getCallUrl("/conferences/", attributes));
+        logger.debug("PUT " + getCallUrl("/conferences/" + roomId, attributes));
 
-        //execApi("/conferences/" , attributes, "PUT"); //TODO add conference ID to create
+        execApi("/conferences/" + roomId , attributes, "PUT");
 
-        return roomId; // TODO return ID of created room
+        return roomId;
     }
 
     public String setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
@@ -111,12 +113,9 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
-/*                    case ROOM_NAME: //TODO how to set name of conference room? description vs special name input
-                        attributes.add("name", alias.getValue());
-                        break;*/
                     case FREEPBX_CONFERENCE_NUMBER:
                         roomId = alias.getValue();
-                        attributes.add("id", roomId);
+                        //attributes.add("id", roomId);
                         break;
                     default:
                         throw new RuntimeException("Unrecognized alias: " + alias.toString());
@@ -139,27 +138,75 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException {
-        return null; // TODO??
+        throw new CommandUnsupportedException();
     }
 
     @Override
     public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException {
-        // TODO??
+        throw new CommandUnsupportedException();
+    }
+
+    public static void main(String[] args) throws Exception {
+        String token = "token";
+        String tokenKey = "<tokenKey>";
+
+        DeviceAddress address = new DeviceAddress("http://localhost", 33080);
+        FreePBXConnector conn = new FreePBXConnector();
+        conn.connect(address, token, tokenKey);
+        //conn.getRoom("");
+
     }
 
     @Override
     public Room getRoom(String roomId) throws CommandException {
-        return null;
+        Room room = new Room();
+        try {
+            logger.debug("GET " + getCallUrl("/conferences/" + roomId, null));
+            InputStream response =  execApi("/conferences/" + roomId, null, "GET");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> jsonMap = mapper.readValue(response, Map.class);
+            String description = (String)jsonMap.get("description");
+            String userpin = (String)jsonMap.get("userpin");
+            String adminpin = (String)jsonMap.get("adminpin");
+
+
+            room.setId(roomId);
+            room.addAlias(AliasType.ROOM_NAME, "TODO name"); //TODO get this working
+            room.setDescription(description);
+
+            room.setLicenseCount(1);
+
+            room.addTechnology(Technology.FREEPBX);
+
+            room.addAlias(new Alias(AliasType.FREEPBX_CONFERENCE_NUMBER, roomId));
+
+            // options
+            FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
+            if (userpin != null) {
+                freePBXRoomSetting.setUserPin(userpin);
+            }
+            if (adminpin != null) {
+                freePBXRoomSetting.setAdminPin(adminpin);
+            }
+
+            room.addRoomSetting(freePBXRoomSetting);
+
+
+        } catch (IOException e) {
+            //TODO handle exception
+
+        }
+        return room;
     }
 
     @Override
     public Collection<RoomSummary> listRooms() throws CommandException, CommandUnsupportedException {
-        return null; // TODO?
+        throw new CommandUnsupportedException();
     }
 
     @Override
     public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException, CommandUnsupportedException {
-        return null;
+        throw new CommandUnsupportedException();
     }
 
     @Override
@@ -216,19 +263,11 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     protected void onModifyRoom(Room room) throws CommandException {
-        // TODO
+        createRoom(room);
     }
 
 
-    public static void main(String[] args) throws Exception {
-        String token = "token";
-        String tokenKey = "<tokenKey>";
 
-        DeviceAddress address = new DeviceAddress("http://localhost", 33080);
-        FreePBXConnector conn = new FreePBXConnector();
-        conn.connect(address, token, tokenKey);
-
-    }
 
     /**
      * Connects to the FreePBX server and sets up device information.
@@ -298,7 +337,10 @@ public class FreePBXConnector extends AbstractMultipointConnector {
                 try {
                     logger.debug(String.format("Calling action %s on %s", actionPath, deviceAddress));
                     HttpURLConnection connection = execApi(callUrl, reqMethod);
-                    return connection.getInputStream(); //TODO solve 401 authorizatioon error (should get errorStream)
+                    if (!(200 <= connection.getResponseCode() && connection.getResponseCode() <= 200)) {
+                        throw new RequestFailedCommandException("Response: " + connection.getResponseCode() + " " + connection.getResponseMessage());
+                    }
+                    return connection.getInputStream();
                 } catch (IOException exception) {
                     if (isRequestApiRetryPossible(exception)) {
                         retryCount--;
@@ -341,6 +383,22 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         connection.setRequestProperty("Token", token);
         connection.connect();
         return connection;
+    }
+
+    public static class RequestFailedCommandException extends CommandException
+    {
+
+        public RequestFailedCommandException(String message)
+        {
+            super(message);
+        }
+
+        public RequestFailedCommandException(String message, Throwable cause)
+        {
+            super(message, cause);
+        }
+
+
     }
 
     /**

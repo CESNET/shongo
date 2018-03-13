@@ -18,6 +18,9 @@ ${context.width(indent + (aliasesLabel?length + 1) / 2 + 1, "----- " + aliasesLa
 <#if pin??>
 ${context.message(indent, "room.pin")}: ${pin}
 </#if>
+<#if adminPin??>
+${context.message(indent, "room.adminPin")}: ${adminPin}
+</#if>
 
 <#-- Notifications -->
 ${notifications}

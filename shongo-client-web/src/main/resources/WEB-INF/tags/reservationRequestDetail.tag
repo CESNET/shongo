@@ -144,7 +144,7 @@
     </c:if>
 
     <%-- Number of participants --%>
-    <c:if test="${reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+    <c:if test="${(reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY') && !(reservationRequest.technology == 'FREEPBX') }">
         <dt><spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:</dt>
         <dd>${reservationRequest.roomParticipantCount}</dd>
     </c:if>
@@ -162,7 +162,7 @@
     </c:choose>
 
     <%-- Periodicity --%>
-    <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+    <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.technology != 'FREEPBX'}">
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
             <c:choose>
@@ -234,7 +234,7 @@
     </c:if>
 
     <%-- Recorded --%>
-    <c:if test="${reservationRequest.technology != 'ADOBE_CONNECT' && (reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY')}">
+    <c:if test="${reservationRequest.technology != 'ADOBE_CONNECT' && reservationRequest.technology != 'FREEPBX' && (reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY')}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecorded"/>:</dt>
         <dd><spring:message code="views.button.${reservationRequest.roomRecorded ? 'yes' : 'no'}"/></dd>
     </c:if>

@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.*;
+import cz.cesnet.shongo.controller.booking.room.settting.FreePBXRoomSetting;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -238,6 +239,10 @@ public abstract class Target
 
         private String pin;
 
+        private String userPin;
+
+        private String adminPin;
+
         private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
@@ -274,11 +279,18 @@ public abstract class Target
                 technologies.clear();
                 technologies.addAll(roomSpecificationTechnologies);
             }
+            //TODO add here the PINs for FREEPBX
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     if (h323RoomSetting.getPin() != null) {
                         pin = h323RoomSetting.getPin();
+                    }
+                } else if (roomSetting instanceof FreePBXRoomSetting) {
+                    FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) roomSetting;
+                    if (freePBXRoomSetting.getAdminPin() != null) {
+                        userPin = freePBXRoomSetting.getUserPin();
+                        adminPin = freePBXRoomSetting.getAdminPin();
                     }
                 }
             }
@@ -325,7 +337,14 @@ public abstract class Target
                     if (h323RoomSetting.getPin() != null) {
                         pin = h323RoomSetting.getPin();
                     }
+                } else if (roomSetting instanceof FreePBXRoomSetting) {
+                    FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) roomSetting;
+                    if (freePBXRoomSetting.getAdminPin() != null) {
+                        userPin = freePBXRoomSetting.getUserPin();
+                        adminPin = freePBXRoomSetting.getAdminPin();
+                    }
                 }
+
             }
 
             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
@@ -470,6 +489,10 @@ public abstract class Target
         {
             return pin;
         }
+
+        public String getUserPin() { return userPin; }
+
+        public String getAdminPin() { return adminPin; }
 
         @Override
         protected String getTypeName()
