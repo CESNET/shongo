@@ -98,6 +98,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         boolean isParticipantRoleModified = false;
         String oldRoomName = null;
         String samePin = roomEndpoint.getPin();
+        String adminPin = null;
         Set<ParticipantRole> participantRoles = new HashSet<ParticipantRole>();
         for (RoomNotification roomNotification : this.notifications) {
             PersonParticipant personParticipant = roomNotification.getParticipant(recipient);
@@ -113,6 +114,9 @@ public class RoomGroupNotification extends ConfigurableNotification
                 if (roomEndpointPin != null && !roomEndpointPin.equals(samePin)) {
                     samePin = null;
                 }
+            }
+            if (participantRole == ParticipantRole.ADMINISTRATOR) {
+                adminPin = roomEndpoint.getAdminPin();
             }
 
             roomNotifications.add(roomNotification);
@@ -225,6 +229,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         // Add parameters for not-deleted room
         if (roomDeletedCount != totalCount) {
             context.addParameter("pin", samePin);
+            context.addParameter("adminPin", adminPin);
             context.addParameter("aliases", Alias.sortedList(roomEndpoint.getAliases()));
         }
 

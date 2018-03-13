@@ -1,4 +1,5 @@
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ page import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -216,7 +217,7 @@
             <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomStateAvailable"
+            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomStateAvailable || reservationRequest.technology == 'FREEPBX'"
                  heading="${detailRuntimeManagementTitle}"
                  content-url="${detailRuntimeManagementUrl}">
             </tab>
@@ -246,26 +247,33 @@
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
                 </tag:url>
                 <%-- TODO: Check if resource has recording capability --%>
-                <tag:url var="reservationRequestModifyRecordedUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_RECORDED %>">
-                    <tag:param name="reservationRequestId" value="${objectId}"/>
-                    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-                </tag:url>
-                <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomHasRecordingService">
-                    <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
-                    <a class="btn btn-default" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
-                        <spring:message code="views.detail.action.modifyRecorded"/>
-                    </a>
-                </div>
+                <c:if test="${!(technology == 'FREEPBX')}">
+                    <tag:url var="reservationRequestModifyRecordedUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_RECORDED %>">
+                        <tag:param name="reservationRequestId" value="${objectId}"/>
+                        <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+                    </tag:url>
+                    <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomHasRecordingService">
+                        <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
+                        <a class="btn btn-default" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
+                            <spring:message code="views.detail.action.modifyRecorded"/>
+                        </a>
+                    </div>
+                </c:if>
+
+
                 <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted">
                     <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
                     <a class="btn btn-default" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyExtend"/>
                     </a>
+                <c:if test="${!(technology == 'FREEPBX')}">
                     <spring:message code="views.detail.action.modifyEnlarge.help" var="modifyEnlargeHelp"/>
                     <a  class="btn btn-default" href="${reservationRequestModifyEnlargeUrl}" title="${modifyEnlargeHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyEnlarge"/>
                     </a>
+                </c:if>
                 </div>
+
             </c:if>
 
             <div class="btn-group-divided">

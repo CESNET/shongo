@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.person.ForeignPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.FreePBXRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
@@ -365,6 +366,43 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     @Transient
+    public String getAdminPin () {
+        String tmpAdminPin = null;
+            RoomConfiguration roomConfiguration = getRoomConfiguration();
+            Set<Technology> technologies = roomConfiguration.getTechnologies();
+            if (technologies.contains(Technology.FREEPBX)) {
+                tmpAdminPin = getAdminPin(Technology.FREEPBX);
+            }
+            if (tmpAdminPin == null) {
+                // Empty means no PIN
+                tmpAdminPin = "";
+            }
+
+        if (!tmpAdminPin.isEmpty()) {
+            return tmpAdminPin;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Transient
+    public String getAdminPin(Technology technology)
+    {
+        String pin = null;
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        for (RoomSetting setting : roomConfiguration.getRoomSettings()) {
+            if (setting instanceof FreePBXRoomSetting && Technology.FREEPBX.equals(technology)) {
+                FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
+                if (freePBXRoomSetting.getAdminPin() != null) {
+                    pin = freePBXRoomSetting.getAdminPin();
+                }
+            }
+        }
+        return pin;
+    }
+
+    @Transient
     public String getPin()
     {
         if (tmpPin == null) {
@@ -375,6 +413,9 @@ public abstract class RoomEndpoint extends Endpoint
             }
             else if (technologies.contains(Technology.ADOBE_CONNECT)) {
                 tmpPin = getPin(Technology.ADOBE_CONNECT);
+            }
+            else if (technologies.contains(Technology.FREEPBX)) {
+                tmpPin = getPin(Technology.FREEPBX);
             }
             if (tmpPin == null) {
                 // Empty means no PIN
@@ -407,10 +448,14 @@ public abstract class RoomEndpoint extends Endpoint
                 if (adobeConnectRoomSetting.getPin() != null) {
                     pin = adobeConnectRoomSetting.getPin();
                 }
+            } else if (setting instanceof FreePBXRoomSetting && Technology.FREEPBX.equals(technology)) {
+                FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
+                if (freePBXRoomSetting.getUserPin() != null) {
+                    pin = freePBXRoomSetting.getUserPin();
+                }
             }
         }
         return pin;
-
     }
 
     /**

@@ -84,6 +84,8 @@ public enum TechnologyModel
         }
         else if (ADOBE_CONNECT.technologies.containsAll(technologies)) {
             return ADOBE_CONNECT;
+        } else if (FREEPBX.technologies.containsAll(technologies)) {
+            return FREEPBX;
         }
         return null;
     }

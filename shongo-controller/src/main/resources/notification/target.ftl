@@ -32,6 +32,12 @@ ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if target.pin??>
 ${context.message(indent, "target.room.pin")}: ${target.pin}
 </#if>
+  <#if target.userPin??>
+  ${context.message(indent, "target.room.userPin")}: ${target.userPin}
+  </#if>
+  <#if target.adminPin??>
+  ${context.message(indent, "target.room.adminPin")}: ${target.adminPin}
+  </#if>
 <#if target.aliases?has_content>
 <#assign aliasesLabel = context.message("target.room.aliases")>
 ${context.width(indent + (aliasesLabel?length + 1) / 2 + 1, "----- " + aliasesLabel)} -----

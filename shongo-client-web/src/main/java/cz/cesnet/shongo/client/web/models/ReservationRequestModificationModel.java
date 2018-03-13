@@ -39,10 +39,11 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
                         Reservation reservation = cacheProvider.getReservation(reservationId);
                         AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
                         Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
-                        if (roomNameAlias == null) {
-                            throw new UnsupportedApiException("Room must have name.");
+
+                        if (roomNameAlias != null) {
+                            roomName = roomNameAlias.getValue();
                         }
-                        roomName = roomNameAlias.getValue();
+
                     }
                 }
                 if (roomName != null) {
