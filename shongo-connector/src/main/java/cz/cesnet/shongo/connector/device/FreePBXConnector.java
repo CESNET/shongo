@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.connector.device;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonSerializer;
+
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jdom2.Attribute;
-import org.json.*;
+
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -18,11 +16,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.org.mozilla.javascript.internal.json.JsonParser;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
