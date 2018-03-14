@@ -270,15 +270,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         return null;
     }
 
-    public static String getConferenceId (RoomEndpoint roomEndpoint) {
-        for (Alias alias : roomEndpoint.getAliases()) {
-            if (alias.getType().equals(AliasType.FREEPBX_CONFERENCE_NUMBER)) {
-                return alias.getValue();
-            }
-        }
-        return null;
-    }
-
     /**
      * {@link RoomNotification} for a single {@link RoomEndpoint}.
      */

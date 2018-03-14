@@ -36,7 +36,7 @@ our $TypePattern = {
     'SIP_IP' => '.*',
     'CS_DIAL_STRING' => '.+@.+',
     'ADOBE_CONNECT_URI' => '.+',
-    'FREEPBX_CONFERENCE_NUMBER' => '.+'
+    'FREEPBX_CONFERENCE_NUMBER' => '\\d+',
 };
 
 #

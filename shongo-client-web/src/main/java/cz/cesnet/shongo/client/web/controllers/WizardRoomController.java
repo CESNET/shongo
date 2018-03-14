@@ -381,8 +381,10 @@ public class WizardRoomController extends WizardParticipantsController
             BindingResult bindingResult)
     {
         //on FreePBX we always reserve whole room not just the capacity so room = participant
-        if (reservationRequest.getTechnology().equals(TechnologyModel.FREEPBX)){
-            reservationRequest.setRoomParticipantCount(1);
+        if (reservationRequest.getTechnology() != null) {
+            if (reservationRequest.getTechnology().equals(TechnologyModel.FREEPBX)){
+                reservationRequest.setRoomParticipantCount(1);
+            }
         }
         // Set valid startDate to be in the future
         reservationRequest.updateSlotStartToFutureSlot();

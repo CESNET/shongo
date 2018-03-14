@@ -35,6 +35,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
@@ -52,6 +54,17 @@ public class FreePBXConnector extends AbstractMultipointConnector {
      * The token key for specified token.
      */
     private String tokenKey;
+
+    /**
+     * Prefix of the conference number.
+     */
+    private String prefix;
+
+    public static final String ROOM_NUMBER_EXTRACTION_FROM_FREEPBX_NUMBER = "room-number-extraction-from-freepbx-number";
+    public static final String CONFERENCE_NUMBER_PREFIX = "conference-number-prefix";
+
+    private Pattern roomNumberFromFreePBXNumber = null;
+
 
     @Override
     public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException {
@@ -109,13 +122,18 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         if (room.getDescription() != null) {
             attributes.add("name", room.getDescription());
         }
+        Matcher m;
         String roomId = null;
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
                     case FREEPBX_CONFERENCE_NUMBER:
-                        roomId = alias.getValue();
                         //attributes.add("id", roomId);
+                        m = roomNumberFromFreePBXNumber.matcher(alias.getValue());
+                        if (!m.find()) {
+                            throw new CommandException("Invalid E164 number: " + alias.getValue());
+                        }
+                        roomId = m.group(1);
                         break;
                     default:
                         throw new RuntimeException("Unrecognized alias: " + alias.toString());
@@ -178,7 +196,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
             room.addTechnology(Technology.FREEPBX);
 
-            room.addAlias(new Alias(AliasType.FREEPBX_CONFERENCE_NUMBER, roomId));
+            room.addAlias(new Alias(AliasType.FREEPBX_CONFERENCE_NUMBER, prefix + roomId));
 
             // options
             FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
@@ -282,9 +300,14 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     @Override
     public void connect(DeviceAddress deviceAddress, String token, String tokenKey) throws CommandException {
 
+        // not standard basic auth - using HMAC
         this.token = token;
         this.tokenKey = tokenKey;
         this.deviceAddress = deviceAddress;
+
+        // Load options
+        this.prefix = configuration.getOptionStringRequired(CONFERENCE_NUMBER_PREFIX);
+        this.roomNumberFromFreePBXNumber = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_FREEPBX_NUMBER);
 
         //Try to fetch conferences list
         try {
