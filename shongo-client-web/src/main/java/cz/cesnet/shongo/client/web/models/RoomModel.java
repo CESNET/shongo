@@ -594,7 +594,7 @@ public class RoomModel extends ParticipantConfigurationModel
                     stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");
-                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
                     break;
             }

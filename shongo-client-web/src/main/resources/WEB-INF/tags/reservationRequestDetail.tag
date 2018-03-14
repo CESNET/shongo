@@ -379,12 +379,12 @@
                     </c:when>
                 </c:choose>
 
-                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.detail.room != null}">
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.detail.room != null && !(reservationRequest.technology == 'FREEPBX')}">
                     <dt><spring:message code="views.reservationRequest.room.name"/>:</dt>
                     <dd>${reservationRequest.detail.room.name}</dd>
                 </c:if>
 
-                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.detail.room != null}">
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.detail.room != null && !(reservationRequest.technology == 'FREEPBX')}">
                     <dt><spring:message code="views.reservationRequest.room.licenseCount"/>:</dt>
                     <dd>${reservationRequest.detail.room.licenseCount}</dd>
                 </c:if>
