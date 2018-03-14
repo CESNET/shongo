@@ -310,7 +310,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         } catch (Exception e) {
             throw new CommandException(e.getMessage(), e);
         }
-        logger.debug(String.format("Connection to server %s succeeded", deviceAddress));
+        logger.info(String.format("Connection to server %s succeeded", deviceAddress));
     }
 
 
@@ -417,33 +417,6 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         }
 
 
-    }
-
-    /**
-     * @param result Document returned by AC API call
-     * @return true if the given {@code result} represents and error,
-     *         false otherwise
-     */
-    private boolean isError(Document result)
-    {
-        return isError(result.getRootElement());
-    }
-
-    /**
-     * @param response Element returned by AC API call
-     * @return true if the given {@code result} represents and error,
-     *         false otherwise
-     */
-    private boolean isError(Element response)
-    {
-        Element status = response.getChild("status");
-        if (status != null) {
-            String code = status.getAttributeValue("code");
-            if ("ok".equals(code)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
