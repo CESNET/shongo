@@ -117,7 +117,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         if (room.getDescription() != null) {
             String description = room.getDescription();
             //remove all non-alpha numeric characters - may cause undefined behaviour in FreePBX
-            description.replaceAll("[^A-Za-z0-9]", "");
+            description.replaceAll("[^\\p{IsAlphabetic}^\\p{IsDigit}]", "");
             attributes.add("name", description);
         }
         Matcher m;
