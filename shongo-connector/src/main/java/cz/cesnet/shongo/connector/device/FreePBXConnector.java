@@ -146,6 +146,16 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
         attributes.add("userpin", userPin);
         attributes.add("adminpin", adminPin);
+
+        //overriding default option settings
+        //c - user count, I - user join/leave, M - music on hold, s - allow menu
+        attributes.add("options", "cIMs");
+        attributes.add("opt%23c", "c");     //enabled
+        attributes.add("opt%23I", "I");     //enabled
+        attributes.add("opt%23M", "M");     //enabled
+        attributes.add("opt%23s", "s");     //enabled
+        attributes.add("music", "default");
+
         return roomId;
     }
 
