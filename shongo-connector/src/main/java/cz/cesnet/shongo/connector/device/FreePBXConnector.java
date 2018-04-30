@@ -115,6 +115,9 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     public String setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
 
         if (room.getDescription() != null) {
+            String description = room.getDescription();
+            //remove all non-alpha numeric characters - may cause undefined behaviour in FreePBX
+            description.replaceAll("[^A-Za-z0-9]", "");
             attributes.add("name", room.getDescription());
         }
         Matcher m;
@@ -149,6 +152,10 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
         //overriding default option settings
         //c - user count, I - user join/leave, M - music on hold, s - allow menu
+/*      EXAMPLE HTTPS request:  display=conferences  &action=add &options=cIMs &account=955 &name=test &userpin=1234 &adminpin=1233 &joinmsg_id=
+        &opt%23w= &opt%23o= &opt%23T=T &opt%23q=
+        &opt%23c=c &opt%23I=I &opt%23M=M &music=default
+        &opt%23s=s  &opt%23r= &opt%23m=*/
         attributes.add("options", "cIMs");
         attributes.add("opt%23c", "c");     //enabled
         attributes.add("opt%23I", "I");     //enabled
