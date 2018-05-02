@@ -207,6 +207,11 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String NOTIFICATION_RESERVATION_REQUEST_CONFIRMATION_URL = "notification.reservation-request-confirmation-url";
 
     /**
+     * Filepath for FreePBX PDF guide.
+     */
+    public static final String FREEPBX_PDF_GUIDE_FILEPATH = "notification.freepbx-guide-filepath";
+
+    /**
      * Constructor.
      */
     public ControllerConfiguration()
@@ -324,6 +329,18 @@ public class ControllerConfiguration extends CombinedConfiguration
             return null;
         }
         return reservationRequestConfirmationUrl;
+    }
+
+    /**
+     * @return {@link #FREEPBX_PDF_GUIDE_FILEPATH}
+     */
+    public String getFreePBXPDFGuidePath()
+    {
+        String FreePBXGuidePath = getString(FREEPBX_PDF_GUIDE_FILEPATH);
+        if (FreePBXGuidePath == null || FreePBXGuidePath.isEmpty()) {
+            return null;
+        }
+        return FreePBXGuidePath;
     }
 
     /**

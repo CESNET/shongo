@@ -1,16 +1,20 @@
 package cz.cesnet.shongo.controller;
 
+import com.google.common.net.MediaType;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.activation.MimetypesFileTypeMap;
 import javax.mail.*;
 import javax.mail.internet.*;
 import javax.mail.util.ByteArrayDataSource;
+import java.awt.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /**
  * Helper object for sending emails.
@@ -320,6 +324,13 @@ public class EmailSender
             catch (IOException exception) {
                 throw new RuntimeException(exception);
             }
+        }
+
+        public void addPdfAttachment(String fileName, byte[] fileContent)
+        {
+            DataSource dataSource = new ByteArrayDataSource(fileContent, "application/pdf; charset=UTF-8");
+            attachments.put(fileName, dataSource);
+
         }
     }
 
