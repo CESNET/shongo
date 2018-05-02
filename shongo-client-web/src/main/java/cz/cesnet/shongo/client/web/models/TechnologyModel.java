@@ -26,7 +26,7 @@ public enum TechnologyModel
     /**
      *  {@link cz.cesnet.shongo.Technology#FREEPBX}
      */
-    FREEPBX("Teleconference", cz.cesnet.shongo.Technology.FREEPBX);
+    FREEPBX("Telekonference", cz.cesnet.shongo.Technology.FREEPBX);
 
     /**
      * Title which can be displayed to user.
