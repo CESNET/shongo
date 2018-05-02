@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -116,15 +118,27 @@ public class EmailNotificationExecutor extends NotificationExecutor
             }
             for (NotificationAttachment attachment : message.getAttachments()) {
                 String fileName = attachment.getFileName();
-                String fileContent;
+                String fileContent = null;
+                byte[] byteFileContent= null;
                 if (attachment instanceof iCalendarNotificationAttachment) {
                     iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
                     fileContent = calendarAttachment.getFileContent(emailSender.getSender(), entityManager);
+                    email.addAttachment(fileName, fileContent);
                 }
-                else {
+                else if (attachment instanceof PdfNotificationAttachment) {
+                    PdfNotificationAttachment calendarAttachment = (PdfNotificationAttachment) attachment;
+                    try {
+                        byteFileContent = calendarAttachment.getFileContent();
+                    } catch (IOException e) {
+                        Reporter.getInstance().reportInternalError(Reporter.NOTIFICATION, "Failed to read email attachment", e);
+                    }
+                    email.addPdfAttachment(fileName, byteFileContent);
+
+                } else {
                     throw new TodoImplementException(attachment.getClass());
                 }
-                email.addAttachment(fileName, fileContent);
+
+
             }
 
             // Send email

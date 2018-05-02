@@ -59,6 +59,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
     public static final String CONFERENCE_NUMBER_PREFIX = "conference-number-prefix";
 
     private Pattern roomNumberFromFreePBXNumber = null;
+    private Pattern reservationNumberFromDescription = Pattern.compile(":(\\d*)");
 
 
     @Override
@@ -114,19 +115,28 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     public String setRoomAttributes (RequestAttributeList attributes, Room room) throws CommandException {
 
+        Matcher m;
         if (room.getDescription() != null) {
             String description = room.getDescription();
+            //remember reservation number
+            m = reservationNumberFromDescription.matcher(description);
+            String reservationNumber = null;
+            if (m.find()) {
+                reservationNumber = m.group(1);
+            }
+            //remove machine prefix from description
+            description = description.replaceAll("\\[.*\\] ", "");
             //remove all non-alpha numeric characters - may cause undefined behaviour in FreePBX
-            description.replaceAll("[^\\p{IsAlphabetic}^\\p{IsDigit}]", "");
+            description = description.replaceAll("[^\\p{IsAlphabetic}^\\p{IsDigit}]", "");
+            //add reservation number to front
+            description = "exe" + reservationNumber + " " + description;
             attributes.add("name", description);
         }
-        Matcher m;
         String roomId = null;
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
                     case FREEPBX_CONFERENCE_NUMBER:
-                        //attributes.add("id", roomId);
                         m = roomNumberFromFreePBXNumber.matcher(alias.getValue());
                         if (!m.find()) {
                             throw new CommandException("Invalid E164 number: " + alias.getValue());
@@ -152,7 +162,8 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
         //overriding default option settings
         //c - user count, I - user join/leave, M - music on hold, s - allow menu
-/*      EXAMPLE HTTPS request:  display=conferences  &action=add &options=cIMs &account=955 &name=test &userpin=1234 &adminpin=1233 &joinmsg_id=
+/*      EXAMPLE HTTPS request:
+        ?display=conferences  &action=add &options=cIMs &account=955 &name=test &userpin=1234 &adminpin=1233 &joinmsg_id=
         &opt%23w= &opt%23o= &opt%23T=T &opt%23q=
         &opt%23c=c &opt%23I=I &opt%23M=M &music=default
         &opt%23s=s  &opt%23r= &opt%23m=*/

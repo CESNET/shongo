@@ -321,6 +321,14 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
 
         /**
+         * @return {@link ControllerConfiguration#FREEPBX_PDF_GUIDE_FILEPATH}
+         */
+        public String getFreePBXPDFGuidePath()
+        {
+            return controllerConfiguration.getFreePBXPDFGuidePath();
+        }
+
+        /**
          * @param reservationRequestId
          * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
          */

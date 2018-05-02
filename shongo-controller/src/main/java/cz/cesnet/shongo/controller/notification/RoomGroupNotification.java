@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -88,7 +85,7 @@ public class RoomGroupNotification extends ConfigurableNotification
     protected NotificationMessage getRenderedMessage(PersonInformation recipient,
             Configuration configuration, NotificationManager manager)
     {
-        RenderContext context = new ConfiguredRenderContext(configuration, "notification", manager);
+        ConfiguredRenderContext context = new ConfiguredRenderContext(configuration, "notification", manager);
 
         // Get notifications for recipient
         List<RoomNotification> roomNotifications = new LinkedList<RoomNotification>();
@@ -258,8 +255,17 @@ public class RoomGroupNotification extends ConfigurableNotification
             addEvent(calendar, roomNotification, context, method);
             notificationState = roomNotification.getNotificationState();
         }
-        message.addAttachment(new iCalendarNotificationAttachment(
-                roomName + ".ics", calendar, notificationState));
+        // Add pdf guide for FreePBX confs
+        if (roomEndpoint.getTechnologies().contains(Technology.FREEPBX) ) {
+            message.addAttachment(new iCalendarNotificationAttachment(
+                    roomEndpoint.getMeetingName() + ".ics", calendar, notificationState));
+            if (context.getFreePBXPDFGuidePath() != null) {
+                message.addAttachment(new PdfNotificationAttachment("Navod_telKonf.pdf", context.getFreePBXPDFGuidePath()));
+            }
+        } else {
+            message.addAttachment(new iCalendarNotificationAttachment(
+                    roomName + ".ics", calendar, notificationState));
+        }
 
 //        // Add attachments
 //        DateTimeFormatter dateTimeFormatter = ATTACHMENT_FILENAME_FORMATTER.withZone(context.getTimeZone());
@@ -317,6 +323,11 @@ public class RoomGroupNotification extends ConfigurableNotification
                 location = "Web: " + alias.getValue();
                 break;
             }
+            else if (AliasType.FREEPBX_CONFERENCE_NUMBER.equals(aliasType)) {
+                location = "Conference: " + alias.getValue();
+                break;
+            }
+
         }
 
         if (location != null) {
