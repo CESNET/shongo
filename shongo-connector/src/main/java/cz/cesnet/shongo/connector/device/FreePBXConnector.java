@@ -82,8 +82,18 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     public void deleteRoom(String roomId) throws CommandException {
-        logger.debug("DELETE " + getCallUrl("/conferences/" + roomId, null));
-        execApi("/conferences/" + roomId, null, "DELETE");
+        logger.debug("PUT " + getCallUrl("/conferences/" + roomId, null));
+        //generate random number for room pin while not reserved
+        //workaround for FreePBX api bug - not reloading config. only using the room attributes from not commited config
+        RequestAttributeList attributes = new RequestAttributeList();
+        Random r = new Random();
+        Random s = new Random();
+        String randomAdminPin = String.format("%04d", (Object) Integer.valueOf(r.nextInt(1001)));
+        attributes.add("userpin", randomAdminPin);
+        String randomUserPin = String.format("%04d", (Object) Integer.valueOf(s.nextInt(1001)));
+        attributes.add("adminpin", randomUserPin);
+
+        execApi("/conferences/" + roomId, attributes, "PUT");
     }
 
     @Override
@@ -93,6 +103,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
 
     @Override
     public String createRoom(Room room) throws CommandException {
+
         RequestAttributeList attributes = new RequestAttributeList();
 
 
