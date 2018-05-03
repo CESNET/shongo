@@ -105,6 +105,32 @@ public class ReservationRequestValidator implements Validator
             }
         }
 
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
+                validateNum("adminPin", errors);
+            }
+            else {
+                validateAlphaNum("adminPin", errors);
+            }
+        }
+
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
+                validateNum("roomPin", errors);
+            }
+            else {
+                validateAlphaNum("roomPin", errors);
+            }
+        }
+
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin()) && !Strings.isNullOrEmpty(reservationRequestModel.getAdminPin()) ) {
+            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
+                if (reservationRequestModel.getAdminPin().equals(reservationRequestModel.getRoomPin())) {
+                    errors.rejectValue("adminPin", "validation.field.equalPins");
+                }
+            }
+
+        }
         if (specificationType != null) {
             switch (specificationType) {
                 case PERMANENT_ROOM_CAPACITY:
