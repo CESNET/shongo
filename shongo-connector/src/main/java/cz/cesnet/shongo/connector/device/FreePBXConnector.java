@@ -165,7 +165,7 @@ public class FreePBXConnector extends AbstractMultipointConnector {
         FreePBXRoomSetting freePBXRoomSetting = room.getRoomSetting(FreePBXRoomSetting.class);
         if (freePBXRoomSetting != null) {
             adminPin = freePBXRoomSetting.getAdminPin() == null ? "" : freePBXRoomSetting.getAdminPin();
-            userPin = freePBXRoomSetting.getUserPin();
+            userPin = freePBXRoomSetting.getUserPin() == null ? "" : freePBXRoomSetting.getUserPin();
         }
 
         attributes.add("userpin", userPin);

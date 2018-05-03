@@ -6,6 +6,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 
 /**
+ *
+ * Represents a {@link RoomSetting} for a {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} which
+ * supports {@link cz.cesnet.shongo.Technology#FREEPBX}.
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
 
