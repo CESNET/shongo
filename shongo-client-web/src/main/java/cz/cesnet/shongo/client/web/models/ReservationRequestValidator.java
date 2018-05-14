@@ -131,6 +131,9 @@ public class ReservationRequestValidator implements Validator
             }
 
         }
+        if (Strings.isNullOrEmpty(reservationRequestModel.getDescription())) {
+            errors.rejectValue("description", "validation.field.description");
+        }
         if (specificationType != null) {
             switch (specificationType) {
                 case PERMANENT_ROOM_CAPACITY:
