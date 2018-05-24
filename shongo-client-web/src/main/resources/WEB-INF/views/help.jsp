@@ -34,6 +34,7 @@
         <tag:url var="homeUrl" value="<%= ClientWebUrl.HOME %>"/>
         <tag:url var="reservationRequestUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST %>"/>
         <p><spring:message code="views.help.introduction.text1" arguments="${loginUrl}"/></p>
+        <p><spring:message code="views.help.introduction.text"/></p>
         <p><spring:message code="views.help.introduction.text2" arguments="${homeUrl},${reservationRequestUrl}"/></p>
 
         <h2 id="loa"><spring:message code="views.help.loa"/></h2>
