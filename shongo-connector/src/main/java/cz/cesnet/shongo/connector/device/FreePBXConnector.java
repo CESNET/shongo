@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.connector.device;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
-
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
@@ -12,15 +9,17 @@ import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.UsageStats;
 import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
 import cz.cesnet.shongo.connector.common.RequestAttributeList;
+import cz.cesnet.shongo.connector.util.HttpReqUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.jdom2.Document;
-import org.jdom2.Element;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -361,20 +360,10 @@ public class FreePBXConnector extends AbstractMultipointConnector {
      */
     protected String getCallUrl(String callPath, RequestAttributeList attributes) throws CommandException
     {
-        if (callPath == null || callPath.isEmpty()) {
-            throw new CommandException("FreePBX rest call path cannot be empty.");
+        if (callPath.isEmpty()) {
+            throw new CommandException("FreePBX call path cannot be empty.");
         }
-
-        String queryString = "";
-        if (attributes != null) {
-            try {
-                queryString = "?" + attributes.getAttributesQuery();
-
-            } catch (UnsupportedEncodingException e) {
-                throw new CommandException("Failed to process command " + callPath + ": ", e);
-            }
-        }
-        return deviceAddress.getFullUrl() + "/restapi/rest.php/rest" + callPath + queryString;
+        return deviceAddress.getFullUrl() + "/restapi/rest.php/rest" + HttpReqUtils.getCallUrl(callPath, attributes);
     }
 
     /**
