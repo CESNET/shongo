@@ -73,19 +73,48 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     @Override
-    public String createRoom(Room room) throws CommandException {
+    public String createRoom(final Room room) throws CommandException {
 
-        String jsonString = new JSONObject()
-                .put("service_type", "conference")
-                .put("name", room.getName())
-                .toString();
+        JSONObject json = new JSONObject()
+                .put("service_type", "conference");
+        //TODO send service_tag <- represents link to the room in meetings unique for each room
+        //TODO set host(must set)/guest(doesnt have to be set) pin and participant limit
+        //TODO lock room with participant limit 0
 
-        //TODO call set room attributes method
 
+        addConferenceParamsToJson(json, room);
+        String jsonString = json.toString();
 
         execApi("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
 
         return room.getId();
+    }
+
+    private void addConferenceParamsToJson (JSONObject json, Room room) throws CommandException {
+
+        json.put("name", room.getName());
+
+        JSONArray aliases = new JSONArray();
+
+        if (room.getAliases() != null) {
+            for (Alias alias : room.getAliases()) {
+                switch (alias.getType()) {
+                    case ROOM_NAME:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
+                    case SIP_URI:
+                        //TODO check for alias format
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
+                    default:
+                        throw new CommandException("Unrecognized alias: " + alias.toString());
+                }
+            }
+            json.put("aliases", aliases);
+        }
+
+        printPrettyJson(json.toString());
+
     }
 
     @Override
@@ -136,7 +165,7 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     @Override
-    protected void onModifyRoom(Room room) throws CommandException {
+    protected void onModifyRoom(final Room room) throws CommandException {
 
     }
 
@@ -307,8 +336,8 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     public static void main(String[] args) throws Exception {
-        final String username = "<username>";
-        final String password = "<password>";
+        final String username = "";
+        final String password = "";
         final String server = "https://pexman.cesnet.cz";
 
         DeviceAddress address = new DeviceAddress(server, 443);
@@ -318,7 +347,8 @@ public class PexipConnector extends AbstractMultipointConnector {
         //Test create new room
         Room room = new Room();
         room.setId(50L);
-        room.addAlias(AliasType.ROOM_NAME, "CREATE_ROOM_TEST");
+        room.addAlias(AliasType.ROOM_NAME, "CREATE_ROOM_TEST_ALIAS");
+        room.addAlias(AliasType.SIP_URI, "test@test.cz");
         conn.createRoom(room);
     }
 }

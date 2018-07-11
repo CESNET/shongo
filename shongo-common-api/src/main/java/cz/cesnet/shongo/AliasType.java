@@ -55,6 +55,8 @@ public enum AliasType
      */
     FREEPBX_CONFERENCE_NUMBER(Technology.FREEPBX, AliasValueType.E164);
 
+    //TODO add WEB_URL
+
     /**
      * @see cz.cesnet.shongo.Technology
      */
