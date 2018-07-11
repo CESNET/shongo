@@ -85,9 +85,13 @@ public class PexipConnector extends AbstractMultipointConnector {
         addConferenceParamsToJson(json, room);
         String jsonString = json.toString();
 
-        execApi("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
+        HttpResponse response = execApi("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
 
-        return room.getId();
+        //extract roomId from response
+        String location = response.getLastHeader("Location").getValue();
+        String path = location.substring(0, location.length() - 1); //remove extra slash
+        String roomId = path.substring(path.lastIndexOf('/') + 1);
+        return roomId;
     }
 
     private void addConferenceParamsToJson (JSONObject json, Room room) throws CommandException {
@@ -124,7 +128,10 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public void deleteRoom(String roomId) throws CommandException {
-
+        if (Strings.isNullOrEmpty(roomId)) {
+            throw new CommandException("This command would remove all the VMRs.");
+        }
+        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, "DELETE");
     }
 
     @Override
@@ -232,8 +239,9 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         //Try to fetch conferences list
         try {
-            JSONObject response = execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
-            JSONArray conferenceNodes = response.getJSONArray("objects");
+            HttpResponse response = execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
+            JSONObject jsonResponse = readResponseToJson(response);
+            JSONArray conferenceNodes = jsonResponse.getJSONArray("objects");
             int confNodesCount = conferenceNodes.length();
             if (confNodesCount == 0) {
                 throw new CommandException("No conference nodes available");
@@ -263,15 +271,15 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     // TODO allow for 5 consecutive repetitions if unsuccessful
-    protected JSONObject execApi(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+    protected HttpResponse execApi(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
         String authString = authUsername + ":" + authPassword;
         String authStringEnc = Base64.encode(authString.getBytes(StandardCharsets.UTF_8));
         String command = getCallUrl(actionPath, attributes);
-        logger.debug(String.format("Issuing command '%s'", command));
+        logger.debug(String.format("Issuing request " + reqMethod + " '%s'", command));
         HttpRequestBase request = getRequest(command, reqMethod);
         request.setHeader("Authorization", "Basic " + authStringEnc);
-        HttpResponse response;
-        JSONObject jsonObject = null;
+        HttpResponse response = null;
+
         try {
             //adding json data
             if (body != null && (request instanceof HttpEntityEnclosingRequestBase) ) {
@@ -283,6 +291,15 @@ public class PexipConnector extends AbstractMultipointConnector {
             response = httpClient.execute(request);
             System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + response.getStatusLine()); // remove line
 
+        } catch (IOException e) {
+            throw new CommandException(e.getMessage(), e.getCause());
+        }
+        return response;
+    }
+
+    private JSONObject readResponseToJson (HttpResponse response) {
+        JSONObject jsonObject = null;
+        try {
             //reading response
             InputStream in = response.getEntity().getContent();
             BufferedReader br = new BufferedReader(
@@ -305,6 +322,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         }
         return jsonObject;
     }
+
 
     // TODO create enum for Http methods
     private HttpRequestBase getRequest(String url, String method){
@@ -344,11 +362,14 @@ public class PexipConnector extends AbstractMultipointConnector {
         PexipConnector conn = new PexipConnector();
         conn.connect(address, username, password);
 
-        //Test create new room
+        //Test create new room and delete
         Room room = new Room();
         room.setId(50L);
         room.addAlias(AliasType.ROOM_NAME, "CREATE_ROOM_TEST_ALIAS");
         room.addAlias(AliasType.SIP_URI, "test@test.cz");
-        conn.createRoom(room);
+        String roomId = conn.createRoom(room);
+        System.out.println("Created room id:" + roomId);
+        conn.deleteRoom(roomId);
+
     }
 }
