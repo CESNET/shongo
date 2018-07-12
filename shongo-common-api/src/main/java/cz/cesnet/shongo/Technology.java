@@ -34,6 +34,8 @@ public enum Technology
      */
     FREEPBX("Teleconference"),
 
+    SKYPE_FOR_BUSINESS("SkypeForBusiness"),
+
     SKYPE("Skype"),
 
     BIG_BLUE_BUTTON("BigBlueButton"),
