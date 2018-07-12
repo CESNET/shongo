@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.booking.room.settting;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.connector.api.RoomService;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Entity;
@@ -43,6 +42,9 @@ public abstract class RoomSetting extends SimplePersistentObject implements Obje
         }
         else if (api instanceof cz.cesnet.shongo.api.FreePBXRoomSetting) {
             roomSetting = new FreePBXRoomSetting();
+        }
+        else if (api instanceof cz.cesnet.shongo.api.PexipRoomSetting) {
+            roomSetting = new PexipRoomSetting();
         }
         else {
             throw new TodoImplementException(api.getClass());

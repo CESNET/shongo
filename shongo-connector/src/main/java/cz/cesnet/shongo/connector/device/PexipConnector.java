@@ -222,10 +222,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        // Load options
-        /*roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
-        roomNumberFromSIPURI = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);*/
-
         //TODO configure hidden participants
 
         //standard basic auth
