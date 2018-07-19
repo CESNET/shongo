@@ -26,10 +26,14 @@ public enum TechnologyModel
     /**
      *  {@link cz.cesnet.shongo.Technology#FREEPBX}
      */
-    FREEPBX("Telekonference", cz.cesnet.shongo.Technology.FREEPBX);
+    FREEPBX("Telekonference", cz.cesnet.shongo.Technology.FREEPBX),
+
+    PEXIP("Pexip", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP,
+            cz.cesnet.shongo.Technology.SKYPE_FOR_BUSINESS, cz.cesnet.shongo.Technology.RTMP,
+            cz.cesnet.shongo.Technology.WEBRTC);
 
     /**
-     * Title which can be displayed to user.
+     * Title which can be displayed to user.1
      */
     private final String title;
 

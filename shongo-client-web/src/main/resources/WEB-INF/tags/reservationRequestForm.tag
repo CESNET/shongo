@@ -1111,24 +1111,7 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
-        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
-            <form:label class="col-xs-3 control-label" path="roomPin">
-                <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
-                <tag:help label="${pinLabel}:">
-                    <spring:message code="views.reservationRequest.specification.roomPin.help"/>
-                </tag:help>
-            </form:label>
-            <div class="col-xs-9 space-padding">
-                <div class="col-xs-2">
-                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
-                </div>
-            </div>
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="roomPin" cssClass="error"/>
-            </div>
-        </div>
-
-        <div class="form-group" ng-show="technology == 'FREEPBX'" class="hide">
+        <div class="form-group" ng-show="technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
             <form:label class="col-xs-3 control-label" path="adminPin">
                 <spring:message code="views.reservationRequest.specification.adminPin" var="pinLabel"/>
                 <tag:help label="${pinLabel}:">
@@ -1142,6 +1125,22 @@
             </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="adminPin" cssClass="error"/>
+            </div>
+        </div>
+        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
+            <form:label class="col-xs-3 control-label" path="roomPin">
+                <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomPin.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomPin" cssClass="error"/>
             </div>
         </div>
     </c:if>
