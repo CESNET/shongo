@@ -3,10 +3,12 @@ package cz.cesnet.shongo.controller.booking.room.settting;
 import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 
 /**
  * @author Marek Perichta <mperichta@cesnet.cz>
  */
+@Entity
 public class PexipRoomSetting extends RoomSetting {
 
     /**

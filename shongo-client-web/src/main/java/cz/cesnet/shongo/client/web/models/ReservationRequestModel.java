@@ -1144,6 +1144,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomSpecification.addParticipant(participant.toApi());
             }
 
+            if (TechnologyModel.PEXIP.equals(technology)) {
+                PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
+                pexipRoomSetting.setHostPin(adminPin);
+                pexipRoomSetting.setGuestPin(roomPin);
+                roomSpecification.addRoomSetting(pexipRoomSetting);
+            }
+
             if (TechnologyModel.FREEPBX.equals(technology)) {
                 FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
                 freePBXRoomSetting.setAdminPin(adminPin);

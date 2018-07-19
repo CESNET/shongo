@@ -78,11 +78,15 @@ public class PexipConnector extends AbstractMultipointConnector {
         JSONObject json = new JSONObject()
                 .put("service_type", "conference");
         //TODO send service_tag <- represents link to the room in meetings unique for each room
-        //TODO set host(must set)/guest(doesnt have to be set) pin and participant limit
         //TODO lock room with participant limit 0
 
-
         addConferenceParamsToJson(json, room);
+
+        // Room name must be filled
+        if (!json.has("name") ) {
+            throw new RuntimeException("Room name must be filled for the new room.");
+        }
+
         String jsonString = json.toString();
 
         HttpResponse response = execApi("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
@@ -97,14 +101,15 @@ public class PexipConnector extends AbstractMultipointConnector {
     private void addConferenceParamsToJson (JSONObject json, Room room) throws CommandException {
 
         json.put("name", room.getName());
-
         JSONArray aliases = new JSONArray();
 
         if (room.getAliases() != null) {
+            String roomName = null;
+
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
                     case ROOM_NAME:
-                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        roomName = alias.getValue();
                         break;
                     case SIP_URI:
                         //TODO check for alias format
@@ -115,10 +120,17 @@ public class PexipConnector extends AbstractMultipointConnector {
                 }
             }
             json.put("aliases", aliases);
+            if (roomName != null) {
+                //TODO check that room with requested roomName does not exist already
+                aliases.put(new JSONObject().put("alias", roomName));
+            }
         }
+        // Set license count
+        json.put("participant_limit", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
+
+
 
         printPrettyJson(json.toString());
-
     }
 
     @Override
@@ -129,7 +141,7 @@ public class PexipConnector extends AbstractMultipointConnector {
     @Override
     public void deleteRoom(String roomId) throws CommandException {
         if (Strings.isNullOrEmpty(roomId)) {
-            throw new CommandException("This command would remove all the VMRs.");
+            throw new CommandException("This command would remove all VMRs.");
         }
         execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, "DELETE");
     }
@@ -267,14 +279,14 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     // TODO allow for 5 consecutive repetitions if unsuccessful
-    protected HttpResponse execApi(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+    private synchronized HttpResponse execApi(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
         String authString = authUsername + ":" + authPassword;
         String authStringEnc = Base64.encode(authString.getBytes(StandardCharsets.UTF_8));
         String command = getCallUrl(actionPath, attributes);
         logger.debug(String.format("Issuing request " + reqMethod + " '%s'", command));
         HttpRequestBase request = getRequest(command, reqMethod);
         request.setHeader("Authorization", "Basic " + authStringEnc);
-        HttpResponse response = null;
+        HttpResponse response;
 
         try {
             //adding json data
@@ -285,6 +297,7 @@ public class PexipConnector extends AbstractMultipointConnector {
                 ((HttpEntityEnclosingRequestBase)request).setEntity(jsonBody);
             }
             response = httpClient.execute(request);
+            //TODO if not success response code throw exception with message from json
             System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + response.getStatusLine()); // remove line
 
         } catch (IOException e) {
@@ -346,7 +359,14 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public ConnectionState getConnectionState() {
-        return null;
+        try {
+            execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
+            return ConnectionState.CONNECTED;
+        }
+        catch (Exception exception) {
+            logger.warn("Not connected", exception);
+            return ConnectionState.DISCONNECTED;
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -360,7 +380,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         //Test create new room and delete
         Room room = new Room();
-        room.setId(50L);
+        //room.setId(50L);
         room.addAlias(AliasType.ROOM_NAME, "CREATE_ROOM_TEST_ALIAS");
         room.addAlias(AliasType.SIP_URI, "test@test.cz");
         String roomId = conn.createRoom(room);

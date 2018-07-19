@@ -36,6 +36,10 @@ public enum Technology
 
     SKYPE_FOR_BUSINESS("SkypeForBusiness"),
 
+    RTMP("RTMP"),
+
+    WEBRTC("WebRTC"),
+
     SKYPE("Skype"),
 
     BIG_BLUE_BUTTON("BigBlueButton"),

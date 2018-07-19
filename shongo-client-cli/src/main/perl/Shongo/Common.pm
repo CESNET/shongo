@@ -51,7 +51,10 @@ our $Technology = ordered_hash(
     'H323' => 'H.323',
     'SIP' => 'SIP',
     'ADOBE_CONNECT' => 'Adobe Connect',
-    'FREEPBX' => 'FreePBX'
+    'FREEPBX' => 'FreePBX',
+    'SKYPE_FOR_BUSINESS' => 'Skype for Business',
+    'WEBRTC' => 'WebRTC',
+    'RTMP' => 'RTMP'
 );
 
 #

@@ -122,6 +122,12 @@ public class ReservationRequestValidator implements Validator
                 validateAlphaNum("roomPin", errors);
             }
         }
+        if (TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.required");
+            if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+                validateNum("roomPin", errors);
+            }
+        }
 
         if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin()) && !Strings.isNullOrEmpty(reservationRequestModel.getAdminPin()) ) {
             if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
