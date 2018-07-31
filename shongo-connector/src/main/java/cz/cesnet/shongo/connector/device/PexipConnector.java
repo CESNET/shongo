@@ -17,20 +17,20 @@ import cz.cesnet.shongo.connector.common.RequestAttributeList;
 import cz.cesnet.shongo.connector.util.HttpReqUtils;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
@@ -89,12 +89,16 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         String jsonString = json.toString();
 
-        HttpResponse response = execApi("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
+        HttpResponse response = execApiToResponse("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
 
         //extract roomId from response
         String location = response.getLastHeader("Location").getValue();
         String path = location.substring(0, location.length() - 1); //remove extra slash
         String roomId = path.substring(path.lastIndexOf('/') + 1);
+
+        //Important for releasing the connection
+        EntityUtils.consumeQuietly(response.getEntity());
+
         return roomId;
     }
 
@@ -102,6 +106,10 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         json.put("name", room.getName());
         JSONArray aliases = new JSONArray();
+
+        if (!Strings.isNullOrEmpty(room.getDescription())) {
+            json.put("description", room.getDescription());
+        }
 
         if (room.getAliases() != null) {
             String roomName = null;
@@ -143,6 +151,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         if (Strings.isNullOrEmpty(roomId)) {
             throw new CommandException("This command would remove all VMRs.");
         }
+        HttpDelete request = new HttpDelete();
         execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, "DELETE");
     }
 
@@ -185,7 +194,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     protected void onModifyRoom(final Room room) throws CommandException {
-
+        logger.error("Command unsupported.");
     }
 
     @Override
@@ -236,6 +245,8 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         //TODO configure hidden participants
 
+        //TCS názov masiny- REC2 doménové meno
+
         //standard basic auth
         this.authUsername = username;
         this.authPassword = password;
@@ -245,10 +256,9 @@ public class PexipConnector extends AbstractMultipointConnector {
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient(requestTimeout);
 
 
-        //Try to fetch conferences list
+        //Try to fetch nodes list
         try {
-            HttpResponse response = execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
-            JSONObject jsonResponse = readResponseToJson(response);
+            JSONObject jsonResponse = execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
             JSONArray conferenceNodes = jsonResponse.getJSONArray("objects");
             int confNodesCount = conferenceNodes.length();
             if (confNodesCount == 0) {
@@ -279,7 +289,11 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     // TODO allow for 5 consecutive repetitions if unsuccessful
-    private synchronized HttpResponse execApi(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+
+    /**
+     * If using directly this method take care of releasing the connection.
+     */
+    private HttpResponse execApiToResponse(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
         String authString = authUsername + ":" + authPassword;
         String authStringEnc = Base64.encode(authString.getBytes(StandardCharsets.UTF_8));
         String command = getCallUrl(actionPath, attributes);
@@ -289,15 +303,13 @@ public class PexipConnector extends AbstractMultipointConnector {
         HttpResponse response;
 
         try {
-            //adding json data
-            if (body != null && (request instanceof HttpEntityEnclosingRequestBase) ) {
-                StringEntity jsonBody = new StringEntity(body);
-                jsonBody.setContentType("application/json;charset=UTF-8");
-                jsonBody.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
-                ((HttpEntityEnclosingRequestBase)request).setEntity(jsonBody);
-            }
+            addBodyToRequest(request, body);
             response = httpClient.execute(request);
-            //TODO if not success response code throw exception with message from json
+            StatusLine responseStatusLine = response.getStatusLine();
+
+            if (responseStatusLine.getStatusCode() >= 400) {
+                throw new RuntimeException("Wrong status " + responseStatusLine + ". " + EntityUtils.toString(response.getEntity()));
+            }
             System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + response.getStatusLine()); // remove line
 
         } catch (IOException e) {
@@ -306,31 +318,34 @@ public class PexipConnector extends AbstractMultipointConnector {
         return response;
     }
 
-    private JSONObject readResponseToJson (HttpResponse response) {
+    private JSONObject execApi (String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+        HttpResponse response = execApiToResponse(actionPath, attributes, body, reqMethod);
         JSONObject jsonObject = null;
+        String responseBody = null;
         try {
-            //reading response
-            InputStream in = response.getEntity().getContent();
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(
-                            in));
-            StringBuilder responseBody = new StringBuilder();
-            String currentLine;
-
-            while ((currentLine = br.readLine()) != null)
-                responseBody.append(currentLine);
-            in.close();
-
             // json object from response
-            if (!Strings.isNullOrEmpty(responseBody.toString())) {
-                jsonObject = new JSONObject(responseBody.toString());
-                System.out.println(printPrettyJson(responseBody.toString())); // remove line
+            if (response.getEntity() != null) {
+                 responseBody = EntityUtils.toString(response.getEntity());
+            }
+            if (!Strings.isNullOrEmpty(responseBody)) {
+                jsonObject = new JSONObject(responseBody);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return jsonObject;
+
     }
+
+    private void addBodyToRequest (HttpRequestBase request, String body) throws UnsupportedEncodingException {
+        if (body != null && (request instanceof HttpEntityEnclosingRequestBase) ) {
+            StringEntity jsonBody = new StringEntity(body);
+            jsonBody.setContentType("application/json;charset=UTF-8");
+            jsonBody.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
+            ((HttpEntityEnclosingRequestBase)request).setEntity(jsonBody);
+        }
+    }
+
 
 
     // TODO create enum for Http methods
