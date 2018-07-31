@@ -5,8 +5,10 @@ package cz.cesnet.shongo.connector.device;
  */
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -77,7 +79,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         JSONObject json = new JSONObject()
                 .put("service_type", "conference");
-        //TODO send service_tag <- represents link to the room in meetings unique for each room
+        //TODO set service_tag <- represents link to the room in meetings unique for each room
         //TODO lock room with participant limit 0
 
         addConferenceParamsToJson(json, room);
@@ -105,13 +107,13 @@ public class PexipConnector extends AbstractMultipointConnector {
     private void addConferenceParamsToJson (JSONObject json, Room room) throws CommandException {
 
         json.put("name", room.getName());
-        JSONArray aliases = new JSONArray();
 
         if (!Strings.isNullOrEmpty(room.getDescription())) {
             json.put("description", room.getDescription());
         }
 
-        if (room.getAliases() != null) {
+        if (room.getAliases() != null && room.getAliases().size() != 0) {
+            JSONArray aliases = new JSONArray();
             String roomName = null;
 
             for (Alias alias : room.getAliases()) {
@@ -136,9 +138,17 @@ public class PexipConnector extends AbstractMultipointConnector {
         // Set license count
         json.put("participant_limit", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
 
-
-
-        printPrettyJson(json.toString());
+        // Set options
+        PexipRoomSetting pexipRoomSetting = room.getRoomSetting(PexipRoomSetting.class);
+        if (pexipRoomSetting != null) {
+            if (pexipRoomSetting.getHostPin() != null) {
+                json.put("pin", pexipRoomSetting.getHostPin());
+            }
+            if (pexipRoomSetting.getGuestPin() != null) {
+                json.put("allow_guests", true);
+                json.put("guest_pin", pexipRoomSetting.getGuestPin());
+            }
+        }
     }
 
     @Override
@@ -169,7 +179,37 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public Room getRoom(String roomId) throws CommandException {
-        return null;
+        JSONObject roomJson = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, "GET");
+        if (roomJson == null) {
+            return null;
+        }
+        Room room = new Room ();
+        room.setId(roomJson.getLong("id"));
+        room.setTechnologies(Sets.newHashSet(Technology.H323, Technology.RTMP, Technology.SIP, Technology.SKYPE_FOR_BUSINESS, Technology.WEBRTC));
+        if (roomJson.has("participant_limit")) {
+            room.setLicenseCount(roomJson.getInt("participant_limit"));
+        }
+        if (roomJson.has("description")) {
+            room.setDescription(roomJson.getString("description"));
+        }
+
+        // aliases
+        if (roomJson.has("name")) {
+            Alias nameAlias = new Alias(AliasType.ROOM_NAME, roomJson.getString("name"));
+            room.addAlias(nameAlias);
+        }
+
+        // options
+        PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
+        if (roomJson.has("pin")) {
+            pexipRoomSetting.setHostPin(roomJson.getString("pin"));
+        }
+        if (roomJson.has("guest_pin")) {
+            pexipRoomSetting.setGuestPin(roomJson.getString("guest_pin"));
+        }
+        room.addRoomSetting(pexipRoomSetting);
+
+        return room;
     }
 
     @Override
@@ -194,7 +234,23 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     protected void onModifyRoom(final Room room) throws CommandException {
-        logger.error("Command unsupported.");
+
+        String roomId;
+        // Room id must be filled
+        if (room.getId() == null ) {
+            throw new RuntimeException("Room id must be filled for the modifying room.");
+        } else {
+            roomId = room.getId();
+        }
+
+        JSONObject json = new JSONObject();
+
+        //disconnectRoomParticipants ?
+        addConferenceParamsToJson(json, room);
+
+        String jsonString = json.toString();
+
+        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, jsonString, "PATCH");
     }
 
     @Override
@@ -321,14 +377,14 @@ public class PexipConnector extends AbstractMultipointConnector {
     private JSONObject execApi (String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
         HttpResponse response = execApiToResponse(actionPath, attributes, body, reqMethod);
         JSONObject jsonObject = null;
-        String responseBody = null;
+        String responseBody;
         try {
             // json object from response
             if (response.getEntity() != null) {
-                 responseBody = EntityUtils.toString(response.getEntity());
-            }
-            if (!Strings.isNullOrEmpty(responseBody)) {
-                jsonObject = new JSONObject(responseBody);
+                responseBody = EntityUtils.toString(response.getEntity());
+                if (!Strings.isNullOrEmpty(responseBody)) {
+                    jsonObject = new JSONObject(responseBody);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -393,6 +449,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         PexipConnector conn = new PexipConnector();
         conn.connect(address, username, password);
 
+/*
         //Test create new room and delete
         Room room = new Room();
         //room.setId(50L);
@@ -401,6 +458,15 @@ public class PexipConnector extends AbstractMultipointConnector {
         String roomId = conn.createRoom(room);
         System.out.println("Created room id:" + roomId);
         conn.deleteRoom(roomId);
+*/
+        Room room = new Room();
+        PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
+        pexipRoomSetting.setHostPin("1234");
+        //pexipRoomSetting.setGuestPin("3414");   //allow_guests must be true before guest pin can be set
+        room.addRoomSetting(pexipRoomSetting);
+        room.setId("49");
+        room.setLicenseCount(2);
+        conn.onModifyRoom(room);
 
     }
 }
