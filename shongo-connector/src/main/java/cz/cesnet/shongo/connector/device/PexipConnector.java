@@ -121,9 +121,10 @@ public class PexipConnector extends AbstractMultipointConnector {
                         roomName = alias.getValue();
                         break;
                     case SIP_URI:
-                        //TODO check for alias format
-                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        //aliases.put(new JSONObject().put("alias", alias.getValue()));
                         break;
+                    case H323_E164:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
@@ -404,6 +405,10 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
 
+    // roomname
+    // roomname@vc.cesnet.cz
+    // tie 3 vygenerovane cisla
+    // 3 vygenernovane cisla@vc.cesnet.cz
 
     // TODO create enum for Http methods
     private HttpRequestBase getRequest(String url, String method){
