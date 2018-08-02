@@ -125,15 +125,20 @@ public class ReservationRequestValidator implements Validator
         if (TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.required");
             if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+                validateNum("adminPin", errors);
                 validateNum("roomPin", errors);
+                validatePinLength("adminPin", errors);
+                validatePinLength("roomPin", errors);
             }
         }
 
         if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin()) && !Strings.isNullOrEmpty(reservationRequestModel.getAdminPin()) ) {
-            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
+            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology()) ||
+                    TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
                 if (reservationRequestModel.getAdminPin().equals(reservationRequestModel.getRoomPin())) {
                     errors.rejectValue("adminPin", "validation.field.equalPins");
                 }
+                validateSameLength("adminPin", "roomPin", errors);
             }
 
         }
@@ -545,6 +550,23 @@ public class ReservationRequestValidator implements Validator
             if (!matcher.matches()) {
                 errors.rejectValue(field, "validation.field.invalidNum.E164");
             }
+        }
+    }
+
+    public static void validateSameLength(String field1, String field2, Errors errors) {
+        String value1 = (String) errors.getFieldValue(field1);
+        String value2 = (String) errors.getFieldValue(field2);
+        int lengthDifference = value1.length() - value2.length();
+        if (lengthDifference != 0) {
+            errors.rejectValue(field1, "validation.field.pinsLengthDiffer");
+            errors.rejectValue(field2, "validation.field.pinsLengthDiffer");
+        }
+    }
+
+    public static void validatePinLength(String field, Errors errors) {
+        String value = (String) errors.getFieldValue(field);
+        if (value.length() < 4) {
+            errors.rejectValue(field, "validation.field.lengthTooSmall");
         }
     }
 }
