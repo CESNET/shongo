@@ -80,7 +80,6 @@ public class PexipConnector extends AbstractMultipointConnector {
         JSONObject json = new JSONObject()
                 .put("service_type", "conference");
         //TODO set service_tag <- represents link to the room in meetings unique for each room
-        //TODO lock room with participant limit 0
 
         addConferenceParamsToJson(json, room);
 
@@ -93,12 +92,12 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         HttpResponse response = execApiToResponse("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
 
-        //extract roomId from response
+        // Extract roomId from response
         String location = response.getLastHeader("Location").getValue();
         String path = location.substring(0, location.length() - 1); //remove extra slash
         String roomId = path.substring(path.lastIndexOf('/') + 1);
 
-        //Important for releasing the connection
+        // Important for releasing the connection
         EntityUtils.consumeQuietly(response.getEntity());
 
         return roomId;
@@ -131,7 +130,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             }
             json.put("aliases", aliases);
             if (roomName != null) {
-                //TODO check that room with requested roomName does not exist already
                 aliases.put(new JSONObject().put("alias", roomName));
             }
         }
@@ -147,6 +145,8 @@ public class PexipConnector extends AbstractMultipointConnector {
             if (pexipRoomSetting.getGuestPin() != null) {
                 json.put("allow_guests", true);
                 json.put("guest_pin", pexipRoomSetting.getGuestPin());
+            } else {
+                json.put("allow_guests", false);
             }
         }
     }
@@ -300,6 +300,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         }
 
         //TODO configure hidden participants
+
 
         //TCS názov masiny- REC2 doménové meno
 
@@ -458,15 +459,16 @@ public class PexipConnector extends AbstractMultipointConnector {
         String roomId = conn.createRoom(room);
         System.out.println("Created room id:" + roomId);
         conn.deleteRoom(roomId);
-*/
+
+        //Test onModifyRoom
         Room room = new Room();
         PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
         pexipRoomSetting.setHostPin("1234");
-        //pexipRoomSetting.setGuestPin("3414");   //allow_guests must be true before guest pin can be set
+        pexipRoomSetting.setGuestPin("3414");
         room.addRoomSetting(pexipRoomSetting);
         room.setId("49");
         room.setLicenseCount(2);
-        conn.onModifyRoom(room);
+        conn.onModifyRoom(room);*/
 
     }
 }
