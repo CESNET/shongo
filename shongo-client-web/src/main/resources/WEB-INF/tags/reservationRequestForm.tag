@@ -321,6 +321,16 @@
                 $scope.pinModified = false;
             }
         });
+        $scope.adminPinModified = false;
+        $("#adminPin").change(function () {
+            var pin = $("#adminPin").val();
+            if (pin != "") {
+                $scope.adminPinModified = true;
+            }
+            else {
+                $scope.adminPinModified = false;
+            }
+        });
         // Update permanent rooms model when start or duration changes
         $("#startDate,#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
@@ -338,6 +348,9 @@
                     }).done(function (data) {
                         if (!$scope.pinModified) {
                             $("#roomPin").val(data.pin);
+                        }
+                        if (!$scope.adminPinModified) {
+                            $("#adminPin").val(data.adminPin);
                         }
                     }).fail($application.handleAjaxFailure);
                 }
