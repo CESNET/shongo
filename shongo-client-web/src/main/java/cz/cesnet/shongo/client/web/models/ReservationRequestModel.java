@@ -848,6 +848,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     roomPin = adobeConnectRoomSetting.getPin();
                     roomAccessMode = adobeConnectRoomSetting.getAccessMode();
                 }
+                if (roomSetting instanceof PexipRoomSetting) {
+                    PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) roomSetting;
+                    roomPin = pexipRoomSetting.getGuestPin();
+                    adminPin = pexipRoomSetting.getHostPin();
+                }
             }
             roomParticipants.clear();
             for (AbstractParticipant participant : roomSpecification.getParticipants()) {
