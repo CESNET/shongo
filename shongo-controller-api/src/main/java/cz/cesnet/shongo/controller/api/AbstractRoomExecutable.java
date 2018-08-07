@@ -347,6 +347,30 @@ public abstract class AbstractRoomExecutable extends Executable
                     }
                     pin = adobeConnectRoomSetting.getPin();
                 }
+            } else if (setting instanceof PexipRoomSetting
+                    && (technologies.contains(Technology.H323))) {
+                PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) setting;
+                if (pexipRoomSetting.getGuestPin() != null) {
+                    if (pin != null) {
+                        throw new RuntimeException("Multiple PIN specified.");
+                    }
+                    pin = pexipRoomSetting.getGuestPin();
+                }
+            }
+        }
+        return pin;
+    }
+
+    public String getAdminPin()
+    {
+        String pin = null;
+        for (RoomSetting setting : roomSettings) {
+            if (setting instanceof PexipRoomSetting
+                    && (technologies.contains(Technology.H323))) {
+                PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) setting;
+                if (pexipRoomSetting.getHostPin() != null) {
+                    pin = pexipRoomSetting.getHostPin();
+                }
             }
         }
         return pin;

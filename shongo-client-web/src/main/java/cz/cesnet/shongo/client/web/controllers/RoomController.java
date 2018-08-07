@@ -163,6 +163,7 @@ public class RoomController
                 (AbstractRoomExecutable) executableService.getExecutable(securityToken, roomId);
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("pin", roomExecutable.getPin());
+        data.put("adminPin", roomExecutable.getAdminPin());
         data.put("aliases", RoomModel.formatAliasesDescription(roomExecutable.getAliases(),
                 roomExecutable.getState().isAvailable(), new MessageProviderImpl(messageSource, userSession.getLocale())));
         return data;
