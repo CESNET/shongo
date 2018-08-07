@@ -69,6 +69,25 @@ public class ConfiguredSSLContext
         }
     }
 
+    public ConfiguredSSLContext(String TLSVersion)
+    {
+        try {
+            // Create SSL context
+            hostnameVerifier = new HostnameVerifier();
+            trustManager = new TrustManager();
+            context = javax.net.ssl.SSLContext.getInstance(TLSVersion);
+            context.init(null, new javax.net.ssl.TrustManager[]{trustManager}, new SecureRandom());
+
+            // Set it as default context
+            SSLContext.setDefault(context);
+            javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+            javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
+        }
+        catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
     /**
      * @return {@link #trustManager}
      */
@@ -132,6 +151,14 @@ public class ConfiguredSSLContext
     {
         if (instance == null) {
             instance = new ConfiguredSSLContext();
+        }
+        return instance;
+    }
+
+    public static synchronized ConfiguredSSLContext getInstance(String TLSVersion)
+    {
+        if (instance == null) {
+            instance = new ConfiguredSSLContext(TLSVersion);
         }
         return instance;
     }
