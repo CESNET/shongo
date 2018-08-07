@@ -1,9 +1,5 @@
 package cz.cesnet.shongo.connector.device;
 
-/**
- * @author Marek Perichta <mperichta@cesnet.cz>
- */
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
@@ -121,9 +117,12 @@ public class PexipConnector extends AbstractMultipointConnector {
                         roomName = alias.getValue();
                         break;
                     case SIP_URI:
-                        //aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
                         break;
                     case H323_E164:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
+                    case SKYPE_URI:
                         aliases.put(new JSONObject().put("alias", alias.getValue()));
                         break;
                     default:
@@ -247,7 +246,6 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         JSONObject json = new JSONObject();
 
-        //disconnectRoomParticipants ?
         addConferenceParamsToJson(json, room);
 
         String jsonString = json.toString();
@@ -301,11 +299,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        //TODO configure hidden participants
-
-
-        //TCS názov masiny- REC2 doménové meno
-
         //standard basic auth
         this.authUsername = username;
         this.authPassword = password;
@@ -313,7 +306,6 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         // Create HttpClient for Http communication
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient(requestTimeout);
-
 
         //Try to fetch nodes list
         try {
@@ -369,8 +361,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             if (responseStatusLine.getStatusCode() >= 400) {
                 throw new RuntimeException("Wrong status " + responseStatusLine + ". " + EntityUtils.toString(response.getEntity()));
             }
-            System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + response.getStatusLine()); // remove line
-
         } catch (IOException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
