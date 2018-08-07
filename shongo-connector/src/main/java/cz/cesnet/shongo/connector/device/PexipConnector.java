@@ -311,7 +311,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         this.deviceAddress = deviceAddress;
 
         // Create HttpClient for Http communication
-        httpClient = ConfiguredSSLContext.getInstance().createHttpClient(requestTimeout);
+        httpClient = ConfiguredSSLContext.getInstance("TLSv1.2").createHttpClient(requestTimeout);
 
 
         //Try to fetch nodes list
