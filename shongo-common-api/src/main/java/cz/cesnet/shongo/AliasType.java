@@ -53,9 +53,10 @@ public enum AliasType
     /**
      * Represents conference (room) number for {@link cz.cesnet.shongo.Technology#FREEPBX}.
      */
-    FREEPBX_CONFERENCE_NUMBER(Technology.FREEPBX, AliasValueType.E164);
+    FREEPBX_CONFERENCE_NUMBER(Technology.FREEPBX, AliasValueType.E164),
 
-    //TODO add WEB_URL
+    SKYPE_URI(Technology.SKYPE_FOR_BUSINESS, AliasValueType.URI);
+
 
     /**
      * @see cz.cesnet.shongo.Technology
