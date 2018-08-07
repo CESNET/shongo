@@ -125,6 +125,7 @@ public class PexipConnector extends AbstractMultipointConnector {
                         break;
                     case H323_E164:
                         aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
