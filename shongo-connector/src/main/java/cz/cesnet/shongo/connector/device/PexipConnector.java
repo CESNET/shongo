@@ -23,6 +23,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,6 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         JSONObject json = new JSONObject()
                 .put("service_type", "conference");
-        //TODO set service_tag <- represents link to the room in meetings unique for each room
 
         addConferenceParamsToJson(json, room);
 
@@ -86,7 +86,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         String jsonString = json.toString();
 
-        HttpResponse response = execApiToResponse("/api/admin/configuration/v1/conference/", null, jsonString, "POST");
+        HttpResponse response = execApiToResponse("/api/admin/configuration/v1/conference/", null, jsonString, HttpMethod.POST);
 
         // Extract roomId from response
         String location = response.getLastHeader("Location").getValue();
@@ -163,7 +163,7 @@ public class PexipConnector extends AbstractMultipointConnector {
             throw new CommandException("This command would remove all VMRs.");
         }
         HttpDelete request = new HttpDelete();
-        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, "DELETE");
+        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, HttpMethod.DELETE);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public Room getRoom(String roomId) throws CommandException {
-        JSONObject roomJson = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, "GET");
+        JSONObject roomJson = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, HttpMethod.GET);
         if (roomJson == null) {
             return null;
         }
@@ -250,7 +250,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         String jsonString = json.toString();
 
-        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, jsonString, "PATCH");
+        execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, jsonString, HttpMethod.PATCH);
     }
 
     @Override
@@ -309,7 +309,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         //Try to fetch nodes list
         try {
-            JSONObject jsonResponse = execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
+            JSONObject jsonResponse = execApi("/api/admin/status/v1/worker_vm/", null, null, HttpMethod.GET);
             JSONArray conferenceNodes = jsonResponse.getJSONArray("objects");
             int confNodesCount = conferenceNodes.length();
             if (confNodesCount == 0) {
@@ -342,9 +342,17 @@ public class PexipConnector extends AbstractMultipointConnector {
     // TODO allow for 5 consecutive repetitions if unsuccessful
 
     /**
-     * If using directly this method take care of releasing the connection.
+     * Executes command on Pexip server and returns {@link HttpResponse}.
+     * If using directly this method take care of releasing the connection
+     * for example with EntityUtils.consumeQuietly(response.getEntity()).
+     * @param actionPath    path of the Pexip action
+     * @param attributes    attributes of the action
+     * @param body          request body
+     * @param reqMethod     request method
+     * @return HttpResponse
+     * @throws CommandException
      */
-    private HttpResponse execApiToResponse(String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+    private HttpResponse execApiToResponse(String actionPath, RequestAttributeList attributes, String body, HttpMethod reqMethod) throws CommandException {
         String authString = authUsername + ":" + authPassword;
         String authStringEnc = Base64.encode(authString.getBytes(StandardCharsets.UTF_8));
         String command = getCallUrl(actionPath, attributes);
@@ -367,7 +375,16 @@ public class PexipConnector extends AbstractMultipointConnector {
         return response;
     }
 
-    private JSONObject execApi (String actionPath, RequestAttributeList attributes, String body, String reqMethod) throws CommandException {
+    /**
+     * Executes command on Pexip server and returns Json response. Throws CommandException when some error on server occured or some parser error occured.
+     * @param actionPath    path of the Pexip action
+     * @param attributes    attributes of the action
+     * @param body          request body
+     * @param reqMethod     request method
+     * @return JSONObject of the response if any, otherwise null
+     * @throws CommandException
+     */
+    private JSONObject execApi (String actionPath, RequestAttributeList attributes, String body, HttpMethod reqMethod) throws CommandException {
         HttpResponse response = execApiToResponse(actionPath, attributes, body, reqMethod);
         JSONObject jsonObject = null;
         String responseBody;
@@ -380,7 +397,9 @@ public class PexipConnector extends AbstractMultipointConnector {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Command issuing error", e);
+        } catch (JSONException e) {
+            throw new RuntimeException("Command result parsing error", e);
         }
         return jsonObject;
 
@@ -401,24 +420,22 @@ public class PexipConnector extends AbstractMultipointConnector {
     // tie 3 vygenerovane cisla
     // 3 vygenernovane cisla@vc.cesnet.cz
 
-    // TODO create enum for Http methods
-    private HttpRequestBase getRequest(String url, String method){
+    private HttpRequestBase getRequest(String url, HttpMethod method){
         switch(method){
-            case "DELETE":
+            case DELETE:
                 return new HttpDelete(url);
-            case "GET":
+            case GET:
                 return new HttpGet(url);
-            case "PATCH":
+            case PATCH:
                 return new HttpPatch(url);
-            case "POST":
+            case POST:
                 return new HttpPost(url);
-            case "PUT":
+            case PUT:
                 return new HttpPut(url);
             default:
                 throw new IllegalArgumentException("Invalid or null HttpMethod: " + method);
         }
     }
-
 
     private String printPrettyJson (String jsonString) {
         JSONObject json = new JSONObject(jsonString);
@@ -428,7 +445,7 @@ public class PexipConnector extends AbstractMultipointConnector {
     @Override
     public ConnectionState getConnectionState() {
         try {
-            execApi("/api/admin/status/v1/worker_vm/", null, null,"GET");
+            execApi("/api/admin/status/v1/worker_vm/", null, null, HttpMethod.GET);
             return ConnectionState.CONNECTED;
         }
         catch (Exception exception) {
@@ -466,5 +483,14 @@ public class PexipConnector extends AbstractMultipointConnector {
         room.setLicenseCount(2);
         conn.onModifyRoom(room);*/
 
+    }
+
+
+    private enum HttpMethod {
+        GET,
+        POST,
+        PATCH,
+        DELETE,
+        PUT
     }
 }
