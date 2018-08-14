@@ -4,26 +4,32 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectType;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.domain.Domain;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.reservation.*;
-import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.ForeignRoomReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ForeignResourceReservation;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.room.settting.FreePBXRoomSetting;
-import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
-import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.PexipRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Hours;
 import org.joda.time.Interval;
@@ -279,7 +285,6 @@ public abstract class Target
                 technologies.clear();
                 technologies.addAll(roomSpecificationTechnologies);
             }
-            //TODO add here the PINs for FREEPBX
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
@@ -291,6 +296,14 @@ public abstract class Target
                     if (freePBXRoomSetting.getAdminPin() != null) {
                         userPin = freePBXRoomSetting.getUserPin();
                         adminPin = freePBXRoomSetting.getAdminPin();
+                    }
+                } else if (roomSetting instanceof PexipRoomSetting) {
+                    PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) roomSetting;
+                    if (pexipRoomSetting.getGuestPin() != null) {
+                        userPin = pexipRoomSetting.getGuestPin();
+                    }
+                    if (pexipRoomSetting.getHostPin() != null) {
+                        adminPin = pexipRoomSetting.getHostPin();
                     }
                 }
             }
