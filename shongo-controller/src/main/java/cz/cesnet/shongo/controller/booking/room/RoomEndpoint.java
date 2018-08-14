@@ -459,9 +459,9 @@ public abstract class RoomEndpoint extends Endpoint
                 }
             } else if (setting instanceof PexipRoomSetting && (Technology.H323.equals(technology) || Technology.SIP.equals(technology)
                     || Technology.SKYPE_FOR_BUSINESS.equals(technology) || Technology.RTMP.equals(technology) || Technology.WEBRTC.equals(technology))) {
-                FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
-                if (freePBXRoomSetting.getUserPin() != null) {
-                    pin = freePBXRoomSetting.getUserPin();
+                PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) setting;
+                if (pexipRoomSetting.getGuestPin() != null) {
+                    pin = pexipRoomSetting.getGuestPin();
                 }
             }
         }
