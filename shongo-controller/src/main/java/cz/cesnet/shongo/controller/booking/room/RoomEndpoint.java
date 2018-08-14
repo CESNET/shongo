@@ -19,10 +19,7 @@ import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.person.ForeignPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.FreePBXRoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.*;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.NotificationState;
@@ -372,6 +369,8 @@ public abstract class RoomEndpoint extends Endpoint
             Set<Technology> technologies = roomConfiguration.getTechnologies();
             if (technologies.contains(Technology.FREEPBX)) {
                 tmpAdminPin = getAdminPin(Technology.FREEPBX);
+            } else if (technologies.contains(Technology.H323)) {
+                tmpAdminPin = getAdminPin(Technology.H323);
             }
             if (tmpAdminPin == null) {
                 // Empty means no PIN
@@ -396,6 +395,11 @@ public abstract class RoomEndpoint extends Endpoint
                 FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
                 if (freePBXRoomSetting.getAdminPin() != null) {
                     pin = freePBXRoomSetting.getAdminPin();
+                }
+            } else if (setting instanceof PexipRoomSetting && Technology.H323.equals(technology)) {
+                PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) setting;
+                if (pexipRoomSetting.getHostPin() != null) {
+                    pin = pexipRoomSetting.getHostPin();
                 }
             }
         }
@@ -449,6 +453,12 @@ public abstract class RoomEndpoint extends Endpoint
                     pin = adobeConnectRoomSetting.getPin();
                 }
             } else if (setting instanceof FreePBXRoomSetting && Technology.FREEPBX.equals(technology)) {
+                FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
+                if (freePBXRoomSetting.getUserPin() != null) {
+                    pin = freePBXRoomSetting.getUserPin();
+                }
+            } else if (setting instanceof PexipRoomSetting && (Technology.H323.equals(technology) || Technology.SIP.equals(technology)
+                    || Technology.SKYPE_FOR_BUSINESS.equals(technology) || Technology.RTMP.equals(technology) || Technology.WEBRTC.equals(technology))) {
                 FreePBXRoomSetting freePBXRoomSetting = (FreePBXRoomSetting) setting;
                 if (freePBXRoomSetting.getUserPin() != null) {
                     pin = freePBXRoomSetting.getUserPin();
