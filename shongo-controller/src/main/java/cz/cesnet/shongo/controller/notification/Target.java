@@ -356,6 +356,14 @@ public abstract class Target
                         userPin = freePBXRoomSetting.getUserPin();
                         adminPin = freePBXRoomSetting.getAdminPin();
                     }
+                } else if (roomSetting instanceof PexipRoomSetting) {
+                    PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) roomSetting;
+                    if (pexipRoomSetting.getHostPin() != null) {
+                        adminPin = pexipRoomSetting.getHostPin();
+                    }
+                    if (pexipRoomSetting.getGuestPin() != null) {
+                        userPin = pexipRoomSetting.getGuestPin();
+                    }
                 }
 
             }
