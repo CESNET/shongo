@@ -143,7 +143,7 @@ public class PexipConnector extends AbstractMultipointConnector {
             if (pexipRoomSetting.getHostPin() != null) {
                 json.put("pin", pexipRoomSetting.getHostPin());
             }
-            if (pexipRoomSetting.getGuestPin() != null) {
+            if (Strings.isNullOrEmpty(pexipRoomSetting.getGuestPin())) {
                 json.put("allow_guests", true);
                 json.put("guest_pin", pexipRoomSetting.getGuestPin());
             } else {
