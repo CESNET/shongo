@@ -123,11 +123,13 @@ public class ReservationRequestValidator implements Validator
             }
         }
         if (TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.required");
-            if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+            if (!Strings.isNullOrEmpty(reservationRequestModel.getAdminPin())) {
                 validateNum("adminPin", errors);
-                validateNum("roomPin", errors);
                 validatePinLength("adminPin", errors);
+            }
+            if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+                ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.requiredAdminPin");
+                validateNum("roomPin", errors);
                 validatePinLength("roomPin", errors);
             }
         }
@@ -566,7 +568,10 @@ public class ReservationRequestValidator implements Validator
     public static void validatePinLength(String field, Errors errors) {
         String value = (String) errors.getFieldValue(field);
         if (value.length() < 4) {
-            errors.rejectValue(field, "validation.field.lengthTooSmall");
+            errors.rejectValue(field, "validation.field.lengthTooShort");
+        }
+        if (value.length() > 20) {
+            errors.rejectValue(field, "validation.field.lengthTooLong");
         }
     }
 }
