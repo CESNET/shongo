@@ -57,6 +57,9 @@ public enum AliasType
 
     SKYPE_URI(Technology.SKYPE_FOR_BUSINESS, AliasValueType.URI),
 
+    /**
+     * Represents URL for the Pexip web client.
+     */
     WEB_CLIENT_URI(Technology.WEBRTC, AliasValueType.URI);
 
 

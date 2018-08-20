@@ -159,7 +159,10 @@ public class PexipConnector extends AbstractMultipointConnector {
                 }
             }
             if (roomNumber != null) {
+                //add also an numeric alias - which is just the room number
                 aliases.put(new JSONObject().put("alias", roomNumber));
+                //and an universal alias for H323,SIP and S4B
+                aliases.put(new JSONObject().put("alias", roomNumber + "vc.cesnet.cz"));
             }
             json.put("aliases", aliases);
             if (roomName != null) {
