@@ -24,7 +24,8 @@ our $Type = ordered_hash(
     'CS_DIAL_STRING' => 'ClearSea Dial String',
     'ADOBE_CONNECT_URI' => 'Adobe Connect URI',
     'FREEPBX_CONFERENCE_NUMBER' => 'FreePBX Conference Number',
-    'SKYPE_URI' => 'Skype URI'
+    'SKYPE_URI' => 'Skype URI',
+    'WEB_CLIENT_URI' => 'Web Client URI'
 );
 
 # Regular expression patters for type values
@@ -39,6 +40,7 @@ our $TypePattern = {
     'ADOBE_CONNECT_URI' => '.+',
     'FREEPBX_CONFERENCE_NUMBER' => '\\d+',
     'SKYPE_URI' => '.+@.+',
+    'WEB_CLIENT_URI' => '.*'
 };
 
 #

@@ -55,7 +55,9 @@ public enum AliasType
      */
     FREEPBX_CONFERENCE_NUMBER(Technology.FREEPBX, AliasValueType.E164),
 
-    SKYPE_URI(Technology.SKYPE_FOR_BUSINESS, AliasValueType.URI);
+    SKYPE_URI(Technology.SKYPE_FOR_BUSINESS, AliasValueType.URI),
+
+    WEB_CLIENT_URI(Technology.WEBRTC, AliasValueType.URI);
 
 
     /**
