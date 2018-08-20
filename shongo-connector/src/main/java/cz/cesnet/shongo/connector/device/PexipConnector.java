@@ -34,6 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -60,6 +62,17 @@ public class PexipConnector extends AbstractMultipointConnector {
      * Client used for the Http communication with the device.
      */
     private HttpClient httpClient;
+
+    /**
+     * Option for the {@link PexipConnector}.
+     */
+
+    /**
+     * Patterns for options.
+     */
+    private Pattern roomNumberFromH323Number = null;
+
+    public static final String ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER = "room-number-extraction-from-h323-number";
 
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException {
@@ -110,6 +123,8 @@ public class PexipConnector extends AbstractMultipointConnector {
         if (room.getAliases() != null && room.getAliases().size() != 0) {
             JSONArray aliases = new JSONArray();
             String roomName = null;
+            String roomNumber = null;
+            Matcher m;
 
             for (Alias alias : room.getAliases()) {
                 switch (alias.getType()) {
@@ -121,13 +136,30 @@ public class PexipConnector extends AbstractMultipointConnector {
                         break;
                     case H323_E164:
                         aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        if (roomNumberFromH323Number == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
+                        }
+                        m = roomNumberFromH323Number.matcher(alias.getValue());
+                        if (!m.find()) {
+                            throw new CommandException("Invalid E164 number: " + alias.getValue());
+                        }
+                        roomNumber = m.group(1);
                         break;
                     case SKYPE_URI:
                         aliases.put(new JSONObject().put("alias", alias.getValue()));
                         break;
+                    case H323_IP:
+                        break;
+                    case WEB_CLIENT_URI:
+                        break;
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
+            }
+            if (roomNumber != null) {
+                aliases.put(new JSONObject().put("alias", roomNumber));
             }
             json.put("aliases", aliases);
             if (roomName != null) {
@@ -295,9 +327,13 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException {
+
         if (deviceAddress.getPort() == DeviceAddress.DEFAULT_PORT) {
             deviceAddress.setPort(DEFAULT_PORT);
         }
+
+        roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+
 
         //standard basic auth
         this.authUsername = username;
