@@ -38,6 +38,10 @@ ${context.message(indent, "alias.CS_DIAL_STRING")}: ${alias.value}
     <#assign str="${'+420 ' + alias.value}">
 </#if>
 ${context.message(indent, "alias.FREEPBX_CONFERENCE_NUMBER")}: ${str}
+<#elseif alias.type == "WEB_CLIENT_URI">
+    ${context.message(indent, "alias.WEB_CLIENT_URI")}: ${alias.value!aliasValueAny}
+<#elseif alias.type == "SKYPE_URI">
+    ${context.message(indent, "alias.SKYPE_URI")}: ${alias.value!aliasValueAny}
 
 </#if>
 </#macro>
