@@ -312,7 +312,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             JSONObject participant = participants.getJSONObject(i);
             resultList.add(extractRoomParticipant(participant, roomId));
         }
-        System.out.println(printPrettyJson(participants.toString()));
         return Collections.unmodifiableList(resultList);
     }
 
