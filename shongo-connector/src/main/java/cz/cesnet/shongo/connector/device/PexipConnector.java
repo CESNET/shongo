@@ -4,7 +4,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -31,9 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,6 +73,8 @@ public class PexipConnector extends AbstractMultipointConnector {
     private Pattern roomNumberFromH323Number = null;
 
     public static final String ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER = "room-number-extraction-from-h323-number";
+
+    private static final Pattern E164_PATTERN = Pattern.compile("^\\+?\\d{9,14}$");
 
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException {
@@ -295,7 +297,70 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException, CommandUnsupportedException {
-        return null;
+        JSONObject room = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, HttpMethod.GET);
+
+        String roomName = room.getString("name");
+
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("conference", roomName);
+        JSONObject response = execApi("/api/admin/status/v1/participant/", attributes, null, HttpMethod.GET);
+        JSONArray participants = response.getJSONArray("objects");
+        if (participants.length() == 0)
+            return null;
+        List<RoomParticipant> resultList = new ArrayList<RoomParticipant>();
+        for (int i = 0; i < participants.length(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+            resultList.add(extractRoomParticipant(participant, roomId));
+        }
+        System.out.println(printPrettyJson(participants.toString()));
+        return Collections.unmodifiableList(resultList);
+    }
+
+    /**
+     * Extracts a single {@link RoomParticipant} out of status API result of participants.
+     *
+     * @param participant participant structure, as defined in the MCU API, command participant.status
+     * @return {@link RoomParticipant} extracted from the participant structure
+     */
+    private RoomParticipant extractRoomParticipant (JSONObject participant, String roomId) {
+        RoomParticipant roomParticipant = new RoomParticipant();
+
+
+        roomParticipant.setId(participant.getString("id"));
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setDisplayName(participant.getString("display_name"));
+
+
+        String role = participant.getString("role");
+        if ("guest".equals(role)) {
+            roomParticipant.setRole(ParticipantRole.PARTICIPANT);
+        } else if ("chair".equals(role)) {
+            roomParticipant.setRole(ParticipantRole.ADMINISTRATOR);
+        }
+
+        String alias =  participant.getString("participant_alias");
+        String protocol = participant.getString("protocol");
+        AliasType aliasType;
+        if (protocol.equals("sip")) {
+            aliasType = AliasType.SIP_URI;
+        } else if (protocol.equalsIgnoreCase("h323")) {
+            if (E164_PATTERN.matcher(alias).matches()) {
+                aliasType = AliasType.H323_E164;
+            } else {
+                aliasType = AliasType.H323_URI;
+            }
+        } else if (protocol.equalsIgnoreCase("rtmp")) {
+            aliasType = AliasType.RTMP_NAME;
+        } else if (protocol.equalsIgnoreCase("mssip")) {
+            aliasType = AliasType.SKYPE_URI;
+        } else if (protocol.equalsIgnoreCase("webrtc")) {
+            aliasType = AliasType.WEB_RTC_NAME;
+        } else {
+            throw new TodoImplementException("Protocol " + protocol + " not implemented yet.");
+        }
+        roomParticipant.setAlias(new Alias(aliasType, alias));
+
+        return roomParticipant;
     }
 
     @Override
@@ -502,6 +567,8 @@ public class PexipConnector extends AbstractMultipointConnector {
         PexipConnector conn = new PexipConnector();
         conn.connect(address, username, password);
 
+
+        conn.listRoomParticipants("2");
 /*
         //Test create new room and delete
         Room room = new Room();
