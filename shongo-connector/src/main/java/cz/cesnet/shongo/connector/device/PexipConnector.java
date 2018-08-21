@@ -297,9 +297,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException, CommandUnsupportedException {
-        JSONObject room = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, HttpMethod.GET);
-
-        String roomName = room.getString("name");
+        String roomName = getRoomName(roomId);
 
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("conference", roomName);
@@ -313,6 +311,14 @@ public class PexipConnector extends AbstractMultipointConnector {
             resultList.add(extractRoomParticipant(participant, roomId));
         }
         return Collections.unmodifiableList(resultList);
+    }
+
+    private String getRoomName (String roomId) throws CommandException {
+        JSONObject room = execApi("/api/admin/configuration/v1/conference/" + roomId, null, null, HttpMethod.GET);
+
+        String roomName = room.getString("name");
+
+        return roomName;
     }
 
     /**
@@ -389,7 +395,8 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException {
-        execApi("/api/client/v2/conferences/meet_alice/participants/" + roomParticipantId + "/disconnect", null, null, HttpMethod.POST);
+        String roomName = getRoomName(roomId);
+        execApi("/api/client/v2/conferences/" + roomName +"/participants/" + roomParticipantId + "/disconnect", null, null, HttpMethod.POST);
     }
 
     @Override
