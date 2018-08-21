@@ -364,12 +364,12 @@
                     <th><spring:message code="views.room.currentParticipant.role"/></th>
                     <th><spring:message code="views.room.currentParticipant.email"/></th>
                 </c:if>
-                <c:if test="${isWritable}">
-                    <th style="min-width: 95px; width: 95px;"><spring:message code="views.list.action"/></th>
-                </c:if>
                 <c:if test="${room.technology == 'PEXIP'}">
                     <th><spring:message code="views.room.currentParticipant.role"/></th>
                     <th><spring:message code="views.room.currentParticipant.alias"/></th>
+                </c:if>
+                <c:if test="${isWritable}">
+                    <th style="min-width: 95px; width: 95px;"><spring:message code="views.list.action"/></th>
                 </c:if>
             </tr>
             </thead>
