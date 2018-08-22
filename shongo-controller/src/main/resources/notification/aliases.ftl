@@ -18,7 +18,6 @@
 ${context.message(indent, "alias.ROOM_NAME")}: ${alias.value!aliasValueAny}
 <#elseif alias.type == "H323_E164">
 ${context.message(indent, "alias.H323_SIP_PHONE")}: ${('(00420)' + alias.value)!aliasValueAny}
-
 <#elseif alias.type == "H323_URI">
 ${context.message(indent, "alias.H323_URI")}: ${alias.value!aliasValueAny}
 <#elseif alias.type == "H323_IP">
