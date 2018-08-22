@@ -395,8 +395,10 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     @Override
     public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException {
-        String roomName = getRoomName(roomId);
-        execApi("/api/client/v2/conferences/" + roomName +"/participants/" + roomParticipantId + "/disconnect", null, null, HttpMethod.POST);
+        JSONObject body = new JSONObject();
+        body.put("participant_id", roomParticipantId);
+        System.out.println(printPrettyJson(body.toString()));
+        execApi("/api/admin/command/v1/participant/disconnect/", null, body.toString(), HttpMethod.POST);
     }
 
     @Override
@@ -574,7 +576,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         conn.connect(address, username, password);
 
 
-        conn.listRoomParticipants("2");
+        conn.disconnectRoomParticipant("99", "22aa680f-32dc-4feb-901d-ee19fef4aef6");
 /*
         //Test create new room and delete
         Room room = new Room();
