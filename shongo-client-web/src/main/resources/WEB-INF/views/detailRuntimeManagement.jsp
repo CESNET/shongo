@@ -366,7 +366,7 @@
                 </c:if>
                 <c:if test="${room.technology == 'PEXIP'}">
                     <th><spring:message code="views.room.currentParticipant.role"/></th>
-                    <th><spring:message code="views.room.currentParticipant.alias"/></th>
+                    <th><spring:message code="views.room.currentParticipant.protocol"/></th>
                 </c:if>
                 <c:if test="${isWritable}">
                     <th style="min-width: 95px; width: 95px;"><spring:message code="views.list.action"/></th>
@@ -405,7 +405,7 @@
                         {{roomParticipant.role}}
                     </td>
                     <td>
-                        {{roomParticipant.alias}}
+                        {{roomParticipant.protocol}}
                     </td>
                 </c:if>
                     <%-- Actions --%>

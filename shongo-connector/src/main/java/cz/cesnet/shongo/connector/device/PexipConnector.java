@@ -6,7 +6,6 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -343,27 +342,8 @@ public class PexipConnector extends AbstractMultipointConnector {
             roomParticipant.setRole(ParticipantRole.ADMINISTRATOR);
         }
 
-        String alias =  participant.getString("participant_alias");
         String protocol = participant.getString("protocol");
-        AliasType aliasType;
-        if (protocol.equals("sip")) {
-            aliasType = AliasType.SIP_URI;
-        } else if (protocol.equalsIgnoreCase("h323")) {
-            if (E164_PATTERN.matcher(alias).matches()) {
-                aliasType = AliasType.H323_E164;
-            } else {
-                aliasType = AliasType.H323_URI;
-            }
-        } else if (protocol.equalsIgnoreCase("rtmp")) {
-            aliasType = AliasType.RTMP_NAME;
-        } else if (protocol.equalsIgnoreCase("mssip")) {
-            aliasType = AliasType.SKYPE_URI;
-        } else if (protocol.equalsIgnoreCase("webrtc")) {
-            aliasType = AliasType.WEB_RTC_NAME;
-        } else {
-            throw new TodoImplementException("Protocol " + protocol + " not implemented yet.");
-        }
-        roomParticipant.setAlias(new Alias(aliasType, alias));
+        roomParticipant.setProtocol(protocol);
 
         return roomParticipant;
     }

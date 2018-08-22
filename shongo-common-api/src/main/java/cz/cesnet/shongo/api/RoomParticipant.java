@@ -67,6 +67,16 @@ public class RoomParticipant extends IdentifiedComplexType
      */
     private Boolean videoSnapshot;
 
+    private String protocol;
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
     /**
      * Constructor.
      */
@@ -311,6 +321,11 @@ public class RoomParticipant extends IdentifiedComplexType
             return false;
         }
 
+        if (protocol != null ? !protocol.equals(
+                roomParticipant.protocol) : roomParticipant.protocol != null) {
+            return false;
+        }
+
         return true;
     }
 
@@ -333,6 +348,7 @@ public class RoomParticipant extends IdentifiedComplexType
     public static final String MICROPHONE_LEVEL = "microphoneLevel";
     public static final String VIDEO_ENABLED = "videoEnabled";
     public static final String VIDEO_SNAPSHOT = "videoSnapshot";
+    public static final String PROTOCOL = "protocol";
 
     @Override
     public DataMap toData()
@@ -349,6 +365,7 @@ public class RoomParticipant extends IdentifiedComplexType
         dataMap.set(MICROPHONE_LEVEL, microphoneLevel);
         dataMap.set(VIDEO_ENABLED, videoEnabled);
         dataMap.set(VIDEO_SNAPSHOT, videoSnapshot);
+        dataMap.set(PROTOCOL, protocol);
         return dataMap;
     }
 
@@ -368,5 +385,6 @@ public class RoomParticipant extends IdentifiedComplexType
         ;
         videoEnabled = dataMap.getBoolean(VIDEO_ENABLED);
         videoSnapshot = dataMap.getBool(VIDEO_SNAPSHOT);
+        protocol = dataMap.getString(PROTOCOL);
     }
 }
