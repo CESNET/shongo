@@ -155,15 +155,16 @@ public class PexipConnector extends AbstractMultipointConnector {
                         break;
                     case WEB_CLIENT_URI:
                         break;
+                    case ROOM_NUMBER:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
             }
             if (roomNumber != null) {
-                //add also an numeric alias - which is just the room number
-                aliases.put(new JSONObject().put("alias", roomNumber));
                 //and an universal alias for H323,SIP and S4B
-                aliases.put(new JSONObject().put("alias", roomNumber + "vc.cesnet.cz"));
+                aliases.put(new JSONObject().put("alias", roomNumber + "@vc.cesnet.cz"));
             }
             json.put("aliases", aliases);
             if (roomName != null) {
