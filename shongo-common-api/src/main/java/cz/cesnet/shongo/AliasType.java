@@ -64,7 +64,9 @@ public enum AliasType
     /**
      * Represents URL for the Pexip web client.
      */
-    WEB_CLIENT_URI(Technology.WEBRTC, AliasValueType.URI);
+    WEB_CLIENT_URI(Technology.WEBRTC, AliasValueType.URI),
+
+    ROOM_NUMBER(Technology.H323, AliasValueType.STRING);
 
 
     /**
