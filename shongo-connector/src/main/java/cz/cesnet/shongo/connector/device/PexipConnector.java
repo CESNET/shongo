@@ -158,18 +158,25 @@ public class PexipConnector extends AbstractMultipointConnector {
                     case ROOM_NUMBER:
                         aliases.put(new JSONObject().put("alias", alias.getValue()));
                         break;
+                    case PEXIP_PHONE_NUMBER_URI:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
+                    case PEXIP_ROOM_NUMBER_URI:
+                        aliases.put(new JSONObject().put("alias", alias.getValue()));
+                        break;
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
             }
             if (roomNumber != null) {
                 //and an universal alias for H323,SIP and S4B
-                aliases.put(new JSONObject().put("alias", roomNumber + "@vc.cesnet.cz"));
+                //aliases.put(new JSONObject().put("alias", roomNumber + "@vc.cesnet.cz"));
             }
-            json.put("aliases", aliases);
             if (roomName != null) {
                 aliases.put(new JSONObject().put("alias", roomName));
             }
+            json.put("aliases", aliases);
+
         }
         // Set license count
         json.put("participant_limit", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
@@ -187,6 +194,7 @@ public class PexipConnector extends AbstractMultipointConnector {
                 json.put("allow_guests", false);
             }
         }
+        json.put("enable_overlay_text", true);
     }
 
     @Override

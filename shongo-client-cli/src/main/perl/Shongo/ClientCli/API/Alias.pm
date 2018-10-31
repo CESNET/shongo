@@ -26,7 +26,9 @@ our $Type = ordered_hash(
     'FREEPBX_CONFERENCE_NUMBER' => 'FreePBX Conference Number',
     'SKYPE_URI' => 'Skype URI',
     'WEB_CLIENT_URI' => 'Web Client URI',
-    'ROOM_NUMBER' => 'Room Number'
+    'ROOM_NUMBER' => 'Room Number',
+    'PEXIP_ROOM_NUMBER_URI' => 'Pexip Room Number Uri',
+    'PEXIP_PHONE_NUMBER_URI' => 'Pexip Phone Number Uri'
 );
 
 # Regular expression patters for type values
@@ -42,7 +44,9 @@ our $TypePattern = {
     'FREEPBX_CONFERENCE_NUMBER' => '\\d+',
     'SKYPE_URI' => '.+@.+',
     'WEB_CLIENT_URI' => '.*',
-    'ROOM_NUMBER' => '.*'
+    'ROOM_NUMBER' => '.*',
+    'PEXIP_ROOM_NUMBER_URI' => '.+@.+',
+    'PEXIP_PHONE_NUMBER_URI' => '.+@.+'
 };
 
 #

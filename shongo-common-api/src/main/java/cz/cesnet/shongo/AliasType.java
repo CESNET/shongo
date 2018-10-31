@@ -66,7 +66,11 @@ public enum AliasType
      */
     WEB_CLIENT_URI(Technology.WEBRTC, AliasValueType.URI),
 
-    ROOM_NUMBER(Technology.H323, AliasValueType.STRING);
+    ROOM_NUMBER(Technology.H323, AliasValueType.STRING),
+
+    PEXIP_ROOM_NUMBER_URI(Technology.H323, AliasValueType.URI),
+
+    PEXIP_PHONE_NUMBER_URI(Technology.H323, AliasValueType.URI);
 
 
     /**
