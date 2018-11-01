@@ -1159,7 +1159,24 @@
         </div>
 
 
-        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX' || (technology == 'PEXIP' && allowGuests)" class="hide">
+        <div class="form-group" ng-show="(technology == 'PEXIP' && allowGuests)" class="hide">
+            <form:label class="col-xs-3 control-label" path="guestPin">
+                <spring:message code="views.reservationRequest.specification.guestPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.guestPin.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="guestPin"  tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomPin" cssClass="error"/>
+            </div>
+        </div>
+
+        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
             <form:label class="col-xs-3 control-label" path="roomPin">
                 <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
                 <tag:help label="${pinLabel}:">
