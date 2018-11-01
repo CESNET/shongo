@@ -21,6 +21,20 @@ public class PexipRoomSetting extends RoomSetting {
      */
     private String guestPin;
 
+    private Boolean allowGuests;
+
+
+    public Boolean getAllowGuests()
+    {
+        return allowGuests;
+    }
+
+    public void setAllowGuests(Boolean allowGuests)
+    {
+        this.allowGuests = allowGuests;
+    }
+
+
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getHostPin() {
         return hostPin;
@@ -51,6 +65,9 @@ public class PexipRoomSetting extends RoomSetting {
         if (guestPin != null) {
             pexipRoomSettingApi.setGuestPin(guestPin);
         }
+        if (allowGuests != null) {
+            pexipRoomSettingApi.setAllowGuests(allowGuests);
+        }
     }
 
     @Override
@@ -61,6 +78,7 @@ public class PexipRoomSetting extends RoomSetting {
                 (cz.cesnet.shongo.api.PexipRoomSetting) roomSettingApi;
         setHostPin(pexipRoomSettingApi.getHostPin());
         setGuestPin(pexipRoomSettingApi.getGuestPin());
+        setAllowGuests(pexipRoomSettingApi.getAllowGuests());
     }
 
     @Override
@@ -80,7 +98,9 @@ public class PexipRoomSetting extends RoomSetting {
         if (guestPin != null ? !guestPin.equals(that.guestPin) : that.guestPin != null) {
             return false;
         }
-
+        if (allowGuests != null ? !allowGuests.equals(that.allowGuests) : that.allowGuests != null) {
+            return false;
+        }
         return true;
     }
 

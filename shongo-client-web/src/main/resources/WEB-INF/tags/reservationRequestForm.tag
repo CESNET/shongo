@@ -1140,7 +1140,26 @@
                 <form:errors path="adminPin" cssClass="error"/>
             </div>
         </div>
-        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
+
+        <div class="form-group" ng-show="technology == 'PEXIP'" class="hide">
+            <form:label class="col-xs-3 control-label" path="allowGuests">
+                <spring:message code="views.reservationRequest.specification.allowGuests" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.allowGuests.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:checkbox id="allowGuests" path="allowGuests" ng-model="allowGuests" tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="allowGuests" cssClass="error"/>
+            </div>
+        </div>
+
+
+        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX' || (technology == 'PEXIP' && allowGuests)" class="hide">
             <form:label class="col-xs-3 control-label" path="roomPin">
                 <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
                 <tag:help label="${pinLabel}:">

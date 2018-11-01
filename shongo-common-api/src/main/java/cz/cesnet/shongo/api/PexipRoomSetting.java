@@ -14,6 +14,8 @@ public class PexipRoomSetting extends RoomSetting {
      */
     private String guestPin;
 
+    private Boolean allowGuests;
+
     public String getHostPin() {
         return hostPin;
     }
@@ -30,7 +32,15 @@ public class PexipRoomSetting extends RoomSetting {
         this.guestPin = guestPin;
     }
 
+    public Boolean getAllowGuests() {
+        return allowGuests;
+    }
 
+    public void setAllowGuests(Boolean allowGuests) {
+        this.allowGuests = allowGuests;
+    }
+
+    public static final String ALLOW_GUESTS = "allowGuests";
     public static final String HOST_PIN = "hostPin";
     public static final String GUEST_PIN = "guestPin";
 
@@ -40,6 +50,7 @@ public class PexipRoomSetting extends RoomSetting {
         DataMap dataMap = super.toData();
         dataMap.set(HOST_PIN, hostPin);
         dataMap.set(GUEST_PIN, guestPin);
+        dataMap.set(ALLOW_GUESTS, allowGuests);
 
         return dataMap;
     }
@@ -50,6 +61,7 @@ public class PexipRoomSetting extends RoomSetting {
         super.fromData(dataMap);
         hostPin = dataMap.getString(HOST_PIN, DEFAULT_COLUMN_LENGTH);
         guestPin = dataMap.getString(GUEST_PIN, DEFAULT_COLUMN_LENGTH);
+        allowGuests = dataMap.getBoolean(ALLOW_GUESTS);
 
     }
 
@@ -66,6 +78,8 @@ public class PexipRoomSetting extends RoomSetting {
         if (pexipRoomSetting.getGuestPin() != null) {
             setGuestPin(pexipRoomSetting.getGuestPin());
         }
-
+        if (pexipRoomSetting.getAllowGuests() != null) {
+            setAllowGuests(pexipRoomSetting.getAllowGuests());
+        }
     }
 }

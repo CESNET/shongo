@@ -153,6 +153,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected boolean collidingWithFirstSlot = false;
 
+
+    protected boolean allowGuests = false;
+
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
@@ -740,6 +743,14 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         userRoles.remove(userRole);
     }
 
+    public boolean getAllowGuests() {
+        return allowGuests;
+    }
+
+    public void setAllowGuests(boolean allowGuests) {
+        this.allowGuests = allowGuests;
+    }
+
     public List<? extends ParticipantModel> getRoomParticipants()
     {
         return roomParticipants;
@@ -852,6 +863,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) roomSetting;
                     roomPin = pexipRoomSetting.getGuestPin();
                     adminPin = pexipRoomSetting.getHostPin();
+                    allowGuests = pexipRoomSetting.getAllowGuests();
                 }
             }
             roomParticipants.clear();
@@ -1106,7 +1118,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
                 roomNameSpecification.setValue(roomName);
                 roomEstablishment.addAliasSpecification(roomNameSpecification);
-                if (technology.equals(TechnologyModel.H323_SIP)) {
+                if (technology.equals(TechnologyModel.H323_SIP) || technology.equals(TechnologyModel.PEXIP)) {
                     AliasSpecification e164NumberSpecification = new AliasSpecification(AliasType.H323_E164);
                     if (!Strings.isNullOrEmpty(e164Number)) {
                         e164NumberSpecification.setValue(e164Number);
@@ -1151,8 +1163,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             if (TechnologyModel.PEXIP.equals(technology)) {
                 PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
+                if (!allowGuests && !Strings.isNullOrEmpty(roomPin)) {
+                    throw new IllegalStateException("Guests must be allowed in order to set a guest pin.");
+                }
                 pexipRoomSetting.setHostPin(adminPin);
                 pexipRoomSetting.setGuestPin(roomPin);
+                pexipRoomSetting.setAllowGuests(allowGuests);
                 roomSpecification.addRoomSetting(pexipRoomSetting);
             }
 
