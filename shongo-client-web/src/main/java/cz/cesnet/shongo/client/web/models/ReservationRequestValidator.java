@@ -132,21 +132,29 @@ public class ReservationRequestValidator implements Validator
             }
             if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
                 ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.requiredAdminPin");
-                validateNum("roomPin", errors);
-                validatePinLength("roomPin", errors);
+                validateNum("guestPin", errors);
+                validatePinLength("guestPin", errors);
+            }
+        }
+
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getGuestPin()) && !Strings.isNullOrEmpty(reservationRequestModel.getAdminPin()) ) {
+            if (TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
+                if (reservationRequestModel.getAdminPin().equals(reservationRequestModel.getGuestPin())) {
+                    errors.rejectValue("adminPin", "validation.field.equalPins");
+                }
+                validateSameLength("adminPin", "guestPin", errors);
             }
         }
 
         if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin()) && !Strings.isNullOrEmpty(reservationRequestModel.getAdminPin()) ) {
-            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology()) ||
-                    TechnologyModel.PEXIP.equals(reservationRequestModel.getTechnology())) {
+            if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
                 if (reservationRequestModel.getAdminPin().equals(reservationRequestModel.getRoomPin())) {
                     errors.rejectValue("adminPin", "validation.field.equalPins");
                 }
                 validateSameLength("adminPin", "roomPin", errors);
             }
-
         }
+
         if (Strings.isNullOrEmpty(reservationRequestModel.getDescription())) {
             errors.rejectValue("description", "validation.field.description");
         }

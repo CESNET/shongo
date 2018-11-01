@@ -133,6 +133,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String adminPin;
 
+    protected String guestPin;
+
     protected boolean roomRecorded;
 
     protected String roomRecordingResourceId;
@@ -374,6 +376,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.adminPin = adminPin;
     }
+
+    public String getGuestPin() {
+        return guestPin;
+    }
+
+    public void setGuestPin(String guestPin) {
+        this.guestPin = guestPin;
+    }
+
 
     public int getPeriodicityCycle() {
         return periodicityCycle;
@@ -861,7 +872,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
                 if (roomSetting instanceof PexipRoomSetting) {
                     PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) roomSetting;
-                    roomPin = pexipRoomSetting.getGuestPin();
+                    guestPin = pexipRoomSetting.getGuestPin();
                     adminPin = pexipRoomSetting.getHostPin();
                     allowGuests = pexipRoomSetting.getAllowGuests();
                 }
@@ -1163,11 +1174,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             if (TechnologyModel.PEXIP.equals(technology)) {
                 PexipRoomSetting pexipRoomSetting = new PexipRoomSetting();
-                if (!allowGuests && !Strings.isNullOrEmpty(roomPin)) {
+                if (!allowGuests && !Strings.isNullOrEmpty(guestPin)) {
                     throw new IllegalStateException("Guests must be allowed in order to set a guest pin.");
                 }
                 pexipRoomSetting.setHostPin(adminPin);
-                pexipRoomSetting.setGuestPin(roomPin);
+                pexipRoomSetting.setGuestPin(guestPin);
                 pexipRoomSetting.setAllowGuests(allowGuests);
                 roomSpecification.addRoomSetting(pexipRoomSetting);
             }
