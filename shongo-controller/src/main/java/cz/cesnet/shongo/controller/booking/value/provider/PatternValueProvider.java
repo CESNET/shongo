@@ -250,9 +250,12 @@ public class PatternValueProvider extends ValueProvider
                 }
             }
         }
-        if (usedValues.contains(requestedValue)) {
-            throw new ValueAlreadyAllocatedException();
+        for (String usedValue : usedValues) {
+            if (usedValue.equalsIgnoreCase(requestedValue)) {
+                throw new ValueAlreadyAllocatedException();
+            }
         }
+
         return requestedValue;
     }
 }
