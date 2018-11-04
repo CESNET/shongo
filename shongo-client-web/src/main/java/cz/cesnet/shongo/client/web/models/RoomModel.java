@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
@@ -546,13 +545,13 @@ public class RoomModel extends ParticipantConfigurationModel
             AliasType aliasType = alias.getType();
             switch (aliasType) {
                 case H323_E164:
-                    stringBuilder.append("<tr><td class=\"title\">");
+/*                    stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("+420" + alias.getValue()));
-                    stringBuilder.append("</td></tr>");
+                    stringBuilder.append("</td></tr>");*/
                     stringBuilder.append("<tr><td class=\"title\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_SIP_PHONE"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
@@ -597,6 +596,19 @@ public class RoomModel extends ParticipantConfigurationModel
                     stringBuilder.append(formatSelectable("+420" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
                     break;
+                case SKYPE_URI:
+                    stringBuilder.append("<tr><td class=\"title\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(alias.getValue());
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case WEB_CLIENT_URI:
+                    stringBuilder.append("<tr><td class=\"title\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
             }
         }
         stringBuilder.append("</table>");
