@@ -117,8 +117,24 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         json.put("name", room.getName());
 
+        //parse description
         if (!Strings.isNullOrEmpty(room.getDescription())) {
-            json.put("description", room.getDescription());
+            try {
+                String[] splitted = room.getDescription().split("\\s+");
+                String domainRoom = splitted[0];
+                String description = splitted[1];
+                //remove parentheses
+                domainRoom = domainRoom.replaceAll("[\\[\\]]", "");
+                //get only machine name and room number
+                String[] parts = domainRoom.split("\\.");
+                String machine = parts[0].split(":")[0];
+                parts = parts[parts.length-1].split(":");
+                String roomNumber = parts[parts.length-1];
+                json.put("tag", machine + ":" + roomNumber);
+                json.put("description", machine + ":" + roomNumber + " " + description);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Unable to parse description.");
+            }
         }
 
         if (room.getAliases() != null && room.getAliases().size() != 0) {
