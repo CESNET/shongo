@@ -3,14 +3,17 @@ package cz.cesnet.shongo.connector.device;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.RecordingFolder;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
-import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
-import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
+import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
+import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.storage.*;
 import cz.cesnet.shongo.connector.storage.File;
 import cz.cesnet.shongo.controller.NotEnoughSpaceException;
@@ -43,6 +46,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -78,6 +82,16 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      * Separator replacement for #link{SEPARATOR} in names
      */
     private final String SEPARATOR_REPLACEMENT = "__";
+
+    /**
+     * Initial waiting time for conference distribution.
+     */
+    private static final long INITIAL_WAITING = Period.parse("P50S").getMillis();
+
+    /**
+     * Maximum waiting time for conference distribution.
+     */
+    private static final long MAX_DISTRIBUTION_TIME = Period.parse("P90S").getMillis();
 
     /**
      * This is the user log in name, typically the user email address.
@@ -425,7 +439,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
     private void backupPermissions(RecordingFolder recordingFolder, String folderId) throws CommandException {
         StringBuilder permissionData =
-            ((ApacheStorage) storage).preparePermissionFileContent(recordingFolder.getUserPermissions());
+                ((ApacheStorage) storage).preparePermissionFileContent(recordingFolder.getUserPermissions());
         File backupPermissions = new File();
         backupPermissions.setFileName(ApacheStorage.PERMISSION_FILE_NAME);
         backupPermissions.setFolderId(folderId);
@@ -656,22 +670,58 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         String conferenceID = execApi(command).getChild("RequestConferenceIDResponse").getChildText(
                 "RequestConferenceIDResult");
 
-        command = new Command("Dial");
-        command.setParameter("Number", alias.getValue());
+        Command dialCommand = new Command("Dial");
+        dialCommand.setParameter("Number", alias.getValue());
         String bitrate = recordingSettings.getBitrate() == null ? recordingDefaultBitrate : recordingSettings.getBitrate();
-        command.setParameter("Bitrate", bitrate);
+        dialCommand.setParameter("Bitrate", bitrate);
         //TODO: create alias for adhoc recording, find out if necessary
-        command.setParameter("Alias", recordingAlias);
-        command.setParameter("ConferenceID", conferenceID);
-        //TODO: set technology if SIP
-        command.setParameter("CallType", "h323");
-        command.setParameter("SetMetadata", true);
-        command.setParameter("PIN", recordingSettings.getPin());
+        dialCommand.setParameter("Alias", recordingAlias);
+        dialCommand.setParameter("ConferenceID", conferenceID);
+        //TODO: set technology if SP
+        dialCommand.setParameter("CallType", "h323");
+        dialCommand.setParameter("SetMetadata", true);
+        dialCommand.setParameter("PIN", recordingSettings.getPin());
 
-        Element result = execApi(command);
-        String recordingTcsId = result.getChild("DialResponse").getChild("DialResult").getChildText("ConferenceID");
-        if (recordingTcsId == null) {
-            throw new CommandException("No recordingId was returned from dialing.");
+        // Wait for distribution
+        try {
+            logger.debug("Waiting " + (int)((INITIAL_WAITING / 1000) % 60) + " sec.");
+            Thread.sleep(INITIAL_WAITING);
+        } catch (InterruptedException e) {
+            logger.error("Sleep interrupted");
+        }
+
+        // Try to dial and confirm dial
+        long startTime = System.currentTimeMillis();
+        String callState = null;
+        String recordingTcsId = null;
+        try {
+            recordingTcsId = executeDial(dialCommand);
+            callState = confirmDialExecuted(recordingTcsId);
+        } catch (CommandException ex) {
+            logger.debug("Unable to fetch callInfo. Will try again.");
+        }
+
+        long dialExecutionTime = System.currentTimeMillis() - startTime;
+        long timeLeft = MAX_DISTRIBUTION_TIME - (dialExecutionTime + INITIAL_WAITING);
+
+
+        // Check call state and try again if needed
+        if (callState == null || !callState.equals("IN_CALL")) {
+            if (timeLeft > 0) {
+                try {
+                    logger.debug("Waiting another " + (int)((timeLeft / 1000) % 60)+ "sec and will try to dial again.");
+                    Thread.sleep(timeLeft);
+                } catch (InterruptedException e) {
+                    logger.error("Sleep interrupted");
+                }
+            }
+            recordingTcsId = executeDial(dialCommand);
+            callState = confirmDialExecuted(recordingTcsId);
+            if (callState == null || !callState.equals("IN_CALL")) {
+                throw new CommandException("Unable to set up recording");
+            }
+        } else {
+            logger.info("Recording set up successfully.");
         }
 
         // Get recording ID
@@ -694,6 +744,45 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         deleteTcsRecording(recordingTcsId);
         throw new CommandException("The started recording '" + recordingId + "' isn't possible to list."
                 + " The started recording was deleted and the starting has failed.");*/
+    }
+
+    public String executeDial(Command dialCommand) throws CommandException {
+        if (!dialCommand.getCommand().equals("Dial")) {
+            throw new RuntimeException("Method received wrong command to dial.");
+        }
+        Element result = execApi(dialCommand);
+        String recordingTcsId = result.getChild("DialResponse").getChild("DialResult").getChildText("ConferenceID");
+        if (recordingTcsId == null) {
+            throw new CommandException("No recordingId was returned from dialing.");
+        }
+        return recordingTcsId;
+    }
+
+    public String confirmDialExecuted(String conferenceId) throws CommandException {
+        String callState = null;
+        Element result;
+        // Passing this means that TCS executed dial
+        for (int i = 0; i < 4; i++) {
+            try {
+                Thread.sleep(30*1000);
+                Command callInfoCommand = new Command("GetCallInfo");
+                callInfoCommand.setParameter("ConferenceID", conferenceId);
+                result = execApi(callInfoCommand);
+                callState = result.getChild("GetCallInfoResponse").getChild("GetCallInfoResult").getChildText("CallState");
+                break;
+            } catch (FaultException e) {
+                logger.debug((i+1) + ". try to fetch callInfo failed." );
+                if (i == 3) {
+                    throw new CommandException("Unable to fetch getCallInfo. Dial was not executed after 2 minutes.");
+                }
+            } catch (InterruptedException ex) {
+                logger.error("Sleep interrupted.");
+                if (i == 3) {
+                    throw new RuntimeException("Interrupted sleep on last cycle to fetch callInfo.");
+                }
+            }
+        }
+        return callState;
     }
 
     @Override
@@ -1559,13 +1648,13 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 notifyTarget.addMessage("en",
                         "Downloaded recording is not complete",
                         "Downloaded recording may have encountered some problem. Actual size does not match given on TCS.\n" +
-                        "Recording id: " + recordingId +
-                        recording.toString());
+                                "Recording id: " + recordingId +
+                                recording.toString());
                 notifyTarget.addMessage("cs",
                         "Stazena nahravka neni kompletni",
                         "Velikost stažené nahrávky neodpovídá udávané velikosti na TCS.\n" +
-                        "Id nahrávky: " + recordingId +
-                        recording.toString());
+                                "Id nahrávky: " + recordingId +
+                                recording.toString());
                 try {
                     performControllerAction(notifyTarget);
                 }
