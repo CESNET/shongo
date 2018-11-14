@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
-import cz.cesnet.shongo.JadeReport;
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.Recording;
@@ -20,12 +17,7 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
-import cz.cesnet.shongo.controller.booking.room.RoomConfiguration;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
-import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.SendLocalCommand;
