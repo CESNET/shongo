@@ -46,7 +46,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -86,12 +85,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     /**
      * Initial waiting time for conference distribution.
      */
-    private static final long INITIAL_WAITING = Period.parse("P50S").getMillis();
+    private static final long INITIAL_WAITING_MILIS = 50000;
 
     /**
      * Maximum waiting time for conference distribution.
      */
-    private static final long MAX_DISTRIBUTION_TIME = Period.parse("P90S").getMillis();
+    private static final long MAX_DISTRIBUTION_TIME_MILIS = 90000;
 
     /**
      * This is the user log in name, typically the user email address.
@@ -684,8 +683,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
         // Wait for distribution
         try {
-            logger.debug("Waiting " + (int)((INITIAL_WAITING / 1000) % 60) + " sec.");
-            Thread.sleep(INITIAL_WAITING);
+            logger.debug("Initial waiting " + (int)((INITIAL_WAITING_MILIS / 1000) % 60) + " sec.");
+            Thread.sleep(INITIAL_WAITING_MILIS);
         } catch (InterruptedException e) {
             logger.error("Sleep interrupted");
         }
@@ -696,20 +695,22 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         String recordingTcsId = null;
         try {
             recordingTcsId = executeDial(dialCommand);
+            logger.debug("Dial command done.");
             callState = confirmDialExecuted(recordingTcsId);
         } catch (CommandException ex) {
             logger.debug("Unable to fetch callInfo. Will try again.");
+            ex.printStackTrace();
         }
 
         long dialExecutionTime = System.currentTimeMillis() - startTime;
-        long timeLeft = MAX_DISTRIBUTION_TIME - (dialExecutionTime + INITIAL_WAITING);
+        long timeLeft = MAX_DISTRIBUTION_TIME_MILIS - (dialExecutionTime + INITIAL_WAITING_MILIS);
 
 
         // Check call state and try again if needed
         if (callState == null || !callState.equals("IN_CALL")) {
             if (timeLeft > 0) {
                 try {
-                    logger.debug("Waiting another " + (int)((timeLeft / 1000) % 60)+ "sec and will try to dial again.");
+                    logger.debug("Waiting another " + (int)((timeLeft / 1000) % 60)+ " sec and will try to dial again.");
                     Thread.sleep(timeLeft);
                 } catch (InterruptedException e) {
                     logger.error("Sleep interrupted");
@@ -718,7 +719,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             recordingTcsId = executeDial(dialCommand);
             callState = confirmDialExecuted(recordingTcsId);
             if (callState == null || !callState.equals("IN_CALL")) {
-                throw new CommandException("Unable to set up recording");
+                throw new CommandException("Unable to set up recording. Call state: " + callState + ".");
             }
         } else {
             logger.info("Recording set up successfully.");
@@ -764,6 +765,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         // Passing this means that TCS executed dial
         for (int i = 0; i < 4; i++) {
             try {
+                logger.debug("Waiting 30sec for TCS to set up conference.");
                 Thread.sleep(30*1000);
                 Command callInfoCommand = new Command("GetCallInfo");
                 callInfoCommand.setParameter("ConferenceID", conferenceId);
@@ -771,7 +773,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 callState = result.getChild("GetCallInfoResponse").getChild("GetCallInfoResult").getChildText("CallState");
                 break;
             } catch (FaultException e) {
-                logger.debug((i+1) + ". try to fetch callInfo failed." );
+                logger.debug((i+1) + ". try to fetch callInfo failed. ConferenceID not found in TCS." );
                 if (i == 3) {
                     throw new CommandException("Unable to fetch getCallInfo. Dial was not executed after 2 minutes.");
                 }

@@ -97,4 +97,22 @@ public class RoomParticipantRole extends AbstractComplexType implements Concept
     {
         return String.format("ParticipantRole (userId: %s, role: %s)", userId, role);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RoomParticipantRole that = (RoomParticipantRole) o;
+
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+        return role == that.role;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = userId != null ? userId.hashCode() : 0;
+        result = 31 * result + (role != null ? role.hashCode() : 0);
+        return result;
+    }
 }

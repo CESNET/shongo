@@ -72,4 +72,22 @@ public class FreePBXRoomSetting extends RoomSetting
             setUserPin(freePBXRoomSetting.getUserPin());
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FreePBXRoomSetting that = (FreePBXRoomSetting) o;
+
+        if (adminPin != null ? !adminPin.equals(that.adminPin) : that.adminPin != null) return false;
+        return userPin != null ? userPin.equals(that.userPin) : that.userPin == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = adminPin != null ? adminPin.hashCode() : 0;
+        result = 31 * result + (userPin != null ? userPin.hashCode() : 0);
+        return result;
+    }
 }

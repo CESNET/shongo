@@ -338,4 +338,46 @@ public class H323RoomSetting extends RoomSetting
             setContentImportant(h323RoomSetting.getContentImportant());
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        H323RoomSetting that = (H323RoomSetting) o;
+
+        if (pin != null ? !pin.equals(that.pin) : that.pin != null) return false;
+        if (listedPublicly != null ? !listedPublicly.equals(that.listedPublicly) : that.listedPublicly != null)
+            return false;
+        if (allowContent != null ? !allowContent.equals(that.allowContent) : that.allowContent != null) return false;
+        if (allowGuests != null ? !allowGuests.equals(that.allowGuests) : that.allowGuests != null) return false;
+        if (joinMicrophoneDisabled != null ? !joinMicrophoneDisabled.equals(that.joinMicrophoneDisabled) : that.joinMicrophoneDisabled != null)
+            return false;
+        if (joinVideoDisabled != null ? !joinVideoDisabled.equals(that.joinVideoDisabled) : that.joinVideoDisabled != null)
+            return false;
+        if (registerWithGatekeeper != null ? !registerWithGatekeeper.equals(that.registerWithGatekeeper) : that.registerWithGatekeeper != null)
+            return false;
+        if (registerWithRegistrar != null ? !registerWithRegistrar.equals(that.registerWithRegistrar) : that.registerWithRegistrar != null)
+            return false;
+        if (startLocked != null ? !startLocked.equals(that.startLocked) : that.startLocked != null) return false;
+        if (conferenceMeEnabled != null ? !conferenceMeEnabled.equals(that.conferenceMeEnabled) : that.conferenceMeEnabled != null)
+            return false;
+        return contentImportant != null ? contentImportant.equals(that.contentImportant) : that.contentImportant == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = pin != null ? pin.hashCode() : 0;
+        result = 31 * result + (listedPublicly != null ? listedPublicly.hashCode() : 0);
+        result = 31 * result + (allowContent != null ? allowContent.hashCode() : 0);
+        result = 31 * result + (allowGuests != null ? allowGuests.hashCode() : 0);
+        result = 31 * result + (joinMicrophoneDisabled != null ? joinMicrophoneDisabled.hashCode() : 0);
+        result = 31 * result + (joinVideoDisabled != null ? joinVideoDisabled.hashCode() : 0);
+        result = 31 * result + (registerWithGatekeeper != null ? registerWithGatekeeper.hashCode() : 0);
+        result = 31 * result + (registerWithRegistrar != null ? registerWithRegistrar.hashCode() : 0);
+        result = 31 * result + (startLocked != null ? startLocked.hashCode() : 0);
+        result = 31 * result + (conferenceMeEnabled != null ? conferenceMeEnabled.hashCode() : 0);
+        result = 31 * result + (contentImportant != null ? contentImportant.hashCode() : 0);
+        return result;
+    }
 }

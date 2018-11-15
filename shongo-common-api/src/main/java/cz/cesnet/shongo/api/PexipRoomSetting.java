@@ -82,4 +82,24 @@ public class PexipRoomSetting extends RoomSetting {
             setAllowGuests(pexipRoomSetting.getAllowGuests());
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PexipRoomSetting that = (PexipRoomSetting) o;
+
+        if (hostPin != null ? !hostPin.equals(that.hostPin) : that.hostPin != null) return false;
+        if (guestPin != null ? !guestPin.equals(that.guestPin) : that.guestPin != null) return false;
+        return allowGuests != null ? allowGuests.equals(that.allowGuests) : that.allowGuests == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = hostPin != null ? hostPin.hashCode() : 0;
+        result = 31 * result + (guestPin != null ? guestPin.hashCode() : 0);
+        result = 31 * result + (allowGuests != null ? allowGuests.hashCode() : 0);
+        return result;
+    }
 }

@@ -79,4 +79,22 @@ public class AdobeConnectRoomSetting extends RoomSetting
             setAccessMode(adobeConnectRoomSetting.getAccessMode());
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AdobeConnectRoomSetting that = (AdobeConnectRoomSetting) o;
+
+        if (pin != null ? !pin.equals(that.pin) : that.pin != null) return false;
+        return accessMode == that.accessMode;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = pin != null ? pin.hashCode() : 0;
+        result = 31 * result + (accessMode != null ? accessMode.hashCode() : 0);
+        return result;
+    }
 }
