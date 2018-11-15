@@ -299,6 +299,11 @@ public abstract class RoomEndpoint extends Endpoint
         int endpointServiceCount = 0;
         for (ExecutableService service : services) {
             if (service instanceof EndpointExecutableService && service.isActive()) {
+                // Do not count the Pexip services. It has higher limit by default.
+                if ((roomConfiguration.getRoomSettings() != null && roomConfiguration.getRoomSettings().size() == 1
+                        && roomConfiguration.getRoomSettings().get(0) instanceof PexipRoomSetting)) {
+                    continue;
+                }
                 EndpointExecutableService endpointService = (EndpointExecutableService) service;
                 if (endpointService.isEndpoint()) {
                     endpointServiceCount += 1;
