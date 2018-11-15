@@ -71,9 +71,14 @@ public class PexipConnector extends AbstractMultipointConnector {
      */
     private Pattern roomNumberFromH323Number = null;
 
-    public static final String ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER = "room-number-extraction-from-h323-number";
+    private static final String ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER = "room-number-extraction-from-h323-number";
 
     private static final Pattern E164_PATTERN = Pattern.compile("^\\+?\\d{9,14}$");
+
+    /**
+     * Final room limit = EXTRA_LIMIT + room limit (or 0 if not active).
+     */
+    private static final int EXTRA_LIMIT = 5;
 
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException {
@@ -86,7 +91,9 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     @Override
-    public String createRoom(final Room room) throws CommandException {
+    public String createRoom(Room room) throws CommandException {
+
+        room = setExtraLicences(room);
 
         JSONObject json = new JSONObject()
                 .put("service_type", "conference");
@@ -111,6 +118,13 @@ public class PexipConnector extends AbstractMultipointConnector {
         EntityUtils.consumeQuietly(response.getEntity());
 
         return roomId;
+    }
+
+    public Room setExtraLicences(Room room) {
+        if (!(room.getLicenseCount() == 0)) {
+            room.setLicenseCount(room.getLicenseCount() + EXTRA_LIMIT);
+        }
+        return room;
     }
 
     private void addConferenceParamsToJson (JSONObject json, Room room) throws CommandException {
@@ -225,9 +239,31 @@ public class PexipConnector extends AbstractMultipointConnector {
         if (Strings.isNullOrEmpty(roomId)) {
             throw new CommandException("This command would remove all VMRs.");
         }
+        try {
+            disconnectRoomParticipants(roomId);
+        } catch (Exception e) {
+            logger.warn("Unable to disconnect conference instance. Will remove configuration.");
+            e.printStackTrace();
+        }
         HttpDelete request = new HttpDelete();
         execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, HttpMethod.DELETE);
     }
+
+    private void disconnectRoomParticipants(String roomId) throws CommandException {
+        // Get service tag
+        JSONObject json = execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, HttpMethod.GET);
+        String tag = json.getString("tag");
+        // Get conference id
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("tag", tag);
+        json = execApi("/api/admin/status/v1/conference/", attributes, null, HttpMethod.GET);
+        String conferenceInstanceId = json.getJSONArray("objects").getJSONObject(0).getString("id");
+        // Disconnect conference
+        JSONObject body = new JSONObject();
+        body.put("conference_id", conferenceInstanceId);
+        execApi("/api/admin/command/v1/conference/disconnect/", null, body.toString(), HttpMethod.POST);
+    }
+
 
     @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException {
@@ -258,9 +294,20 @@ public class PexipConnector extends AbstractMultipointConnector {
         }
 
         // aliases
+        String roomName = null;
         if (roomJson.has("name")) {
-            Alias nameAlias = new Alias(AliasType.ROOM_NAME, roomJson.getString("name"));
+            roomName = roomJson.getString("name");
+            Alias nameAlias = new Alias(AliasType.ROOM_NAME, roomName);
             room.addAlias(nameAlias);
+        }
+        JSONArray aliases = roomJson.getJSONArray("aliases");
+        String aliasValue;
+        for (int i = 0; i < aliases.length(); i++) {
+            aliasValue = aliases.getJSONObject(i).getString("alias");
+            if (aliasValue != roomName) {
+                Alias existingAlias = new Alias(null, aliasValue);
+                room.addAlias(existingAlias);
+            }
         }
 
         // options
@@ -270,6 +317,9 @@ public class PexipConnector extends AbstractMultipointConnector {
         }
         if (roomJson.has("guest_pin")) {
             pexipRoomSetting.setGuestPin(roomJson.getString("guest_pin"));
+        }
+        if (roomJson.has("allow_guests")) {
+            pexipRoomSetting.setAllowGuests(roomJson.getBoolean("allow_guests"));
         }
         room.addRoomSetting(pexipRoomSetting);
 
@@ -297,7 +347,9 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     @Override
-    protected void onModifyRoom(final Room room) throws CommandException {
+    protected void onModifyRoom(Room room) throws CommandException {
+        // Set extra pexip licences
+        room = setExtraLicences(room);
 
         String roomId;
         // Room id must be filled
@@ -307,13 +359,43 @@ public class PexipConnector extends AbstractMultipointConnector {
             roomId = room.getId();
         }
 
+        // Fetch old room and compare
+        Room oldRoom = getRoom(roomId);
+        if (shouldNotCreateNewRoom(oldRoom, room)) {
+            logger.debug("Will not modify room since rooms are same.");
+            return;
+        }
+
+        if (oldRoom.getLicenseCount() != 0 && oldRoom.getLicenseCount() != room.getLicenseCount()) {
+            logger.warn("Limit change on running room. May cause room division.");
+        }
         JSONObject json = new JSONObject();
-
         addConferenceParamsToJson(json, room);
-
         String jsonString = json.toString();
 
         execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, jsonString, HttpMethod.PATCH);
+    }
+
+    public boolean shouldNotCreateNewRoom(Room oldRoom, Room newRoom) {
+        if (newRoom == oldRoom) return true;
+        if (oldRoom == null || newRoom == null) return false;
+
+        if (newRoom.getId() != null ? !newRoom.getId().equals(oldRoom.getId()) : oldRoom.getId() != null) return false;
+        if (newRoom.getLicenseCount() != oldRoom.getLicenseCount()) return false;
+        for (Alias alias : newRoom.getAliases()) {
+            if (alias.getType() == AliasType.WEB_CLIENT_URI || alias.getType() == AliasType.H323_IP)
+                continue;
+            if (alias.getType() != AliasType.ROOM_NAME) {
+                String aliasValue = alias.getValue();
+                alias = new Alias(null, aliasValue);
+            }
+            if (!(oldRoom.getAliases().contains(alias))) {
+                return false;
+            }
+        }
+        if (!oldRoom.getRoomSettings().equals(newRoom.getRoomSettings()))
+            return false;
+        return true;
     }
 
     @Override
@@ -458,7 +540,6 @@ public class PexipConnector extends AbstractMultipointConnector {
         return deviceAddress.getFullUrl() + HttpReqUtils.getCallUrl(callPath, attributes);
     }
 
-    // TODO allow for 5 consecutive repetitions if unsuccessful
 
     /**
      * Executes command on Pexip server and returns {@link HttpResponse}.

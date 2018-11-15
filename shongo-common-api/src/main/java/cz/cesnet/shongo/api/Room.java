@@ -3,7 +3,6 @@ package cz.cesnet.shongo.api;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 
 import java.util.HashSet;
 import java.util.LinkedList;
