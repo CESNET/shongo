@@ -266,7 +266,7 @@
                     <a class="btn btn-default" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyExtend"/>
                     </a>
-                <c:if test="${!(technology == 'FREEPBX')}">
+                <c:if test="${!(technology == 'FREEPBX' || technology == 'PEXIP')}">
                     <spring:message code="views.detail.action.modifyEnlarge.help" var="modifyEnlargeHelp"/>
                     <a  class="btn btn-default" href="${reservationRequestModifyEnlargeUrl}" title="${modifyEnlargeHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyEnlarge"/>
