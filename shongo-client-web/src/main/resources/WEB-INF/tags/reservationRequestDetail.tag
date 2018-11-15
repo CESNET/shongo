@@ -104,7 +104,7 @@
     <%-- Technology --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'ADHOC_ROOM'}">
         <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
-        <dd>${reservationRequest.technology.title}</dd>
+        <dd><spring:message code="${reservationRequest.technology.titleCode}"/></dd>
     </c:if>
 
     <%-- Resource --%>
