@@ -157,7 +157,7 @@
 <dl class="dl-horizontal" ng-controller="RoomController">
 
     <dt><spring:message code="views.room.technology"/>:</dt>
-    <dd>${room.technology.title}</dd>
+    <dd><spring:message code="${room.technology.titleCode}"/></dd>
 
     <dt><spring:message code="views.room.name"/>:</dt>
     <dd>${room.name}</dd>

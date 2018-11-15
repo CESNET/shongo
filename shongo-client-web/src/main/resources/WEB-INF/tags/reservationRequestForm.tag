@@ -245,7 +245,7 @@
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).find(permanentRoom.specificationTechnologies)" var="technology" />
             "${permanentRoom.id}": {
                 id: "${permanentRoom.id}",
-                name: "${permanentRoom.roomName} (${technology.title})",
+                name: "${permanentRoom.roomName} (<spring:message code="${technology.titleCode}"/>)",
                 formattedSlot: "<tag:format value="${permanentRoom.earliestSlot}" style="date"/>",
                 slot: "${permanentRoom.earliestSlot}",
                 technology: "${technology}",
@@ -523,7 +523,7 @@
                     <form:select cssClass="form-control" path="technology" ng-model="technology" tabindex="${tabIndex}">
                         <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
                         <c:forEach var="technology" items="${technologies}">
-                            <form:option value="${technology}">${technology.title}</form:option>
+                            <form:option value="${technology}"><spring:message code="${technology.titleCode}"/></form:option>
                         </c:forEach>
                     </form:select>
                     <form:errors path="technology" cssClass="error"/>

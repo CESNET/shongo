@@ -10,11 +10,8 @@ import cz.cesnet.shongo.client.web.models.ReservationRequestState;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
-import cz.cesnet.shongo.client.web.support.editors.IntervalEditor;
-import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.AllocationState;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -25,7 +22,6 @@ import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
@@ -230,7 +226,8 @@ public class ReservationListController
                 case PERMANENT_ROOM: {
                     if (technology != null) {
                         item.put("technology", technology);
-                        item.put("technologyTitle", technology.getTitle());
+                        item.put("technologyTitle", messageSource.getMessage(
+                                technology.getTitleCode(), new Object[]{}, locale));
                     }
                     item.put("roomName", reservationRequest.getRoomName());
                     break;
@@ -253,7 +250,8 @@ public class ReservationListController
                 case ADHOC_ROOM: {
                     if (technology != null) {
                         item.put("technology", technology);
-                        item.put("technologyTitle", technology.getTitle());
+                        item.put("technologyTitle", messageSource.getMessage(
+                                technology.getTitleCode(), new Object[]{}, locale));
                     }
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());

@@ -96,7 +96,7 @@ public class RoomController
                     TechnologyModel.find(executableSummary.getRoomTechnologies());
             if (technology != null) {
                 item.put("technology", technology);
-                item.put("technologyTitle", technology.getTitle());
+                item.put("technologyTitle", technology.getTitleCode());
             }
 
             RoomState roomState = RoomState.fromRoomState(

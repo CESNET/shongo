@@ -265,7 +265,7 @@
                                 <option value=""><spring:message code="views.reservationRequest.technology.all"/></option>
                                 <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
                                 <c:forEach var="technology" items="${technologies}">
-                                    <option value="${technology}">${technology.title}</option>
+                                    <option value="${technology}"><spring:message code="${technology.titleCode}"/></option>
                                 </c:forEach>
                             </select>
                         </div>

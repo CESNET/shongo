@@ -16,26 +16,26 @@ public enum TechnologyModel
     /**
      * {@link cz.cesnet.shongo.Technology#H323} and/or {@link cz.cesnet.shongo.Technology#SIP}
      */
-    H323_SIP("H.323/SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
+    H323_SIP("views.technologyModel.H323_SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
 
     /**
      * {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}
      */
-    ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT),
+    ADOBE_CONNECT("views.technologyModel.ADOBE_CONNECT", cz.cesnet.shongo.Technology.ADOBE_CONNECT),
 
     /**
      *  {@link cz.cesnet.shongo.Technology#FREEPBX}
      */
-    FREEPBX("Telekonference", cz.cesnet.shongo.Technology.FREEPBX),
+    FREEPBX("views.technologyModel.FREEPBX", cz.cesnet.shongo.Technology.FREEPBX),
 
-    PEXIP("Pexip", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP,
+    PEXIP("views.technologyModel.PEXIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP,
             cz.cesnet.shongo.Technology.SKYPE_FOR_BUSINESS, cz.cesnet.shongo.Technology.RTMP,
             cz.cesnet.shongo.Technology.WEBRTC);
 
     /**
-     * Title which can be displayed to user.1
+     * Code of the title which can be displayed to user.
      */
-    private final String title;
+    private final String titleCode;
 
     /**
      * Set of {@link cz.cesnet.shongo.Technology}s which it represents.
@@ -45,12 +45,12 @@ public enum TechnologyModel
     /**
      * Constructor.
      *
-     * @param title        sets the {@link #title}
+     * @param titleCode        sets the {@link #titleCode}
      * @param technologies sets the {@link #technologies}
      */
-    TechnologyModel(String title, Technology... technologies)
+    TechnologyModel(String titleCode, Technology... technologies)
     {
-        this.title = title;
+        this.titleCode = titleCode;
         Set<Technology> technologySet = new HashSet<Technology>();
         for (Technology technology : technologies) {
             technologySet.add(technology);
@@ -59,11 +59,11 @@ public enum TechnologyModel
     }
 
     /**
-     * @return {@link #title}
+     * @return {@link #titleCode}
      */
-    public String getTitle()
+    public String getTitleCode()
     {
-        return title;
+        return titleCode;
     }
 
     /**
