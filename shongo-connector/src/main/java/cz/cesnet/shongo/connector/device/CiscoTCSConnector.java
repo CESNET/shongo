@@ -775,7 +775,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             } catch (FaultException e) {
                 logger.debug((i+1) + ". try to fetch callInfo failed. ConferenceID not found in TCS." );
                 if (i == 1) {
-                    throw new CommandException("Unable to fetch getCallInfo. Dial was not executed.");
+                    throw new CommandException("Unable to fetch getCallInfo. Dial was not executed.", e);
                 }
             } catch (InterruptedException ex) {
                 logger.error("Sleep interrupted.");
