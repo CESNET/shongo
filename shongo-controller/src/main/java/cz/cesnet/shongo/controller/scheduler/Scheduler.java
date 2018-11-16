@@ -637,7 +637,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         schedulerContextState.addNotifications(finalizeActiveReservation(reservation, entityManager));
 
         // Create notification
-        schedulerContextState.addNotification(new ReservationNotification.Deleted(reservation, authorizationManager));
+        //schedulerContextState.addNotification(new ReservationNotification.Deleted(reservation, authorizationManager));
 
         // Remove the old reservation from allocation
         Allocation allocation = reservation.getAllocation();
