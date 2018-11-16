@@ -763,7 +763,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         String callState = null;
         Element result;
         // Passing this means that TCS executed dial
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
             try {
                 logger.debug("Waiting 30sec for TCS to set up conference.");
                 Thread.sleep(30*1000);
@@ -775,7 +775,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             } catch (FaultException e) {
                 logger.debug((i+1) + ". try to fetch callInfo failed. ConferenceID not found in TCS." );
                 if (i == 3) {
-                    throw new CommandException("Unable to fetch getCallInfo. Dial was not executed after 2 minutes.");
+                    throw new CommandException("Unable to fetch getCallInfo. Dial was not executed.");
                 }
             } catch (InterruptedException ex) {
                 logger.error("Sleep interrupted.");
