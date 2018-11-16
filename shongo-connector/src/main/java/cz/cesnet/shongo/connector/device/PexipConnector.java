@@ -366,7 +366,12 @@ public class PexipConnector extends AbstractMultipointConnector {
             return;
         }
 
-        if (oldRoom.getLicenseCount() != 0 && oldRoom.getLicenseCount() != room.getLicenseCount()) {
+        // This means permanent room capacity has ended
+        if (oldRoom.getLicenseCount() != 0 && room.getLicenseCount() == 0) {
+            disconnectRoomParticipants(roomId);
+        }
+
+        if (oldRoom.getLicenseCount() != 0 && room.getLicenseCount() != 0 && oldRoom.getLicenseCount() != room.getLicenseCount()) {
             logger.warn("Limit change on running room. May cause room division.");
         }
         JSONObject json = new JSONObject();
