@@ -1,3 +1,16 @@
+0.9.3 (2018-11-17)
+
+    * Major Pexip extension (connector, modified web client and others).
+
+    * Confirmation of TCS dial set up.
+
+    * Removed delete notifications for both room (resource) and capacity.
+
+    * Modified technologies model (localized and more user friendly).
+
+    * Connections using TLS version 1.2.
+
+
 0.9.2 (2017-10-20)
 
     * Calendar connector for sending ics files added.
