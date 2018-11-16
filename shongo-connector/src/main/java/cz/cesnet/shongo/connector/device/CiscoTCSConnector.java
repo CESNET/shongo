@@ -765,7 +765,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         // Passing this means that TCS executed dial
         for (int i = 0; i < 2; i++) {
             try {
-                logger.debug("Waiting 30sec for TCS to set up conference.");
+                logger.debug("Waiting 30sec for TCS .");
                 Thread.sleep(30*1000);
                 Command callInfoCommand = new Command("GetCallInfo");
                 callInfoCommand.setParameter("ConferenceID", conferenceId);

@@ -257,7 +257,12 @@ public class PexipConnector extends AbstractMultipointConnector {
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("tag", tag);
         json = execApi("/api/admin/status/v1/conference/", attributes, null, HttpMethod.GET);
-        String conferenceInstanceId = json.getJSONArray("objects").getJSONObject(0).getString("id");
+        String conferenceInstanceId;
+        try {
+            conferenceInstanceId = json.getJSONArray("objects").getJSONObject(0).getString("id");
+        } catch (JSONException e) {
+            throw new CommandException("Cannot disconnect conference. Instance not found.\n"  + printPrettyJson(json.toString()) );
+        }
         // Disconnect conference
         JSONObject body = new JSONObject();
         body.put("conference_id", conferenceInstanceId);
