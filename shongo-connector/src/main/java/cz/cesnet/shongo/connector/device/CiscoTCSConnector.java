@@ -774,12 +774,12 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 break;
             } catch (FaultException e) {
                 logger.debug((i+1) + ". try to fetch callInfo failed. ConferenceID not found in TCS." );
-                if (i == 3) {
+                if (i == 1) {
                     throw new CommandException("Unable to fetch getCallInfo. Dial was not executed.");
                 }
             } catch (InterruptedException ex) {
                 logger.error("Sleep interrupted.");
-                if (i == 3) {
+                if (i == 1) {
                     throw new RuntimeException("Interrupted sleep on last cycle to fetch callInfo.");
                 }
             }
