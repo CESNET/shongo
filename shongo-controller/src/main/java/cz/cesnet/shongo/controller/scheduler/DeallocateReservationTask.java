@@ -3,13 +3,10 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.reservation.AbstractForeignReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.notification.RoomNotification;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -49,9 +46,9 @@ public class DeallocateReservationTask
         Reservation reservation = this.reservation;
 
         List<AbstractNotification> reservationNotifications = new LinkedList<>();
-        ReservationNotification.Deleted reservationNotificationDeleted =
+/*        ReservationNotification.Deleted reservationNotificationDeleted =
                 new ReservationNotification.Deleted(reservation, authorizationManager);
-        reservationNotifications.add(reservationNotificationDeleted);
+        reservationNotifications.add(reservationNotificationDeleted);*/
 
         reservation.setAllocation(null);
         if (reservation.getSlotEnd() != null && reservation.getSlotEnd().isAfter(slot.getStart())) {
@@ -63,7 +60,7 @@ public class DeallocateReservationTask
                 if (executable instanceof RoomEndpoint) {
                     RoomEndpoint roomEndpoint = (RoomEndpoint) reservationItem.getExecutable();
                     if (roomEndpoint.isParticipantNotificationEnabled()) {
-                        notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, entityManager));
+                        //notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, entityManager));
                     }
                 }
             }
