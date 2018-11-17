@@ -136,7 +136,12 @@ public class PexipConnector extends AbstractMultipointConnector {
             try {
                 String[] splitted = room.getDescription().split("\\s+");
                 String domainRoom = splitted[0];
-                String description = splitted[1];
+                String description;
+                if (splitted.length > 1) {
+                    description = splitted[1];
+                } else {
+                    description = "";
+                }
                 //remove parentheses
                 domainRoom = domainRoom.replaceAll("[\\[\\]]", "");
                 //get only machine name and room number
