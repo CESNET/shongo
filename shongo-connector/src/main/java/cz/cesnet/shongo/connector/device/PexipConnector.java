@@ -373,7 +373,11 @@ public class PexipConnector extends AbstractMultipointConnector {
 
         // This means permanent room capacity has ended
         if (oldRoom.getLicenseCount() != 0 && room.getLicenseCount() == 0) {
-            disconnectRoomParticipants(roomId);
+            try {
+                disconnectRoomParticipants(roomId);
+            } catch (CommandException e) {
+                logger.debug("Did not disconnect conference because it does not exist already.");
+            }
         }
 
         if (oldRoom.getLicenseCount() != 0 && room.getLicenseCount() != 0 && oldRoom.getLicenseCount() != room.getLicenseCount()) {
