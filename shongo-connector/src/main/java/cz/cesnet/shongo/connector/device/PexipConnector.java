@@ -147,7 +147,7 @@ public class PexipConnector extends AbstractMultipointConnector {
                 json.put("tag", machine + ":" + roomNumber);
                 json.put("description", machine + ":" + roomNumber + " " + description);
             } catch (Exception e) {
-                throw new IllegalArgumentException("Unable to parse description.");
+                throw new IllegalArgumentException("Unable to parse description.", e);
             }
         }
 
