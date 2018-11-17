@@ -243,7 +243,6 @@ public class PexipConnector extends AbstractMultipointConnector {
             disconnectRoomParticipants(roomId);
         } catch (Exception e) {
             logger.warn("Unable to disconnect conference instance. Will remove configuration.");
-            e.printStackTrace();
         }
         HttpDelete request = new HttpDelete();
         execApi("/api/admin/configuration/v1/conference/" + roomId + "/", null, null, HttpMethod.DELETE);
