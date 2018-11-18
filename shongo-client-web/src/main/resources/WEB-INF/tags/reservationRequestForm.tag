@@ -523,7 +523,9 @@
                     <form:select cssClass="form-control" path="technology" ng-model="technology" tabindex="${tabIndex}">
                         <spring:eval var="technologies" expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).values()"/>
                         <c:forEach var="technology" items="${technologies}">
-                            <form:option value="${technology}"><spring:message code="${technology.titleCode}"/></form:option>
+                            <c:if test="${technology != 'H323_SIP'}">
+                                <form:option value="${technology}"><spring:message code="${technology.titleCode}"/></form:option>
+                            </c:if>
                         </c:forEach>
                     </form:select>
                     <form:errors path="technology" cssClass="error"/>
