@@ -34,7 +34,7 @@
 
         // Get dynamic reservation request attributes
         $scope.id = $scope.value('${reservationRequest.id}', null);
-        $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
+        $scope.technology = $scope.value('${reservationRequest.technology}', 'PEXIP');
         $scope.periodicityType = $scope.value('${reservationRequest.periodicityType}', 'NONE');
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
