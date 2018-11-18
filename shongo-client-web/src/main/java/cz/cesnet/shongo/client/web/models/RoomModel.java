@@ -597,11 +597,13 @@ public class RoomModel extends ParticipantConfigurationModel
                     stringBuilder.append("</td></tr>");
                     break;
                 case SKYPE_URI:
-                    stringBuilder.append("<tr><td class=\"title\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
-                    stringBuilder.append(":</td><td>");
-                    stringBuilder.append(alias.getValue());
-                    stringBuilder.append("</td></tr>");
+                    if (!alias.getValue().contains("@cesnet.cz")) {
+                        stringBuilder.append("<tr><td class=\"title\">");
+                        stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                        stringBuilder.append(":</td><td>");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("</td></tr>");
+                    }
                     break;
                 case WEB_CLIENT_URI:
                     stringBuilder.append("<tr><td class=\"title\">");
