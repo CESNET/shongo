@@ -13,10 +13,10 @@ import java.util.Set;
  */
 public enum TechnologyModel
 {
-    /**
-     * {@link cz.cesnet.shongo.Technology#H323} and/or {@link cz.cesnet.shongo.Technology#SIP}
-     */
-    H323_SIP("views.technologyModel.H323_SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
+
+    PEXIP("views.technologyModel.PEXIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP,
+            cz.cesnet.shongo.Technology.SKYPE_FOR_BUSINESS, cz.cesnet.shongo.Technology.RTMP,
+            cz.cesnet.shongo.Technology.WEBRTC),
 
     /**
      * {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}
@@ -27,10 +27,11 @@ public enum TechnologyModel
      *  {@link cz.cesnet.shongo.Technology#FREEPBX}
      */
     FREEPBX("views.technologyModel.FREEPBX", cz.cesnet.shongo.Technology.FREEPBX),
+    /**
+     * {@link cz.cesnet.shongo.Technology#H323} and/or {@link cz.cesnet.shongo.Technology#SIP}
+     */
+    H323_SIP("views.technologyModel.H323_SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP);
 
-    PEXIP("views.technologyModel.PEXIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP,
-            cz.cesnet.shongo.Technology.SKYPE_FOR_BUSINESS, cz.cesnet.shongo.Technology.RTMP,
-            cz.cesnet.shongo.Technology.WEBRTC);
 
     /**
      * Code of the title which can be displayed to user.
