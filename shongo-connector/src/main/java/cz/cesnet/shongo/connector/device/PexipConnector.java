@@ -219,16 +219,18 @@ public class PexipConnector extends AbstractMultipointConnector {
         // Set options
         PexipRoomSetting pexipRoomSetting = room.getRoomSetting(PexipRoomSetting.class);
         if (pexipRoomSetting != null) {
-            if (pexipRoomSetting.getHostPin() != null) {
-                json.put("pin", pexipRoomSetting.getHostPin());
-            }
-            if (pexipRoomSetting.getAllowGuests()) {
-                json.put("allow_guests", true);
-                if (!Strings.isNullOrEmpty(pexipRoomSetting.getGuestPin())) {
-                    json.put("guest_pin", pexipRoomSetting.getGuestPin());
-                }
+            String hostPin = Strings.isNullOrEmpty(pexipRoomSetting.getHostPin()) ? "" : pexipRoomSetting.getHostPin();
+            boolean allowGuests = pexipRoomSetting.getAllowGuests() ? pexipRoomSetting.getAllowGuests() : false;
+            String guestPin = Strings.isNullOrEmpty(pexipRoomSetting.getGuestPin()) ? "" : pexipRoomSetting.getGuestPin();
+            json.put("pin", hostPin);
+            json.put("allow_guests", allowGuests);
+            if (allowGuests) {
+                json.put("guest_pin", guestPin);
             } else {
-                json.put("allow_guests", false);
+                if (!Strings.isNullOrEmpty(pexipRoomSetting.getGuestPin())) {
+                    logger.error("Guest pin cannot be set if guests are not allowed!");
+                }
+                json.put("guest_pin", "");
             }
         }
         json.put("enable_overlay_text", true);
