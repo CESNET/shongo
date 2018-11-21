@@ -627,7 +627,7 @@ public class PexipConnector extends AbstractMultipointConnector {
 
     private void addBodyToRequest (HttpRequestBase request, String body) throws UnsupportedEncodingException {
         if (body != null && (request instanceof HttpEntityEnclosingRequestBase) ) {
-            StringEntity jsonBody = new StringEntity(body);
+            StringEntity jsonBody = new StringEntity(body, "UTF-8");
             jsonBody.setContentType("application/json;charset=UTF-8");
             jsonBody.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,"application/json;charset=UTF-8"));
             ((HttpEntityEnclosingRequestBase)request).setEntity(jsonBody);
@@ -635,10 +635,6 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
 
-    // roomname
-    // roomname@vc.cesnet.cz
-    // tie 3 vygenerovane cisla
-    // 3 vygenernovane cisla@vc.cesnet.cz
 
     private HttpRequestBase getRequest(String url, HttpMethod method){
         switch(method){
