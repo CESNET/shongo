@@ -105,7 +105,7 @@ public class ReservationRequestValidator implements Validator
             }
         }
 
-        if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getAdminPin())) {
             if (TechnologyModel.FREEPBX.equals(reservationRequestModel.getTechnology())) {
                 validateNum("adminPin", errors);
             }
