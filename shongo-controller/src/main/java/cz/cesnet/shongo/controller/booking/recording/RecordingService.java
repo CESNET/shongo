@@ -309,7 +309,13 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         RecordingSettings recordingSettings = new RecordingSettings();
         if (recordableEndpoint instanceof RoomEndpoint) {
             RoomEndpoint roomEndpoint = (RoomEndpoint) recordableEndpoint;
-            String pin = roomEndpoint.getPin(alias.getTechnology());
+            String pin;
+            if (roomEndpoint.getAdminPin(alias.getTechnology()) != null) {
+                pin = roomEndpoint.getAdminPin(alias.getTechnology());
+            } else {
+                pin = roomEndpoint.getPin(alias.getTechnology());
+            }
+
             if (pin != null) {
                 recordingSettings.setPin(pin);
             }
