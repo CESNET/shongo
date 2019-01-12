@@ -130,7 +130,7 @@ public class ReservationRequestValidator implements Validator
             if (reservationRequestModel.getAllowGuests()) {
                 ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.requiredAdminPin");
             }
-            if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+            if (!Strings.isNullOrEmpty(reservationRequestModel.getGuestPin())) {
                 ValidationUtils.rejectIfEmptyOrWhitespace(errors, "adminPin", "validation.field.requiredAdminPin");
                 validateNum("guestPin", errors);
                 validatePinLength("guestPin", errors);
