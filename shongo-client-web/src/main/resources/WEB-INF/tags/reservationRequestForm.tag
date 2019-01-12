@@ -39,7 +39,7 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
-        $scope.allowGuests = $scope.value(${reservationRequest.allowguests == true}, false);
+        $scope.allowGuests = $scope.value(${reservationRequest.allowGuests == true}, false);
         var  roomRetainE164Number = 'false';
         <c:if test="${reservationRequest.getClass().simpleName == 'ReservationRequestModificationModel'}">
             roomRetainE164Number = '${reservationRequest.roomRetainE164Number == true}';
