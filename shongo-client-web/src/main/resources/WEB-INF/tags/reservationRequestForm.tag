@@ -1175,7 +1175,7 @@
                 </div>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="roomPin" cssClass="error"/>
+                <form:errors path="guestPin" cssClass="error"/>
             </div>
         </div>
 
