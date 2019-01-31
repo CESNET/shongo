@@ -164,6 +164,7 @@ public class RoomController
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("pin", roomExecutable.getPin());
         data.put("adminPin", roomExecutable.getAdminPin());
+        data.put("guestPin", roomExecutable.getGuestPin());
         data.put("aliases", RoomModel.formatAliasesDescription(roomExecutable.getAliases(),
                 roomExecutable.getState().isAvailable(), new MessageProviderImpl(messageSource, userSession.getLocale())));
         return data;
