@@ -39,8 +39,11 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
         $scope.allowGuests = $scope.value(${reservationRequest.allowGuests == true}, false);
-        $scope.guestPin = $scope.value('${reservationRequest.guestPin}', '');
+        $scope.guestPin = '${reservationRequest.guestPin}';
+        </c:if>
+
         var  roomRetainE164Number = 'false';
         <c:if test="${reservationRequest.getClass().simpleName == 'ReservationRequestModificationModel'}">
             roomRetainE164Number = '${reservationRequest.roomRetainE164Number == true}';
@@ -343,6 +346,16 @@
                 $scope.guestPinModified = false;
             }
         });
+        $scope.allowGuestsModified = false;
+        $("#allowGuests").change(function () {
+            var allowGuests = document.getElementById('allowGuests').checked;
+            if (allowGuests == true) {
+                $scope.allowGuestsModified = true;
+            }
+            else {
+                $scope.allowGuestsModified = false;
+            }
+        });
         // Update permanent rooms model when start or duration changes
         $("#startDate,#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
@@ -366,6 +379,11 @@
                         }
                         if (!$scope.guestPinModified) {
                             $("#guestPin").val(data.guestPin);
+                        }
+                        if (!$scope.allowGuestsModified) {
+                            if (data.allowGuests) {
+                                $("#allowGuests").click();
+                            }
                         }
                     }).fail($application.handleAjaxFailure);
                 }
@@ -446,10 +464,11 @@
             $("#" + removeId).parent().parent().hide();
         };
         $scope.showHideGuestPin = function(){
+            //var checkbox = document.getElementById('allowGuests');
             if($scope.technology == 'PEXIP' && $scope.allowGuests){
                 return true;
             }
-            $scope.guestPin= "";
+            $("#guestPin").val("");
         };
     });
 
@@ -1191,7 +1210,7 @@
             </form:label>
             <div class="col-xs-9 space-padding">
                 <div class="col-xs-2">
-                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="guestPin" ng-model="guestPin" tabindex="${tabIndex}"/>
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="guestPin"  tabindex="${tabIndex}"/>
                 </div>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
@@ -1199,7 +1218,7 @@
             </div>
         </div>
 
-        <div class="form-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
+        <div class="form-group" ng-show="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
             <form:label class="col-xs-3 control-label" path="roomPin">
                 <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
                 <tag:help label="${pinLabel}:">

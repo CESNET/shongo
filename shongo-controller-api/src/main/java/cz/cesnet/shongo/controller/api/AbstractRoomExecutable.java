@@ -390,4 +390,19 @@ public abstract class AbstractRoomExecutable extends Executable
         }
         return pin;
     }
+
+    public Boolean getAllowGuests()
+    {
+        Boolean allowGuests = null;
+        for (RoomSetting setting : roomSettings) {
+            if (setting instanceof PexipRoomSetting
+                    && (technologies.contains(Technology.H323))) {
+                PexipRoomSetting pexipRoomSetting = (PexipRoomSetting) setting;
+                if (pexipRoomSetting.getAllowGuests() != null) {
+                    allowGuests = pexipRoomSetting.getAllowGuests();
+                }
+            }
+        }
+        return allowGuests;
+    }
 }
