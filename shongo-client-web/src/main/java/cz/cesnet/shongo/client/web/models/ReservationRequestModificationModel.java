@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import org.joda.time.DateTime;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -89,6 +88,9 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         this.original.permanentRoomReservationRequest = this.permanentRoomReservationRequest;
         this.original.roomParticipantCount = this.roomParticipantCount;
         this.original.roomPin = this.roomPin;
+        this.original.adminPin = this.adminPin;
+        this.original.allowGuests = this.allowGuests;
+        this.original.guestPin = this.guestPin;
         this.original.roomRecorded = this.roomRecorded;
         this.original.roomAccessMode = this.roomAccessMode;
         this.original.roomMeetingName = this.roomMeetingName;
