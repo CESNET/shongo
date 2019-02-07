@@ -1,18 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.ReadablePartial;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -31,7 +24,7 @@ public class CommonModel
      * Email pattern.
      */
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+            Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
 
     /**
      * Last auto-generated identifier index.
