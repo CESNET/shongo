@@ -358,8 +358,8 @@ FROM (
         LEFT JOIN allocation AS parent_allocation ON parent_allocation.id = reservation_request.parent_allocation_id
         LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
         LEFT JOIN reservation_request_earliest_usage ON reservation_request_earliest_usage.id = reservation_request.id
-        LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id
-        LEFT JOIN reservation_request_active_usage ON reservation_request_active_usage.id = reservation_request.id OR reservation_request_active_usage.id = reservation_request_set_earliest_child.child_id
+        LEFT JOIN reservation_request_state ON reservation_request_state.id = COALESCE(reservation_request.id, reservation_request_set_earliest_child.child_id)
+        LEFT JOIN reservation_request_active_usage ON reservation_request_active_usage.id = COALESCE(reservation_request.id, reservation_request_set_earliest_child.child_id)
     ) AS reservation_request_summary
 ) AS reservation_request_summary;
 
