@@ -233,6 +233,18 @@
         <dd>${reservationRequest.roomPin}</dd>
     </c:if>
 
+    <%-- GUEST PIN --%>
+    <c:if test="${not empty reservationRequest.guestPin}">
+        <dt><spring:message code="views.reservationRequest.specification.guestPin"/>:</dt>
+        <dd>${reservationRequest.guestPin}</dd>
+    </c:if>
+
+    <%-- ADMIN PIN --%>
+    <c:if test="${not empty reservationRequest.adminPin}">
+        <dt><spring:message code="views.reservationRequest.specification.adminPin"/>:</dt>
+        <dd>${reservationRequest.adminPin}</dd>
+    </c:if>
+
     <%-- Recorded --%>
     <c:if test="${reservationRequest.technology != 'ADOBE_CONNECT' && reservationRequest.technology != 'FREEPBX' && (reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY')}">
         <dt><spring:message code="views.reservationRequest.specification.roomRecorded"/>:</dt>
