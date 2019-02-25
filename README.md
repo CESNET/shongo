@@ -11,6 +11,7 @@ The [Shongo](https://shongo.cesnet.cz/) project is a project developed and suppo
 * Petr Holub
 * Jan Ruzicka
 * Ondrej Bouda
+* Marek Perichta
 
 ## License
 
