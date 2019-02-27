@@ -32,6 +32,8 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     private ParticipantRole role;
 
+    private String organization;
+
     public ParticipantModel(CacheProvider cacheProvider)
     {
         this.cacheProvider = cacheProvider;
@@ -57,6 +59,9 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                 UserPerson userPerson = (UserPerson) person;
                 setType(Type.USER);
                 setUserId(userPerson.getUserId());
+                setName(userPerson.getName());
+                setEmail(userPerson.getEmail());
+                setOrganization(userPerson.getOrganization());
             }
             else if (person instanceof AnonymousPerson) {
                 AnonymousPerson anonymousPerson = (AnonymousPerson) person;
@@ -87,6 +92,9 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                     throw new IllegalStateException("User must not be null.");
                 }
                 userPerson.setUserId(user.getUserId());
+                userPerson.setName(name);
+                userPerson.setEmail(email);
+                userPerson.setOrganization(organization);
                 personParticipant.setPerson(userPerson);
                 return personParticipant;
             }
@@ -222,6 +230,14 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         this.role = role;
     }
 
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+
     @Override
     public String toContextString()
     {
@@ -232,6 +248,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         attributes.put("Name", name);
         attributes.put("Email", email);
         attributes.put("Role", role);
+        attributes.put("Organization", organization);
         return ReportModel.formatAttributes(attributes);
     }
 
