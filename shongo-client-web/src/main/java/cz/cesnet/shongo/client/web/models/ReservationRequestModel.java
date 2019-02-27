@@ -796,6 +796,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         ParticipantModel participantModel = new ParticipantModel(userInformation, cacheProvider);
         participantModel.setNewId();
         participantModel.setRole(role);
+        participantModel.setEmail(participantModel.getUser().getEmail());
+        participantModel.setName(participantModel.getUser().getFullName());
+        participantModel.setOrganization(participantModel.getUser().getOrganization());
         addRoomParticipant(participantModel);
         return participantModel;
     }

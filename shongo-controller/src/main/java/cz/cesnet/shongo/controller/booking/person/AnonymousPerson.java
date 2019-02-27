@@ -2,10 +2,10 @@ package cz.cesnet.shongo.controller.booking.person;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.api.Controller;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Person that can be contacted.
@@ -15,6 +15,8 @@ import javax.persistence.Transient;
 @Entity
 public class AnonymousPerson extends AbstractPerson implements PersonInformation
 {
+
+    private String userId;
     /**
      * Full name of the person.
      */
@@ -52,6 +54,25 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     {
         setName(name);
         setEmail(email);
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(length = Controller.USER_ID_COLUMN_LENGTH)
+    @Access(AccessType.FIELD)
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        Authorization.getInstance().checkUserExistence(userId);
+        this.userId = userId;
     }
 
     /**
@@ -126,6 +147,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     public AnonymousPerson clone() throws CloneNotSupportedException
     {
         AnonymousPerson person = (AnonymousPerson) super.clone();
+        person.setUserId(userId);
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
@@ -199,6 +221,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
         person.setName(getName());
         person.setOrganization(getOrganization());
         person.setEmail(getEmail());
+        person.setUserId(getUserId());
         return person;
     }
 
@@ -210,6 +233,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
         setName(anonymousPersonApi.getName());
         setOrganization(anonymousPersonApi.getOrganization());
         setEmail(anonymousPersonApi.getEmail());
+        setUserId(anonymousPersonApi.getUserId());
     }
 
     @Override

@@ -9,6 +9,9 @@ import cz.cesnet.shongo.api.DataMap;
  */
 public class AnonymousPerson extends AbstractPerson
 {
+
+    private String userId;
+
     /**
      * Name of the person.
      */
@@ -94,6 +97,14 @@ public class AnonymousPerson extends AbstractPerson
     public static final String NAME = "name";
     public static final String ORGANIZATION = "organization";
     public static final String EMAIL = "email";
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     @Override
     public DataMap toData()
