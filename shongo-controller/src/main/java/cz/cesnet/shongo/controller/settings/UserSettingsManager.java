@@ -4,9 +4,11 @@ import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.UserData;
+import org.joda.time.DateTimeZone;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import java.util.Locale;
 
 /**
  * Manager for {@link UserSettings}.
@@ -50,6 +52,7 @@ public class UserSettingsManager
 
         cz.cesnet.shongo.controller.api.UserSettings userSettingsApi =
                 getUserSettings(securityToken.getUserId(), useWebService);
+
         userSettingsApi.setAdministrationMode(userSessionSettings.getAdministrationMode());
         return userSettingsApi;
     }
@@ -120,7 +123,7 @@ public class UserSettingsManager
         entityManager.persist(userSettings);
     }
 
-    private UserSettings getPersistentUserSettings(String userId)
+    public UserSettings getPersistentUserSettings(String userId)
     {
         try {
             return entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"

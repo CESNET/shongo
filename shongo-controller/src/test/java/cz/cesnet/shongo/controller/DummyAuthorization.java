@@ -254,11 +254,11 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected Set<String> onListUserGroupIds(String userId)
+    protected Set<String> onListUserGroupIds(SecurityToken securityToken)
     {
         Set<String> groupIds = new HashSet<String>();
         for (Map.Entry<String, Set<String>> entry : userIdsInGroup.entrySet()) {
-            if (entry.getValue().contains(userId)) {
+            if (entry.getValue().contains(securityToken.getUserId())) {
                 groupIds.add(entry.getKey());
             }
         }

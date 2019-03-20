@@ -7,6 +7,8 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.booking.person.UserPerson;
+import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +30,7 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -48,7 +51,7 @@ public class ServerAuthorization extends Authorization
     /**
      * Authentication service path in auth-server.
      */
-    private static final String AUTHENTICATION_SERVICE_PATH = "/authn/oic";
+    private static final String AUTHENTICATION_SERVICE_PATH = "/oidc-authn/oic";
 
     /**
      * User web service path in auth-server.
@@ -155,7 +158,7 @@ public class ServerAuthorization extends Authorization
     {
         return authorizationServer + AUTHENTICATION_SERVICE_PATH;
     }
-
+    // ok
     @Override
     protected UserInformation onValidate(SecurityToken securityToken)
     {
@@ -166,7 +169,7 @@ public class ServerAuthorization extends Authorization
         }
         return super.onValidate(securityToken);
     }
-
+    // ok
     @Override
     protected UserData onGetUserDataByAccessToken(String accessToken)
             throws ControllerReportSet.UserNotExistsException
@@ -222,35 +225,53 @@ public class ServerAuthorization extends Authorization
         }
         throw new RuntimeException(errorMessage, errorException);
     }
-
+    // muzu nahradit jen za voleni do databaze
+    // pouziva se skoro vsude
     @Override
     protected UserData onGetUserDataByUserId(final String userId)
             throws ControllerReportSet.UserNotExistsException
     {
-        return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId,
-                "Retrieving user information by user-id '" + userId + "' failed",
-                new RequestHandler<UserData>()
-                {
-                    @Override
-                    public UserData success(JsonNode data)
-                    {
-                        if (data == null) {
-                            throw new ControllerReportSet.UserNotExistsException(userId);
-                        }
-                        return createUserDataFromWebServiceData(data);
-                    }
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserPerson userPerson = entityManager.createQuery("FROM UserPerson P WHERE P.userId = :userId", UserPerson.class)
+                .setParameter("userId", userId)
+                .setMaxResults(1)
+                .getSingleResult();
 
-                    @Override
-                    public void error(StatusLine statusLine, String detail)
-                    {
-                        int statusCode = statusLine.getStatusCode();
-                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("UserNotExistsException")) {
-                            throw new ControllerReportSet.UserNotExistsException(userId);
-                        }
-                    }
-                });
+        UserSettings userSettings = entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
+                        + " WHERE userSettings.userId = :userId",
+                UserSettings.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
+        UserData userData = new UserData();
+        if(userSettings != null){
+            if(userSettings.getHomeTimeZone() != null){
+                userData.setTimeZone(userSettings.getHomeTimeZone());
+                userData.getUserInformation().setZoneInfo(userSettings.getHomeTimeZone().toString());
+            }
+            if(userSettings.getLocale() != null){
+                userData.setLocale(userSettings.getLocale());
+                userData.getUserInformation().setLocale(userSettings.getLocale().toString());
+            }
+        }
+        if(userPerson != null) {
+            if(userPerson.getName() != null){
+                userData.getUserInformation().setFullName(userPerson.getName());
+            }
+            if(userPerson.getUserId() != null){
+                userData.getUserInformation().setUserId(userPerson.getUserId());
+            }
+            if(userPerson.getOrganization() != null){
+                userData.getUserInformation().setOrganization(userPerson.getOrganization());
+            }
+
+            if(userPerson.getEmail() != null){
+                userData.getUserInformation().setEmail(userPerson.getEmail());
+            }
+        }
+
+        return userData;
     }
-
+// select do databaze LIKE principal  Name
     @Override
     protected String onGetUserIdByPrincipalName(final String principalName)
             throws ControllerReportSet.UserNotExistsException
@@ -285,7 +306,12 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-
+    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers
+    // nepouziva se -- cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listReferencedUsers
+    // nechat pretvorit na einfra id
+    // pokud se nastavi search a filterUSerid je null -> search v perunovi
+    // musim jeste nastavit pridavani uzivatele podle search do databaze
+    // pokud neni filterUserids null tak databaze a jeste filtruji like seach
     @Override
     protected Collection<UserData> onListUserData(final Set<String> filterUserIds, String search)
     {
@@ -349,7 +375,8 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-
+    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.createAclEntry
+    // podivam se do db
     @Override
     protected Group onGetGroup(final String groupId) throws ControllerReportSet.GroupNotExistsException
     {
@@ -376,7 +403,8 @@ public class ServerAuthorization extends Authorization
         group.addAdministrators(getGroupAdministrators(groupId));
         return group;
     }
-
+    // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
+    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.listGroups
     @Override
     public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
@@ -438,7 +466,9 @@ public class ServerAuthorization extends Authorization
             }
         });
     }
-
+    // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
+    // cz.cesnet.shongo.controller.authorization.Authorization.getUserIds
+    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers unUsed
     @Override
     public Set<String> onListGroupUserIds(final String groupId)
     {
@@ -464,34 +494,15 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-
+    // jsem schopny nahradit, ale jen pro aktualne prihlaseneho uzivatele
+    // pouziva se vsude
+    // zeptat se zda je mozne ze se vola tato metoda i pro neprihlaseneho uzivatele
     @Override
-    protected Set<String> onListUserGroupIds(String userId)
+    protected Set<String> onListUserGroupIds(SecurityToken securityToken)
     {
-        String url = authorizationServer + USER_SERVICE_PATH + "/" + userId + "/groups?filter_type=user";
-        return performGetRequest(url,
-                "Retrieving group-ids for user " + userId + " failed",
-                new RequestHandler<Set<String>>()
-                {
-                    @Override
-                    public Set<String> success(JsonNode data)
-                    {
-                        Set<String> groupIds = new HashSet<String>();
-                        if (data != null) {
-                            Iterator<JsonNode> userIterator = data.get("_embedded").get("groups").getElements();
-                            while (userIterator.hasNext()) {
-                                JsonNode groupNode = userIterator.next();
-                                if (!groupNode.has("id")) {
-                                    throw new IllegalStateException("Group must have identifier.");
-                                }
-                                groupIds.add(groupNode.get("id").asText());
-                            }
-                        }
-                        return groupIds;
-                    }
-                });
+        return getUserInformation(securityToken).getEduPersonEntitlement();
     }
-
+    // jen testy
     @Override
     public String onCreateGroup(final Group group)
     {
@@ -518,7 +529,7 @@ public class ServerAuthorization extends Authorization
         modifyGroupAdministrators(group);
         return groupId;
     }
-
+    // nepouziva se
     @Override
     protected void onModifyGroup(final Group group)
     {
@@ -544,7 +555,7 @@ public class ServerAuthorization extends Authorization
                 });
         modifyGroupAdministrators(group);
     }
-
+    // nepouziva se
     @Override
     public void onDeleteGroup(final String groupId)
     {
@@ -561,7 +572,7 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-
+    // jen testy
     @Override
     public void onAddGroupUser(final String groupId, final String userId)
     {
@@ -587,7 +598,7 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-
+    // nepouziva se
     @Override
     public void onRemoveGroupUser(final String groupId, final String userId)
     {
@@ -888,11 +899,22 @@ public class ServerAuthorization extends Authorization
                 userData.setTimeZone(timeZone);
             }
         }
+
+        if(data.has("edu_person_entitlements")) {
+            Iterator<JsonNode> eduPersonEntitlementIterator = data.get("edu_person_entitlements").getElements();
+            while (eduPersonEntitlementIterator.hasNext()) {
+                JsonNode eduPersonEntitlement = eduPersonEntitlementIterator.next();
+                userInformation.addEduPersonEntitlement(eduPersonEntitlement.getTextValue());
+            }
+        }
+
         // for AuthN Server v0.6.4 and newer
         if (data.has("authn_provider") && data.has("authn_instant") && data.has("loa")) {
-                userData.setUserAuthorizationData(new UserAuthorizationData(
+            long instant = Long.valueOf(data.get("authn_instant").getTextValue()) * 1000;
+            DateTime dateTime = new DateTime(instant);
+            userData.setUserAuthorizationData(new UserAuthorizationData(
                         data.get("authn_provider").getTextValue(),
-                        DateTime.parse(data.get("authn_instant").getTextValue()),
+                        dateTime,
                         data.get("loa").getIntValue()));
         }
         // for AuthN Server v0.6.3 and older

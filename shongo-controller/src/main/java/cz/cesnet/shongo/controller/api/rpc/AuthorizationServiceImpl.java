@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -24,6 +25,7 @@ import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTimeZone;
 
 import javax.persistence.*;
 import java.util.*;
@@ -129,12 +131,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             // Get users
             if (userIds != null && userIds.size() < 3) {
                 for (String userId : userIds.getUserIds()) {
-                    if (UserInformation.isLocal(userId)) {
-                        users.add(authorization.getUserInformation(userId));
-                    }
-                    else {
-                        //TODO:IDP:findUser
-                    }
+                    users.add(authorization.getUserInformation(userId));
+
                 }
                 // Filter them
                 if (search != null) {
@@ -161,6 +159,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
             return userSettingsManager.getUserSettings(securityToken, null);
+        } catch (ControllerReportSet.UserNotExistsException exception) {
+            return getUserSettingsFromToken(securityToken);
         }
         finally {
             entityManager.close();
@@ -176,6 +176,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
             return userSettingsManager.getUserSettings(securityToken, useWebService);
+        }
+        catch (ControllerReportSet.UserNotExistsException exception) {
+            return getUserSettingsFromToken(securityToken);
         }
         finally {
             entityManager.close();
@@ -195,6 +198,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
             return userSettingsManager.getUserSettings(userId, null);
+        } catch (ControllerReportSet.UserNotExistsException exception) {
+            return getUserSettingsFromToken(securityToken);
         }
         finally {
             entityManager.close();
@@ -498,6 +503,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 authorization.checkUserExistence(aclEntryApi.getIdentityPrincipalId());
                 break;
             case GROUP:
+                // oidc
+                // jinde se nepouziva (jen testy)
+                // pouziva onGetGroup /perun/groups/{groupId}
                 authorization.checkGroupExistence(aclEntryApi.getIdentityPrincipalId());
                 break;
             default:
@@ -869,5 +877,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             ControllerReportSetHelper.throwObjectNotExistFault(objectId);
         }
         return object;
+    }
+
+    private UserSettings getUserSettingsFromToken(SecurityToken securityToken){
+            UserSettings userSettings = new UserSettings();
+            userSettings.setUseWebService(true);
+            userSettings.setSystemAdministratorNotifications(true);
+            userSettings.setResourceAdministratorNotifications(true);
+            userSettings.setLocale(new Locale(securityToken.getUserInformation().getLocale()));
+            userSettings.setHomeTimeZone(DateTimeZone.forID(securityToken.getUserInformation().getZoneInfo()));
+            return userSettings;
     }
 }
