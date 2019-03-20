@@ -9,6 +9,7 @@ import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -99,6 +100,9 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             userInformation.setUserId(userInfoResponse.get("id").asText());
             userInformation.setFirstName(userInfoResponse.get("first_name").getTextValue());
             userInformation.setLastName(userInfoResponse.get("last_name").getTextValue());
+            userInformation.setFullName(userInfoResponse.get("display_name").getTextValue());
+            userInformation.setLocale(userInfoResponse.get("language").getTextValue());
+            userInformation.setZoneInfo(userInfoResponse.get("zoneinfo").getTextValue());
             if (userInfoResponse.has("original_id")) {
                 // TODO: set current principal name
             }

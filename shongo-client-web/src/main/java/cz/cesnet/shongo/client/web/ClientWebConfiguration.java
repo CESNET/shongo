@@ -203,7 +203,7 @@ public class ClientWebConfiguration extends CombinedConfiguration {
      * @return url of authentication server
      */
     public String getAuthenticationServerUrl() {
-        return getString("security.server") + "/authn/oic";
+        return getString("security.server") + "/oidc-authn/oic";
     }
 
     /**

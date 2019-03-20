@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 import java.util.*;
 
 /**
@@ -255,31 +256,20 @@ public abstract class Authorization
         }
         String accessToken = securityToken.getAccessToken();
 
-        // Try to use the user-id from access token cache to get the user information
-        String userId = cache.getUserIdByAccessToken(accessToken);
-        if (userId != null) {
-            logger.trace("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
-            userInformation = getUserData(userId).getUserInformation();
 
-            // Store the user information inside the security token
-            securityToken.setUserInformation(userInformation);
+        logger.debug("Retrieving user information by access token '{}'...", accessToken);
 
-            return userInformation;
-        }
-        else {
-            logger.debug("Retrieving user information by access token '{}'...", accessToken);
+        UserData userData = onGetUserDataByAccessToken(accessToken);
+        userInformation = userData.getUserInformation();
+        String userId = userInformation.getUserId();
+        cache.putUserIdByAccessToken(accessToken, userId);
+        cache.putUserDataByUserId(userId, userData);
 
-            UserData userData = onGetUserDataByAccessToken(accessToken);
-            userInformation = userData.getUserInformation();
-            userId = userInformation.getUserId();
-            cache.putUserIdByAccessToken(accessToken, userId);
-            cache.putUserDataByUserId(userId, userData);
+        // Store the user information inside the security token
+        securityToken.setUserInformation(userInformation);
 
-            // Store the user information inside the security token
-            securityToken.setUserInformation(userInformation);
+        return userInformation;
 
-            return userInformation;
-        }
     }
 
     /**
@@ -492,7 +482,8 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
+            // ooidc
+            aclUserState = fetchAclUserState(securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasObjectRole(objectIdentity, objectRole);
@@ -562,7 +553,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
+            aclUserState = fetchAclUserState(null);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasObjectPermission(objectIdentity, objectPermission);
@@ -589,7 +580,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
+            aclUserState = fetchAclUserState(securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(object);
@@ -622,7 +613,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
+            aclUserState = fetchAclUserState(securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Long> entities = aclUserState.getObjectsByRole(aclObjectClass, objectRole);
@@ -654,7 +645,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
+            aclUserState = fetchAclUserState(securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Long> entities = aclUserState.getObjectsByPermission(aclObjectClass, objectPermission);
@@ -771,7 +762,13 @@ public abstract class Authorization
             }
             else {
                 try {
-                    group = onGetGroup(groupId);
+                    EntityManager entityManager = entityManagerFactory.createEntityManager();
+                    AclIdentity aclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
+                            .setParameter("type", AclIdentityType.GROUP)
+                            .setParameter("principalId", groupId)
+                            .getSingleResult();
+                    group = new Group();
+                    group.setName(aclIdentity.getPrincipalId());
                 } catch (ControllerReportSet.GroupNotExistsException exception) {
                     group = null;
                 }
@@ -816,9 +813,9 @@ public abstract class Authorization
     /**
      * @return list of group-ids for groups in which the user with given {@code userId} is a member
      */
-    public final Set<String> listUserGroupIds(String userId)
+    public final Set<String> listUserGroupIds(SecurityToken securityToken)
     {
-        return new HashSet<String>(onListUserGroupIds(userId));
+        return new HashSet<String>(onListUserGroupIds(securityToken));
     }
 
     /**
@@ -983,7 +980,7 @@ public abstract class Authorization
     /**
      * @return list of group-ids for groups in which the user with given {@code userId} is a member
      */
-    protected abstract Set<String> onListUserGroupIds(String userId);
+    protected abstract Set<String> onListUserGroupIds(SecurityToken securityToken);
 
     /**
      * @param group to be created
@@ -1046,15 +1043,15 @@ public abstract class Authorization
     /**
      * Fetch {@link AclUserState} for given {@code userId}.
      *
-     * @param userId of user for which the ACL should be fetched
+     * @param securityToken of user for which the ACL should be fetched
      * @return fetched {@link AclUserState} for given {@code userId}
      */
-    private AclUserState fetchAclUserState(String userId)
+    private AclUserState fetchAclUserState(SecurityToken securityToken)
     {
         AclUserState aclUserState = new AclUserState();
         Set<AclIdentity> aclIdentities = new HashSet<AclIdentity>();
-        aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
-        for (String groupId : listUserGroupIds(userId)) {
+        aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, securityToken.getUserId()));
+        for (String groupId : listUserGroupIds(securityToken)) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
         }
         aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, EVERYONE_GROUP_ID));
@@ -1117,7 +1114,7 @@ public abstract class Authorization
             for (String userId : userIdSet.getUserIds()) {
                 AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
                 if (aclUserState == null) {
-                    aclUserState = fetchAclUserState(userId);
+                    aclUserState = fetchAclUserState(null);
                     cache.putAclUserStateByUserId(userId, aclUserState);
                 } else {
                     aclUserState.addAclEntry(aclEntry);

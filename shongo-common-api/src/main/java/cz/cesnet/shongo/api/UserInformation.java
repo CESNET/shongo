@@ -46,6 +46,14 @@ public class UserInformation extends AbstractComplexType implements PersonInform
      */
     private String email;
 
+    private String fullName;
+
+    private String locale;
+
+    private String zoneInfo;
+
+    private Set<String> eduPersonEntitlement = new HashSet<String>();
+
     /**
      * Constructor.
      */
@@ -103,6 +111,10 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         this.principalNames.add(principalName);
     }
 
+    public void addEduPersonEntitlement(String eduPersonEntitlement){
+        this.eduPersonEntitlement.add(eduPersonEntitlement);
+    }
+
     /**
      * @return {@link #firstName}
      */
@@ -158,9 +170,16 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         this.email = email;
     }
 
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     @Override
     public String getFullName()
     {
+        if(fullName != null) {
+            return fullName;
+        }
         StringBuilder fullName = new StringBuilder();
         if (firstName != null) {
             fullName.append(firstName);
@@ -189,6 +208,30 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         return email;
     }
 
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getZoneInfo() {
+        return zoneInfo;
+    }
+
+    public void setZoneInfo(String zoneInfo) {
+        this.zoneInfo = zoneInfo;
+    }
+
+    public Set<String> getEduPersonEntitlement() {
+        return eduPersonEntitlement;
+    }
+
+    public void setEduPersonEntitlement(Set<String> eduPersonEntitlement) {
+        this.eduPersonEntitlement = eduPersonEntitlement;
+    }
+
     @Override
     public String toString()
     {
@@ -201,6 +244,8 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     public static final String LAST_NAME = "lastName";
     public static final String ORGANIZATION = "organization";
     public static final String EMAIL = "email";
+    public static final String LOCALE = "locale";
+    public static final String ZONE_INFO = "zoneInfo";
 
     @Override
     public DataMap toData()
@@ -212,6 +257,8 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         dataMap.set(LAST_NAME, lastName);
         dataMap.set(ORGANIZATION, organization);
         dataMap.set(EMAIL, email);
+        dataMap.set(LOCALE, locale);
+        dataMap.set(ZONE_INFO, zoneInfo);
         return dataMap;
     }
 
@@ -225,6 +272,8 @@ public class UserInformation extends AbstractComplexType implements PersonInform
         lastName = dataMap.getString(LAST_NAME);
         organization = dataMap.getString(ORGANIZATION);
         email = dataMap.getString(EMAIL);
+        locale = dataMap.getString(LOCALE);
+        zoneInfo = dataMap.getString(ZONE_INFO);
     }
 
     /**
@@ -246,6 +295,8 @@ public class UserInformation extends AbstractComplexType implements PersonInform
             filterData.append(userInformation.getLastName());
             filterData.append(userInformation.getEmail());
             filterData.append(userInformation.getOrganization());
+            filterData.append(userInformation.getLocale());
+            filterData.append(userInformation.getZoneInfo());
             if (!StringUtils.containsIgnoreCase(StringHelper.removeAccents(filterData.toString()), search)) {
                 iterator.remove();
             }
@@ -255,7 +306,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     /**
      * Local identifier pattern.
      */
-    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("^\\d+|\\*$");
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("^(.+)@(.+)$");
 
     /**
      * Local identifier pattern with type (<domain-id>:<user-id>).
@@ -275,7 +326,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     {
         Matcher matcher = FOREIGN_IDENTIFIER_PATTERN.matcher(userId);
         if (matcher.matches()) {
-            return Long.parseLong(matcher.group(1));
+            return Long.parseLong(matcher.group(0));
         }
 
         return null;
