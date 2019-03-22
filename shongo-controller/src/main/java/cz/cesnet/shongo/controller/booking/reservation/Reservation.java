@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
@@ -79,7 +80,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     /**
      * @return {@link #userId}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getUserId()
     {
         return userId;
