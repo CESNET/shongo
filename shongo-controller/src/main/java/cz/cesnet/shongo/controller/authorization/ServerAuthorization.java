@@ -3,8 +3,10 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.acl.AclIdentity;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
@@ -12,10 +14,7 @@ import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
@@ -32,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -67,6 +67,23 @@ public class ServerAuthorization extends Authorization
      * Groups web service path in auth-server.
      */
     private static final String GROUP_SERVICE_PATH = "/perun/groups";
+
+    /**
+     * Group einfra prefix from oidc claims.
+     */
+    private static final String GROUP_OIDC_PREFIX = "urn:geant:cesnet.cz:group:einfra:";
+
+    /**
+     * Group projects shongo prefix from oidc claims.
+     */
+    private static final String GROUP_OIDC_PROJECTS_SHONGO_PREFIX = "projects:shongo";
+
+    /**
+     * Group fragment suffix from oidc claims.
+     */
+    private static final String GROUP_OIDC_FRAGMENT = "#";
+
+    private static final String PERUN_SOURCE_CESNET_IDP_PATTERN = "https://login.cesnet.cz/idp/";
 
     /**
      * @see cz.cesnet.shongo.controller.ControllerConfiguration
@@ -228,48 +245,66 @@ public class ServerAuthorization extends Authorization
     // muzu nahradit jen za voleni do databaze
     // pouziva se skoro vsude
     @Override
-    protected UserData onGetUserDataByUserId(final String userId)
-            throws ControllerReportSet.UserNotExistsException
-    {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        UserPerson userPerson = entityManager.createQuery("FROM UserPerson P WHERE P.userId = :userId", UserPerson.class)
-                .setParameter("userId", userId)
-                .setMaxResults(1)
-                .getSingleResult();
+    protected UserData onGetUserDataByUserId(final String userId) throws ControllerReportSet.UserNotExistsException {
+        try {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            UserPerson userPerson = entityManager.createQuery("FROM UserPerson P WHERE P.userId = :userId", UserPerson.class)
+                    .setParameter("userId", userId)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            UserSettings userSettings = entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
+                            + " WHERE userSettings.userId = :userId",
+                    UserSettings.class)
+                    .setParameter("userId", userId)
+                    .getSingleResult();
+            UserData userData = new UserData();
+            if (userSettings != null) {
+                if (userSettings.getHomeTimeZone() != null) {
+                    userData.setTimeZone(userSettings.getHomeTimeZone());
+                    userData.getUserInformation().setZoneInfo(userSettings.getHomeTimeZone().toString());
+                }
+                if (userSettings.getLocale() != null) {
+                    userData.setLocale(userSettings.getLocale());
+                    userData.getUserInformation().setLocale(userSettings.getLocale().toString());
+                }
+            }
+            if (userPerson != null) {
+                if (userPerson.getName() != null) {
+                    userData.getUserInformation().setFullName(userPerson.getName());
+                }
+                if (userPerson.getUserId() != null) {
+                    userData.getUserInformation().setUserId(userPerson.getUserId());
+                }
+                if (userPerson.getOrganization() != null) {
+                    userData.getUserInformation().setOrganization(userPerson.getOrganization());
+                }
 
-        UserSettings userSettings = entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
-                        + " WHERE userSettings.userId = :userId",
-                UserSettings.class)
-                .setParameter("userId", userId)
-                .getSingleResult();
-        UserData userData = new UserData();
-        if(userSettings != null){
-            if(userSettings.getHomeTimeZone() != null){
-                userData.setTimeZone(userSettings.getHomeTimeZone());
-                userData.getUserInformation().setZoneInfo(userSettings.getHomeTimeZone().toString());
+                if (userPerson.getEmail() != null) {
+                    userData.getUserInformation().setEmail(userPerson.getEmail());
+                }
             }
-            if(userSettings.getLocale() != null){
-                userData.setLocale(userSettings.getLocale());
-                userData.getUserInformation().setLocale(userSettings.getLocale().toString());
-            }
+            return userData;
+        } catch (NoResultException e) {
+            return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId,
+                    "Retrieving user information by user-id '" + userId + "' failed",
+                    new RequestHandler<UserData>() {
+                        @Override
+                        public UserData success(JsonNode data) {
+                            if (data == null) {
+                                throw new ControllerReportSet.UserNotExistsException(userId);
+                            }
+                            return createUserDataFromWebServiceData(data);
+                        }
+
+                        @Override
+                        public void error(StatusLine statusLine, String detail) {
+                            int statusCode = statusLine.getStatusCode();
+                            if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("UserNotExistsException")) {
+                                throw new ControllerReportSet.UserNotExistsException(userId);
+                            }
+                        }
+                    });
         }
-        if(userPerson != null) {
-            if(userPerson.getName() != null){
-                userData.getUserInformation().setFullName(userPerson.getName());
-            }
-            if(userPerson.getUserId() != null){
-                userData.getUserInformation().setUserId(userPerson.getUserId());
-            }
-            if(userPerson.getOrganization() != null){
-                userData.getUserInformation().setOrganization(userPerson.getOrganization());
-            }
-
-            if(userPerson.getEmail() != null){
-                userData.getUserInformation().setEmail(userPerson.getEmail());
-            }
-        }
-
-        return userData;
     }
 // select do databaze LIKE principal  Name
     @Override
@@ -377,132 +412,67 @@ public class ServerAuthorization extends Authorization
     }
     // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.createAclEntry
     // podivam se do db
+    // OK
     @Override
-    protected Group onGetGroup(final String groupId) throws ControllerReportSet.GroupNotExistsException
+    protected Group onGetGroup(final String groupId)
     {
-        Group group = performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId,
-                "Retrieving group " + groupId + " failed",
-                new RequestHandler<Group>()
-                {
-                    @Override
-                    public Group success(JsonNode data)
-                    {
-                        return createGroupFromWebServiceData(data);
-                    }
-
-                    @Override
-                    public void error(StatusLine statusLine, String detail)
-                    {
-                        int statusCode = statusLine.getStatusCode();
-                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupNotExistsException")) {
-                            throw new ControllerReportSet.GroupNotExistsException(groupId);
-                        }
-                    }
-                });
-
-        group.addAdministrators(getGroupAdministrators(groupId));
-        return group;
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            AclIdentity aclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
+                    .setParameter("type", AclIdentityType.GROUP)
+                    .setParameter("principalId", groupId)
+                    .getSingleResult();
+            Group group = new Group();
+            group.setName(aclIdentity.getPrincipalId());
+            group.addAdministrators(getGroupAdministrators(groupId));
+            return group;
+        }  catch (NoResultException e){
+            e.printStackTrace();
+            return null;
+        }
     }
     // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
     // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.listGroups
+    // OK
     @Override
     public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
-        String listGroupsUrlQuery = "";
-        if (filterGroupIds != null && filterGroupIds.size() > 0) {
-            String groupIds = StringUtils.join(filterGroupIds, ",");
-            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
-            listGroupsUrlQuery += "filter_group_id=" + groupIds;
-        }
-        if (filterGroupTypes != null && filterGroupTypes.size() > 0) {
-            StringBuilder groupTypes = new StringBuilder();
-            for (Group.Type groupType : filterGroupTypes) {
-                String groupCode = groupType.toString().toLowerCase();
-                if (groupTypes.length() > 0) {
-                    groupTypes.append(",");
-                }
-                groupTypes.append(groupCode);
-            }
-            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
-            listGroupsUrlQuery += "filter_type=" + groupTypes.toString();
-        }
-        String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
-        return performGetRequest(listGroupsUrl, "Retrieving groups failed", new RequestHandler<List<Group>>()
-        {
-            @Override
-            public List<Group> success(JsonNode data)
-            {
-                List<Group> groups = new LinkedList<Group>();
-                if (data != null) {
-                    Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
-                    while (groupIterator.hasNext()) {
-                        JsonNode groupNode = groupIterator.next();
-                        groups.add(createGroupFromWebServiceData(groupNode));
-                    }
-                }
-                return groups;
-            }
-
-            @Override
-            public void error(StatusLine statusLine, String detail)
-            {
-                if (detail.contains("GroupNotExistsException")) {
-                    String userId;
-                    int start = detail.lastIndexOf("id=");
-                    int end = -1;
-                    if (start != -1) {
-                        start += 3;
-                        end = detail.indexOf(" ", start);
-                    }
-                    if (start != -1 && end != -1) {
-                        userId = detail.substring(start, end);
-                    }
-                    else {
-                        userId = "<not-parsed>";
-                        logger.warn("Group-id cannot be parsed from '{}'.", detail);
-                    }
-                    throw new ControllerReportSet.GroupNotExistsException(userId);
-                }
-            }
-        });
+        throw new java.lang.UnsupportedOperationException();
     }
     // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
     // cz.cesnet.shongo.controller.authorization.Authorization.getUserIds
     // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers unUsed
+    // OK
     @Override
-    public Set<String> onListGroupUserIds(final String groupId)
-    {
-        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users",
-                "Retrieving user-ids in group " + groupId + " failed",
-                new RequestHandler<Set<String>>()
-                {
-                    @Override
-                    public Set<String> success(JsonNode data)
-                    {
-                        Set<String> userIds = new HashSet<String>();
-                        if (data != null) {
-                            Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
-                            while (userIterator.hasNext()) {
-                                JsonNode userNode = userIterator.next();
-                                if (!userNode.has("id")) {
-                                    throw new IllegalStateException("User must have identifier.");
-                                }
-                                userIds.add(userNode.get("id").asText());
-                            }
-                        }
-                        return userIds;
-                    }
-                });
+    public Set<String> onListGroupUserIds(final String groupId) {
+        throw new java.lang.UnsupportedOperationException();
     }
     // jsem schopny nahradit, ale jen pro aktualne prihlaseneho uzivatele
     // pouziva se vsude
     // zeptat se zda je mozne ze se vola tato metoda i pro neprihlaseneho uzivatele
+    // OK
     @Override
     protected Set<String> onListUserGroupIds(SecurityToken securityToken)
     {
-        return getUserInformation(securityToken).getEduPersonEntitlement();
+        Set<String> projectShongoGroups = new HashSet<>();
+        if (securityToken != null) {
+            Set<String> groupIds = getUserInformation(securityToken).getEduPersonEntitlement();
+            for (String groupId : groupIds) {
+                String[] splittedPrefix = groupId.split(GROUP_OIDC_PREFIX);
+                if (splittedPrefix.length > 1) {
+                    String[] splittedFragment = splittedPrefix[1].split(GROUP_OIDC_FRAGMENT);
+                    if (splittedFragment.length > 1) {
+                        if (splittedFragment[0].contains(GROUP_OIDC_PROJECTS_SHONGO_PREFIX)) {
+                            projectShongoGroups.add(splittedFragment[0]);
+                        }
+                    }
+                }
+            }
+        }
+        return projectShongoGroups;
     }
     // jen testy
+    // OK
     @Override
     public String onCreateGroup(final Group group)
     {
@@ -530,6 +500,7 @@ public class ServerAuthorization extends Authorization
         return groupId;
     }
     // nepouziva se
+    // OK
     @Override
     protected void onModifyGroup(final Group group)
     {
@@ -556,6 +527,7 @@ public class ServerAuthorization extends Authorization
         modifyGroupAdministrators(group);
     }
     // nepouziva se
+    // OK
     @Override
     public void onDeleteGroup(final String groupId)
     {
@@ -573,6 +545,7 @@ public class ServerAuthorization extends Authorization
                 });
     }
     // jen testy
+    // OK
     @Override
     public void onAddGroupUser(final String groupId, final String userId)
     {
@@ -599,6 +572,7 @@ public class ServerAuthorization extends Authorization
                 });
     }
     // nepouziva se
+    // OK
     @Override
     public void onRemoveGroupUser(final String groupId, final String userId)
     {
@@ -927,6 +901,22 @@ public class ServerAuthorization extends Authorization
                     authenticationInfo.get("loa").getIntValue()));
             }
         }
+
+//        // only for Perun purpose, gets einfra id instead of perun id
+//        if (data.has("sources")) {
+//            JsonNode sources = data.get("sources");
+//            if (sources.isArray()) {
+//                for (JsonNode source : sources) {
+//                    if (source.has("name")) {
+//                        if (source.get("name").getTextValue().equals(PERUN_SOURCE_CESNET_IDP_PATTERN)) {
+//                            if (source.has("login")) {
+//                                userInformation.setUserId(source.get("login").getTextValue());
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         return userData;
     }

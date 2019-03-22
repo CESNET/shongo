@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -761,17 +762,7 @@ public abstract class Authorization
                 group = EVERYONE_GROUP;
             }
             else {
-                try {
-                    EntityManager entityManager = entityManagerFactory.createEntityManager();
-                    AclIdentity aclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
-                            .setParameter("type", AclIdentityType.GROUP)
-                            .setParameter("principalId", groupId)
-                            .getSingleResult();
-                    group = new Group();
-                    group.setName(aclIdentity.getPrincipalId());
-                } catch (ControllerReportSet.GroupNotExistsException exception) {
-                    group = null;
-                }
+                group = onGetGroup(groupId);
             }
             cache.putGroupByGroupId(groupId, group);
         }
@@ -797,8 +788,7 @@ public abstract class Authorization
     /**
      * @return list of user-ids for users which are in group with given {@code groupId}
      */
-    public final UserIdSet listGroupUserIds(String groupId)
-    {
+    public final UserIdSet listGroupUserIds(String groupId) {
         if (EVERYONE_GROUP_ID.equals(groupId)) {
             return new UserIdSet(true);
         }

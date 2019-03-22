@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -22,6 +23,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Authentication provider for OpenID Connect.
@@ -97,12 +100,30 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
 
             // Build user info
             UserInformation userInformation = new UserInformation();
-            userInformation.setUserId(userInfoResponse.get("id").asText());
-            userInformation.setFirstName(userInfoResponse.get("first_name").getTextValue());
-            userInformation.setLastName(userInfoResponse.get("last_name").getTextValue());
-            userInformation.setFullName(userInfoResponse.get("display_name").getTextValue());
-            userInformation.setLocale(userInfoResponse.get("language").getTextValue());
-            userInformation.setZoneInfo(userInfoResponse.get("zoneinfo").getTextValue());
+
+            if (userInfoResponse.has("id")) {
+                userInformation.setUserId(userInfoResponse.get("id").asText());
+            }
+
+            if (userInfoResponse.has("first_name")) {
+                userInformation.setFirstName(userInfoResponse.get("first_name").getTextValue());
+            }
+
+            if (userInfoResponse.has("last_name")) {
+                userInformation.setLastName(userInfoResponse.get("last_name").getTextValue());
+            }
+
+            if (userInfoResponse.has("display_name")) {
+                userInformation.setFullName(userInfoResponse.get("display_name").getTextValue());
+            }
+
+            if (userInfoResponse.has("language")) {
+                userInformation.setLocale(userInfoResponse.get("language").getTextValue());
+            }
+
+            if(userInfoResponse.has("zoneinfo")) {
+                userInformation.setZoneInfo(userInfoResponse.get("zoneinfo").getTextValue());
+            }
             if (userInfoResponse.has("original_id")) {
                 // TODO: set current principal name
             }
@@ -112,6 +133,17 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             if (userInfoResponse.has("mail")) {
                 userInformation.setEmail(userInfoResponse.get("mail").getTextValue());
             }
+
+            if(userInfoResponse.has("principal_names")){
+                Set<String> principalNames = jsonNodeToSet(userInfoResponse.get("principal_names"));
+                userInformation.setEduPersonEntitlement(principalNames);
+            }
+
+            if(userInfoResponse.has("edu_person_entitlements")){
+                Set<String> eduPersonEntitlements = jsonNodeToSet(userInfoResponse.get("edu_person_entitlements"));
+                userInformation.setEduPersonEntitlement(eduPersonEntitlements);
+            }
+
             securityToken.setUserInformation(userInformation);
 
             logger.info("{} authenticated.", userInformation);
@@ -137,5 +169,15 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
                 UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
                         .pathSegment("userinfo");
         return requestUrlBuilder.build().toUriString();
+    }
+
+    private Set<String> jsonNodeToSet(JsonNode jsonNode){
+        Set<String> set = new HashSet<>();
+        if(jsonNode.isArray()){
+            for (JsonNode objNode : jsonNode) {
+                set.add(objNode.getTextValue());
+            }
+        }
+        return set;
     }
 }

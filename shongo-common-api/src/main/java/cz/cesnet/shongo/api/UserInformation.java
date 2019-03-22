@@ -304,10 +304,14 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     }
 
     /**
-     * Local identifier pattern.
+     * Local identifier pattern einfra.
      */
-    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("^(.+)@(.+)$");
+    private static Pattern LOCAL_IDENTIFIER_PATTERN_EINFRA = Pattern.compile("^(.+)@(.+)$");
 
+    /**
+     * Local identifier pattern perun.
+     */
+    private static Pattern LOCAL_IDENTIFIER_PATTERN_PERUN = Pattern.compile("^\\d+|\\*$");
     /**
      * Local identifier pattern with type (<domain-id>:<user-id>).
      */
@@ -316,10 +320,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
 
     public static boolean isLocal(String userId)
     {
-        if (LOCAL_IDENTIFIER_PATTERN.matcher(userId).matches()) {
-            return true;
-        }
-        return false;
+        return LOCAL_IDENTIFIER_PATTERN_EINFRA.matcher(userId).matches() || LOCAL_IDENTIFIER_PATTERN_PERUN.matcher(userId).matches();
     }
 
     public static Long parseDomainId(String userId)
