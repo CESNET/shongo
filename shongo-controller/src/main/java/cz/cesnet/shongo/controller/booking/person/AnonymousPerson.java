@@ -147,7 +147,6 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     public AnonymousPerson clone() throws CloneNotSupportedException
     {
         AnonymousPerson person = (AnonymousPerson) super.clone();
-        person.setUserId(userId);
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
@@ -233,7 +232,6 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
         setName(anonymousPersonApi.getName());
         setOrganization(anonymousPersonApi.getOrganization());
         setEmail(anonymousPersonApi.getEmail());
-        setUserId(anonymousPersonApi.getUserId());
     }
 
     @Override
