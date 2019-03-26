@@ -187,7 +187,6 @@ public class ServerAuthorization extends Authorization
         }
         return super.onValidate(securityToken);
     }
-    // ok
     @Override
     protected UserData onGetUserDataByAccessToken(String accessToken)
             throws ControllerReportSet.UserNotExistsException
@@ -243,8 +242,6 @@ public class ServerAuthorization extends Authorization
         }
         throw new RuntimeException(errorMessage, errorException);
     }
-    // muzu nahradit jen za voleni do databaze
-    // pouziva se skoro vsude
     @Override
     protected UserData onGetUserDataByUserId(final String userId) throws ControllerReportSet.UserNotExistsException {
         try {
@@ -307,7 +304,6 @@ public class ServerAuthorization extends Authorization
                     });
         }
     }
-// select do databaze LIKE principal  Name
     @Override
     protected String onGetUserIdByPrincipalName(final String principalName)
             throws ControllerReportSet.UserNotExistsException
@@ -342,12 +338,6 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers
-    // nepouziva se -- cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listReferencedUsers
-    // nechat pretvorit na einfra id
-    // pokud se nastavi search a filterUSerid je null -> search v perunovi
-    // musim jeste nastavit pridavani uzivatele podle search do databaze
-    // pokud neni filterUserids null tak databaze a jeste filtruji like seach
     @Override
     protected Collection<UserData> onListUserData(final Set<String> filterUserIds, String search)
     {
@@ -411,9 +401,6 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.createAclEntry
-    // podivam se do db
-    // OK
     @Override
     protected Group onGetGroup(final String groupId)
     {
@@ -449,9 +436,6 @@ public class ServerAuthorization extends Authorization
             return group;
         }
     }
-    // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
-    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImpl.listGroups
-    // OK
     @Override
     public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
@@ -509,10 +493,6 @@ public class ServerAuthorization extends Authorization
             }
         });
     }
-    // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
-    // cz.cesnet.shongo.controller.authorization.Authorization.getUserIds
-    // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers unUsed
-    // OK
     @Override
     public Set<String> onListGroupUserIds(final String groupId)
     {
@@ -536,10 +516,6 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-    // jsem schopny nahradit, ale jen pro aktualne prihlaseneho uzivatele
-    // pouziva se vsude
-    // zeptat se zda je mozne ze se vola tato metoda i pro neprihlaseneho uzivatele
-    // OK
     @Override
     protected Set<String> onListUserGroupIds(SecurityToken securityToken)
     {
@@ -568,8 +544,6 @@ public class ServerAuthorization extends Authorization
         }
         return projectShongoGroups;
     }
-    // jen testy
-    // OK
     @Override
     public String onCreateGroup(final Group group)
     {
@@ -596,8 +570,6 @@ public class ServerAuthorization extends Authorization
         modifyGroupAdministrators(group);
         return groupId;
     }
-    // nepouziva se
-    // OK
     @Override
     protected void onModifyGroup(final Group group)
     {
@@ -623,8 +595,6 @@ public class ServerAuthorization extends Authorization
                 });
         modifyGroupAdministrators(group);
     }
-    // nepouziva se
-    // OK
     @Override
     public void onDeleteGroup(final String groupId)
     {
@@ -641,8 +611,6 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-    // jen testy
-    // OK
     @Override
     public void onAddGroupUser(final String groupId, final String userId)
     {
@@ -668,8 +636,6 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
-    // nepouziva se
-    // OK
     @Override
     public void onRemoveGroupUser(final String groupId, final String userId)
     {

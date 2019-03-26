@@ -137,11 +137,9 @@ public abstract class AclEntryManager extends AbstractManager
      */
     public List<AclEntry> listAclEntries(Set<AclIdentity> identities)
     {
-        Query sql =  entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
-                    .setParameter("identities", identities);
-
-                    return entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
-                            .setParameter("identities", identities).getResultList();
+        return entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
+                .setParameter("identities", identities)
+                .getResultList();
     }
 
     /**
