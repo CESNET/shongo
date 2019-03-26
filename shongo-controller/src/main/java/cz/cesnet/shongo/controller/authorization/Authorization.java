@@ -1040,7 +1040,9 @@ public abstract class Authorization
     {
         AclUserState aclUserState = new AclUserState();
         Set<AclIdentity> aclIdentities = new HashSet<AclIdentity>();
-        aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, securityToken.getUserId()));
+        if (securityToken != null) {
+            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, securityToken.getUserId()));
+        }
         for (String groupId : listUserGroupIds(securityToken)) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
         }

@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
+import java.security.acl.Acl;
 import java.util.*;
 
 /**
@@ -426,9 +427,26 @@ public class ServerAuthorization extends Authorization
             group.setName(aclIdentity.getPrincipalId());
             group.addAdministrators(getGroupAdministrators(groupId));
             return group;
-        }  catch (NoResultException e){
-            e.printStackTrace();
-            return null;
+        } catch (NoResultException e) {
+            Group group = performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId,
+                    "Retrieving group " + groupId + " failed",
+                    new RequestHandler<Group>() {
+                        @Override
+                        public Group success(JsonNode data) {
+                            return createGroupFromWebServiceData(data);
+                        }
+
+                        @Override
+                        public void error(StatusLine statusLine, String detail) {
+                            int statusCode = statusLine.getStatusCode();
+                            if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupNotExistsException")) {
+                                throw new ControllerReportSet.GroupNotExistsException(groupId);
+                            }
+                        }
+                    });
+
+            group.addAdministrators(getGroupAdministrators(groupId));
+            return group;
         }
     }
     // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
@@ -437,15 +455,86 @@ public class ServerAuthorization extends Authorization
     @Override
     public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
-        throw new java.lang.UnsupportedOperationException();
+        String listGroupsUrlQuery = "";
+        if (filterGroupIds != null && filterGroupIds.size() > 0) {
+            String groupIds = StringUtils.join(filterGroupIds, ",");
+            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
+            listGroupsUrlQuery += "filter_group_id=" + groupIds;
+        }
+        if (filterGroupTypes != null && filterGroupTypes.size() > 0) {
+            StringBuilder groupTypes = new StringBuilder();
+            for (Group.Type groupType : filterGroupTypes) {
+                String groupCode = groupType.toString().toLowerCase();
+                if (groupTypes.length() > 0) {
+                    groupTypes.append(",");
+                }
+                groupTypes.append(groupCode);
+            }
+            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
+            listGroupsUrlQuery += "filter_type=" + groupTypes.toString();
+        }
+        String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
+        return performGetRequest(listGroupsUrl, "Retrieving groups failed", new RequestHandler<List<Group>>() {
+            @Override
+            public List<Group> success(JsonNode data) {
+                List<Group> groups = new LinkedList<Group>();
+                if (data != null) {
+                    Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
+                    while (groupIterator.hasNext()) {
+                        JsonNode groupNode = groupIterator.next();
+                        groups.add(createGroupFromWebServiceData(groupNode));
+                    }
+                }
+                return groups;
+            }
+
+            @Override
+            public void error(StatusLine statusLine, String detail) {
+                if (detail.contains("GroupNotExistsException")) {
+                    String userId;
+                    int start = detail.lastIndexOf("id=");
+                    int end = -1;
+                    if (start != -1) {
+                        start += 3;
+                        end = detail.indexOf(" ", start);
+                    }
+                    if (start != -1 && end != -1) {
+                        userId = detail.substring(start, end);
+                    } else {
+                        userId = "<not-parsed>";
+                        logger.warn("Group-id cannot be parsed from '{}'.", detail);
+                    }
+                    throw new ControllerReportSet.GroupNotExistsException(userId);
+                }
+            }
+        });
     }
     // cz.cesnet.shongo.controller.authorization.AuthorizationExpression.group unused
     // cz.cesnet.shongo.controller.authorization.Authorization.getUserIds
     // cz.cesnet.shongo.controller.api.rpc.AuthorizationServiceImple.listUsers unUsed
     // OK
     @Override
-    public Set<String> onListGroupUserIds(final String groupId) {
-        throw new java.lang.UnsupportedOperationException();
+    public Set<String> onListGroupUserIds(final String groupId)
+    {
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users",
+                "Retrieving user-ids in group " + groupId + " failed",
+                new RequestHandler<Set<String>>() {
+                    @Override
+                    public Set<String> success(JsonNode data) {
+                        Set<String> userIds = new HashSet<String>();
+                        if (data != null) {
+                            Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
+                            while (userIterator.hasNext()) {
+                                JsonNode userNode = userIterator.next();
+                                if (!userNode.has("id")) {
+                                    throw new IllegalStateException("User must have identifier.");
+                                }
+                                userIds.add(userNode.get("id").asText());
+                            }
+                        }
+                        return userIds;
+                    }
+                });
     }
     // jsem schopny nahradit, ale jen pro aktualne prihlaseneho uzivatele
     // pouziva se vsude
@@ -468,6 +557,14 @@ public class ServerAuthorization extends Authorization
                     }
                 }
             }
+        } else {
+           EntityManager entityManager = entityManagerFactory.createEntityManager();
+           List<AclIdentity> aclIdentities = entityManager.createQuery("FROM AclIdentity I WHERE I.type LIKE :type", AclIdentity.class)
+                    .setParameter("type", AclIdentityType.GROUP)
+                    .getResultList();
+           for (AclIdentity aclIdentity : aclIdentities){
+               projectShongoGroups.add(aclIdentity.getPrincipalId());
+           }
         }
         return projectShongoGroups;
     }

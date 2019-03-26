@@ -503,9 +503,6 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 authorization.checkUserExistence(aclEntryApi.getIdentityPrincipalId());
                 break;
             case GROUP:
-                // oidc
-                // jinde se nepouziva (jen testy)
-                // pouziva onGetGroup /perun/groups/{groupId}
                 authorization.checkGroupExistence(aclEntryApi.getIdentityPrincipalId());
                 break;
             default:

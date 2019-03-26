@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -136,9 +137,11 @@ public abstract class AclEntryManager extends AbstractManager
      */
     public List<AclEntry> listAclEntries(Set<AclIdentity> identities)
     {
-        return entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
-                    .setParameter("identities", identities)
-                    .getResultList();
+        Query sql =  entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
+                    .setParameter("identities", identities);
+
+                    return entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
+                            .setParameter("identities", identities).getResultList();
     }
 
     /**
