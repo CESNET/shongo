@@ -250,6 +250,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return parentReservationRequestId;
     }
 
+    public void setParentReservationRequestId(String parentReservationRequestId)
+    {
+        this.parentReservationRequestId = parentReservationRequestId;
+    }
+
+
     public ReservationRequestType getType()
     {
         return type;
@@ -1108,7 +1114,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @return {@link Specification} with stored attributes
      */
-    public Specification toSpecificationApi()
+    public Specification toSpecificationApi(SpecificationType specificationType)
     {
         Specification specification;
         switch (specificationType) {
@@ -1253,18 +1259,23 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                         throw new IllegalStateException("Slot duration should be not empty.");
                     }
                 }
-                switch (durationType) {
-                    case MINUTE:
-                        return Period.minutes(durationCount);
-                    case HOUR:
-                        return Period.hours(durationCount);
-                    case DAY:
-                        return Period.days(durationCount);
-                    default:
-                        throw new TodoImplementException(durationType);
-                }
+                return getDurationCountPeriod();
             default:
                 throw new TodoImplementException("Reservation request duration.");
+        }
+    }
+
+
+    public Period getDurationCountPeriod() {
+        switch (durationType) {
+            case MINUTE:
+                return Period.minutes(durationCount);
+            case HOUR:
+                return Period.hours(durationCount);
+            case DAY:
+                return Period.days(durationCount);
+            default:
+                throw new TodoImplementException(durationType);
         }
     }
 
@@ -1472,6 +1483,22 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
     }
 
+    public void updateAliasEnd()
+    {
+        setEnd(getEndDate());
+    }
+
+    //End date
+    public DateTime getEndDate()
+    {
+        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
+            return getRequestStart().plus(getDurationCountPeriod());
+        } else {
+            /**TODO get end for periodic**/
+        }
+        return new DateTime();
+    }
+
     public LocalDate getFirstFutureSlotStart()
     {
         DateTime slotStart = getRequestStart();
@@ -1510,6 +1537,81 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         return slotStart.toLocalDate();
     }
+
+    public ReservationRequest toAliasApi(HttpServletRequest request) {
+        ReservationRequest reservationRequest = new ReservationRequest();
+        if (!Strings.isNullOrEmpty(permanentRoomReservationRequestId)) {
+            reservationRequest.setId(permanentRoomReservationRequestId);
+        }
+
+
+
+        reservationRequest.setSlot(getRequestStart(), getEnd());
+
+        reservationRequest.setPurpose(purpose);
+        reservationRequest.setDescription(description);
+        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
+
+        // Create specification
+        Specification specification = toSpecificationApi(SpecificationType.PERMANENT_ROOM);
+        reservationRequest.setSpecification(specification);
+
+        // Set reservation request to be deleted by scheduler if foreign resource is specified
+        reservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
+
+        return reservationRequest;
+    }
+
+    public AbstractReservationRequest toCapacityApi(HttpServletRequest request) {
+
+        setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
+
+        SortedSet<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
+        // Create reservation request
+        AbstractReservationRequest abstractReservationRequest;
+        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
+            // Create single reservation request
+            ReservationRequest reservationRequest = new ReservationRequest();
+            PeriodicDateTimeSlot slot = slots.first();
+            reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(slot.getDuration()));
+            abstractReservationRequest = reservationRequest;
+        }
+        else {
+            // Create set of reservation requests
+            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.addAllSlots(slots);
+            if (excludeDates != null && !excludeDates.isEmpty()) {
+                for (LocalDate excludeDate : excludeDates) {
+                    for (PeriodicDateTimeSlot slot : slots) {
+                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
+                            slot.addExcludeDate(excludeDate);
+                        }
+                    }
+                }
+            }
+            abstractReservationRequest = reservationRequestSet;
+        }
+        if (!Strings.isNullOrEmpty(id)) {
+            abstractReservationRequest.setId(id);
+        }
+        abstractReservationRequest.setPurpose(purpose);
+        abstractReservationRequest.setDescription(description);
+
+
+        abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
+
+
+        // Create specification
+        Specification specification = toSpecificationApi(SpecificationType.PERMANENT_ROOM_CAPACITY);
+        abstractReservationRequest.setSpecification(specification);
+
+        // Set reservation request to be deleted by scheduler if foreign resource is specified
+        abstractReservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
+
+        return abstractReservationRequest;
+    }
+
+
 
     /**
      * Store all attributes to {@link AbstractReservationRequest}.
@@ -1556,7 +1658,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         // Create specification
-        Specification specification = toSpecificationApi();
+        Specification specification = toSpecificationApi(this.specificationType);
         abstractReservationRequest.setSpecification(specification);
 
         // Set reservation request to be deleted by scheduler if foreign resource is specified
@@ -1883,6 +1985,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 ", roomName='" + roomName + '\'' +
                 ", roomResourceId='" + roomResourceId + '\'' +
                 ", meetingRoomResourceId='" + meetingRoomResourceId + '\'' +
+                ", durationCount='" + durationCount + '\'' +
+                ", durationType='" + durationType + '\'' +
                 '}';
     }
 }
