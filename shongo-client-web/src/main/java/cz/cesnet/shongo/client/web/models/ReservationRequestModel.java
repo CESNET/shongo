@@ -25,6 +25,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
@@ -1539,13 +1540,26 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     public ReservationRequest toAliasApi(HttpServletRequest request) {
+
+
+        if (!periodicityType.equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
+            this.end = getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone())  ;
+        } else {
+            //TODO compute end for non periodic reservations
+        }
+
+
+
         ReservationRequest reservationRequest = new ReservationRequest();
         if (!Strings.isNullOrEmpty(permanentRoomReservationRequestId)) {
             reservationRequest.setId(permanentRoomReservationRequestId);
         }
 
 
-
+        DateTime end = getEnd();
+        if (end == null) {
+            SortedSet<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
+        }
         reservationRequest.setSlot(getRequestStart(), getEnd());
 
         reservationRequest.setPurpose(purpose);
@@ -1583,9 +1597,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             if (excludeDates != null && !excludeDates.isEmpty()) {
                 for (LocalDate excludeDate : excludeDates) {
                     for (PeriodicDateTimeSlot slot : slots) {
-                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
+/*                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
                             slot.addExcludeDate(excludeDate);
-                        }
+                        }*/
                     }
                 }
             }

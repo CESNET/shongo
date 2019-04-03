@@ -406,12 +406,10 @@ public class WizardRoomController extends WizardParticipantsController
         // Set valid startDate to be in the future
         reservationRequest.updateSlotStartToFutureSlot();
 
-        // Set valid alias reservation end based on calculation of last slot
-        reservationRequest.updateAliasEnd();
 
         ReservationRequestValidator validator = new ReservationRequestValidator(
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
-        validator.validate(reservationRequest, bindingResult);
+        //validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             // Skip error if colliding interval is for future periodic reservation request

@@ -199,7 +199,7 @@ public class ReservationRequestValidator implements Validator
                     }
                     break;
                 case PERMANENT_ROOM:
-                    validateInterval(reservationRequestModel, errors);
+                    //validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     validateIdentifier("roomName", errors);
                     if (TechnologyModel.H323_SIP.equals(reservationRequestModel.getTechnology())) {
