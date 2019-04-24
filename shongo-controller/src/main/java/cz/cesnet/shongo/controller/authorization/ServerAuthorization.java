@@ -533,14 +533,6 @@ public class ServerAuthorization extends Authorization
                     }
                 }
             }
-        } else {
-           EntityManager entityManager = entityManagerFactory.createEntityManager();
-           List<AclIdentity> aclIdentities = entityManager.createQuery("FROM AclIdentity I WHERE I.type LIKE :type", AclIdentity.class)
-                    .setParameter("type", AclIdentityType.GROUP)
-                    .getResultList();
-           for (AclIdentity aclIdentity : aclIdentities){
-               projectShongoGroups.add(aclIdentity.getPrincipalId());
-           }
         }
         return projectShongoGroups;
     }
@@ -920,6 +912,7 @@ public class ServerAuthorization extends Authorization
             if (!language.isNull()) {
                 Locale locale = new Locale(language.getTextValue());
                 userData.setLocale(locale);
+                userInformation.setLocale(locale.toString());
             }
         }
         if (data.has("timezone")) {
@@ -927,6 +920,7 @@ public class ServerAuthorization extends Authorization
             if (!timezone.isNull()) {
                 DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
                 userData.setTimeZone(timeZone);
+                userInformation.setZoneInfo(timeZone.toString());
             }
         }
         if (data.has("zoneinfo")) {
@@ -934,6 +928,7 @@ public class ServerAuthorization extends Authorization
             if (!timezone.isNull()) {
                 DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
                 userData.setTimeZone(timeZone);
+                userInformation.setZoneInfo(timeZone.toString());
             }
         }
 
