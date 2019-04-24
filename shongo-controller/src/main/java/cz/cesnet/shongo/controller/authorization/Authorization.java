@@ -491,7 +491,7 @@ public abstract class Authorization
     }
 
     /**
-     * @param securityToken    of the user
+     * @param securityToken    of the usernull
      * @param entity           the entity
      * @param objectPermission which the user must have for the entity
      * @return true if the user has given {@code objectPermission} for the entity,
@@ -535,7 +535,7 @@ public abstract class Authorization
             return true;
         }
         String userId = securityToken.getUserId();
-        return hasObjectPermission(userId, objectIdentity, objectPermission);
+        return hasObjectPermission(userId, objectIdentity, objectPermission, securityToken);
     }
 
     /**
@@ -546,7 +546,7 @@ public abstract class Authorization
      * false otherwise
      */
     public boolean hasObjectPermission(String userId,
-                                       AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
+                                       AclObjectIdentity objectIdentity, ObjectPermission objectPermission, SecurityToken token)
     {
         if (isAdministrator(userId)) {
             // Administrator has all possible permissions
@@ -554,7 +554,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(null);
+            aclUserState = fetchAclUserState(token);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasObjectPermission(objectIdentity, objectPermission);
@@ -896,6 +896,7 @@ public abstract class Authorization
     {
         // Validate access token by getting user info
         try {
+
             UserInformation userInformation = getUserInformation(securityToken);
             logger.trace("Access token '{}' is valid for {} (id: {}).",
                     new Object[]{securityToken.getAccessToken(), userInformation.getFullName(),
@@ -1106,7 +1107,11 @@ public abstract class Authorization
             for (String userId : userIdSet.getUserIds()) {
                 AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
                 if (aclUserState == null) {
-                    aclUserState = fetchAclUserState(null);
+                    // get SecurityToken
+                    if(!authorization.userSessionSettings.isEmpty()) {
+                        Map.Entry<SecurityToken,UserSessionSettings> entry = userSessionSettings.entrySet().iterator().next();
+                        aclUserState = fetchAclUserState(entry.getKey());
+                    }
                     cache.putAclUserStateByUserId(userId, aclUserState);
                 } else {
                     aclUserState.addAclEntry(aclEntry);
