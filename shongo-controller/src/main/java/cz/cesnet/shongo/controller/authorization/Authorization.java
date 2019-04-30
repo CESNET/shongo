@@ -1090,7 +1090,7 @@ public abstract class Authorization
      *
      * @param aclEntry to be added
      */
-    void addAclEntryToCache(AclEntry aclEntry)
+    void addAclEntryToCache(AclEntry aclEntry, SecurityToken securityToken)
     {
         // Update AclEntry cache
         cache.putAclEntryById(aclEntry);
@@ -1107,10 +1107,8 @@ public abstract class Authorization
             for (String userId : userIdSet.getUserIds()) {
                 AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
                 if (aclUserState == null) {
-                    // get SecurityToken
-                    if(!authorization.userSessionSettings.isEmpty()) {
-                        Map.Entry<SecurityToken,UserSessionSettings> entry = userSessionSettings.entrySet().iterator().next();
-                        aclUserState = fetchAclUserState(entry.getKey());
+                    if(securityToken != null) {
+                        aclUserState = fetchAclUserState(securityToken);
                     }
                     cache.putAclUserStateByUserId(userId, aclUserState);
                 } else {

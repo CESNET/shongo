@@ -438,7 +438,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequest.getSpecification().updateSpecificationSummary(entityManager, false);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             if (reservationRequest instanceof ReservationRequest) {
                 ReservationRequest simpleReservationRequest = (ReservationRequest) reservationRequest;
@@ -575,7 +575,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             return ObjectIdentifier.formatId(newReservationRequest);
         }
@@ -847,7 +847,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             abstractReservationRequest.getSpecification().updateSpecificationSummary(entityManager, true);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             return ObjectIdentifier.formatId(modifiedReservationRequest);
         }
@@ -898,7 +898,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -945,7 +945,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -1007,7 +1007,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {

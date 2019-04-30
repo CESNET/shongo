@@ -108,12 +108,12 @@ public class AuthorizationManager extends AclEntryManager
     /**
      * Apply changes made during the active transaction (to ACL cache).
      */
-    public void commitTransaction()
+    public void commitTransaction(SecurityToken securityToken)
     {
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
         }
-        activeTransaction.commit();
+        activeTransaction.commit(securityToken);
         activeTransaction.destroy();
         activeTransaction = null;
     }
@@ -604,7 +604,7 @@ public class AuthorizationManager extends AclEntryManager
         /**
          * Apply recorded changes.
          */
-        public void commit()
+        public void commit(SecurityToken securityToken)
         {
             if (authorization == null) {
                 throw new IllegalArgumentException("Authorization must not be null.");
@@ -614,7 +614,7 @@ public class AuthorizationManager extends AclEntryManager
                     authorization.removeAclEntryFromCache(aclEntry);
                 }
                 for (AclEntry aclEntry : addedAclEntries) {
-                    authorization.addAclEntryToCache(aclEntry);
+                    authorization.addAclEntryToCache(aclEntry, securityToken);
                 }
             }
         }

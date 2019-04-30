@@ -63,14 +63,10 @@ public class ResourceReservationTask extends ReservationTask
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
         Authorization authorization = authorizationManager.getAuthorization();
         if (UserInformation.isLocal(schedulerContext.getUserId())) {
-            // Check permissions for local user
-            if (!authorization.hasObjectPermission(schedulerContext.getUserId(), resource, ObjectPermission.RESERVE_RESOURCE)) {
-                if (!authorization.getUsersWithRole(resource, ObjectRole.RESERVATION).isEmpty()) {
-                    throw new SchedulerReportSet.UserNotAllowedException(resource);
-                }
+            if (!authorization.getUsersWithRole(resource, ObjectRole.RESERVATION).isEmpty()) {
+                throw new SchedulerReportSet.UserNotAllowedException(resource);
             }
-        }
-        else {
+        } else {
             // Check permissions for reservation from foreign domain
             //TODO
         }

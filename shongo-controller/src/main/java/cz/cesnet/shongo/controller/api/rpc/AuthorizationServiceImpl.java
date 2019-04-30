@@ -550,7 +550,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.acl.AclEntry aclEntry = authorizationManager.createAclEntry(
                     aclEntryApi.getIdentityType(), aclEntryApi.getIdentityPrincipalId(), object, aclEntryApi.getRole());
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
             return (aclEntry != null ? aclEntry.getId().toString() : null);
         }
         finally {
@@ -580,7 +580,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
             authorizationManager.deleteAclEntry(aclEntry);
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -785,7 +785,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                         + object.getClass().getSimpleName() + ".");
             }
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {

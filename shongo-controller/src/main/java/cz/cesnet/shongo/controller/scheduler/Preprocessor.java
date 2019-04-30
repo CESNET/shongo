@@ -255,7 +255,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
             stateManager.setState(PreprocessorState.PREPROCESSED, interval);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(null);
         }
         catch (Exception exception) {
             if (authorizationManager.isTransactionActive()) {
