@@ -783,7 +783,7 @@ public class DomainService extends AbstractServiceImpl implements Component.Enti
             reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(null);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {

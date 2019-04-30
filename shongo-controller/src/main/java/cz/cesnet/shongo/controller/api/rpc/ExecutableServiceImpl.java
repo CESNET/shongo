@@ -598,7 +598,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             executableManager.delete(executable, authorizationManager);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         catch (javax.persistence.RollbackException exception) {
             ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(

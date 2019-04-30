@@ -216,7 +216,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(null);
             removeModifiedReservationsFromCache();
 
             // Add reservation notifications
@@ -277,7 +277,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     List<AbstractNotification> contextNotifications = context.finish(result);
 
                     entityManager.getTransaction().commit();
-                    authorizationManager.commitTransaction();
+                    authorizationManager.commitTransaction(null);
 
                     removeModifiedReservationsFromCache();
 
@@ -354,7 +354,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             executableManager.deleteAllNotReferenced(authorizationManager);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(null);
         }
         catch (Exception exception) {
             if (authorizationManager.isTransactionActive()) {

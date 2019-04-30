@@ -133,7 +133,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.createAclEntry(AclIdentityType.USER, userId, resource, ObjectRole.OWNER);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             // Add resource to the cache
             if (cache != null) {
@@ -224,7 +224,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceManager.delete(resource);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             // Remove resource from the cache
             if (cache != null) {
@@ -701,7 +701,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.createAclEntry(AclIdentityType.USER, securityToken.getUserId(), tag, ObjectRole.OWNER);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -834,7 +834,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceManager.deleteTag(persistanceTag);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(token);
         }
         catch (RollbackException exception) {
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
@@ -907,7 +907,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.createAclEntriesForChildEntity(tag, persistentObject);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(token);
         }
         catch (RollbackException exception) {
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
@@ -1015,7 +1015,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             authorizationManager.createAclEntry(AclIdentityType.USER, securityToken.getUserId(), domain, ObjectRole.OWNER);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(securityToken);
 
             // Add domain to the cache
             if (cache != null) {
@@ -1194,7 +1194,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceManager.deleteDomain(persistenceDomain);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(token);
 
             // Update resource in the cache
             if (cache != null) {
@@ -1260,7 +1260,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceManager.createDomainResource(domainResource);
 
             entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
+            authorizationManager.commitTransaction(token);
         }
         catch (RollbackException exception) {
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
