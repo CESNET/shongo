@@ -54,9 +54,10 @@ public class iCalendar
 
         TimeZoneRegistry registry = new TimeZoneRegistryImpl("zoneinfo-outlook/");
         org.joda.time.DateTimeZone dateTimeZone = DateTimeZone.getDefault();
-        VTimeZone timeZone = registry.getTimeZone(dateTimeZone.getID()).getVTimeZone();
-
-        this.calendar.getComponents().add(timeZone);
+        TimeZone zone = registry.getTimeZone(dateTimeZone.getID());
+        if(zone != null) {
+            this.calendar.getComponents().add(zone.getVTimeZone());
+        }
     }
 
     /**

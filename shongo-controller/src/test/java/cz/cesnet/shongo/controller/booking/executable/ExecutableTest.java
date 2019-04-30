@@ -918,7 +918,13 @@ public class ExecutableTest extends AbstractExecutorTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification(5, Technology.ADOBE_CONNECT);
-        roomSpecification.addParticipant(new PersonParticipant(new UserPerson(userId2)));
+
+        UserPerson userPerson = new UserPerson(userId2);
+        userPerson.setName("name");
+        userPerson.setOrganization("organization");
+        userPerson.setEmail("email");
+
+        roomSpecification.addParticipant(new PersonParticipant(userPerson));
         reservationRequest.setSpecification(roomSpecification);
 
         Reservation reservation = allocateAndCheck(reservationRequest);

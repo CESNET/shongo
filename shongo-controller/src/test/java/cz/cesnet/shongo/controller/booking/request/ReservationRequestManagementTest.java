@@ -627,12 +627,6 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         {{
                 add(ObjectPermission.READ);
             }};
-        Set<ObjectPermission> OWNER = new HashSet<ObjectPermission>()
-        {{
-            add(ObjectPermission.READ);
-            add(ObjectPermission.WRITE);
-            add(ObjectPermission.PROVIDE_RESERVATION_REQUEST);
-        }};
 
         // Check ReservationRequestReusement.ARBITRARY
         ReservationRequest reservationRequest1 = new ReservationRequest();
@@ -649,9 +643,9 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest2.setReusedReservationRequestId(reservationRequest1Id);
         String reservationRequest2Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest2);
 
-        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, new AclEntry(user2Id, reservationRequest1Id, ObjectRole.OWNER));
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, new AclEntry(user2Id, reservationRequest1Id, ObjectRole.READER));
         Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclEntries should not be propagated",
-                OWNER, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest2Id));
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest2Id));
 
         // Check ReservationRequestReusement.OWNED
         ReservationRequest reservationRequest3 = new ReservationRequest();
