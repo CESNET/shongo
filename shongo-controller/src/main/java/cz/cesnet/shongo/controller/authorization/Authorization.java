@@ -484,7 +484,7 @@ public abstract class Authorization
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             // ooidc
-            aclUserState = fetchAclUserState(securityToken);
+            aclUserState = fetchAclUserState(userId, securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasObjectRole(objectIdentity, objectRole);
@@ -554,7 +554,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(token);
+            aclUserState = fetchAclUserState(userId, token);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasObjectPermission(objectIdentity, objectPermission);
@@ -581,7 +581,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(securityToken);
+            aclUserState = fetchAclUserState(userId, securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(object);
@@ -614,7 +614,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(securityToken);
+            aclUserState = fetchAclUserState(userId, securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Long> entities = aclUserState.getObjectsByRole(aclObjectClass, objectRole);
@@ -646,7 +646,7 @@ public abstract class Authorization
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = fetchAclUserState(securityToken);
+            aclUserState = fetchAclUserState(userId, securityToken);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Long> entities = aclUserState.getObjectsByPermission(aclObjectClass, objectPermission);
@@ -1037,12 +1037,12 @@ public abstract class Authorization
      * @param securityToken of user for which the ACL should be fetched
      * @return fetched {@link AclUserState} for given {@code userId}
      */
-    private AclUserState fetchAclUserState(SecurityToken securityToken)
+    private AclUserState fetchAclUserState(String userId, SecurityToken securityToken)
     {
         AclUserState aclUserState = new AclUserState();
         Set<AclIdentity> aclIdentities = new HashSet<AclIdentity>();
         if (securityToken != null) {
-            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, securityToken.getUserId()));
+            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
         }
         for (String groupId : listUserGroupIds(securityToken)) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
@@ -1108,7 +1108,7 @@ public abstract class Authorization
                 AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
                 if (aclUserState == null) {
                     if(securityToken != null) {
-                        aclUserState = fetchAclUserState(securityToken);
+                        aclUserState = fetchAclUserState(userId, securityToken);
                     }
                     cache.putAclUserStateByUserId(userId, aclUserState);
                 } else {
