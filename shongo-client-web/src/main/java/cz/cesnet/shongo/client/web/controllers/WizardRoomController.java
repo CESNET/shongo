@@ -403,13 +403,17 @@ public class WizardRoomController extends WizardParticipantsController
                 reservationRequest.setRoomParticipantCount(1);
             }
         }
+
+        // Set valid end for alias
+        reservationRequest.updateAliasEnd();
+
         // Set valid startDate to be in the future
         reservationRequest.updateSlotStartToFutureSlot();
 
 
         ReservationRequestValidator validator = new ReservationRequestValidator(
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
-        //validator.validate(reservationRequest, bindingResult);
+        validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             // Skip error if colliding interval is for future periodic reservation request
@@ -733,7 +737,7 @@ public class WizardRoomController extends WizardParticipantsController
                         securityToken, reservationRequest.toAliasApi(request));
                 reservationRequest.setPermanentRoomReservationRequestId(reservationRequestId);
                 //TODO also reserve capacity
-                reservationRequestId = reservationService.createReservationRequest(
+                reservationService.createReservationRequest(
                         securityToken, reservationRequest.toCapacityApi(request));
 
             } else {

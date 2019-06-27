@@ -995,7 +995,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             boolean periodicityEndSet = false;
 
             int index = 0;
-            // Multiple slots awailable only for WEEKLY periodicity, check done few lines lower
+            // Multiple slots available only for WEEKLY periodicity, check done few lines lower
             periodicDaysInWeek = new PeriodicDateTimeSlot.DayOfWeek[slots.size()];
             // Set slot properties and periodicity
             for (Object slot : slots) {
@@ -1495,9 +1495,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
             return getRequestStart().plus(getDurationCountPeriod());
         } else {
-            /**TODO get end for periodic**/
+            return getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone()).plus(Period.weeks(2));
         }
-        return new DateTime();
     }
 
     public LocalDate getFirstFutureSlotStart()
@@ -1540,15 +1539,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     public ReservationRequest toAliasApi(HttpServletRequest request) {
-
-
-        if (!periodicityType.equals(PeriodicDateTimeSlot.PeriodicityType.NONE)) {
-            this.end = getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone())  ;
-        } else {
-            //TODO compute end for non periodic reservations
-        }
-
-
 
         ReservationRequest reservationRequest = new ReservationRequest();
         if (!Strings.isNullOrEmpty(permanentRoomReservationRequestId)) {
