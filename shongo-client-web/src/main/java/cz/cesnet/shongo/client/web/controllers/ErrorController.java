@@ -1,20 +1,15 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import com.google.common.base.Strings;
-import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.ErrorHandler;
-import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
-import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
-import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -26,19 +21,11 @@ import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
-import java.util.Properties;
 
 /**
  * Error controller.
@@ -171,7 +158,8 @@ public class ErrorController
      */
     @RequestMapping("/error-not-found")
     public String handleErrorNotFound(HttpServletRequest request)
-    {      logger.error(request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI).toString());
+    {
+        logger.error(request.getRemoteAddr() + " " + request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI).toString());
         return "errorNotFound";
     }
 
