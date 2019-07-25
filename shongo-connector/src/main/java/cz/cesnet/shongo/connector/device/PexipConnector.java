@@ -517,7 +517,7 @@ public class PexipConnector extends AbstractMultipointConnector {
             deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        //roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
 
 
         //standard basic auth
@@ -540,7 +540,8 @@ public class PexipConnector extends AbstractMultipointConnector {
                 try {
                     JSONObject confNode = conferenceNodes.getJSONObject(i);
                     //get version of conferencing node
-                    Integer apiVersion = new Integer(confNode.getString("version").substring(0, confNode.getString("version").indexOf(" ")));
+                    String version = confNode.getString("version").substring(0, confNode.getString("version").indexOf(" "));
+                    Integer apiVersion = new Integer((int) Double.parseDouble(version));
                     if (apiVersion < 18) {
                         throw new CommandException(String.format(
                                 "Device API %.1f too old. The connector only works with API 18 or higher.", apiVersion));
@@ -671,8 +672,8 @@ public class PexipConnector extends AbstractMultipointConnector {
     }
 
     public static void main(String[] args) throws Exception {
-        final String username = "";
-        final String password = "";
+        final String username = "shongo-dev";
+        final String password = "cheejo5eiv1Wei6";
         final String server = "https://pexman.cesnet.cz";
 
         DeviceAddress address = new DeviceAddress(server, 443);
@@ -680,7 +681,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         conn.connect(address, username, password);
 
 
-        conn.disconnectRoomParticipant("99", "22aa680f-32dc-4feb-901d-ee19fef4aef6");
+        //conn.disconnectRoomParticipant("99", "22aa680f-32dc-4feb-901d-ee19fef4aef6");
 /*
         //Test create new room and delete
         Room room = new Room();
