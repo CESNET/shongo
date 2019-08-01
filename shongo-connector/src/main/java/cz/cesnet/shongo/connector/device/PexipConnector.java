@@ -524,6 +524,7 @@ public class PexipConnector extends AbstractMultipointConnector {
         this.authUsername = username;
         this.authPassword = password;
         this.deviceAddress = deviceAddress;
+        this.requestTimeout = (int) configuration.getOptionDuration(OPTION_TIMEOUT, OPTION_TIMEOUT_DEFAULT).getMillis();
 
         // Create HttpClient for Http communication
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient(requestTimeout);
