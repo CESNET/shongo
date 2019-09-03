@@ -188,6 +188,8 @@ public class ClientWebUrl
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/delete";
 
+    public static final String ROOM_RESERVATION_LIST_DATA =
+            "/room/reservation/list/data";
     public static final String MEETING_ROOM_RESERVATION_REQUEST_LIST_DATA =
             "/meeting-room/reservation-request/list/data";
     public static final String MEETING_ROOM_RESERVATION_LIST_DATA =
