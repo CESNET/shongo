@@ -517,7 +517,7 @@ public class PexipConnector extends AbstractMultipointConnector {
             deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        //roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
 
 
         //standard basic auth

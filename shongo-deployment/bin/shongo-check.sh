@@ -26,7 +26,7 @@ function check_connector
 {
     AGENTS=$(echo $1 | sed -s 's/,/ /g')
     RESULT=$($BIN/shongo-client-cli.sh --connect $CONTROLLER --scripting --cmd "list-connectors" 2>&1)
-    if [[ $RESULT != [* ]]; then
+    if [[ $RESULT != *[* ]]; then
         echo "FAILED (controller not available at '$CONTROLLER')"
         echo $RESULT
         exit 2
