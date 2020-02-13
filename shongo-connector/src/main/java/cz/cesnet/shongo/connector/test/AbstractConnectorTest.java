@@ -1,18 +1,15 @@
 package cz.cesnet.shongo.connector.test;
 
-import com.google.common.base.Strings;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.ConnectorContainer;
 import cz.cesnet.shongo.connector.ConnectorContainerConfiguration;
 import cz.cesnet.shongo.connector.ConnectorScope;
-import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
 import cz.cesnet.shongo.connector.api.DeviceConfiguration;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
-import cz.cesnet.shongo.connector.common.AbstractConnector;
 import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.jade.ConnectorAgent;
 import cz.cesnet.shongo.controller.ControllerScope;
@@ -32,7 +29,6 @@ import org.apache.commons.lang.mutable.MutableInt;
 import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -10,7 +11,6 @@ import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.joda.time.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;

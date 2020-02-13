@@ -35,7 +35,7 @@
 
     <c:choose>
         <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            <form:form class="form-horizontal" commandName="reservationRequest" method="post">
+            <form:form class="form-horizontal" modelAttribute="reservationRequest" method="post">
                 <legend>
                     <spring:message code="views.wizard.room.participants.notification"/>&nbsp;<form:checkbox id="roomParticipantNotificationEnabled" path="roomParticipantNotificationEnabled" tabindex="${tabIndex}" ng-model="roomParticipantNotificationEnabled"/>
                     <tag:help><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/></tag:help>
@@ -65,7 +65,7 @@
             </form:form>
         </c:when>
         <c:otherwise>
-            <form:form class="form-horizontal" commandName="reservationRequest" method="post">
+            <form:form class="form-horizontal" modelAttribute="reservationRequest" method="post">
             </form:form>
         </c:otherwise>
     </c:choose>

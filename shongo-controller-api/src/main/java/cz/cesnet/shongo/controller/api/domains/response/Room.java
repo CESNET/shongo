@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.RoomLayout;
 import cz.cesnet.shongo.api.RoomParticipantRole;
-import org.codehaus.jackson.annotate.JsonProperty;
+
 
 import java.util.ArrayList;
 import java.util.HashSet;

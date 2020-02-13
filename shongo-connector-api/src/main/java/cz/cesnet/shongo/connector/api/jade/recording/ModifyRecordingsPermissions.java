@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector.api.jade.recording;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ObjectType;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.RecordingObjectType;

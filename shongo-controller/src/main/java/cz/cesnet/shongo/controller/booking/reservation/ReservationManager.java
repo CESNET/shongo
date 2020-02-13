@@ -371,8 +371,8 @@ public class ReservationManager extends AbstractManager
         TypedQuery<Allocation> query = entityManager.createQuery(
                 "SELECT allocation FROM Allocation allocation"
                         + " WHERE ((allocation.state = :stateDeleted)"
-                        + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))"
-                        + " AND (allocation.reservationRequest = null OR allocation.reservations.size != 0)",
+                        + " OR (allocation.state = :stateWithoutReservations AND size(allocation.reservations) != 0))"
+                        + " AND (allocation.reservationRequest = null OR size(allocation.reservations) != 0)",
                 Allocation.class)
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);

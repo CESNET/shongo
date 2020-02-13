@@ -20,7 +20,6 @@ import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
-import org.hibernate.annotations.Index;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -34,6 +33,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Table(indexes = { @Index(name = "created_by_idx", columnList = "created_by") })
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractReservationRequest extends PersistentObject implements ReportableSimple
 {
@@ -45,7 +45,6 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * User-id of an user who created the {@link AbstractReservationRequest}.
      */
-    @Index(name = "created_by_idx")
     private String createdBy;
 
     /**

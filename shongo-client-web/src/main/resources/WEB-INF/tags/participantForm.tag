@@ -96,7 +96,7 @@
 </script>
 
 <form:form class="form-horizontal"
-           commandName="participant"
+           modelAttribute="participant"
            method="post"
            ng-controller="ParticipantFormController"
            ng-init="init()">

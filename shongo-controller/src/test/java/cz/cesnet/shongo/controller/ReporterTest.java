@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;

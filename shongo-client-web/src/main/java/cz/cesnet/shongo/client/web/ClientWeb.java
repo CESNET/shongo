@@ -1,16 +1,19 @@
 package cz.cesnet.shongo.client.web;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
-import org.eclipse.jetty.io.EndPoint;
+import org.apache.tomcat.InstanceManager;
+import org.apache.tomcat.SimpleInstanceManager;
+import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.server.*;
+
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -159,6 +162,23 @@ public class ClientWeb
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath(clientWebConfiguration.getServerPath());
         webAppContext.setParentLoaderPriority(true);
+
+        // To control which parts of the container’s classpath should be processed
+        webAppContext.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                ".*/[^/]*.jar$");
+
+        // Establish Scratch directory for the servlet context (used by JSP compilation)
+        webAppContext.setAttribute("javax.servlet.context.tempdir", getScratchDir());
+
+        // Configure the application to support the compilation of JSP files.
+        // We need a new class loader and some stuff so that Jetty can call the
+        // onStartup() methods as required.
+        webAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
+        webAppContext.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+        webAppContext.addBean(new ServletContainerInitializersStarter(webAppContext), true);
+        webAppContext.setClassLoader(new URLClassLoader(new URL[0], ClientWeb.class.getClassLoader()));
+
+
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
             String resourceBase = arguments[0];
             logger.info("Using '{}' as resource base.", resourceBase);
@@ -180,28 +200,34 @@ public class ClientWeb
         boolean forwarded = clientWebConfiguration.isServerForwarded();
         String forwardedHost = clientWebConfiguration.getServerForwardedHost();
 
+
         // Configure HTTP connector
-        final SelectChannelConnector httpConnector;
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        ServerConnector httpConnector;
         if (forceHttps) {
-            httpConnector = new HttpsRedirectingSelectChannelConnector();
+            httpConfig.addCustomizer(new SecureRequestCustomizer());
+            httpConfig.setSecureScheme("https");
+            httpConfig.setSecurePort(clientWebConfiguration.getServerSslPort());
         }
-        else {
-            httpConnector = new SelectChannelConnector();
-        }
-        httpConnector.setPort(clientWebConfiguration.getServerPort());
         if (forwarded) {
-            httpConnector.setForwarded(true);
+            // Add support for X-Forwarded headers
+            ForwardedRequestCustomizer forwardedCustomizer = new ForwardedRequestCustomizer();
             if (forwardedHost != null) {
-                httpConnector.setHostHeader(forwardedHost);
+                forwardedCustomizer.setForwardedHostHeader(forwardedHost);
             }
+            httpConfig.addCustomizer(forwardedCustomizer);
         }
+
+        httpConnector = new ServerConnector(server);
+        httpConnector.addConnectionFactory(new HttpConnectionFactory(httpConfig));
+        httpConnector.setPort(clientWebConfiguration.getServerPort());
+
         server.addConnector(httpConnector);
 
         // Configure HTTPS connector
+        ServerConnector httpsConnector;
         if (sslKeyStore != null) {
             if (forceHttps) {
-                // Redirect HTTP to HTTPS
-                httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
                 // Require confidential (forces the HTTP to HTTPS redirection)
                 Constraint constraint = new Constraint();
                 constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
@@ -213,16 +239,18 @@ public class ClientWeb
                 webAppContext.setSecurityHandler(constraintSecurityHandler);
             }
 
-            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+            sslContextFactory.setKeyStorePath(sslKeyStore);
             sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
-            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+            httpsConnector = new ServerConnector(server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.toString()),
+                    new HttpConnectionFactory(httpsConfig));
             httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
-            if (forwarded) {
-                httpsConnector.setForwarded(true);
-                if (forwardedHost != null) {
-                    httpsConnector.setHostHeader(forwardedHost);
-                }
-            }
+
             server.addConnector(httpsConnector);
         }
 
@@ -259,11 +287,12 @@ public class ClientWeb
 
             // Request layout page to initialize
             logger.info("Initializing layout...");
-            Connector serverConnector = server.getConnectors()[0];
+            Connector connector = server.getConnectors()[0];
+            ServerConnector serverConnector = (ServerConnector) connector;
             String serverHost = serverConnector.getHost();
-            String serverUrl = String.format("http://%s:%d%s", (serverHost != null ? serverHost : "localhost"),
+            String serverUrl = String.format("http://%s:%d%s", (!Strings.isNullOrEmpty(serverHost) ? serverHost : "localhost"),
                     serverConnector.getLocalPort(), webAppContext.getContextPath());
-            URLConnection serverConnection = new URL(serverUrl + "/layout").openConnection();
+            URLConnection serverConnection = new URL(serverUrl + "layout").openConnection();
             serverConnection.getInputStream();
             logger.info("Layout successfully initialized.");
 
@@ -285,9 +314,29 @@ public class ClientWeb
         }
     }
 
-    /**
+    private static File getScratchDir() throws IOException {
+        File tempDir = new File(System.getProperty("java.io.tmpdir"));
+        File scratchDir = new File(tempDir.toString(), "jetty-jsp");
+
+        if (!scratchDir.exists()) {
+            if (!scratchDir.mkdirs()) {
+                throw new IOException("Unable to create scratch directory: " + scratchDir);
+            }
+        }
+        return scratchDir;
+    }
+
+    private static List<ContainerInitializer> jspInitializers() {
+        JettyJasperInitializer sci = new JettyJasperInitializer();
+        ContainerInitializer initializer = new ContainerInitializer(sci, null);
+        List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+        initializers.add(initializer);
+        return initializers;
+    }
+
+/*    *//**
      * Redirecting {@link SelectChannelConnector}.
-     */
+     *//*
     public static class HttpsRedirectingSelectChannelConnector extends SelectChannelConnector
     {
         @Override
@@ -296,5 +345,5 @@ public class ClientWeb
             request.setScheme("https");
             super.customize(endpoint, request);
         }
-    }
+    }*/
 }

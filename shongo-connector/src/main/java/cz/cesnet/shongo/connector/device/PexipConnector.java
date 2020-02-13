@@ -2,7 +2,7 @@ package cz.cesnet.shongo.connector.device;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.util.Base64;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
@@ -542,7 +542,7 @@ public class PexipConnector extends AbstractMultipointConnector {
                     JSONObject confNode = conferenceNodes.getJSONObject(i);
                     //get version of conferencing node
                     String version = confNode.getString("version").substring(0, confNode.getString("version").indexOf(" "));
-                    Integer apiVersion = new Integer((int) Double.parseDouble(version));
+                    Integer apiVersion = Integer.valueOf(((int) Double.parseDouble(version)));
                     if (apiVersion < 18) {
                         throw new CommandException(String.format(
                                 "Device API %.1f too old. The connector only works with API 18 or higher.", apiVersion));
@@ -576,7 +576,7 @@ public class PexipConnector extends AbstractMultipointConnector {
      */
     private HttpResponse execApiToResponse(String actionPath, RequestAttributeList attributes, String body, HttpMethod reqMethod) throws CommandException {
         String authString = authUsername + ":" + authPassword;
-        String authStringEnc = Base64.encode(authString.getBytes(StandardCharsets.UTF_8));
+        String authStringEnc = Base64.getEncoder().encodeToString(authString.getBytes(StandardCharsets.UTF_8));
         String command = getCallUrl(actionPath, attributes);
         logger.debug(String.format("Issuing request " + reqMethod + " '%s'", command));
         HttpRequestBase request = getRequest(command, reqMethod);

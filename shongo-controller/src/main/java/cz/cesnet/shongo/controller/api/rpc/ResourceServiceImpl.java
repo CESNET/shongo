@@ -30,7 +30,7 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.hibernate.exception.ConstraintViolationException;
-import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -616,9 +616,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         checkNotNull("resourceId", resourceId);
 
         if (slot == null) {
-            slot = new Interval(DateMidnight.now(), Period.days(31));
+            slot = new Interval(new DateTime().withTimeAtStartOfDay(), Period.days(31));
         }
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);

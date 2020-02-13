@@ -9,7 +9,6 @@
 
 <%@attribute name="submitUrl" required="false"%>
 
-<tag:url var="backUrl" value="${requestScope.backUrl}"/>
 <c:set var="tabIndex" value="1"/>
 
 <script type="text/javascript">
@@ -18,8 +17,7 @@
 
 <p><spring:message code="views.report.help"/></p>
 <div class="tagReportForm" ng-app="tag:reportForm">
-    <form:form class="form-horizontal" commandName="report" action="${submitUrl}" method="post">
-
+    <form:form class="form-horizontal" modelAttribute="report" action="${submitUrl}" method="post">
             <div class="form-group">
                 <form:label class="col-xs-2 control-label" path="email">
                     <spring:message code="views.report.email"/>:
@@ -39,7 +37,6 @@
                     <form:errors path="message" cssClass="error"/>
                 </div>
             </div>
-
             <c:if test="${report.reCaptcha != null && configuration.reCaptchaConfigured}">
                 <div class="form-group">
                     <div class="col-xs-offset-2 col-xs-4">
@@ -61,12 +58,10 @@
                     </div>
                 </div>
             </c:if>
-
             <div class="form-group">
                 <div class="col-xs-offset-2 col-xs-4">
                     <spring:message code="views.button.send" var="submitTitle"/>
                     <input class="btn btn-primary" type="submit" value="${submitTitle}" tabindex="${tabIndex}"/>
-                    <a  class="btn btn-default" href="${backUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
                 </div>
             </div>
 

@@ -21,7 +21,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -321,7 +321,7 @@ public class ErrorHandler
                 description = cause.getMessage();
             }
             logger.warn("AJAX request failed", cause);
-            ModelAndView modelAndView = new ModelAndView(new MappingJacksonJsonView());
+            ModelAndView modelAndView = new ModelAndView(new MappingJackson2JsonView());
             modelAndView.addObject("error", error);
             modelAndView.addObject("description", description);
             return modelAndView;

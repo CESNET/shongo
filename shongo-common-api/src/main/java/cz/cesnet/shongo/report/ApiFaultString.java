@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.report;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
+
 
 import java.io.IOException;
 
@@ -17,7 +18,7 @@ import java.io.IOException;
 public class ApiFaultString implements ReportSerializer
 {
     /**
-     * @see org.codehaus.jackson.map.ObjectMapper
+     * @see com.fasterxml.jackson.databind.ObjectMapper
      */
     private static ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -39,7 +40,7 @@ public class ApiFaultString implements ReportSerializer
      */
     public String getMessage()
     {
-        return jsonNode.get("message").getTextValue();
+        return jsonNode.get("message").asText();
     }
 
     /**
@@ -64,21 +65,21 @@ public class ApiFaultString implements ReportSerializer
             if (value == null) {
                 return null;
             }
-            return value.getTextValue();
+            return value.asText();
         }
         else if (Integer.class.equals(type)) {
             JsonNode value = jsonNode.get(name);
             if (value == null) {
                 return null;
             }
-            return value.getIntValue();
+            return value.asInt();
         }
         else if (AbstractReport.class.isAssignableFrom(type)) {
             ObjectNode value = (ObjectNode) jsonNode.get(name);
             if (value == null) {
                 return null;
             }
-            String reportClassName = value.get("class").getTextValue();
+            String reportClassName = value.get("class").asText();
             try {
                 Class reportClass = ClassHelper.getClassFromShortName(reportClassName);
                 @SuppressWarnings("unchecked")
@@ -120,7 +121,7 @@ public class ApiFaultString implements ReportSerializer
             jsonNode = jsonMapper.createObjectNode();
             jsonNode.put("class", ClassHelper.getClassShortName(value.getClass()));
             serializableReport.writeParameters(this);
-            mainJsonNode.put(name, jsonNode);
+            mainJsonNode.replace(name, jsonNode);
             jsonNode = mainJsonNode;
         }
         else if (value != null) {

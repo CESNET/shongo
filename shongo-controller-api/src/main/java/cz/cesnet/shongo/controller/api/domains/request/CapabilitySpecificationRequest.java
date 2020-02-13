@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.Domain;
@@ -7,10 +9,7 @@ import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import cz.cesnet.shongo.controller.api.domains.response.DomainCapability;
 import cz.cesnet.shongo.controller.api.request.AbstractRequest;
 import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.joda.time.Interval;
+
 
 import java.io.IOException;
 import java.util.Collection;

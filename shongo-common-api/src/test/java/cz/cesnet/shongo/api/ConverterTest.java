@@ -244,7 +244,9 @@ public class ConverterTest
             Assert.assertEquals(expected, Converter.convertComplexTypeToMap(objectComplexType));
         }
         else if (expected instanceof Collection && object instanceof Collection) {
+            @SuppressWarnings("unchecked")
             Collection<Object> expectedCollection = (Collection<Object>) expected;
+            @SuppressWarnings("unchecked")
             Collection<Object> objectCollection = (Collection<Object>) object;
             Assert.assertEquals(expectedCollection.size(), objectCollection.size());
             Iterator<Object> iteratorExpected = expectedCollection.iterator();

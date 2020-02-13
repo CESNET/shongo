@@ -45,7 +45,7 @@
 <hr/>
 
 <form:form class="form-horizontal"
-           commandName="reservationRequest"
+           modelAttribute="reservationRequest"
            method="post"
            ng-controller="ReservationRequestFormController">
 

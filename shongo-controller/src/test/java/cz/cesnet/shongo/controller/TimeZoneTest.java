@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.joda.time.*;
 import org.junit.Test;
 

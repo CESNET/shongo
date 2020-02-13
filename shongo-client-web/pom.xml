@@ -17,9 +17,10 @@
     <packaging>jar</packaging>
 
     <properties>
-        <spring.version>3.2.3.RELEASE</spring.version>
-        <spring.security.version>3.1.4.RELEASE</spring.security.version>
-        <jetty.version>8.1.15.v20140411</jetty.version>
+        <spring.version>5.2.2.RELEASE</spring.version>
+        <spring.security.version>5.2.1.RELEASE</spring.security.version>
+        <jetty.version>9.4.25.v20191220</jetty.version><!--9.4.0.v20161208-->
+        <!--<jetty.version>8.1.15.v20140411</jetty.version>-->
         <!--<jetty.version>9.2.5.v20141112</jetty.version>-->
     </properties>
 
@@ -90,17 +91,17 @@
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-core</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-jsp</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-el</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.5</version>
         </dependency>
 
         <!-- Jetty dependencies -->
@@ -126,8 +127,24 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jsp</artifactId>
+            <artifactId>apache-jsp</artifactId>
             <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>apache-jstl</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-annotations</artifactId>
+            <version>${jetty.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-jndi</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Template engine for user design -->
@@ -141,7 +158,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.2.5</version>
+            <version>4.5.10</version>
         </dependency>
 
         <!-- Joda time JSP tags -->

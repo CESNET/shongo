@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.api.util.DeviceAddress;
-import org.codehaus.jackson.annotate.JsonValue;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

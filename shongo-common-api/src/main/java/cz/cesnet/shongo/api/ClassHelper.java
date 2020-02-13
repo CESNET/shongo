@@ -117,7 +117,7 @@ public class ClassHelper
     {
         T instance;
         try {
-            instance = type.newInstance();
+            instance = type.getDeclaredConstructor().newInstance();
         }
         catch (Exception exception) {
             throw new CommonReportSet.ClassInstantiationErrorException(exception, type.getSimpleName());

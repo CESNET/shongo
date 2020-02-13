@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
@@ -16,16 +18,14 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -173,7 +173,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             HttpPost httpPost = new HttpPost(getTokenEndpointUrl());
 
             String clientAuthorization = clientId + ":" + clientSecret;
-            clientAuthorization = new String(Base64.encode(clientAuthorization.getBytes()));
+            clientAuthorization = new String(Base64Utils.encode(clientAuthorization.getBytes()));
             httpPost.setHeader("Authorization", "Basic " + clientAuthorization);
             httpPost.setEntity(new UrlEncodedFormEntity(content));
 
@@ -194,8 +194,8 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         }
         // Handle error
         if (tokenResponse.has("error")) {
-            String error = tokenResponse.get("error").getTextValue();
-            String description = tokenResponse.get("error_description").getTextValue();
+            String error = tokenResponse.get("error").asText();
+            String description = tokenResponse.get("error_description").asText();
             if (error != null && error.equals("invalid_grant_expired")) {
                 throw new AuthorizationCodeExpiredException(authorizationCode);
             }
@@ -207,7 +207,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         if (!tokenResponse.has("access_token")) {
             throw new AuthenticationServiceException("Token endpoint did not return an access_token.");
         }
-        String accessToken = tokenResponse.get("access_token").getTextValue();
+        String accessToken = tokenResponse.get("access_token").asText();
 
         return handleAccessToken(request, accessToken);
     }

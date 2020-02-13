@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
 import cz.cesnet.shongo.controller.api.domains.response.RoomParticipant;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Modify room's participant.

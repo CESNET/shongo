@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.device;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
@@ -12,7 +13,6 @@ import cz.cesnet.shongo.connector.common.RequestAttributeList;
 import cz.cesnet.shongo.connector.util.HttpReqUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

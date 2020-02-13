@@ -169,7 +169,7 @@
 </script>
 
 <form:form class="form-horizontal"
-           commandName="userRole"
+           modelAttribute="userRole"
            method="post"
            ng-controller="UserRoleFormController">
 

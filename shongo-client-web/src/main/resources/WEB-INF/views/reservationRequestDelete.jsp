@@ -8,6 +8,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <c:set var="backUrl">
     <%= ClientWebUrl.HOME%>
@@ -126,11 +127,11 @@
 </c:forEach>
 
 <div>
-    <form method="post" class="form-inline">
+    <form:form method="post" class="form-inline">
         <spring:message code="views.button.yes" var="buttonYes"/>
         <input type="submit" class="btn btn-primary" tabindex="1" value="${buttonYes}"/>
         <a class="btn btn-default" href="${backUrl}" tabindex="1"><spring:message code="views.button.no"/></a>
-    </form>
+    </form:form>
 </div>
 
 <%--<c:choose>--%>

@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 /**
  * Represents a device mode in which the device
@@ -12,6 +14,7 @@ import javax.persistence.Entity;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Table(indexes = { @Index(name = "connector_agent_name", columnList = "connector_agent_name") })
 public class ManagedMode extends Mode
 {
     /**
@@ -23,7 +26,6 @@ public class ManagedMode extends Mode
      * @return {@link #connectorAgentName}
      */
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
-    @org.hibernate.annotations.Index(name = "connector_agent_name")
     public String getConnectorAgentName()
     {
         return connectorAgentName;

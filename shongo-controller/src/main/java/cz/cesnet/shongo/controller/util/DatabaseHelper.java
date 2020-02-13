@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.util;
 
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hsqldb.util.DatabaseManagerSwing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +12,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,14 +52,23 @@ public class DatabaseHelper
         try {
             Session session = (Session) entityManager.getDelegate();
             SessionFactoryImplementor sessionFactory = (SessionFactoryImplementor) session.getSessionFactory();
-            ConnectionProvider connectionProvider = sessionFactory.getConnectionProvider();
-            Connection connection = connectionProvider.getConnection();
+            Connection connection = getConnection(sessionFactory);
             databaseManager.connect(connection);
         }
         catch (Exception exception) {
             logger.error("Cannot connect to current database!", exception);
         }
         return databaseManager;
+    }
+
+    public static Connection getConnection(SessionFactoryImplementor sessionFactory){
+        try {
+            return ((SessionImplementor) sessionFactory).getJdbcConnectionAccess()
+                    .obtainConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

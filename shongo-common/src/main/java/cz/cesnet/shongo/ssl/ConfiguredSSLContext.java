@@ -7,7 +7,6 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.AbstractVerifier;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpConnectionParams;
@@ -81,7 +80,7 @@ public class ConfiguredSSLContext
     /**
      * @return {@link #hostnameVerifier}
      */
-    public X509HostnameVerifier getHostnameVerifier()
+    public HostnameVerifier getHostnameVerifier()
     {
         return hostnameVerifier;
     }

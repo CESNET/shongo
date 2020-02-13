@@ -2,7 +2,7 @@ package cz.cesnet.shongo.connector.storage;
 
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

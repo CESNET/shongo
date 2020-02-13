@@ -5,13 +5,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Abstract database test provides the entity manager to extending classes as protected member variable.

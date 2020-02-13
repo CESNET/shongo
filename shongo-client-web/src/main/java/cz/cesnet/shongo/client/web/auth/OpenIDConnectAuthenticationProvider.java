@@ -1,18 +1,14 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.UserSettings;
-import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -88,8 +84,8 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             }
             // Handle error
             if (userInfoResponse.has("error")) {
-                String error = userInfoResponse.get("error").getTextValue();
-                String description = userInfoResponse.get("error_description").getTextValue();
+                String error = userInfoResponse.get("error").asText();
+                String description = userInfoResponse.get("error_description").asText();
                 throw new AuthenticationServiceException(
                         "Unable to obtain user information. " + error + ": " + description);
             }
@@ -106,32 +102,33 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             }
 
             if (userInfoResponse.has("first_name")) {
-                userInformation.setFirstName(userInfoResponse.get("first_name").getTextValue());
+                userInformation.setFirstName(userInfoResponse.get("first_name").asText());
             }
 
             if (userInfoResponse.has("last_name")) {
-                userInformation.setLastName(userInfoResponse.get("last_name").getTextValue());
+                userInformation.setLastName(userInfoResponse.get("last_name").asText());
             }
 
             if (userInfoResponse.has("display_name")) {
-                userInformation.setFullName(userInfoResponse.get("display_name").getTextValue());
+                userInformation.setFullName(userInfoResponse.get("display_name").asText());
             }
 
             if (userInfoResponse.has("language")) {
-                userInformation.setLocale(userInfoResponse.get("language").getTextValue());
+                userInformation.setLocale(userInfoResponse.get("language").asText());
             }
 
             if(userInfoResponse.has("zoneinfo")) {
-                userInformation.setZoneInfo(userInfoResponse.get("zoneinfo").getTextValue());
+                userInformation.setZoneInfo(userInfoResponse.get("zoneinfo").asText());
             }
+
             if (userInfoResponse.has("original_id")) {
                 // TODO: set current principal name
             }
             if (userInfoResponse.has("organization")) {
-                userInformation.setOrganization(userInfoResponse.get("organization").getTextValue());
+                userInformation.setOrganization(userInfoResponse.get("organization").asText());
             }
             if (userInfoResponse.has("mail")) {
-                userInformation.setEmail(userInfoResponse.get("mail").getTextValue());
+                userInformation.setEmail(userInfoResponse.get("mail").asText());
             }
 
             if(userInfoResponse.has("principal_names")){
@@ -175,7 +172,7 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
         Set<String> set = new HashSet<>();
         if(jsonNode.isArray()){
             for (JsonNode objNode : jsonNode) {
-                set.add(objNode.getTextValue());
+                set.add(objNode.asText());
             }
         }
         return set;

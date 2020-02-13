@@ -1,14 +1,11 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
 import cz.cesnet.shongo.controller.api.domains.response.Room;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-
-import java.util.List;
 
 /**
  * Represents an action for foreign virtual room.

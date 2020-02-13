@@ -38,6 +38,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Table(indexes = { @Index(name = "room_id", columnList = "room_id") })
 public class ResourceRoomEndpoint extends RoomEndpoint
         implements ManagedEndpoint, RecordableEndpoint, Reporter.ResourceContext
 {
@@ -95,7 +96,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint
      */
     @Override
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
-    @org.hibernate.annotations.Index(name = "room_id")
     public String getRoomId()
     {
         return roomId;

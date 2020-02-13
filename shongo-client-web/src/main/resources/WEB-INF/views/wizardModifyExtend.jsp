@@ -47,7 +47,7 @@
 <div ng-app="jsp:wizardModifyExtend">
 
 <form:form class="form-horizontal"
-           commandName="reservationRequest"
+           modelAttribute="reservationRequest"
            method="post">
 
     <fieldset>
