@@ -17,6 +17,8 @@ public enum ClientWebNavigation
             "navigation.home"),
     HELP(HOME, ClientWebUrl.HELP,
             "navigation.help"),
+    DOCUMENTATION(HOME, ClientWebUrl.DOCUMENTATION,
+            "navigation.doc"),
     USER_SETTINGS(HOME, ClientWebUrl.USER_SETTINGS,
             "navigation.userSettings"),
     REPORT(HOME, ClientWebUrl.REPORT,

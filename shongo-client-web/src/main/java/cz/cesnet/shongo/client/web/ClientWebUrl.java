@@ -19,6 +19,8 @@ public class ClientWebUrl
             "/logged";
     public static final String HELP =
             "/help";
+    public static final String DOCUMENTATION =
+            "/doc";
     public static final String CHANGELOG =
             "/changelog";
 

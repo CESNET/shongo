@@ -660,6 +660,7 @@ public class Design
                 links.add(new LinkContext("navigation.userSettings", getUrl().applyBackUrl(ClientWebUrl.USER_SETTINGS)));
             }
             links.add(new LinkContext("navigation.help", getUrl().applyBackUrl(ClientWebUrl.HELP)));
+            links.add(new LinkContext("navigation.doc", getUrl().applyBackUrl(ClientWebUrl.DOCUMENTATION)));
             if (isUserAuthenticated()) {
                 final UserContext user = getUser();
 
