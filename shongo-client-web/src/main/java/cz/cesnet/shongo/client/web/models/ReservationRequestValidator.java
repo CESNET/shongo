@@ -157,7 +157,10 @@ public class ReservationRequestValidator implements Validator
 
         if (Strings.isNullOrEmpty(reservationRequestModel.getDescription())) {
             errors.rejectValue("description", "validation.field.description");
+        } else {
+            validateNotNum("description", errors);
         }
+
         if (specificationType != null) {
             switch (specificationType) {
                 case PERMANENT_ROOM_CAPACITY:
@@ -538,6 +541,20 @@ public class ReservationRequestValidator implements Validator
         Matcher matcher = PATTERN_NUM.matcher(value);
         if (!matcher.matches()) {
             errors.rejectValue(field, "validation.field.invalidNum");
+        }
+    }
+
+    /**
+     * @param field
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
+    public static void validateNotNum(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        Matcher matcher = PATTERN_NUM.matcher(value);
+        if (matcher.matches()) {
+            errors.rejectValue(field, "validation.field.invalidNotNum");
         }
     }
 
