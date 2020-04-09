@@ -26,6 +26,11 @@ public class RoomProviderCapability extends DeviceCapability
     private Integer licenseCount;
 
     /**
+     * Maximum of licences per room.
+     */
+    private Integer maxLicencesPerRoom;
+
+    /**
      * Set of {@link AliasType} which are required for each created room.
      * If multiple technologies are supported by the owner {@link DeviceResource} and the room is created only
      * for a subset of the technologies, only alias {@link AliasType}s which are compatible with this technology subset
@@ -53,6 +58,19 @@ public class RoomProviderCapability extends DeviceCapability
     /**
      * Constructor.
      *
+     * @param licenseCount sets the {@link #licenseCount}
+     * @param maxLicencesPerRoom sets the {@link #maxLicencesPerRoom}
+     *
+     */
+    public RoomProviderCapability(Integer licenseCount, Integer maxLicencesPerRoom)
+    {
+        this.licenseCount = licenseCount;
+        this.maxLicencesPerRoom = maxLicencesPerRoom;
+    }
+
+    /**
+     * Constructor.
+     *
      * @param licenseCount      sets the {@link #licenseCount}
      * @param requiredAliasType to be added to the {@link #requiredAliasTypes}
      */
@@ -74,6 +92,21 @@ public class RoomProviderCapability extends DeviceCapability
         for (AliasType requiredAliasType : requiredAliasTypes) {
             this.requiredAliasTypes.add(requiredAliasType);
         }
+    }
+
+    /**
+     * @return {@link #maxLicencesPerRoom}
+     */
+    @Column
+    public Integer getMaxLicencesPerRoom() {
+        return maxLicencesPerRoom;
+    }
+
+    /**
+     * @param maxLicencesPerRoom sets the {@link #maxLicencesPerRoom}
+     */
+    public void setMaxLicencesPerRoom(Integer maxLicencesPerRoom) {
+        this.maxLicencesPerRoom = maxLicencesPerRoom;
     }
 
     /**
@@ -154,6 +187,7 @@ public class RoomProviderCapability extends DeviceCapability
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
         roomProviderCapabilityApi.setId(getId());
         roomProviderCapabilityApi.setLicenseCount(getLicenseCount());
+        roomProviderCapabilityApi.setMaxLicencesPerRoom(getMaxLicencesPerRoom());
         for (AliasType requiredAliasType : getRequiredAliasTypes()) {
             roomProviderCapabilityApi.addRequiredAliasType(requiredAliasType);
         }
@@ -169,6 +203,7 @@ public class RoomProviderCapability extends DeviceCapability
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
 
         setLicenseCount(roomProviderCapabilityApi.getLicenseCount());
+        setMaxLicencesPerRoom(roomProviderCapabilityApi.getMaxLicencesPerRoom());
 
         Synchronization.synchronizeCollection(requiredAliasTypes, roomProviderCapabilityApi.getRequiredAliasTypes());
     }

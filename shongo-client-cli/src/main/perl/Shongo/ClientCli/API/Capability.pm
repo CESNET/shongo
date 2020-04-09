@@ -76,6 +76,11 @@ sub on_init()
                 'required' => 1,
                 'type' => 'int'
             });
+            $self->add_attribute('maxLicencesPerRoom', {
+                'title' => 'Maximum Licences Per Room',
+                'required' => 0,
+                'type' => 'int'
+            });
             $self->add_attribute('requiredAliasTypes', {
                 'title' => 'Required Alias Types',
                 'type' => 'collection',

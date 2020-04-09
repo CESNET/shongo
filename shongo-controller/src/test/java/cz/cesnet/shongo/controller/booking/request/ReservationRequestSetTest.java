@@ -67,7 +67,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
 
             DeviceResource deviceResource = new DeviceResource();
             deviceResource.addTechnology(Technology.H323);
-            deviceResource.addCapability(new RoomProviderCapability(100));
+            deviceResource.addCapability(new RoomProviderCapability(100, 100));
             deviceResource.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
             deviceResource.setAllocatable(true);
             createResource(deviceResource);

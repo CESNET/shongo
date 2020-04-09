@@ -18,6 +18,11 @@ public final class AvailableRoom
     private final int availableLicenseCount;
 
     /**
+     * Number of maximum licences per room.
+     */
+    private final int maxLicencesPerRoom;
+
+    /**
      * Constructor.
      *
      * @param roomProviderCapability sets the {@link #roomProviderCapability}
@@ -30,6 +35,14 @@ public final class AvailableRoom
         if (this.availableLicenseCount < 0) {
             throw new IllegalStateException("Available license count can't be negative.");
         }
+        if (roomProviderCapability.getMaxLicencesPerRoom() != null) {
+            this.maxLicencesPerRoom = roomProviderCapability.getMaxLicencesPerRoom();
+        } else {
+            //if not set - no restrictions
+            this.maxLicencesPerRoom = 0;
+
+        }
+
     }
 
     /**
@@ -63,6 +76,15 @@ public final class AvailableRoom
     {
         return roomProviderCapability.getLicenseCount();
     }
+
+    /**
+     * @return maximum {@link RoomProviderCapability#licenseCount} for {@link #roomProviderCapability}
+     */
+    public Integer getMaxLicencesPerRoom()
+    {
+        return maxLicencesPerRoom;
+    }
+
 
     /**
      * @return ratio of fullness for the device (0.0 - 1.0)

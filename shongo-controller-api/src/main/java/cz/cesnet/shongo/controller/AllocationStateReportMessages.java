@@ -17,6 +17,7 @@ public class AllocationStateReportMessages
     public static final String RESOURCE_UNDER_MAINTENANCE = "resource-under-maintenance";
     public static final String RESOURCE_NOT_AVAILABLE = "resource-not-available";
     public static final String RESOURCE_ROOM_CAPACITY_EXCEEDED = "resource-room-capacity-exceeded";
+    public static final String RESOURCE_SINGLE_ROOM_LIMIT_EXCEEDED = "resource-single-room-limit-exceeded";
     public static final String RESOURCE_RECORDING_CAPACITY_EXCEEDED = "resource-recording-capacity-exceeded";
     public static final String RESOURCE_NOT_ENDPOINT = "resource-not-endpoint";
     public static final String RESOURCE_MULTIPLE_REQUESTED = "resource-multiple-requested";
@@ -71,6 +72,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE_UNDER_MAINTENANCE, new Report.UserType[]{}, Report.Language.ENGLISH, "There is no available capacity due to maintenance in the time slot ${interval}.");
         addMessage(RESOURCE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
         addMessage(RESOURCE_ROOM_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.");
+        addMessage(RESOURCE_SINGLE_ROOM_LIMIT_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource has capacity limit per room of ${maxLicencesPerRoom} licences.");
         addMessage(RESOURCE_RECORDING_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} doesn't have any available licenses for recording.");
         addMessage(RESOURCE_NOT_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not endpoint.");
         addMessage(RESOURCE_MULTIPLE_REQUESTED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is requested multiple times.");

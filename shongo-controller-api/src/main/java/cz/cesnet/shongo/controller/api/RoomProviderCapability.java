@@ -19,6 +19,11 @@ public class RoomProviderCapability extends Capability
     private int licenseCount;
 
     /**
+     * Maximum of licences per room.
+     */
+    private int maxLicencesPerRoom;
+
+    /**
      * Set of {@link AliasType} which are required for each created room.
      * If multiple technologies are supported by the owner {@link DeviceResource} and the room is created only
      * for a subset of the technologies, only alias {@link AliasType}s which are compatible with this technology subset
@@ -55,6 +60,20 @@ public class RoomProviderCapability extends Capability
         for (AliasType requiredAliasType : requiredAliasTypes) {
             addRequiredAliasType(requiredAliasType);
         }
+    }
+
+    /**
+     * @return {@link #maxLicencesPerRoom}
+     */
+    public int getMaxLicencesPerRoom() {
+        return maxLicencesPerRoom;
+    }
+
+    /**
+     * @param maxLicencesPerRoom sets the {@link #maxLicencesPerRoom}
+     */
+    public void setMaxLicencesPerRoom(int maxLicencesPerRoom) {
+        this.maxLicencesPerRoom = maxLicencesPerRoom;
     }
 
     /**
@@ -98,6 +117,7 @@ public class RoomProviderCapability extends Capability
     }
 
     public static final String LICENSE_COUNT = "licenseCount";
+    public static final String MAX_LICENCES_PER_ROOM = "maxLicencesPerRoom";
     public static final String REQUIRED_ALIAS_TYPES = "requiredAliasTypes";
 
     @Override
@@ -105,6 +125,7 @@ public class RoomProviderCapability extends Capability
     {
         DataMap dataMap = super.toData();
         dataMap.set(LICENSE_COUNT, licenseCount);
+        dataMap.set(MAX_LICENCES_PER_ROOM, maxLicencesPerRoom);
         dataMap.set(REQUIRED_ALIAS_TYPES, requiredAliasTypes);
         return dataMap;
     }
@@ -114,6 +135,7 @@ public class RoomProviderCapability extends Capability
     {
         super.fromData(dataMap);
         licenseCount = dataMap.getInt(LICENSE_COUNT);
+        maxLicencesPerRoom = dataMap.getInt(MAX_LICENCES_PER_ROOM);
         requiredAliasTypes = dataMap.getSet(REQUIRED_ALIAS_TYPES, AliasType.class);
     }
 }

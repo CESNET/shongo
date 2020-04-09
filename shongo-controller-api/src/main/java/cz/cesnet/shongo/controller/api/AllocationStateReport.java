@@ -248,6 +248,10 @@ public class AllocationStateReport extends AbstractObjectReport
                     userError = new RoomCapacityExceeded(availableLicenseCount, maxLicenseCount);
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_SINGLE_ROOM_LIMIT_EXCEEDED)) {
+                Integer maxLicencesPerRoom = Converter.convertToInteger(report.get("maxLicencesPerRoom"));
+                userError = new SingleRoomLimitExceeded(maxLicencesPerRoom);
+            }
             else if (identifier.equals(AllocationStateReportMessages.RESOURCE_RECORDING_CAPACITY_EXCEEDED)) {
                 if (!(userError instanceof RecordingCapacityExceeded)) {
                     userError = new RecordingCapacityExceeded();
@@ -646,6 +650,36 @@ public class AllocationStateReport extends AbstractObjectReport
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             return MESSAGE_SOURCE.getMessage("roomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
+        }
+    }
+
+    /**
+     * Room capacity per single room exceeded.
+     */
+    public static class SingleRoomLimitExceeded extends UserError
+    {
+
+        protected Integer maxLicencesPerRoom;
+
+        public SingleRoomLimitExceeded(Integer maxLicencesPerRoom)
+        {
+            this.maxLicencesPerRoom = maxLicencesPerRoom;
+        }
+
+        public Integer getMaxLicencesPerRoom()
+        {
+            return maxLicencesPerRoom;
+        }
+
+        public void setMaxLicencesPerRoom(Integer maxLicencesPerRoom)
+        {
+            this.maxLicencesPerRoom = maxLicencesPerRoom;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            return MESSAGE_SOURCE.getMessage("singleRoomLimitExceeded", locale, maxLicencesPerRoom);
         }
     }
 

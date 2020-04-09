@@ -4654,6 +4654,123 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
+
+    /**
+     * The resource {@link #resource} has limit of {@link maxLicencesPerRoom}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceSingleRoomLimitExceededReport")
+    public static class ResourceSingleRoomLimitExceededReport extends ResourceReport
+    {
+        protected Integer maxLicencesPerRoom;
+
+        public ResourceSingleRoomLimitExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-single-room-limit-exceeded";
+        }
+
+        public ResourceSingleRoomLimitExceededReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer maxLicencesPerRoom)
+        {
+            setResource(resource);
+            setMaxLicencesPerRoom(maxLicencesPerRoom);
+        }
+
+        @javax.persistence.Column
+        public Integer getMaxLicencesPerRoom()
+        {
+            return maxLicencesPerRoom;
+        }
+
+        public void setMaxLicencesPerRoom(Integer maxLicencesPerRoom)
+        {
+            this.maxLicencesPerRoom = maxLicencesPerRoom;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("maxLicencesPerRoom", maxLicencesPerRoom);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-single-room-limit-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceSingleRoomLimitExceededReport}.
+     */
+    public static class ResourceSingleRoomLimitExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceSingleRoomLimitExceededException(ResourceSingleRoomLimitExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceSingleRoomLimitExceededException(Throwable throwable, ResourceSingleRoomLimitExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceSingleRoomLimitExceededException(cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer maxLicencesPerRoom)
+        {
+            ResourceSingleRoomLimitExceededReport report = new ResourceSingleRoomLimitExceededReport();
+            report.setResource(resource);
+            report.setMaxLicencesPerRoom(maxLicencesPerRoom);
+            this.report = report;
+        }
+
+        public ResourceSingleRoomLimitExceededException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer maxLicencesPerRoom)
+        {
+            super(throwable);
+            ResourceSingleRoomLimitExceededReport report = new ResourceSingleRoomLimitExceededReport();
+            report.setResource(resource);
+            report.setMaxLicencesPerRoom(maxLicencesPerRoom);
+            this.report = report;
+        }
+
+        public Integer getMaxLicencesPerRoom()
+        {
+            return getReport().getMaxLicencesPerRoom();
+        }
+
+
+        @Override
+        public ResourceSingleRoomLimitExceededReport getReport()
+        {
+            return (ResourceSingleRoomLimitExceededReport) report;
+        }
+    }
+
+
     @Override
     protected void fillReportClasses()
     {

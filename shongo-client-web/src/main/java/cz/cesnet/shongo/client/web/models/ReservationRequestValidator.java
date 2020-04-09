@@ -325,6 +325,9 @@ public class ReservationRequestValidator implements Validator
                     else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
                         errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
                     }
+                    else if (userError instanceof AllocationStateReport.SingleRoomLimitExceeded) {
+                        errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
+                    }
                     else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
                         errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
                     }

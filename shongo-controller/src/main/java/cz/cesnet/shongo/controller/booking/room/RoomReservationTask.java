@@ -887,6 +887,7 @@ public class RoomReservationTask extends ReservationTask
                     // Check available license count
                     AvailableRoom availableRoom = roomProvider.getAvailableRoom();
                     int availableLicenseCount = availableRoom.getAvailableLicenseCount();
+                    int maxLicencesPerRoom = availableRoom.getMaxLicencesPerRoom();
                     int requestedLicenseCount = roomProviderVariant.getLicenseCount();
                     // Check allowed licence count for foreign requests
                     if (!schedulerContext.isLocalByUser()) {
@@ -907,6 +908,14 @@ public class RoomReservationTask extends ReservationTask
                         addReport(new SchedulerReportSet.ResourceRoomCapacityExceededReport(
                                 deviceResource, availableLicenseCount, availableRoom.getMaximumLicenseCount()));
                         continue;
+                    }
+                    // 0 means no restrictions
+                    if (maxLicencesPerRoom > 0) {
+                        if (maxLicencesPerRoom < requestedLicenseCount) {
+                            addReport(new SchedulerReportSet.ResourceSingleRoomLimitExceededReport(
+                                    deviceResource, maxLicencesPerRoom));
+                            continue;
+                        }
                     }
                 }
                 else {
