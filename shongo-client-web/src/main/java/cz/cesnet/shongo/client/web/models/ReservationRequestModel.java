@@ -8,6 +8,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.controller.ObjectPermission;
@@ -611,7 +612,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     public void setPermanentRoomReservationRequestId(String permanentRoomReservationRequestId,
-            List<ReservationRequestSummary> permanentRooms)
+                                                     List<ReservationRequestSummary> permanentRooms)
     {
         this.permanentRoomReservationRequestId = permanentRoomReservationRequestId;
 
@@ -929,7 +930,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         } else if (specification instanceof ResourceSpecification) {
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
             meetingRoomResourceId = resourceSpecification.getResourceId();
-            specificationType = SpecificationType.MEETING_ROOM;
+            ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
+            if (summary.getResourceTags().contains(ClientWebConfiguration.getInstance().getParkingPlaceTagName())) {
+                specificationType = SpecificationType.PARKING_PLACE;
+            } else {
+                specificationType = SpecificationType.MEETING_ROOM;
+            }
+
         } else {
             throw new UnsupportedApiException(specification);
         }
@@ -1154,6 +1161,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
+            case PARKING_PLACE:
             case MEETING_ROOM: {
                 specification = new ResourceSpecification(meetingRoomResourceId);
                 break;
@@ -1230,6 +1238,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
                 return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withZone(timeZone).withTime(23, 59, 59, 0));
             case MEETING_ROOM:
+            case PARKING_PLACE:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
@@ -1261,6 +1270,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setDuration(Period duration)
     {
         switch (specificationType) {
+            case PARKING_PLACE:
             case MEETING_ROOM:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
@@ -1569,8 +1579,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @return list of {@link Page}s for this reservation request
      */
     public static List<Page> getPagesForBreadcrumb(String reservationRequestId,
-            SpecificationType specificationType, String parentReservationRequestId,
-            String permanentRoomReservationRequestId)
+                                                   SpecificationType specificationType, String parentReservationRequestId,
+                                                   String permanentRoomReservationRequestId)
     {
         List<Page> pages = new LinkedList<Page>();
 
@@ -1681,7 +1691,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param bindingResult
      */
     public boolean createParticipant(ParticipantModel participant, BindingResult bindingResult,
-            SecurityToken securityToken)
+                                     SecurityToken securityToken)
     {
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
@@ -1701,7 +1711,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param bindingResult
      */
     public boolean modifyParticipant(String participantId, ParticipantModel participant, BindingResult bindingResult,
-            SecurityToken securityToken)
+                                     SecurityToken securityToken)
     {
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
@@ -1805,7 +1815,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @return list of reservation requests for permanent rooms
      */
     public static List<ReservationRequestSummary> getPermanentRooms(ReservationService reservationService,
-            SecurityToken securityToken, Cache cache)
+                                                                    SecurityToken securityToken, Cache cache)
     {
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
@@ -1843,7 +1853,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @return list of deletion dependencies for reservation request with given {@code reservationRequestId}
      */
     public static List<ReservationRequestSummary> getDeleteDependencies(String reservationRequestId,
-            ReservationService reservationService, SecurityToken securityToken)
+                                                                        ReservationService reservationService, SecurityToken securityToken)
     {
         // List reservation requests which reuse the reservation request to be deleted
         ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();

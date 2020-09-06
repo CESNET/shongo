@@ -46,7 +46,7 @@
 
         var  roomRetainE164Number = 'false';
         <c:if test="${reservationRequest.getClass().simpleName == 'ReservationRequestModificationModel'}">
-            roomRetainE164Number = '${reservationRequest.roomRetainE164Number == true}';
+        roomRetainE164Number = '${reservationRequest.roomRetainE164Number == true}';
         </c:if>
         $scope.roomRetainE164Number = $scope.value(roomRetainE164Number, 'false');
         $scope.roomResourceId = $scope.value('${reservationRequest.roomResourceId}', '');
@@ -55,13 +55,13 @@
         $scope.excludeDates = [];
         $scope.excludeDatesHighestId = $scope.value('${reservationRequest.excludeDates.size()}', 0);
         <c:if test="${reservationRequest.excludeDates == null || reservationRequest.excludeDates.size() == 0}">
-            $scope.excludeDates.push({
-                id: $scope.excludeDatesHighestId++,
-                removeId: $scope.excludeDates.length + 1});
+        $scope.excludeDates.push({
+            id: $scope.excludeDatesHighestId++,
+            removeId: $scope.excludeDates.length + 1});
         </c:if>
 
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
+        $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
         </c:if>
 
         // Update end when start is changed
@@ -90,15 +90,15 @@
 
         $scope.getStart = function() {
             <c:choose>
-                <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-                    var startTimePicker = $("#start").data("timepicker");
-                    var start = $("#startDate").val();
-                    var hours = (startTimePicker.meridian == "PM" ? startTimePicker.hour + 12 : startTimePicker.hour);
-                    start = moment(start).minutes(startTimePicker.minute).hours(hours);
-                </c:when>
-                <c:otherwise>
-                    var start = $("#startDate").val();
-                </c:otherwise>
+            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            var startTimePicker = $("#start").data("timepicker");
+            var start = $("#startDate").val();
+            var hours = (startTimePicker.meridian == "PM" ? startTimePicker.hour + 12 : startTimePicker.hour);
+            start = moment(start).minutes(startTimePicker.minute).hours(hours);
+            </c:when>
+            <c:otherwise>
+            var start = $("#startDate").val();
+            </c:otherwise>
             </c:choose>
             if (start.isValid()) {
                 return start;
@@ -138,45 +138,45 @@
 
         // Periodicity full options init
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            $scope.days = [];
-            <c:forEach items="${weekDays}" var="day">
-                $scope.days[${day.dayIndex} - 1] = '${day}';
-            </c:forEach>
+        $scope.days = [];
+        <c:forEach items="${weekDays}" var="day">
+        $scope.days[${day.dayIndex} - 1] = '${day}';
+        </c:forEach>
 
-            $scope.getLastDateOfMonth = function(date) {
-                if (isNaN(date)) {
-                    return null;
-                }
-                var year = date.getFullYear(), month = date.getMonth();
-                return new Date(year, month + 1, 0);
-            };
+        $scope.getLastDateOfMonth = function(date) {
+            if (isNaN(date)) {
+                return null;
+            }
+            var year = date.getFullYear(), month = date.getMonth();
+            return new Date(year, month + 1, 0);
+        };
 
-            $scope.getStartDay = function() {
-                var start = $scope.getStart();
-                if (start == null) {
-                    return null;
-                }
-                var startDayIndex = new Date(start).getDay();
-                return $scope.days[startDayIndex];
-            };
+        $scope.getStartDay = function() {
+            var start = $scope.getStart();
+            if (start == null) {
+                return null;
+            }
+            var startDayIndex = new Date(start).getDay();
+            return $scope.days[startDayIndex];
+        };
 
-            $scope.getStartDayOrderNo = function() {
-                var start = $scope.getStart();
-                if (start == null) {
-                    return null;
-                }
-                var startDate = new Date(start);
-                var dayOrderNo = startDate.getDate()/7;
-                if (startDate.getDate() % 7 != 0) {
-                    dayOrderNo =  Math.floor(dayOrderNo) + 1;
-                } else {
-                    dayOrderNo = Math.floor(dayOrderNo);
-                }
-                if (startDate.getDate() + 7 > $scope.getLastDateOfMonth(startDate).getDate()) {
-                    dayOrderNo = -1;
-                }
-                return dayOrderNo;
-            };
+        $scope.getStartDayOrderNo = function() {
+            var start = $scope.getStart();
+            if (start == null) {
+                return null;
+            }
+            var startDate = new Date(start);
+            var dayOrderNo = startDate.getDate()/7;
+            if (startDate.getDate() % 7 != 0) {
+                dayOrderNo =  Math.floor(dayOrderNo) + 1;
+            } else {
+                dayOrderNo = Math.floor(dayOrderNo);
+            }
+            if (startDate.getDate() + 7 > $scope.getLastDateOfMonth(startDate).getDate()) {
+                dayOrderNo = -1;
+            }
+            return dayOrderNo;
+        };
 
 //            $scope.getDayInMonthDate = function(date, dayOrder, dayInMonth) {
 //                if (isNaN(date) || (dayOrder != -1 && (dayOrder < 0 || dayOrder > 4)) || dayInMonth == -1) {
@@ -206,27 +206,27 @@
 //                return date;
 //            };
 
-            // Set init monthly (specific-day) periodicity
-            $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
-            $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.getStartDay());
-            // Set init weekly periodicity
-            var selectedDays = [];
-            var noDaySelected = true;
-            <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
-                selectedDays[${day.ordinal()}] = '${day}';
-                if (selectedDays[${day.ordinal()}]) {
-                    noDaySelected = false;
-                }
-            </c:forEach>
-            $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "MONDAY" : false));
-            $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "TUESDAY" : false));
-            $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "WEDNESDAY" : false));
-            $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "THURSDAY" : false));
-            $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "FRIDAY" : false));
-            $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SATURDAY" : false));
-            $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SUNDAY" : false));
+        // Set init monthly (specific-day) periodicity
+        $scope.periodicityDayOrder = $scope.value('${reservationRequest.periodicityDayOrder}', $scope.getStartDayOrderNo());
+        $scope.periodicityDayInMonth = $scope.value('${reservationRequest.periodicityDayInMonth}', $scope.getStartDay());
+        // Set init weekly periodicity
+        var selectedDays = [];
+        var noDaySelected = true;
+        <c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day">
+        selectedDays[${day.ordinal()}] = '${day}';
+        if (selectedDays[${day.ordinal()}]) {
+            noDaySelected = false;
+        }
+        </c:forEach>
+        $scope.periodicDayMONDAY = ($.inArray("MONDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "MONDAY" : false));
+        $scope.periodicDayTUESDAY = ($.inArray("TUESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "TUESDAY" : false));
+        $scope.periodicDayWEDNESDAY = ($.inArray("WEDNESDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "WEDNESDAY" : false));
+        $scope.periodicDayTHURSDAY = ($.inArray("THURSDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "THURSDAY" : false));
+        $scope.periodicDayFRIDAY = ($.inArray("FRIDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "FRIDAY" : false));
+        $scope.periodicDaySATURDAY = ($.inArray("SATURDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SATURDAY" : false));
+        $scope.periodicDaySUNDAY = ($.inArray("SUNDAY", selectedDays) != -1 ? true : (noDaySelected ? $scope.getStartDay() == "SUNDAY" : false));
 
-            // Update start date when month periodicity has changed
+        // Update start date when month periodicity has changed
 //            $scope.$watchCollection('[periodicityDayOrder, periodicityDayInMonth]', function(newValues) {
 //                var startDate = $("#start").data("datetimepicker").getDate();
 //                var dateTime = new Date(startDate.getFullYear(),startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0);
@@ -245,7 +245,7 @@
 //            });
         </c:if>
 
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).find(permanentRoom.specificationTechnologies)" var="technology" />
             "${permanentRoom.id}": {
@@ -298,7 +298,7 @@
                         realStart = Date.now()/1000|0;
                     }
                     if ((realStart != null && (realStart < permanentRoomStart || realStart >= permanentRoomEnd)) ||
-                            (requestedEnd != null && (requestedEnd <= permanentRoomStart || requestedEnd > permanentRoomEnd))) {
+                        (requestedEnd != null && (requestedEnd <= permanentRoomStart || requestedEnd > permanentRoomEnd))) {
                         // Remove current permanent room
                         if (permanentRoom == $scope.permanentRoom) {
                             $scope.permanentRoom = null;
@@ -396,7 +396,7 @@
         });
         // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
-    </c:if>
+        </c:if>
 
         <tag:url var="periodicEventsUrl" value="<%= ClientWebUrl.WIZARD_PERIODIC_EVENTS %>"/>
         $scope.formatPeriodicEvents = function(event) {
@@ -505,7 +505,7 @@
         $.ajax("${resourceListUrl}?&tag=" + tagName, {
             dataType: "json"
         }).done(function (data) {
-            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.choose"/>"}];
+            var resources = [{id: "", text: "<spring:message code="views.reservationRequest.object.choose"/>"}];
 
             for (var index = 0; index < data.length; index++) {
                 var resource = data[index];
@@ -519,7 +519,7 @@
                 }
                 var disabled = "";
                 if (!resource.allocatable) {
-                    disabled = "<spring:message code="views.reservationRequest.specification.MEETING_ROOM.disabled"/>: ";
+                    disabled = "<spring:message code="views.reservationRequest.object.disabled"/>: ";
                 }
                 //TODO: show resource but, dont allow allocating
                 resources.push({
@@ -554,7 +554,7 @@
     </c:if>
 
     <c:choose>
-        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'PARKING_PLACE'}">
             <div class="form-group">
                 <form:label class="col-xs-3 control-label" path="technology">
                     <spring:message code="views.reservationRequest.technology"/>:
@@ -572,12 +572,12 @@
                 </div>
             </div>
         </c:when>
-        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
             <input type="hidden" name="technology" id="technology" value="{{technology}}"/>
         </c:when>
     </c:choose>
 
-    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <script type="text/javascript">
             $(function(){
                 var updateResources = function() {
@@ -620,28 +620,36 @@
 
         <%-- Purpose is not used for anything here - for maintenance use resource reservation --%>
         <%--<div class="form-group">--%>
-            <%--<form:label class="col-xs-3 control-label" path="purpose">--%>
-                <%--<spring:message code="views.reservationRequest.purpose"/>:--%>
-            <%--</form:label>--%>
-            <%--<div class="col-xs-4">--%>
-                <%--<form:select cssClass="form-control" path="purpose" tabindex="${tabIndex}">--%>
-                    <%--<spring:eval var="purposes" expression="T(cz.cesnet.shongo.controller.ReservationRequestPurpose).values()"/>--%>
-                    <%--<c:forEach var="purpose" items="${purposes}">--%>
-                        <%--<form:option value="${purpose}">${purpose}</form:option>--%>
-                    <%--</c:forEach>--%>
-                <%--</form:select>--%>
-            <%--</div>--%>
-            <%--<div class="col-xs-offset-3 col-xs-9">--%>
-                <%--<form:errors path="purpose" cssClass="error"/>--%>
-            <%--</div>--%>
+        <%--<form:label class="col-xs-3 control-label" path="purpose">--%>
+        <%--<spring:message code="views.reservationRequest.purpose"/>:--%>
+        <%--</form:label>--%>
+        <%--<div class="col-xs-4">--%>
+        <%--<form:select cssClass="form-control" path="purpose" tabindex="${tabIndex}">--%>
+        <%--<spring:eval var="purposes" expression="T(cz.cesnet.shongo.controller.ReservationRequestPurpose).values()"/>--%>
+        <%--<c:forEach var="purpose" items="${purposes}">--%>
+        <%--<form:option value="${purpose}">${purpose}</form:option>--%>
+        <%--</c:forEach>--%>
+        <%--</form:select>--%>
+        <%--</div>--%>
+        <%--<div class="col-xs-offset-3 col-xs-9">--%>
+        <%--<form:errors path="purpose" cssClass="error"/>--%>
+        <%--</div>--%>
         <%--</div>--%>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
+    <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM' || reservationRequest.specificationType == 'PARKING_PLACE'}">
         <script type="text/javascript">
+            <c:choose>
+            <c:when test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
+            var tag = "${configuration.getMeetingRoomTagName()}";
+            </c:when>
+            <c:otherwise>
+            var tag = "${configuration.getParkingPlaceTagName()}";
+            </c:otherwise>
+            </c:choose>
             $(function(){
                 var updateResources = function() {
-                    window.getResourcesByTag("${configuration.getMeetingRoomTagName()}", function(resources) {
+                    window.getResourcesByTag(tag, function(resources) {
                         $("#meetingRoomResourceId").select2({
                             data: resources,
                             escapeMarkup: function (markup) {
@@ -667,7 +675,7 @@
         </script>
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="meetingRoomResourceId">
-                <spring:message code="views.reservationRequest.specification.MEETING_ROOM"/>:
+                <spring:message code="views.reservationRequest.object"/>:
             </form:label>
             <div class="col-xs-4">
                 <form:input cssClass="form-control" cssErrorClass="form-control error" path="meetingRoomResourceId" tabindex="${tabIndex}"/>
@@ -809,7 +817,7 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-        <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+        <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
             <div class="form-group" ng-hide="technology == 'FREEPBX'">
                 <form:label class="col-xs-3 control-label" path="roomParticipantCount">
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
@@ -866,7 +874,7 @@
                     <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-show-inputs="false" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
                 </c:if>
             </div>
-            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
+            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
                 <div class="col-xs-4">
                     <div class="input-group" style="width: 100%;">
                         <form:select path="slotBeforeMinutes" cssClass="form-control" tabindex="${tabIndex}">
@@ -899,10 +907,10 @@
                 <spring:message code="views.reservationRequest.end"/>:
             </form:label>
             <div class="col-xs-9 space-padding">
-                    <div class="col-xs-2">
-                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
-                    </div>
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
                 </div>
+            </div>
             <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="end" cssClass="error"/>
             </div>
@@ -926,7 +934,7 @@
                         <form:option value="DAY"><spring:message code="views.reservationRequest.duration.days"/></form:option>
                     </form:select>
                 </div>
-                <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+                <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
                     <div class="col-xs-4">
                         <div class="input-group" style="width: 100%;">
                             <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
@@ -1146,26 +1154,26 @@
             <div class="col-xs-4">
                 <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectPermissions).values()"/>
                 <c:forEach var="accessMode" items="${enumAdobeConnectAccessMode}">
-                    <c:choose>
-                        <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
-                            <label class="radio-inline" for="${accessMode}">
-                            <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
-                            <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                <c:choose>
+                <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
+                <label class="radio-inline" for="${accessMode}">
+                        <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
+                        <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                    </c:when>
+                    <c:when test="${accessMode.isUsableByMeetings() == 'true'}">
+                    <label class="radio-inline" for="${accessMode}">
+                        <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
+                        <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
                         </c:when>
-                        <c:when test="${accessMode.isUsableByMeetings() == 'true'}">
-                            <label class="radio-inline" for="${accessMode}">
-                            <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
-                            <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
-                        </c:when>
-                    </c:choose>
+                        </c:choose>
                     </label>
-                </c:forEach>
-                <form:errors path="roomAccessMode" cssClass="error"/>
+                    </c:forEach>
+                        <form:errors path="roomAccessMode" cssClass="error"/>
             </div>
         </div>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <div class="form-group" ng-show="technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
             <form:label class="col-xs-3 control-label" path="adminPin">
                 <spring:message code="views.reservationRequest.specification.adminPin" var="pinLabel"/>
@@ -1237,7 +1245,7 @@
     </c:if>
 
     <%-- TODO: Check if resource has recording capability --%>
-    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>

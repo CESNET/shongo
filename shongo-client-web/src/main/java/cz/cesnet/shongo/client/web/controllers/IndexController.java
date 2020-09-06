@@ -71,28 +71,41 @@ public class IndexController
             resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
             resourceListRequest.setAllocatable(false);
 
-            List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
-            for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
-                Set<ObjectPermission> permissions;
-                permissions = cache.getObjectPermissions(authenticationToken.getSecurityToken(), resourceSummary.getId());
-
-//                resourceSummaries.add(resourceSummary);
-                Map<String, Object> item = new HashMap<String, Object>();
-                item.put("id", resourceSummary.getId());
-                item.put("name", resourceSummary.getName());
-                item.put("domainName", resourceSummary.getDomainName());
-                item.put("calendarUriKey", resourceSummary.getCalendarUriKey());
-                item.put("isCalendarPublic", resourceSummary.isCalendarPublic());
-                item.put("isReservable", permissions.contains(ObjectPermission.RESERVE_RESOURCE));
-                items.add(item);
-            }
+            List<Map<String, Object>> items = listResources(resourceListRequest, authenticationToken);
             modelAndView.addObject("meetingRoomResources", items);
+
+            // Get all readable resources with assigned parking-place tag even not allocatable (previous reservations)
+            ResourceListRequest ppResourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
+            ppResourceListRequest.setTagName(ClientWebConfiguration.getInstance().getParkingPlaceTagName());
+            ppResourceListRequest.setAllocatable(false);
+
+            List<Map<String, Object>> ppItems = listResources(ppResourceListRequest, authenticationToken);
+            modelAndView.addObject("parkingPlaceResources", ppItems);
         }
 
         // Not functional without controller annotation @SessionAttributes
         sessionStatus.setComplete();
 
         return modelAndView;
+    }
+
+    private List<Map<String, Object>> listResources (ResourceListRequest resourceListRequest, OpenIDConnectAuthenticationToken authenticationToken) {
+        List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
+        for (ResourceSummary resourceSummary : resourceService.listResources(resourceListRequest)) {
+            Set<ObjectPermission> permissions;
+            permissions = cache.getObjectPermissions(authenticationToken.getSecurityToken(), resourceSummary.getId());
+
+//                resourceSummaries.add(resourceSummary);
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("id", resourceSummary.getId());
+            item.put("name", resourceSummary.getName());
+            item.put("domainName", resourceSummary.getDomainName());
+            item.put("calendarUriKey", resourceSummary.getCalendarUriKey());
+            item.put("isCalendarPublic", resourceSummary.isCalendarPublic());
+            item.put("isReservable", permissions.contains(ObjectPermission.RESERVE_RESOURCE));
+            items.add(item);
+        }
+        return items;
     }
 
     /**

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 
@@ -29,7 +30,12 @@ public enum SpecificationType
     /**
      * For meeting room.
      */
-    MEETING_ROOM(false);
+    MEETING_ROOM(false),
+
+    /**
+     * For parking place.
+     */
+    PARKING_PLACE(false);
 
     /**
      * Specifies whether it is a room.
@@ -77,7 +83,12 @@ public enum SpecificationType
             case USED_ROOM:
                 return PERMANENT_ROOM_CAPACITY;
             case RESOURCE:
-                return MEETING_ROOM;
+                String resourceTags = reservationRequestSummary.getResourceTags();
+                if (resourceTags != null && resourceTags.contains(ClientWebConfiguration.getInstance().getParkingPlaceTagName())) {
+                    return PARKING_PLACE;
+                } else {
+                    return MEETING_ROOM;
+                }
             default:
                 throw new TodoImplementException(reservationRequestSummary.getSpecificationType());
         }

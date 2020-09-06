@@ -55,7 +55,7 @@
     </dd>
 
     <%-- Purpose for debuging and maintenance purposes --%>
-    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
         <dd>
             <span>${reservationRequest.purpose}</span>
@@ -88,12 +88,12 @@
         <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
         <dd>
             <c:choose>
-            <c:when test="${not empty detailUrl}">
-                <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
-                    <tag:param name="objectId" value="${reservationRequest.parentReservationRequestId}"/>
-                </tag:url>
-                <a href="${parentReservationRequestDetailUrl}">${reservationRequest.parentReservationRequestId}</a>
-            </c:when>
+                <c:when test="${not empty detailUrl}">
+                    <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
+                        <tag:param name="objectId" value="${reservationRequest.parentReservationRequestId}"/>
+                    </tag:url>
+                    <a href="${parentReservationRequestDetailUrl}">${reservationRequest.parentReservationRequestId}</a>
+                </c:when>
                 <c:otherwise>
                     ${reservationRequest.parentReservationRequestId}
                 </c:otherwise>
@@ -173,9 +173,9 @@
                     <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
                     <span>
                         (<c:forEach items="${reservationRequest.periodicDaysInWeek}" var="day" varStatus="recipeCounter">
-                            <spring:message code="views.reservationRequest.periodicity.day.${day}" />
-                            <c:if test="${!recipeCounter.last}">,</c:if>
-                        </c:forEach>) <spring:message code="views.period.onceIn" />
+                        <spring:message code="views.reservationRequest.periodicity.day.${day}" />
+                        <c:if test="${!recipeCounter.last}">,</c:if>
+                    </c:forEach>) <spring:message code="views.period.onceIn" />
                     </span>
                     <span><tag:format value="${reservationRequest.period}" multiline="false"/></span>
                 </c:when>
@@ -313,7 +313,7 @@
 
     <%-- Participants --%>
     <%-- TODO: MR: Do not show participants for meeting rooms yet --%>
-    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM'}">
+    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
         <dd>
             <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
@@ -336,7 +336,7 @@
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
         <dt><spring:message code="views.reservationRequest.specification.roomMeetingName"/>:</dt>
         <dd>
-            ${reservationRequest.roomMeetingName}
+                ${reservationRequest.roomMeetingName}
         </dd>
     </c:if>
 
@@ -373,7 +373,7 @@
                             <span><spring:message code="views.executable.roomStateHelp.${reservationRequest.detail.room.type}.${reservationRequest.detail.room.state}"/></span>
                             <c:if test="${not empty reservationRequest.detail.room.stateReport}">
                                 <pre>
-                                    ${reservationRequest.detail.room.stateReport}
+                                        ${reservationRequest.detail.room.stateReport}
                                 </pre>
                             </c:if>
                         </tag:help>

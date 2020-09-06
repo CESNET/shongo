@@ -54,7 +54,7 @@ public class ReservationRequestValidator implements Validator
     private DateTimeZone timeZone;
 
     public ReservationRequestValidator(SecurityToken securityToken, ReservationService reservationService, Cache cache,
-            Locale locale, DateTimeZone timeZone)
+                                       Locale locale, DateTimeZone timeZone)
     {
         this.securityToken = securityToken;
         this.reservationService = reservationService;
@@ -90,7 +90,7 @@ public class ReservationRequestValidator implements Validator
             reservationRequestModel.setExcludeDates(excludeDates);
         }
 
-        if (specificationType != SpecificationType.MEETING_ROOM) {
+        if (specificationType != SpecificationType.MEETING_ROOM && specificationType != SpecificationType.PARKING_PLACE) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         }
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
@@ -185,6 +185,7 @@ public class ReservationRequestValidator implements Validator
                     validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
+                case PARKING_PLACE:
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
                     validatePeriodicSlotsStart(reservationRequestModel, errors);
@@ -292,7 +293,7 @@ public class ReservationRequestValidator implements Validator
                         switch (aliasAlreadyAllocated.getAliasType()) {
                             case ROOM_NAME:
                                 errors.rejectValue(
-                                    "roomName", "validation.field.roomNameNotAvailable", new Object[]{dateTimeFormatter.formatInterval(aliasAlreadyAllocated.getInterval())}, null);
+                                        "roomName", "validation.field.roomNameNotAvailable", new Object[]{dateTimeFormatter.formatInterval(aliasAlreadyAllocated.getInterval())}, null);
                                 break;
                             case H323_E164:
                                 errors.rejectValue("e164Number", "validation.field.E164NumberNotAvailable", new Object[]{dateTimeFormatter.formatInterval(aliasAlreadyAllocated.getInterval())},null);
@@ -318,8 +319,8 @@ public class ReservationRequestValidator implements Validator
                     else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded
                             || userError instanceof AllocationStateReport.RecordingRoomCapacityExceed
                             || (userError instanceof AllocationStateReport.ResourceNotFound &&
-                                        AllocationStateReport.ResourceNotFound.Type.RECORDING.equals(
-                                                ((AllocationStateReport.ResourceNotFound) userError).getType()))) {
+                            AllocationStateReport.ResourceNotFound.Type.RECORDING.equals(
+                                    ((AllocationStateReport.ResourceNotFound) userError).getType()))) {
                         errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
                     }
                     else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
@@ -380,7 +381,7 @@ public class ReservationRequestValidator implements Validator
      * @return true whether validation succeeds, otherwise false
      */
     public static boolean validateParticipants(ReservationRequestModel reservationRequestModel, Errors errors,
-            boolean autoFixError)
+                                               boolean autoFixError)
     {
         if (reservationRequestModel.isRoomParticipantNotificationEnabled()) {
             if (autoFixError) {
@@ -451,7 +452,7 @@ public class ReservationRequestValidator implements Validator
             int invalidSlots = 0;
             for (PeriodicDateTimeSlot slot : slots) {
                 if (!PeriodicDateTimeSlot.PeriodicityType.NONE.equals(reservationRequestModel.getPeriodicityType())
-                && (end != null && slot.getStart().toLocalDate().isAfter(end))) {
+                        && (end != null && slot.getStart().toLocalDate().isAfter(end))) {
                     invalidSlots++;
                 }
             }

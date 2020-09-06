@@ -11,6 +11,8 @@
 
 <tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
 
+<tag:url var="createParkingPlaceUrl" value="<%= ClientWebUrl.WIZARD_PARKING_PLACE_BOOK %>" />
+
 <tag:url var="reservationRequestMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>" />
 
 <script type="text/javascript">
@@ -40,7 +42,7 @@
             <tag:param name="value" value="false"/>
             <tag:param name="back-url" value="${requestScope.requestUrl}"/>
         </tag:url>
-            <span class="warning">
+        <span class="warning">
                 <spring:message code="views.index.localeDefaultWarning" arguments="${userSettingsUrl}"/>
                 <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
                 <div class="clearfix"></div>
@@ -55,7 +57,7 @@
             <tag:param name="value" value="false"/>
             <tag:param name="back-url" value="${requestScope.requestUrl}"/>
         </tag:url>
-            <span class="warning">
+        <span class="warning">
                 <spring:message code="views.index.timeZoneDefaultWarning" arguments="${userSettingsUrl}"/>
                 <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
                 <div class="clearfix"></div>
@@ -103,8 +105,15 @@
                 </c:if>
                 <c:if test="${!meetingRoomResources.isEmpty()}">
                     <li>
-                        <a href="${createMeetingRoomUrl}" tabindex="1">
+                        <a href="${createMeetingRoomUrl}" tabindex="2">
                             <spring:message code="views.index.action.bookMeetingRoom"/>
+                        </a>
+                    </li>
+                </c:if>
+                <c:if test="${!parkingPlaceResources.isEmpty()}">
+                    <li>
+                        <a href="${createParkingPlaceUrl}" tabindex="3">
+                            <spring:message code="views.index.action.bookParkingPlace"/>
                         </a>
                     </li>
                 </c:if>
@@ -137,7 +146,7 @@
             <%-- Your meeting rooms reservation request tab TODO: only for CEITEC --%>
             <%--<spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>--%>
             <%--<tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">--%>
-                <%--<%@ include file="dashboardMeetingRoomReservations.jsp" %>--%>
+            <%--<%@ include file="dashboardMeetingRoomReservations.jsp" %>--%>
             <%--</tab>--%>
 
             <%-- Your meeting rooms reservation request tab (calendar view) --%>

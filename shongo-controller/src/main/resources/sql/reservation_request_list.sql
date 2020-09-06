@@ -36,7 +36,8 @@ SELECT
     resource_summary.name AS resource_name,
     foreign_resources.foreign_resource_id,
     domain.name as domain_name,
-    reservation_request_summary.allowCache as allowCache
+    reservation_request_summary.allowCache as allowCache,
+    resource_summary.tag_names as tag_names
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id

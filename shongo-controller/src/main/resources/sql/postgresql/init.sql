@@ -111,19 +111,22 @@ SELECT
       WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN room_provider_capability on room_provider_capability.id = capability.id) THEN 'ROOM_PROVIDER'
       WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN recording_capability on recording_capability.id = capability.id) THEN 'RECORDING_SERVICE'
       ELSE 'RESOURCE'
-    END AS type
+    END AS type,
+    string_agg(tag.name, ',') AS tag_names
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
 LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id
+LEFT JOIN resource_tag ON resource.id = resource_tag.resource_id
+LEFT JOIN tag ON resource_tag.tag_id = tag.id
 GROUP BY resource.id;
 
 /**
  * View of room name for specifications for aliases or sets of aliases.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
- */   
+ */
 CREATE VIEW alias_specification_summary AS
-SELECT 
+SELECT
     DISTINCT ON(specification.id)
     specification.id,
     alias_specification.value as room_name
@@ -139,9 +142,9 @@ ORDER BY specification.id;
  * View of specification summaries.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
- */   
+ */
 CREATE VIEW specification_summary_view AS
-SELECT     
+SELECT
     specification.id AS id,
     string_agg(specification_technologies.technologies, ',') AS technologies,
     CASE
@@ -164,7 +167,7 @@ LEFT JOIN value_specification ON value_specification.id = specification.id
 LEFT JOIN value_provider ON value_provider.id = value_specification.value_provider_id
 LEFT JOIN capability AS value_provider_capability ON value_provider_capability.id = value_provider.capability_id
 GROUP BY
-    specification.id,    
+    specification.id,
     alias_specification_summary.id,
     alias_specification_summary.room_name,
     room_specification.id,

@@ -108,6 +108,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private String roomName;
 
     /**
+     * Resource tags.
+     */
+    private String resourceTags;
+
+    /**
      * Specifies whether room has recording service.
      */
     private boolean roomHasRecordingService;
@@ -121,6 +126,20 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * Can this reservation request summary be cached
      */
     private boolean allowCache = true;
+
+    /**
+     * @return {@link #resourceTags}
+     */
+    public String getResourceTags() {
+        return resourceTags;
+    }
+
+    /**
+     * @param resourceTags sets the {@link #resourceTags}
+     */
+    public void setResourceTags(String resourceTags) {
+        this.resourceTags = resourceTags;
+    }
 
     /**
      * @return {@link #parentReservationRequestId}
@@ -498,6 +517,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String ROOM_HAS_RECORDING_SERVICE = "roomHasRecordingService";
     private static final String ROOM_HAS_RECORDINGS = "roomHasRecordings";
     private static final String ALLOW_CACHE = "allowCache";
+    private static final String RESOURCE_TAGS = "resourceTags";
 
     @Override
     public DataMap toData()
@@ -524,6 +544,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(ROOM_HAS_RECORDING_SERVICE, roomHasRecordingService);
         dataMap.set(ROOM_HAS_RECORDINGS, roomHasRecordings);
         dataMap.set(ALLOW_CACHE, allowCache);
+        dataMap.set(RESOURCE_TAGS, resourceTags);
         return dataMap;
     }
 
@@ -552,6 +573,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomHasRecordingService = dataMap.getBool(ROOM_HAS_RECORDING_SERVICE);
         roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
         allowCache = dataMap.getBool(ALLOW_CACHE);
+        resourceTags = dataMap.getString(RESOURCE_TAGS);
     }
 
     /**

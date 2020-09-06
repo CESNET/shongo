@@ -2038,6 +2038,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[25] != null) {
             reservationRequestSummary.setAllowCache((Boolean) record[25]);
         }
+        if (record[26] != null) {
+            reservationRequestSummary.setResourceTags((String) record[26]);
+        }
         return reservationRequestSummary;
     }
 
