@@ -84,7 +84,8 @@ public enum SpecificationType
                 return PERMANENT_ROOM_CAPACITY;
             case RESOURCE:
                 String resourceTags = reservationRequestSummary.getResourceTags();
-                if (resourceTags != null && resourceTags.contains(ClientWebConfiguration.getInstance().getParkingPlaceTagName())) {
+                String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
+                if (resourceTags != null && parkTagName != null && resourceTags.contains(parkTagName)) {
                     return PARKING_PLACE;
                 } else {
                     return MEETING_ROOM;
