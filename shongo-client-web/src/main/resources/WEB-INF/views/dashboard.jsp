@@ -110,7 +110,7 @@
                         </a>
                     </li>
                 </c:if>
-                <c:if test="${!parkingPlaceResources.isEmpty()}">
+                <c:if test="${parkingPlaceResources != null && !parkingPlaceResources.isEmpty()}">
                     <li>
                         <a href="${createParkingPlaceUrl}" tabindex="3">
                             <spring:message code="views.index.action.bookParkingPlace"/>

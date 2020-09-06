@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -75,11 +76,14 @@ public class IndexController
             modelAndView.addObject("meetingRoomResources", items);
 
             // Get all readable resources with assigned parking-place tag even not allocatable (previous reservations)
-            ResourceListRequest ppResourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
-            ppResourceListRequest.setTagName(ClientWebConfiguration.getInstance().getParkingPlaceTagName());
-            ppResourceListRequest.setAllocatable(false);
-
-            List<Map<String, Object>> ppItems = listResources(ppResourceListRequest, authenticationToken);
+                String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
+            List<Map<String, Object>> ppItems = null;
+            if (!Strings.isNullOrEmpty(parkTagName)) {
+                ResourceListRequest ppResourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
+                ppResourceListRequest.setTagName(parkTagName);
+                ppResourceListRequest.setAllocatable(false);
+                ppItems = listResources(ppResourceListRequest, authenticationToken);
+            }
             modelAndView.addObject("parkingPlaceResources", ppItems);
         }
 
