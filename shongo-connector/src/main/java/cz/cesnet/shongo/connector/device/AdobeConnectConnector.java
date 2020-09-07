@@ -1139,7 +1139,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             for (RequestAttributeList.Entry entry : attributes) {
                 try {
                     queryString += '&' + entry.getKey() + '=' + URLEncoder.encode(entry.getValue(),"UTF8");
-                } catch (UnsupportedEncodingException e) {
+                } catch (Exception e) {
                     throw new CommandException("Failed to process command " + action + ": ", e);
                 }
             }
