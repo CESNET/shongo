@@ -187,7 +187,12 @@ public class RoomProviderCapability extends DeviceCapability
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
         roomProviderCapabilityApi.setId(getId());
         roomProviderCapabilityApi.setLicenseCount(getLicenseCount());
-        roomProviderCapabilityApi.setMaxLicencesPerRoom(getMaxLicencesPerRoom());
+        if (getMaxLicencesPerRoom() != null) {
+            roomProviderCapabilityApi.setMaxLicencesPerRoom(getMaxLicencesPerRoom());
+        } else {
+            // 0 means no limitation
+            roomProviderCapabilityApi.setMaxLicencesPerRoom(0);
+        }
         for (AliasType requiredAliasType : getRequiredAliasTypes()) {
             roomProviderCapabilityApi.addRequiredAliasType(requiredAliasType);
         }
