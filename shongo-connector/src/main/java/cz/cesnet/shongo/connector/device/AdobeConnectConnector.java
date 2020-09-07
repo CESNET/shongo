@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.device;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
@@ -178,6 +179,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         if (principalName == null) {
             throw new IllegalArgumentException("Principal mustn't be null.");
+        }
+        if (Strings.isNullOrEmpty(userInformation.getFirstName())) {
+            throw new IllegalArgumentException("First name mustn't be null.");
+        }
+        if (Strings.isNullOrEmpty(userInformation.getLastName())) {
+            throw new IllegalArgumentException("Last name mustn't be null.");
+        }
+        if (Strings.isNullOrEmpty(userInformation.getPrimaryEmail())) {
+            throw new IllegalArgumentException("Email mustn't be null.");
         }
 
         RequestAttributeList userSearchAttributes = new RequestAttributeList();
