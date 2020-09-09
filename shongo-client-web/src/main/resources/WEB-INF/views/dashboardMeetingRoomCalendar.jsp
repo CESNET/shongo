@@ -198,13 +198,13 @@
                 return markup;
             },
             data: [
-                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
+                <c:forEach items="${physicalResources}" var="physicalResource">
                     <c:choose>
-                    <c:when test="${meetingRoomResource.domainName != null}">
-                        {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b><br />(${meetingRoomResource.domainName})"},
+                    <c:when test="${physicalResource.domainName != null}">
+                        {id: "${physicalResource.id}", text: "<b>${physicalResource.name}</b><br />(${physicalResource.domainName})"},
                     </c:when>
                     <c:otherwise>
-                        {id: "${meetingRoomResource.id}", text: "<b>${meetingRoomResource.name}</b>"},
+                        {id: "${physicalResource.id}", text: "<b>${physicalResource.name}</b>"},
                     </c:otherwise>
                     </c:choose>
                 </c:forEach>
@@ -217,9 +217,9 @@
                 return markup;
             },
             data: {
-                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                <c:if test="${meetingRoomResource.isCalendarPublic}">
-                "${meetingRoomResource.id}": "${meetingRoomResource.calendarUriKey}",
+                <c:forEach items="${physicalResources}" var="physicalResource">
+                <c:if test="${physicalResource.isCalendarPublic}">
+                "${physicalResource.id}": "${physicalResource.calendarUriKey}",
                 </c:if>
                 </c:forEach>
             }
@@ -230,8 +230,8 @@
                 return markup;
             },
             data: {
-                <c:forEach items="${meetingRoomResources}" var="meetingRoomResource">
-                "${meetingRoomResource.id}": "${meetingRoomResource.isReservable}",
+                <c:forEach items="${physicalResources}" var="physicalResource">
+                "${physicalResource.id}": "${physicalResource.isReservable}",
                 </c:forEach>
             }
         };

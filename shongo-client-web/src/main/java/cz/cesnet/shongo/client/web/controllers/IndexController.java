@@ -85,7 +85,12 @@ public class IndexController
                 ppItems = listResources(ppResourceListRequest, authenticationToken);
             }
             modelAndView.addObject("parkingPlaceResources", ppItems);
+            List<Map<String, Object>> physicalResources = new LinkedList<Map<String, Object>>();
+            physicalResources.addAll(items);
+            physicalResources.addAll(ppItems);
+            modelAndView.addObject("physicalResources", physicalResources);
         }
+
 
         // Not functional without controller annotation @SessionAttributes
         sessionStatus.setComplete();
