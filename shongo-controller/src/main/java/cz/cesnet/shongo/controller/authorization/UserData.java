@@ -33,6 +33,11 @@ public class UserData
     private UserAuthorizationData userAuthorizationData;
 
     /**
+     * User secondary id (e.g. perunId).
+     */
+    private String secondaryId;
+
+    /**
      * @return {@link #userInformation}
      */
     public UserInformation getUserInformation()
@@ -102,5 +107,13 @@ public class UserData
     public void setUserAuthorizationData(UserAuthorizationData userAuthorizationData)
     {
         this.userAuthorizationData = userAuthorizationData;
+    }
+
+    public String getSecondaryId() {
+        return secondaryId;
+    }
+
+    public void setSecondaryId(String secondaryId) {
+        this.secondaryId = secondaryId;
     }
 }

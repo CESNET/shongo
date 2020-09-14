@@ -149,6 +149,21 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SECURITY_CLIENT_SECRET = "security.client-secret";
 
     /**
+     * URL to LDAP AA server.
+     */
+    public static final String SECURITY_LDAP_SERVER = "security.ldap.server";
+
+    /**
+     * Client secret for LDAP AA server.
+     */
+    public static final String SECURITY_LDAP_CLIENT_SECRET = "security.ldap.client-secret";
+
+    /**
+     * Client secret for LDAP AA server.
+     */
+    public static final String SECURITY_LDAP_BINDDN = "security.ldap.binddn";
+
+    /**
      * Specifies expiration of cache for user-id by access-token.
      */
     public static final String SECURITY_EXPIRATION_USER_ID = "security.expiration.user-id";

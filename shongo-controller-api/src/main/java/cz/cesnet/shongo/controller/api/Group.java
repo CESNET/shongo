@@ -39,6 +39,8 @@ public class Group extends IdentifiedComplexType
      */
     private Set<String> administrators = new LinkedHashSet<String>();
 
+    private String secondaryId;
+
     /**
      * Constructor.
      */
@@ -55,6 +57,14 @@ public class Group extends IdentifiedComplexType
     {
         this.name = name;
         this.type = type;
+    }
+
+    public String getSecondaryId() {
+        return secondaryId;
+    }
+
+    public void setSecondaryId(String secondaryId) {
+        this.secondaryId = secondaryId;
     }
 
     /**
@@ -201,6 +211,18 @@ public class Group extends IdentifiedComplexType
         /**
          * User group - can be managed by normal user.
          */
-        USER
+        USER;
+
+        public static Type permissiveValueOf(String name) {
+            for (Type e : values()) {
+                if (e.name().equals(name)) {
+                    return e;
+                }
+            }
+            if (name.equalsIgnoreCase("users")) {
+                return Type.USER;
+            }
+            return null;
+        }
     }
 }

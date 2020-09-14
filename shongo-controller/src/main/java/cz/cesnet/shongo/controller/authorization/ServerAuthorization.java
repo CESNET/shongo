@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.authorization;
 
 
+import com.google.common.base.Strings;
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.AclIdentityType;
@@ -29,6 +31,12 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.*;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
@@ -77,7 +85,12 @@ public class ServerAuthorization extends Authorization
     /**
      * Group projects shongo prefix from oidc claims.
      */
-    private static final String GROUP_OIDC_PROJECTS_SHONGO_PREFIX = "projects:shongo";
+    private static final String GROUP_OIDC_PROJECTS_SHONGO_PREFIX = "einfra:projects:shongo";
+
+    /**
+     * Group projects shongo regexp from perun LDAP.
+     */
+    private static final String GROUP_LDAP_PROJECTS_SHONGO_REGEX = "einfra:projects:shongo:(system|users):(.*)";
 
     /**
      * Group fragment suffix from oidc claims.
@@ -100,6 +113,11 @@ public class ServerAuthorization extends Authorization
      * URL to authorization server.
      */
     private String authorizationServer;
+
+    /**
+     * URL to LDAP authorization server.
+     */
+    private String ldapAuthorizationServer;
 
     /**
      * Authorization header for requests.
@@ -140,6 +158,11 @@ public class ServerAuthorization extends Authorization
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
         logger.info("Using authorization server '{}'.", authorizationServer);
+
+        ldapAuthorizationServer = configuration.getString(ControllerConfiguration.SECURITY_LDAP_SERVER);
+        if (ldapAuthorizationServer == null) {
+            throw new IllegalStateException("LDAP authorization server is not set in the configuration.");
+        }
 
         // Authorization header
 
@@ -244,298 +267,292 @@ public class ServerAuthorization extends Authorization
     }
     @Override
     protected UserData onGetUserDataByUserId(final String userId) throws ControllerReportSet.UserNotExistsException {
+        String filter = "eduPersonPrincipalNames=" + userId;
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        ctrls.setCountLimit(1);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+        UserData userData;
+
         try {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            UserPerson userPerson = entityManager.createQuery("FROM UserPerson P WHERE P.userId = :userId", UserPerson.class)
-                    .setParameter("userId", userId)
-                    .setMaxResults(1)
-                    .getSingleResult();
-            UserSettings userSettings = entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
-                            + " WHERE userSettings.userId = :userId",
-                    UserSettings.class)
-                    .setParameter("userId", userId)
-                    .getSingleResult();
-            UserData userData = new UserData();
-            if (userSettings != null) {
-                if (userSettings.getHomeTimeZone() != null) {
-                    userData.setTimeZone(userSettings.getHomeTimeZone());
-                    userData.getUserInformation().setZoneInfo(userSettings.getHomeTimeZone().toString());
+            ctx = getLdapContext();
+            results = ctx.search("", filter, ctrls);
+            if (results.hasMore()) {
+                SearchResult result = (SearchResult) results.next();
+                userData = createUserDataFromLdapData(result);
+            } else {
+                throw new ControllerReportSet.UserNotExistsException(userId);
+            }
+        } catch (NamingException e) {
+            throw new ControllerReportSet.UserNotExistsException(userId);
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
                 }
-                if (userSettings.getLocale() != null) {
-                    userData.setLocale(userSettings.getLocale());
-                    userData.getUserInformation().setLocale(userSettings.getLocale().toString());
+                if (ctx != null) {
+                    ctx.close();
                 }
             }
-            if (userPerson != null) {
-                if (userPerson.getName() != null) {
-                    userData.getUserInformation().setFullName(userPerson.getName());
-                }
-                if (userPerson.getUserId() != null) {
-                    userData.getUserInformation().setUserId(userPerson.getUserId());
-                }
-                if (userPerson.getOrganization() != null) {
-                    userData.getUserInformation().setOrganization(userPerson.getOrganization());
-                }
-
-                if (userPerson.getEmail() != null) {
-                    userData.getUserInformation().setEmail(userPerson.getEmail());
-                }
+            catch (Exception ignored) {
+                // Ignore.
             }
-            return userData;
-        } catch (NoResultException e) {
-            return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId,
-                    "Retrieving user information by user-id '" + userId + "' failed",
-                    new RequestHandler<UserData>() {
-                        @Override
-                        public UserData success(JsonNode data) {
-                            if (data == null) {
-                                throw new ControllerReportSet.UserNotExistsException(userId);
-                            }
-                            return createUserDataFromWebServiceData(data);
-                        }
-
-                        @Override
-                        public void error(StatusLine statusLine, String detail) {
-                            int statusCode = statusLine.getStatusCode();
-                            if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("UserNotExistsException")) {
-                                throw new ControllerReportSet.UserNotExistsException(userId);
-                            }
-                        }
-                    });
         }
+        return userData;
     }
+
     @Override
     protected String onGetUserIdByPrincipalName(final String principalName)
             throws ControllerReportSet.UserNotExistsException
     {
-        return performGetRequest(authorizationServer + PRINCIPAL_SERVICE_PATH + "/" + principalName,
-                "Retrieving user-id by principal name '" + principalName + "' failed",
-                new RequestHandler<String>()
-                {
-                    @Override
-                    public String success(JsonNode data)
-                    {
-                        if (data == null) {
-                            throw new ControllerReportSet.UserNotExistsException(principalName);
-                        }
-                        if (!data.has("id")) {
-                            throw new IllegalStateException("Principal service must return identifier.");
-                        }
-                        JsonNode dataId = data.get("id");
-                        if (dataId.isNull()) {
-                            throw new IllegalStateException("Principal service must return not null identifier.");
-                        }
-                        return dataId.asText();
-                    }
-
-                    @Override
-                    public void error(StatusLine statusLine, String detail)
-                    {
-                        int statusCode = statusLine.getStatusCode();
-                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                            throw new ControllerReportSet.UserNotExistsException(principalName);
-                        }
-                    }
-                });
+        if (principalName.endsWith("@einfra.cesnet.cz")) {
+            return principalName;
+        } else {
+            throw new IllegalArgumentException("Invalid format of principal name: " + principalName);
+        }
     }
+
     @Override
     protected Collection<UserData> onListUserData(final Set<String> filterUserIds, String search)
     {
-        String listUsersUrlQuery = "";
+        StringBuilder filter = new StringBuilder();
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+        List<UserData> userDataList = new LinkedList<>();
+
         if (filterUserIds != null && filterUserIds.size() > 0) {
-            String userIds = StringUtils.join(filterUserIds, ",");
-            listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
-            listUsersUrlQuery += "filter_user_id=" + userIds;
+            filter.append("(|");
+            for (String id : filterUserIds) {
+                filter.append("(eduPersonPrincipalNames=" + id + ")");
+            }
+            filter.append(")");
+        } else if (search != null) {
+            filter.append("(&(displayName=*" + search + "*)(eduPersonPrincipalNames=*))");
+        } else {
+            filter.append("objectClass=*");
         }
-        if (search != null) {
+
+        try {
+            ctx = getLdapContext();
+            results = ctx.search("", filter.toString(), ctrls);
+            while (results.hasMore()) {
+                SearchResult result = (SearchResult) results.next();
+                // An alumn user
+                if (result.getAttributes().get("eduPersonPrincipalNames") != null) {
+                    UserData userData = createUserDataFromLdapData(result);
+                    if (userData != null) {
+                        userDataList.add(userData);
+                    }
+                }
+            }
+        } catch (NamingException e) {
+            throw new CommonReportSet.UnknownErrorException(e, "Unable to list user data from LDAP.");
+        } finally {
             try {
-                listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
-                listUsersUrlQuery += "search=" + URLEncoder.encode(search, "UTF-8");
+                if (results != null) {
+                    results.close();
+                }
+                if (ctx != null) {
+                    ctx.close();
+                }
             }
-            catch (UnsupportedEncodingException exception) {
-                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
+            catch (Exception ignored) {
+                // Ignore.
             }
         }
-        String listUsersUrl = authorizationServer + USER_SERVICE_PATH + listUsersUrlQuery;
-        final String listUsersSearch = search;
-        return performGetRequest(listUsersUrl, "Retrieving user information failed",
-                new RequestHandler<Collection<UserData>>()
-                {
-                    @Override
-                    public Collection<UserData> success(JsonNode data)
-                    {
-                        List<UserData> userDataList = new LinkedList<UserData>();
-                        if (data != null) {
-                            for (JsonNode childJsonNode : data.get("_embedded").get("users")) {
-                                UserData userData = createUserDataFromWebServiceData(childJsonNode);
-                                userDataList.add(userData);
-                            }
-                        }
-                        return userDataList;
-                    }
-
-                    @Override
-                    public void error(StatusLine statusLine, String detail)
-                    {
-                        if (detail.contains("UserNotExistsException")) {
-                            String userId;
-                            int start = detail.lastIndexOf("id=");
-                            int end = -1;
-                            if (start != -1) {
-                                start += 3;
-                                end = detail.indexOf(" ", start);
-                            }
-                            if (start != -1 && end != -1) {
-                                userId = detail.substring(start, end);
-                            }
-                            else {
-                                userId = "<not-parsed>";
-                                logger.warn("User-id cannot be parsed from '{}'.", detail);
-                            }
-                            throw new ControllerReportSet.UserNotExistsException(userId);
-
-                        }
-                        else if (detail.startsWith("Invalid search string")) {
-                            throw new CommonReportSet.TypeIllegalValueException("search string", listUsersSearch);
-                        }
-                    }
-                });
+        return userDataList;
     }
+
     @Override
     protected Group onGetGroup(final String groupId)
     {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        String filter = "perunUniqueGroupName=" + groupId;
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        ctrls.setCountLimit(1);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+        Group group;
+
         try {
-            AclIdentity aclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
-                    .setParameter("type", AclIdentityType.GROUP)
-                    .setParameter("principalId", groupId)
-                    .getSingleResult();
-            Group group = new Group();
-            group.setName(aclIdentity.getPrincipalId());
-            group.addAdministrators(getGroupAdministrators(groupId));
-            return group;
-        } catch (NoResultException e) {
-            Group group = performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId,
-                    "Retrieving group " + groupId + " failed",
-                    new RequestHandler<Group>() {
-                        @Override
-                        public Group success(JsonNode data) {
-                            return createGroupFromWebServiceData(data);
-                        }
-
-                        @Override
-                        public void error(StatusLine statusLine, String detail) {
-                            int statusCode = statusLine.getStatusCode();
-                            if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupNotExistsException")) {
-                                throw new ControllerReportSet.GroupNotExistsException(groupId);
-                            }
-                        }
-                    });
-
-            group.addAdministrators(getGroupAdministrators(groupId));
-            return group;
+            ctx = getLdapContext();
+            results = ctx.search("", filter, ctrls);
+            if (results.hasMore()) {
+                SearchResult result = (SearchResult) results.next();
+                group = createGroupFromLdapData(result);
+            } else {
+                throw new ControllerReportSet.GroupNotExistsException(groupId);
+            }
+        } catch (NamingException e) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
+                }
+                if (ctx != null) {
+                    ctx.close();
+                }
+            }
+            catch (Exception ignored) {
+                // Ignore.
+            }
         }
+        return group;
     }
+
     @Override
     public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
-        String listGroupsUrlQuery = "";
-        if (filterGroupIds != null && filterGroupIds.size() > 0) {
-            String groupIds = StringUtils.join(filterGroupIds, ",");
-            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
-            listGroupsUrlQuery += "filter_group_id=" + groupIds;
-        }
-        if (filterGroupTypes != null && filterGroupTypes.size() > 0) {
-            StringBuilder groupTypes = new StringBuilder();
-            for (Group.Type groupType : filterGroupTypes) {
-                String groupCode = groupType.toString().toLowerCase();
-                if (groupTypes.length() > 0) {
-                    groupTypes.append(",");
-                }
-                groupTypes.append(groupCode);
-            }
-            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
-            listGroupsUrlQuery += "filter_type=" + groupTypes.toString();
-        }
-        String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
-        return performGetRequest(listGroupsUrl, "Retrieving groups failed", new RequestHandler<List<Group>>() {
-            @Override
-            public List<Group> success(JsonNode data) {
-                List<Group> groups = new LinkedList<Group>();
-                if (data != null) {
-                    Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
-                    while (groupIterator.hasNext()) {
-                        JsonNode groupNode = groupIterator.next();
-                        groups.add(createGroupFromWebServiceData(groupNode));
-                    }
-                }
-                return groups;
-            }
 
-            @Override
-            public void error(StatusLine statusLine, String detail) {
-                if (detail.contains("GroupNotExistsException")) {
-                    String userId;
-                    int start = detail.lastIndexOf("id=");
-                    int end = -1;
-                    if (start != -1) {
-                        start += 3;
-                        end = detail.indexOf(" ", start);
-                    }
-                    if (start != -1 && end != -1) {
-                        userId = detail.substring(start, end);
-                    } else {
-                        userId = "<not-parsed>";
-                        logger.warn("Group-id cannot be parsed from '{}'.", detail);
-                    }
-                    throw new ControllerReportSet.GroupNotExistsException(userId);
+        StringBuilder filter = new StringBuilder();
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+        List<Group> groupsList = new LinkedList<>();
+
+        filter.append("(|");
+        if (filterGroupIds != null && filterGroupIds.size() > 0) {
+            for (String id : filterGroupIds) {
+                filter.append("(perunUniqueGroupName=" + id + ")");
+            }
+        } else if (filterGroupTypes != null) {
+            for (Group.Type type : filterGroupTypes) {
+                filter.append("(perunUniqueGroupName=" + GROUP_OIDC_PROJECTS_SHONGO_PREFIX + ":" + type + "*)");
+            }
+        }
+        filter.append(")");
+
+        try {
+            ctx = getLdapContext();
+            results = ctx.search("", filter.toString(), ctrls);
+            while (results.hasMore()) {
+                SearchResult result = (SearchResult) results.next();
+                Group group = createGroupFromLdapData(result);
+                if (group != null) {
+                    groupsList.add(group);
                 }
             }
-        });
+        } catch (NamingException e) {
+            throw new CommonReportSet.UnknownErrorException(e, "Unable to list groups data from LDAP.");
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
+                }
+                if (ctx != null) {
+                    ctx.close();
+                }
+            }
+            catch (Exception ignored) {
+                // Ignore.
+            }
+        }
+        return groupsList;
+
     }
+
     @Override
     public Set<String> onListGroupUserIds(final String groupId)
     {
-        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users",
-                "Retrieving user-ids in group " + groupId + " failed",
-                new RequestHandler<Set<String>>() {
-                    @Override
-                    public Set<String> success(JsonNode data) {
-                        Set<String> userIds = new HashSet<String>();
-                        if (data != null) {
-                            Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
-                            while (userIterator.hasNext()) {
-                                JsonNode userNode = userIterator.next();
-                                if (!userNode.has("id")) {
-                                    throw new IllegalStateException("User must have identifier.");
-                                }
-                                userIds.add(userNode.get("id").asText());
-                            }
-                        }
-                        return userIds;
-                    }
-                });
-    }
-    @Override
-    protected Set<String> onListUserGroupIds(SecurityToken securityToken)
-    {
-        Set<String> projectShongoGroups = new HashSet<>();
-        if (securityToken != null) {
-            Set<String> groupIds = getUserInformation(securityToken).getEduPersonEntitlement();
-            for (String groupId : groupIds) {
-                String[] splittedPrefix = groupId.split(GROUP_OIDC_PREFIX);
-                if (splittedPrefix.length > 1) {
-                    String[] splittedFragment = splittedPrefix[1].split(GROUP_OIDC_FRAGMENT);
-                    if (splittedFragment.length > 1) {
-                        if (splittedFragment[0].contains(GROUP_OIDC_PROJECTS_SHONGO_PREFIX)) {
-                            projectShongoGroups.add(splittedFragment[0]);
-                        }
-                    }
+
+        Group group = onGetGroup(groupId);
+
+
+
+        String filter = "memberOf=" + group.getSecondaryId();
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+        List<UserData> userDataList = new LinkedList<>();
+
+        try {
+            ctx = getLdapContext();
+            results = ctx.search("", filter, ctrls);
+            while (results.hasMore()) {
+            SearchResult result = (SearchResult) results.next();
+                UserData userData = createUserDataFromLdapData(result);
+                if (userData != null) {
+                    userDataList.add(userData);
                 }
             }
+        } catch (NamingException e) {
+            throw new CommonReportSet.UnknownErrorException(e, "Unable to list user data from LDAP.");
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
+                }
+                if (ctx != null) {
+                    ctx.close();
+                }
+            }
+            catch (Exception ignored) {
+                // Ignore.
+            }
         }
-        return projectShongoGroups;
+
+        Set<String> userIds = new HashSet<String>();
+        for (UserData user : userDataList) {
+            userIds.add(user.getUserId());
+        }
+        return userIds;
     }
+
+    @Override
+    protected Set<String> onListUserGroupIds(String userId)
+    {
+        UserData userData = onGetUserDataByUserId(userId);
+        String filter = "uniqueMember=" + userData.getSecondaryId();
+        Set<String> userGroupIds = new HashSet<>();
+
+        SearchControls ctrls = new SearchControls();
+        ctrls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        DirContext ctx = null;
+        NamingEnumeration results = null;
+
+
+        try {
+            ctx = getLdapContext();
+            results = ctx.search("", filter, ctrls);
+            while (results.hasMore()) {
+                SearchResult result = (SearchResult) results.next();
+                Group group = createGroupFromLdapData(result);
+                if (group != null) {
+                    userGroupIds.add(group.getId());
+                }
+            }
+        } catch (NamingException e) {
+            throw new CommonReportSet.UnknownErrorException(e, "Unable to list data from LDAP.");
+        } finally {
+            try {
+                if (results != null) {
+                    results.close();
+                }
+                if (ctx != null) {
+                    ctx.close();
+                }
+            }
+            catch (Exception ignored) {
+                // Ignore.
+            }
+        }
+
+        return userGroupIds;
+    }
+
     @Override
     public String onCreateGroup(final Group group)
     {
@@ -562,6 +579,7 @@ public class ServerAuthorization extends Authorization
         modifyGroupAdministrators(group);
         return groupId;
     }
+
     @Override
     protected void onModifyGroup(final Group group)
     {
@@ -587,6 +605,7 @@ public class ServerAuthorization extends Authorization
                 });
         modifyGroupAdministrators(group);
     }
+
     @Override
     public void onDeleteGroup(final String groupId)
     {
@@ -603,6 +622,7 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
+
     @Override
     public void onAddGroupUser(final String groupId, final String userId)
     {
@@ -628,6 +648,7 @@ public class ServerAuthorization extends Authorization
                     }
                 });
     }
+
     @Override
     public void onRemoveGroupUser(final String groupId, final String userId)
     {
@@ -652,6 +673,115 @@ public class ServerAuthorization extends Authorization
                         }
                     }
                 });
+    }
+
+    /**
+     * Creates context with pooled connection for LDAP.
+     *
+     * @return {@link DirContext}
+     */
+    private DirContext getLdapContext() throws NamingException {
+        // LDAP client initialization
+        String ldapClientDn = configuration.getString(ControllerConfiguration.SECURITY_LDAP_BINDDN );
+        String ldapClientSecret = configuration.getString(ControllerConfiguration.SECURITY_LDAP_CLIENT_SECRET);
+        Hashtable<String,String> env = new Hashtable <String,String>();
+        env.put("com.sun.jndi.ldap.connect.pool", "true");
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.SECURITY_AUTHENTICATION, "simple");
+        env.put(Context.PROVIDER_URL, ldapAuthorizationServer);
+        env.put(Context.SECURITY_PRINCIPAL, ldapClientDn);
+        env.put(Context.SECURITY_CREDENTIALS, ldapClientSecret);
+        return new InitialDirContext(env);
+    }
+
+    /**
+     * Returns userData if parsing went well. If name is not set properly returns null.
+     *
+     * @return {@link UserData}
+     */
+    private UserData createUserDataFromLdapData(SearchResult result) throws NamingException {
+
+        Attributes attributes = result.getAttributes();
+        // Ignore if not set
+        if (attributes.get("sn") == null || attributes.get("givenname") == null) {
+            return null;
+        }
+
+        String userId = null;
+        NamingEnumeration ne =  attributes.getAll();
+        Set<String> principalNames = new HashSet<>();
+
+        // Retrieve einfra id
+        while (userId == null && ne.hasMore()) {
+            Attribute attribute = (Attribute) ne.next();
+            if (attribute.getID().equals("eduPersonPrincipalNames")) {
+                NamingEnumeration values = attribute.getAll();
+                while (values.hasMore()) {
+                    String value = (String) values.next();
+                    principalNames.add(value);
+                    if (value.matches("(.*)@einfra.cesnet.cz") && userId == null) {
+                        userId = value;
+                    }
+                }
+            }
+        }
+
+
+        // Required fields
+        if (userId == null) {
+            throw new IllegalArgumentException("User data must contain valid user id.");
+        }
+
+        UserData userData = new UserData();
+        UserInformation userInformation = userData.getUserInformation();
+        userInformation.setUserId(userId);
+        userInformation.setFirstName((String) attributes.get("givenName").get());
+        userInformation.setLastName((String) attributes.get("sn").get());
+        userInformation.setPrincipalNames(principalNames);
+
+        if (attributes.get("o") != null) {
+            String organization = (String) attributes.get("o").get();
+            userInformation.setOrganization(organization);
+        }
+        if (attributes.get("mail") != null) {
+            userInformation.setEmail((String) attributes.get("mail").get());
+        }
+
+        // Retrieve users dn within LDAP
+        userData.setSecondaryId(result.getNameInNamespace());
+
+        return userData;
+    }
+
+    /**
+     * Returns userData if parsing went well.
+     *
+     * @return {@link Group}
+     */
+    private Group createGroupFromLdapData(SearchResult result) throws NamingException {
+
+        Attributes attributes = result.getAttributes();
+        if (attributes.get("perunUniqueGroupName") == null) {
+            return null;
+        }
+        String perunUniqueGroupName = (String) attributes.get("perunUniqueGroupName").get();
+
+        if (!perunUniqueGroupName.matches(GROUP_LDAP_PROJECTS_SHONGO_REGEX)) {
+            return null;
+        }
+        String[] groupNameSplit = perunUniqueGroupName.split(":");
+        String type = groupNameSplit[3];
+
+        Group group = new Group();
+        group.setId(perunUniqueGroupName);
+        group.setType(Group.Type.permissiveValueOf(type.toUpperCase()));
+        if (attributes.get("description") != null) {
+            group.setDescription((String) attributes.get("description").get());
+        }
+        group.setSecondaryId(result.getNameInNamespace());
+        group.setName(groupNameSplit[4]);
+
+        return group;
     }
 
     /**
@@ -696,7 +826,7 @@ public class ServerAuthorization extends Authorization
      * @see #performRequest
      */
     private <T> T performPatchRequest(String url, JsonNode content, String description,
-            RequestHandler<T> requestHandler)
+                                      RequestHandler<T> requestHandler)
     {
         StringEntity entity;
         try {
@@ -945,18 +1075,18 @@ public class ServerAuthorization extends Authorization
             long instant = Long.valueOf(data.get("authn_instant").getTextValue()) * 1000;
             DateTime dateTime = new DateTime(instant);
             userData.setUserAuthorizationData(new UserAuthorizationData(
-                        data.get("authn_provider").getTextValue(),
-                        dateTime,
-                        data.get("loa").getIntValue()));
+                    data.get("authn_provider").getTextValue(),
+                    dateTime,
+                    data.get("loa").getIntValue()));
         }
         // for AuthN Server v0.6.3 and older
         if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
                 userData.setUserAuthorizationData(new UserAuthorizationData(
-                    authenticationInfo.get("provider").getTextValue(),
-                    null,
-                    authenticationInfo.get("loa").getIntValue()));
+                        authenticationInfo.get("provider").getTextValue(),
+                        null,
+                        authenticationInfo.get("loa").getIntValue()));
             }
         }
 
@@ -1144,7 +1274,7 @@ public class ServerAuthorization extends Authorization
      * @throws IllegalStateException when other {@link Authorization} already exists
      */
     public static ServerAuthorization createInstance(ControllerConfiguration configuration,
-            EntityManagerFactory entityManagerFactory) throws IllegalStateException
+                                                     EntityManagerFactory entityManagerFactory) throws IllegalStateException
     {
         ServerAuthorization serverAuthorization = new ServerAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(serverAuthorization);
