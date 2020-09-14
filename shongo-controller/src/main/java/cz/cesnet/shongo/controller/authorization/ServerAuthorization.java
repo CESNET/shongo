@@ -416,6 +416,8 @@ public class ServerAuthorization extends Authorization
             for (Group.Type type : filterGroupTypes) {
                 filter.append("(perunUniqueGroupName=" + GROUP_OIDC_PROJECTS_SHONGO_PREFIX + ":" + type + "*)");
             }
+        } else {
+            filter.append("(perunUniqueGroupName=" + GROUP_OIDC_PROJECTS_SHONGO_PREFIX + ":*)");
         }
         filter.append(")");
 
