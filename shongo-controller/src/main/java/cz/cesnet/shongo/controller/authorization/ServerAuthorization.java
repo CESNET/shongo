@@ -1,21 +1,14 @@
 package cz.cesnet.shongo.controller.authorization;
 
 
-import com.google.common.base.Strings;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.acl.AclIdentity;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.booking.person.UserPerson;
-import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
@@ -35,17 +28,11 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.net.URLEncoder;
 import java.security.SecureRandom;
-import java.security.acl.Acl;
 import java.util.*;
 
 /**
