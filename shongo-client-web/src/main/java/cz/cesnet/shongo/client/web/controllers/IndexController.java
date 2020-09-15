@@ -86,8 +86,12 @@ public class IndexController
             }
             modelAndView.addObject("parkingPlaceResources", ppItems);
             List<Map<String, Object>> physicalResources = new LinkedList<Map<String, Object>>();
-            physicalResources.addAll(items);
-            physicalResources.addAll(ppItems);
+            if (items != null) {
+                physicalResources.addAll(items);
+            }
+            if (ppItems != null) {
+                physicalResources.addAll(ppItems);
+            }
             modelAndView.addObject("physicalResources", physicalResources);
         }
 
