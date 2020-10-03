@@ -59,9 +59,9 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                 UserPerson userPerson = (UserPerson) person;
                 setType(Type.USER);
                 setUserId(userPerson.getUserId());
-                setName(userPerson.getName());
+/*                setName(userPerson.getName());
                 setEmail(userPerson.getEmail());
-                setOrganization(userPerson.getOrganization());
+                setOrganization(userPerson.getOrganization());*/
             }
             else if (person instanceof AnonymousPerson) {
                 AnonymousPerson anonymousPerson = (AnonymousPerson) person;
@@ -92,9 +92,9 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                     throw new IllegalStateException("User must not be null.");
                 }
                 userPerson.setUserId(user.getUserId());
-                userPerson.setName(name);
+/*                userPerson.setName(name);
                 userPerson.setEmail(email);
-                userPerson.setOrganization(organization);
+                userPerson.setOrganization(organization);*/
                 personParticipant.setPerson(userPerson);
                 return personParticipant;
             }

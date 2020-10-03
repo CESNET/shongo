@@ -88,88 +88,88 @@ public class UserPerson extends AbstractPerson
      */
     public void setUserId(String userId)
     {
-        Authorization.getInstance().checkUserExistence(userId);
+        //Authorization.getInstance().checkUserExistence(userId);
         this.userId = userId;
     }
 
     /**
      * @return {@link #name}
-     */
+     *//*
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getName()
     {
         return name;
     }
 
-    /**
+    *//**
      * @param name sets the {@link #name}
-     */
+     *//*
     public void setName(String name)
     {
         this.name = name;
     }
 
-    /**
+    *//**
      * @return {@link #organization}
-     */
+     *//*
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getOrganization()
     {
         return organization;
     }
 
-    /**
+    *//**
      * @param organization sets the {@link #organization}
-     */
+     *//*
     public void setOrganization(String organization)
     {
         this.organization = organization;
     }
 
-    /**
+    *//**
      * @return {@link #email}
-     */
+     *//*
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getEmail()
     {
         return email;
     }
 
-    /**
+    *//**
      * @param email sets the {@link #email}
-     */
+     *//*
     public void setEmail(String email)
     {
         this.email = email;
     }
 
-    /**
+    *//**
      * @return {@link #phoneNumber}
-     */
+     *//*
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getPhoneNumber()
     {
         return phoneNumber;
     }
 
-    /**
+    *//**
      * @param phoneNumber sets the {@link #phoneNumber}
-     */
+     *//*
     public void setPhoneNumber(String phoneNumber)
     {
         this.phoneNumber = phoneNumber;
     }
-
+*/
 
     @Override
     public UserPerson clone() throws CloneNotSupportedException
     {
         UserPerson person = (UserPerson) super.clone();
         person.setUserId(userId);
-        person.setName(name);
+/*        person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
-        person.setPhoneNumber(phoneNumber);
+        person.setPhoneNumber(phoneNumber);*/
         return person;
     }
 
@@ -210,9 +210,9 @@ public class UserPerson extends AbstractPerson
         cz.cesnet.shongo.controller.api.UserPerson person = new cz.cesnet.shongo.controller.api.UserPerson();
         person.setId(getId());
         person.setUserId(getUserId());
-        person.setName(getName());
+/*        person.setName(getName());
         person.setOrganization(getOrganization());
-        person.setEmail(getEmail());
+        person.setEmail(getEmail());*/
         person.setUserId(getUserId());
         return person;
     }
@@ -222,9 +222,9 @@ public class UserPerson extends AbstractPerson
     {
         cz.cesnet.shongo.controller.api.UserPerson userPersonApi = (cz.cesnet.shongo.controller.api.UserPerson) api;
         setUserId(userPersonApi.getUserId());
-        setName(userPersonApi.getName());
+/*        setName(userPersonApi.getName());
         setOrganization(userPersonApi.getOrganization());
-        setEmail(userPersonApi.getEmail());
+        setEmail(userPersonApi.getEmail());*/
     }
 
     @Override

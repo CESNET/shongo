@@ -920,9 +920,9 @@ public class ExecutableTest extends AbstractExecutorTest
         RoomSpecification roomSpecification = new RoomSpecification(5, Technology.ADOBE_CONNECT);
 
         UserPerson userPerson = new UserPerson(userId2);
-        userPerson.setName("name");
+/*        userPerson.setName("name");
         userPerson.setOrganization("organization");
-        userPerson.setEmail("email");
+        userPerson.setEmail("email");*/
 
         roomSpecification.addParticipant(new PersonParticipant(userPerson));
         reservationRequest.setSpecification(roomSpecification);
