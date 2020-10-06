@@ -535,7 +535,7 @@ public abstract class Authorization
             return true;
         }
         String userId = securityToken.getUserId();
-        return hasObjectPermission(userId, objectIdentity, objectPermission, securityToken);
+        return hasObjectPermission(userId, objectIdentity, objectPermission);
     }
 
     /**
@@ -546,7 +546,7 @@ public abstract class Authorization
      * false otherwise
      */
     public boolean hasObjectPermission(String userId,
-                                       AclObjectIdentity objectIdentity, ObjectPermission objectPermission, SecurityToken token)
+                                       AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
     {
         if (isAdministrator(userId)) {
             // Administrator has all possible permissions
