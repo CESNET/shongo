@@ -816,6 +816,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             addRoomParticipants(roomId, room.getParticipantRoles());
         }
         else if (room.getLicenseCount() == 0) {
+            recordingManager.tryStoppingRoomRecording(roomId);
             recordingManager.backupRoomRecordings(roomId);
             resetPermissions(roomId);
             endMeeting(roomId);

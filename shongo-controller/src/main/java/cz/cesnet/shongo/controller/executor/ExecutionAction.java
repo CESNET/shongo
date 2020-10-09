@@ -553,11 +553,11 @@ public abstract class ExecutionAction<T> extends Thread
         {
             ExecutionAction sourceAction = executionPlan.getActionByExecutionTarget(target.getSourceExecutable());
             if (!(sourceAction instanceof StopExecutableAction)) {
-                throw new RuntimeException("Source executable is not planned for stopping.");
+                throw new RuntimeException("Source executable is not planned for stopping. Executable ID: " + target.getSourceExecutable().getId());
             }
             ExecutionAction targetAction = executionPlan.getActionByExecutionTarget(target.getTargetExecutable());
             if (!(targetAction instanceof StartExecutableAction)) {
-                throw new RuntimeException("Target executable is not planned for starting.");
+                throw new RuntimeException("Target executable is not planned for starting. Executable ID: " + target.getTargetExecutable().getId());
             }
             if (target.isReplacement()) {
                 sourceAction.setSkipPerform(true);

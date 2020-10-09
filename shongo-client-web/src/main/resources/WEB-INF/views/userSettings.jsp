@@ -24,7 +24,7 @@ Alternative: https://einfra.cesnet.cz/perun-gui/#usr/info?active=1
         $scope.useWebService = ${userSettings.useWebService};
         $scope.locale = "${userSettings.locale}";
         $scope.homeTimeZone = "${userSettings.homeTimeZone}";
-        $scope.currentTimeZone = "${currentTimeZone}";
+        $scope.currentTimeZone = "${userSettings.currentTimeZone}";
         $scope.currentTimeZoneEnabled = ${userSettings.currentTimeZoneEnabled};
         $scope.$watch("useWebService", function(){
             if ($scope.useWebService) {
