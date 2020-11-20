@@ -934,7 +934,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
             meetingRoomResourceId = resourceSpecification.getResourceId();
             ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
-            if (summary.getResourceTags().contains(ClientWebConfiguration.getInstance().getParkingPlaceTagName())) {
+            String parkingTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
+            if (parkingTagName != null && summary.getResourceTags().contains(parkingTagName)) {
                 specificationType = SpecificationType.PARKING_PLACE;
             } else {
                 specificationType = SpecificationType.MEETING_ROOM;

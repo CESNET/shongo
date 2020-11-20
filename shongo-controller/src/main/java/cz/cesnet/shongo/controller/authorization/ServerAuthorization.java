@@ -297,7 +297,11 @@ public class ServerAuthorization extends Authorization
         if (principalName.endsWith("@einfra.cesnet.cz")) {
             return principalName;
         } else {
-            throw new IllegalArgumentException("Invalid format of principal name: " + principalName);
+            // Try looking in LDAP for user
+            for (UserData userData : onListUserData(Collections.singleton(principalName), null)) {
+                return userData.getUserId();
+            }
+            throw new ControllerReportSet.UserNotExistsException(principalName);
         }
     }
 
