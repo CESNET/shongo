@@ -129,6 +129,10 @@
         </starting-duration>
     </executor>
 
+    <scheduler>
+        <expiration-period>P1Y</expiration-period>
+    </scheduler>
+
     <!-- Reservation configuration -->
     <reservation>
         <!-- Configuration of room reservations -->

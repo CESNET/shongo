@@ -5,12 +5,13 @@ import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.cdr.CdrEntry;
+import cz.cesnet.shongo.controller.cdr.CdrManager;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -325,7 +326,7 @@ public class ExecutableManager extends AbstractManager
                         + "   OR ("
                         + "       executable.state = :notStarted "
                         + "       AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
-                        + " ))",
+                        + " )) AND executable NOT IN (SELECT usedRoomEndpoint.reusedRoomEndpoint from UsedRoomEndpoint usedRoomEndpoint)",  // referenced by used rooms (capacities)
                         Executable.class)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
                 .setParameter("toDelete", Executable.State.TO_DELETE)
@@ -348,6 +349,66 @@ public class ExecutableManager extends AbstractManager
             delete(executable, authorizationManager);
         }
         return executablesForDeletion.size() > 0;
+    }
+
+    public void createCDRs(AuthorizationManager authorizationManager, CdrManager cdrManager) {
+
+        List<Executable> finishedRooms = entityManager
+                .createQuery("SELECT executable FROM Executable executable"
+                                + " WHERE (executable.state = :finalized"      //room is deleted
+                                + " OR executable.state = :stopped )"           //room is stopped
+                                + " AND (executable.cdrCreated IS NULL"
+                                + " OR executable.cdrCreated = :false)"
+                                + " AND executable.executionSkipped = :false",
+                        Executable.class)
+                .setParameter("finalized", Executable.State.FINALIZED)
+                .setParameter("stopped", Executable.State.STOPPED)
+                .setParameter("false", Boolean.FALSE)
+                .getResultList();
+
+        for (Executable executable : finishedRooms) {
+            if (executable instanceof RoomEndpoint) {
+                RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
+                // Permanent rooms wont have CDRs, only capacities
+                if (roomEndpoint.getRoomConfiguration().getLicenseCount() != 0) {
+                    createCDREntry(roomEndpoint, cdrManager, authorizationManager);
+                }
+                executable.setCdrCreated(Boolean.TRUE);
+                update(executable);
+            } else {
+                throw new TodoImplementException();
+            }
+        }
+    }
+
+    public boolean deleteFinalizedExecutables(AuthorizationManager authorizationManager) {
+
+        List<Executable> finalizedExecutables = entityManager
+                .createQuery("SELECT executable FROM Executable executable"
+                                + " WHERE executable NOT IN "
+                                +   "(SELECT reservation.executable "
+                                +      "FROM Reservation reservation)"        //executable is not referenced by a reservation anymore
+                                + " AND executable.state = :finalized"        //request was deleted
+                                + " AND (executable.cdrCreated = :true"       //CDR already created
+                                + " OR executable.executionSkipped = :true)",
+                        Executable.class)
+                .setParameter("finalized", Executable.State.FINALIZED)
+                .setParameter("true", Boolean.TRUE)
+                .getResultList();
+
+        int removedRooms = 0;
+        for (Executable executable : finalizedExecutables) {
+            delete(executable, authorizationManager);
+            removedRooms++;
+        }
+        return removedRooms > 0;
+    }
+
+
+    private void createCDREntry(RoomEndpoint roomEndpoint, CdrManager cdrManager, AuthorizationManager authorizationManager) {
+        CdrEntry cdrEntry = new CdrEntry();
+        cdrEntry.fromRoomEndpoint(roomEndpoint, authorizationManager);
+        cdrManager.createEntry(cdrEntry);
     }
 
     /**

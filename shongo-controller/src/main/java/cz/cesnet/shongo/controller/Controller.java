@@ -75,6 +75,11 @@ public class Controller
     public static Logger loggerAcl = LoggerFactory.getLogger(Controller.class.getName() + ".Acl");
 
     /**
+     * {@link Logger} for all performed requests.
+     */
+    public static Logger loggerCdr = LoggerFactory.getLogger(Controller.class.getName() + ".Cdr");
+
+    /**
      * {@link Logger} for all JADE requested agent actions.
      */
     public static Logger loggerRequestedCommands =

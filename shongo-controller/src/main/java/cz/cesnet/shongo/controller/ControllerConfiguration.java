@@ -102,6 +102,10 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String CALDAV_BASIC_AUTH_PASSWORD = "caldav-connector.basic-auth.password";
 
 
+    /**
+     * Period in which the requests expire.
+     */
+    public static final String SCHEDULER_EXPIRATION_PERIOD = "scheduler.expiration-period";
 
     /**
      * Period in which the executor works.

@@ -28,6 +28,11 @@ public enum ExecutableState
     STOPPED(false),
 
     /**
+     * {@link Executable} was skipped.
+     */
+    SKIPPED(false),
+
+    /**
      * {@link Executable} failed to stop.
      */
     STOPPING_FAILED(true);

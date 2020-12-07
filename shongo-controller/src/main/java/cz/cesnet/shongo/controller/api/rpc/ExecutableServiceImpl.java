@@ -668,18 +668,19 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 // When executable slot is in history
                 else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
                     // When executable is started or failed to start, set it as stopped
-                    if (executableState.isStarted() || executableState.equals(
-                            cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                    if (executableState.isStarted()) {
                         if (Boolean.TRUE.equals(skipExecution)) {
-                            executableToUpdate.setState(
-                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                                executableToUpdate.setState(
+                                        cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                             executableToUpdate.setAttemptCount(0);
                             executableToUpdate.setNextAttempt(null);
                         }
                     }
                     // If executable is not started
                     else if (executableState.equals(
-                            cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
+                            cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED) ||
+                            executableState.equals(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
                         executableToUpdate.setState(
                                 cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                     }

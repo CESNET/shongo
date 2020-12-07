@@ -23,10 +23,12 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.calendar.CalendarManager;
 import cz.cesnet.shongo.controller.calendar.ReservationCalendar;
+import cz.cesnet.shongo.controller.cdr.CdrManager;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +68,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
     private Set<String> modifiedResources = new HashSet<>();
 
+    private Duration expirationPeriod;
+
     /**
      * Constructor.
      *
@@ -90,6 +94,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     {
         this.checkDependency(cache, Cache.class);
         super.init(configuration);
+        expirationPeriod = configuration.getDuration(ControllerConfiguration.SCHEDULER_EXPIRATION_PERIOD);
     }
 
     /**
@@ -127,7 +132,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        CdrManager cdrManager = new CdrManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        DateTime expirationDateTime = DateTime.now().minus(expirationPeriod);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -213,6 +220,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                         parentAllocation.addReservation(reservation);
                     }
                 }
+            }
+            List<ReservationRequest> expiredRequests = reservationRequestManager.getExpiredRequests(expirationDateTime);
+            for (ReservationRequest request : expiredRequests) {
+                reservationRequestManager.hardDelete(request, authorizationManager);
             }
 
             entityManager.getTransaction().commit();
@@ -350,8 +361,12 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
+            // First create CDRs
+            executableManager.createCDRs(authorizationManager, cdrManager);
+
             // Delete all executables which should be deleted
             executableManager.deleteAllNotReferenced(authorizationManager);
+            executableManager.deleteFinalizedExecutables(authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction(null);
@@ -518,6 +533,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         // Create allocated reservation
         if (!allocatedReservation.isPersisted()) {
             allocatedReservation.setUserId(reservationRequest.getCreatedBy());
+            if (allocatedReservation.getExecutable() != null) {
+                allocatedReservation.getExecutable().setRequestedBy(reservationRequest.getCreatedBy());
+            }
             reservationManager.create(allocatedReservation);
         }
         else {

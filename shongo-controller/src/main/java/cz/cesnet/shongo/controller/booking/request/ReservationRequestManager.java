@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.util.NativeQuery;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -467,6 +468,24 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutChildRequests", Allocation.State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS)
                 .getResultList();
+    }
+
+    public List<ReservationRequest> getExpiredRequests(DateTime expirationDate) {
+        List<ReservationRequest> expiredRequests = entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " LEFT JOIN reservationRequest.allocation allocation"
+                        + " WHERE reservationRequest.state != :modifiedState "   // consider last version of request for permanent rooms
+                        + " AND reservationRequest.slotEnd < :dateTime"             // is before expiration period
+                        + " AND allocation NOT IN "
+                        + "(SELECT reusedAllocation from ReservationRequest req"
+                        + " INNER JOIN req.reusedAllocation reusedAllocation)",       // no referencing capacities
+                ReservationRequest.class)
+                .setParameter("dateTime", expirationDate)
+                .setParameter("modifiedState", AbstractReservationRequest.State.MODIFIED)
+                .getResultList();
+
+        //TODO resReqSets
+        return expiredRequests;
     }
 
     /**

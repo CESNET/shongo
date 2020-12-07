@@ -16,6 +16,8 @@ import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -33,6 +35,11 @@ public abstract class Executable extends ExecutionTarget
      * Current state of the {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
      */
     protected State state;
+
+    /**
+     * User-id of an user who requested this execution.
+     */
+    private String requestedBy;
 
     /**
      * Specifies whether this {@link Executable} should be updated.
@@ -53,6 +60,10 @@ public abstract class Executable extends ExecutionTarget
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new LinkedList<Executable>();
+
+    private boolean cdrCreated;
+
+    private boolean executionSkipped;
 
     /**
      * {@link ExecutableService}s for this {@link Endpoint}.
@@ -77,6 +88,33 @@ public abstract class Executable extends ExecutionTarget
         }
     }
 
+    @Column(length = Controller.USER_ID_COLUMN_LENGTH)
+    public String getRequestedBy() {
+        return requestedBy;
+    }
+
+    public void setRequestedBy(String requestedBy) {
+        this.requestedBy = requestedBy;
+    }
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isCdrCreated() {
+        return cdrCreated;
+    }
+
+    public void setCdrCreated(boolean cdrCreated) {
+        this.cdrCreated = cdrCreated;
+    }
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isExecutionSkipped() {
+        return executionSkipped;
+    }
+
+    public void setExecutionSkipped(boolean executionSkipped) {
+        this.executionSkipped = executionSkipped;
+    }
+
     /**
      * @return {@link #state}
      */
@@ -94,6 +132,9 @@ public abstract class Executable extends ExecutionTarget
     public void setState(State state)
     {
         this.state = state;
+        if (state.equals(State.SKIPPED)) {
+            setExecutionSkipped(Boolean.TRUE);
+        }
 
         // Apply resetting state to all children (recursively)
         if (state == null || state == State.NOT_ALLOCATED) {
@@ -704,7 +745,7 @@ public abstract class Executable extends ExecutionTarget
                 case NOT_STARTED:
                     return ExecutableState.NOT_STARTED;
                 case SKIPPED:
-                    return ExecutableState.NOT_STARTED;
+                    return ExecutableState.SKIPPED;
                 case STARTED:
                     return ExecutableState.STARTED;
                 case STARTING_FAILED:

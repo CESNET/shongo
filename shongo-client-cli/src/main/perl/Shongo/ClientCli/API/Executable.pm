@@ -17,6 +17,7 @@ use Shongo::ClientCli::API::DeviceResource;
 # States
 our $State = {
     'NOT_STARTED' => {'title' => 'Not-Started', 'color' => 'yellow'},
+    'SKIPPED' => {'title' => 'Skipped', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Started', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
     'STOPPED' => {'title' => 'Finished', 'color' => 'blue'},
