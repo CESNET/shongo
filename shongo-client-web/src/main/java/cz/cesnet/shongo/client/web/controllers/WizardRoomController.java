@@ -728,15 +728,13 @@ public class WizardRoomController extends WizardParticipantsController
             SessionStatus sessionStatus,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        // Create or modify reservation request
+        // Create reservation request
         String reservationRequestId;
-        if (Strings.isNullOrEmpty(reservationRequest.getId())) {
-            //TODO change PERMANENT_ROOM to VIRTUAL_ROOM
+        if (!Strings.isNullOrEmpty(reservationRequest.getId())) {
             if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
                 reservationRequestId = reservationService.createReservationRequest(
                         securityToken, reservationRequest.toAliasApi(request));
                 reservationRequest.setPermanentRoomReservationRequestId(reservationRequestId);
-                //TODO also reserve capacity
                 reservationService.createReservationRequest(
                         securityToken, reservationRequest.toCapacityApi(request));
 
@@ -747,7 +745,7 @@ public class WizardRoomController extends WizardParticipantsController
 
         }
         else {
-            //TODO apply changes to modification as well
+            // Modify reservation request
             reservationRequestId = reservationService.modifyReservationRequest(
                     securityToken, reservationRequest.toApi(request));
         }
@@ -862,7 +860,12 @@ public class WizardRoomController extends WizardParticipantsController
         if (reservationRequest.getSpecificationType() == null) {
             throw new IllegalStateException("Room type is not specified.");
         }
-        WizardView wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
+        WizardView wizardView;
+        if (reservationRequest instanceof ReservationRequestModificationModel) {
+            wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomModificationAttributes.jsp");
+        } else {
+            wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
+        }
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
                 "views.button.cancel", WizardView.ActionPosition.LEFT);

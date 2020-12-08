@@ -130,7 +130,7 @@
     </executor>
 
     <scheduler>
-        <expiration-period>P1Y</expiration-period>
+        <expiration-period>P180D</expiration-period>
     </scheduler>
 
     <!-- Reservation configuration -->

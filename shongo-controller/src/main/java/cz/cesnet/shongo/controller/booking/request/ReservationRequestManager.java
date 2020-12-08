@@ -474,7 +474,7 @@ public class ReservationRequestManager extends AbstractManager
         List<ReservationRequest> expiredRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " LEFT JOIN reservationRequest.allocation allocation"
-                        + " WHERE reservationRequest.state != :modifiedState "   // consider last version of request for permanent rooms
+                        + " WHERE reservationRequest.state <> :modifiedState "   // consider last version of request for permanent rooms
                         + " AND reservationRequest.slotEnd < :dateTime"             // is before expiration period
                         + " AND allocation NOT IN "
                         + "(SELECT reusedAllocation from ReservationRequest req"
