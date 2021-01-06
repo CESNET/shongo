@@ -194,11 +194,12 @@ public class ReservationRequestManager extends AbstractManager
         // Delete acl records
         authorizationManager.deleteAclEntriesForEntity(reservationRequest);
 
+        allocation.setReservationRequest(null);
+
         List<AbstractReservationRequest> versions = listVersions(reservationRequest);
         for (AbstractReservationRequest version : versions) {
             delete(version, true);
         }
-        allocation.setReservationRequest(null);
 
         entityManager.flush();
         // Update specification summary for each version AFTER everything else

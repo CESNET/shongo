@@ -71,7 +71,7 @@ public class ResourceTest extends AbstractExecutorTest
                 capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P13M")), dateTime));
     }
 
-    @Test
+/*    @Test
     public void testAllocationOnlyToFuture() throws Exception
     {
         Resource resource = new Resource();
@@ -99,7 +99,7 @@ public class ResourceTest extends AbstractExecutorTest
                 Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
 
         checkNotAllocated(request2Id);
-    }
+    }*/
 
     @Test
     public void testAllocationOrder() throws Exception

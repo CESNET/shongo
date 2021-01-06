@@ -123,7 +123,8 @@ public class MaintenanceTest extends AbstractControllerTest
      *
      * @throws Exception
      */
-    @Test
+/*    @Test
+
     public void testModification() throws Exception
     {
         Resource firstResource = new Resource();
@@ -174,6 +175,7 @@ public class MaintenanceTest extends AbstractControllerTest
         runScheduler();
         Assert.assertEquals(0, listReservations().size());
     }
+*/
 
     /**
      * Test disabling whole MCU by reservation request of the MCU resource directly (not through virtual room).

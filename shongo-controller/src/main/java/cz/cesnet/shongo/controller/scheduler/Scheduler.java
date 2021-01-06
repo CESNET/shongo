@@ -134,7 +134,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         CdrManager cdrManager = new CdrManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
-        DateTime expirationDateTime = DateTime.now().minus(expirationPeriod);
+        DateTime expirationDateTime = start.minus(expirationPeriod);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
