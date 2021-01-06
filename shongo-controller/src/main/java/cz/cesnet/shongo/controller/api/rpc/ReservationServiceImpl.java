@@ -895,7 +895,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             reservationRequest.setUpdatedBy(securityToken.getUserId());
-            reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
+            reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction(securityToken);

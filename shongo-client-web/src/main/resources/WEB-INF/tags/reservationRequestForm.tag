@@ -39,8 +39,9 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
-        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
         $scope.allowGuests = $scope.value(${reservationRequest.allowGuests == true}, false);
+        $scope.prolonged = $scope.value(${reservationRequest.prolonged == true}, false);
         $scope.guestPin = '${reservationRequest.guestPin}';
         </c:if>
 
@@ -60,9 +61,7 @@
             removeId: $scope.excludeDates.length + 1});
         </c:if>
 
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
-        </c:if>
 
         // Update end when start is changed
         $("#startDate").change(function () {
@@ -90,7 +89,7 @@
 
         $scope.getStart = function() {
             <c:choose>
-            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
             var startTimePicker = $("#start").data("timepicker");
             var start = $("#startDate").val();
             var hours = (startTimePicker.meridian == "PM" ? startTimePicker.hour + 12 : startTimePicker.hour);
@@ -137,7 +136,7 @@
         };
 
         // Periodicity full options init
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
         $scope.days = [];
         <c:forEach items="${weekDays}" var="day">
         $scope.days[${day.dayIndex} - 1] = '${day}';
@@ -542,6 +541,27 @@
            method="post"
            ng-controller="ReservationRequestFormController">
 
+    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' || reservationRequest.specificationType != 'PARKING_PLACE'}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="prolonged">
+                <spring:message code="views.reservationRequest.specification.usage" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.allowGuests.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-5 center-content">
+                    <label><spring:message code="views.reservationRequest.specification.oneTime"/></label>
+                    <label for="prolonged" class="switch">
+                        <input id="prolonged" name="prolonged" type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <label><spring:message code="views.reservationRequest.specification.prolonged"/></label>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
     <c:if test="${not empty reservationRequest.id}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="id">
@@ -699,7 +719,7 @@
         </div>
     </div>
 
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="roomName">
                 <spring:message code="views.reservationRequest.specification.roomName"/>:
@@ -714,7 +734,7 @@
     </c:if>
 
     <%-- Show retaing option H323_E164 number for permanent rooms --%>
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
         <c:choose>
             <c:when test="${reservationRequestModification != null && not empty reservationRequest.e164Number}">
                 <div class="form-group" ng-show="technology == 'H323_SIP'">

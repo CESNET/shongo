@@ -455,7 +455,7 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @return list of {@link ReservationRequest}s which should be deleted
+     * @return list of {@link ReservationRequest}s which orphaned and should be deleted
      */
     public List<ReservationRequest> getOrphanReservationRequestsForDeletion()
     {
@@ -470,21 +470,31 @@ public class ReservationRequestManager extends AbstractManager
                 .getResultList();
     }
 
-    public List<ReservationRequest> getExpiredRequests(DateTime expirationDate) {
-        List<ReservationRequest> expiredRequests = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " LEFT JOIN reservationRequest.allocation allocation"
-                        + " WHERE reservationRequest.state <> :modifiedState "   // consider last version of request for permanent rooms
-                        + " AND reservationRequest.slotEnd < :dateTime"             // is before expiration period
-                        + " AND allocation NOT IN "
-                        + "(SELECT reusedAllocation from ReservationRequest req"
-                        + " INNER JOIN req.reusedAllocation reusedAllocation)",       // no referencing capacities
-                ReservationRequest.class)
+    /**
+     * @return list of {@link ReservationRequest}s which expired and should be deleted
+     */
+    public List<AbstractReservationRequest> getExpiredRequests(DateTime expirationDate) {
+                List<AbstractReservationRequest> expiredRequests = entityManager.createQuery(
+                        "SELECT  abstractReservationRequest "
+                            + " FROM AbstractReservationRequest abstractReservationRequest"
+                            + " LEFT JOIN abstractReservationRequest.allocation reqAllocation"
+                            + " WHERE (abstractReservationRequest.id IN ("
+                                    + "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                                    + " WHERE reservationRequest.slotEnd < :dateTime"             // is before expiration period
+                                + ") OR abstractReservationRequest.id IN ("
+                                    + "SELECT reservationRequestSet.id FROM ReservationRequestSet reservationRequestSet"
+                                    + " INNER JOIN reservationRequestSet.allocation setAllocation"
+                                    + " WHERE setAllocation.childReservationRequests IS EMPTY) "   // all child request have been removed for resReqSet
+                            + ") AND reqAllocation NOT IN ("
+                                + "SELECT reusedAllocation from ReservationRequest req"
+                                + " INNER JOIN req.reusedAllocation reusedAllocation)"    // no referencing capacities
+                            + " AND abstractReservationRequest.state <> :modifiedState",     // consider only last version of request for permanent rooms
+                        AbstractReservationRequest.class)
                 .setParameter("dateTime", expirationDate)
                 .setParameter("modifiedState", AbstractReservationRequest.State.MODIFIED)
                 .getResultList();
 
-        //TODO resReqSets
+
         return expiredRequests;
     }
 

@@ -353,31 +353,27 @@ public class ExecutableManager extends AbstractManager
 
     public void createCDRs(AuthorizationManager authorizationManager, CdrManager cdrManager) {
 
-        List<Executable> finishedRooms = entityManager
-                .createQuery("SELECT executable FROM Executable executable"
-                                + " WHERE (executable.state = :finalized"      //room is deleted
-                                + " OR executable.state = :stopped )"           //room is stopped
-                                + " AND (executable.cdrCreated IS NULL"
-                                + " OR executable.cdrCreated = :false)"
-                                + " AND executable.executionSkipped = :false",
-                        Executable.class)
+        List<RoomEndpoint> finishedRooms = entityManager
+                .createQuery("SELECT roomEndpoint FROM RoomEndpoint roomEndpoint"
+                                + " WHERE (roomEndpoint.state = :finalized"      //room is deleted
+                                + " OR roomEndpoint.state = :stopped )"           //room is stopped
+                                + " AND (roomEndpoint.cdrCreated IS NULL"
+                                + " OR roomEndpoint.cdrCreated = :false)"
+                                + " AND roomEndpoint.executionSkipped = :false",
+                        RoomEndpoint.class)
                 .setParameter("finalized", Executable.State.FINALIZED)
                 .setParameter("stopped", Executable.State.STOPPED)
                 .setParameter("false", Boolean.FALSE)
                 .getResultList();
 
-        for (Executable executable : finishedRooms) {
-            if (executable instanceof RoomEndpoint) {
-                RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
+        for (RoomEndpoint roomEndpoint : finishedRooms) {
                 // Permanent rooms wont have CDRs, only capacities
                 if (roomEndpoint.getRoomConfiguration().getLicenseCount() != 0) {
                     createCDREntry(roomEndpoint, cdrManager, authorizationManager);
                 }
-                executable.setCdrCreated(Boolean.TRUE);
-                update(executable);
-            } else {
-                throw new TodoImplementException();
-            }
+            roomEndpoint.setCdrCreated(Boolean.TRUE);
+            update(roomEndpoint);
+
         }
     }
 

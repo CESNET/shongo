@@ -130,7 +130,8 @@
     </executor>
 
     <scheduler>
-        <expiration-period>P180D</expiration-period>
+        <!-- Duration for which reservation requests are supposed to be stored-->
+        <expiration-period>P100000000D</expiration-period>
     </scheduler>
 
     <!-- Reservation configuration -->

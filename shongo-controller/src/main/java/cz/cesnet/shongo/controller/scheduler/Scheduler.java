@@ -221,8 +221,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     }
                 }
             }
-            List<ReservationRequest> expiredRequests = reservationRequestManager.getExpiredRequests(expirationDateTime);
-            for (ReservationRequest request : expiredRequests) {
+            List<AbstractReservationRequest> expiredRequests = reservationRequestManager.getExpiredRequests(expirationDateTime);
+            for (AbstractReservationRequest request : expiredRequests) {
                 reservationRequestManager.hardDelete(request, authorizationManager);
             }
 

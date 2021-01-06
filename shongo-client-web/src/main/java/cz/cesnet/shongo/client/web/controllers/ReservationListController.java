@@ -50,6 +50,8 @@ public class ReservationListController
     @Resource
     private MessageSource messageSource;
 
+    private static int ROOM_EXPIRATION_DAYS = '7';
+
     /**
      * Initialize model editors for additional types.
      *
@@ -211,6 +213,8 @@ public class ReservationListController
             }
             item.put("isDeprecated", isDeprecated);
 
+            boolean isExpiringSoon = earliestSlot != null && earliestSlot.getEnd().isBefore(DateTime.now().plusDays(ROOM_EXPIRATION_DAYS)) && !isDeprecated;
+            item.put("isExpiringSoon", isExpiringSoon);
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);
             item.put("type", specificationType);

@@ -132,7 +132,7 @@ public abstract class Executable extends ExecutionTarget
     public void setState(State state)
     {
         this.state = state;
-        if (state.equals(State.SKIPPED)) {
+        if (state == State.SKIPPED) {
             setExecutionSkipped(Boolean.TRUE);
         }
 

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * Represents an identity of object which can be used in {@link AclEntry}.
@@ -24,6 +25,8 @@ public class AclObjectIdentity extends SimplePersistentObject
      * Unique identifier of object.
      */
     private Long objectId;
+
+    private List<AclEntry> aclEntryList;
 
     /**
      * @return {@link #objectClass}
@@ -58,6 +61,15 @@ public class AclObjectIdentity extends SimplePersistentObject
     public void setObjectId(Long objectId)
     {
         this.objectId = objectId;
+    }
+
+    @OneToMany(mappedBy = "objectIdentity")
+    public List<AclEntry> getAclEntryList() {
+        return aclEntryList;
+    }
+
+    public void setAclEntryList(List<AclEntry> aclEntryList) {
+        this.aclEntryList = aclEntryList;
     }
 
     @Override

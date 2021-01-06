@@ -157,6 +157,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected boolean collidingWithFirstSlot = false;
 
+    protected boolean prolonged = false;
 
     protected boolean allowGuests = false;
 
@@ -770,6 +771,14 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.allowGuests = allowGuests;
     }
 
+    public boolean getProlonged() {
+        return prolonged;
+    }
+
+    public void setProlonged(boolean prolonged) {
+        this.prolonged = prolonged;
+    }
+
     public List<? extends ParticipantModel> getRoomParticipants()
     {
         return roomParticipants;
@@ -1172,6 +1181,30 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
+            case PERMANENT_ROOM_AND_CAPACITY: {
+                RoomSpecification roomSpecification = new RoomSpecification();
+                // Room establishment
+                RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+                roomEstablishment.setTechnologies(technology.getTechnologies());
+                AliasSpecification roomNameSpecification = new AliasSpecification();
+                roomNameSpecification.addTechnologies(technology.getTechnologies());
+                roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
+                roomNameSpecification.setValue(roomName);
+                roomEstablishment.addAliasSpecification(roomNameSpecification);
+                RoomAvailability roomAvailability = roomSpecification.createAvailability();
+                roomAvailability.setParticipantCount(roomParticipantCount);
+                roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
+                roomAvailability.setMeetingName(roomMeetingName);
+                roomAvailability.setMeetingDescription(roomMeetingDescription);
+                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
+                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
+                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
+                }
+                specification = roomSpecification;
+                break;
+            }
+
+
             case PARKING_PLACE:
             case MEETING_ROOM: {
                 specification = new ResourceSpecification(meetingRoomResourceId);
@@ -1243,6 +1276,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public Period getDuration()
     {
         switch (specificationType) {
+            case PERMANENT_ROOM_AND_CAPACITY:
             case PERMANENT_ROOM:
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
@@ -1486,17 +1520,30 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void updateAliasEnd()
     {
-        setEnd(getEndDate());
+        // update only if capacity is set as well
+        if (roomParticipantCount != null && roomParticipantCount.intValue() > 0) {
+            setEnd(getEndDate());
+        }
+
     }
 
     //End date
     public DateTime getEndDate()
     {
+        DateTime end;
         if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
-            return getRequestStart().plus(getDurationCountPeriod());
+            end = getRequestStart().plus(getDurationCountPeriod());
         } else {
-            return getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone()).plus(Period.weeks(2));
+            end = getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone());
         }
+
+        if (prolonged) {
+            if (getRequestStart().plus(Period.days(180)).isAfter(end)) {
+                end = getRequestStart().plus(Period.days(180));
+            }
+        }
+
+        return end;
     }
 
     public LocalDate getFirstFutureSlotStart()

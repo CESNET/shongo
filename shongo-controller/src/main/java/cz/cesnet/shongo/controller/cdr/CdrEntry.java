@@ -11,10 +11,12 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
@@ -34,7 +36,7 @@ public class CdrEntry extends SimplePersistentObject {
     /**
      * Organisation of an user who requested the call.
      */
-    private String organization;
+    private String usersOrganization;
 
     /**
      * Start of the requested call slot.
@@ -47,10 +49,24 @@ public class CdrEntry extends SimplePersistentObject {
     private DateTime slotEnd;
 
     /**
+     * Duration of the meeting.
+     */
+    private Duration duration;
+
+    /**
      * Licences reserved for this call.
      */
-    private int licenseCount = 0;
+    private int licenseCount;
 
+    /**
+     * Description of the meeting.
+     */
+    private String meetingDescription;
+
+    /**
+     * Name of the used resource.
+     */
+    private String resourceName;
 
 
     public CdrEntry() {
@@ -62,6 +78,9 @@ public class CdrEntry extends SimplePersistentObject {
         setSlotStart(roomEndpoint.getSlotStart());
         setRequestedBy(roomEndpoint.getRequestedBy());
         setLicenseCount(roomEndpoint.getRoomConfiguration().getLicenseCount());
+        setMeetingDescription(roomEndpoint.getMeetingDescription());
+        setResourceName(roomEndpoint.getResource().getName());
+        setDuration(new Duration(roomEndpoint.getSlotStart().getMillis(), roomEndpoint.getSlotEnd().getMillis()));
         if (roomEndpoint.getRequestedBy() != null) {
             setRequestedBy(roomEndpoint.getRequestedBy());
         } else {
@@ -80,10 +99,10 @@ public class CdrEntry extends SimplePersistentObject {
         if (!Strings.isNullOrEmpty(getRequestedBy()) && !requestedBy.contains("einfra.cesnet.cz")) {
             setRequestedBy(null);
         }
-/*        if (!Strings.isNullOrEmpty(getRequestedBy())) {
+        if (!Strings.isNullOrEmpty(getRequestedBy())) {
             UserInformation userInformation = authorizationManager.getUserInformation(getRequestedBy());
-            setOrganization(userInformation.getOrganization());
-        }*/
+            setUsersOrganization(userInformation.getOrganization());
+        }
     }
 
     @Column(length = Controller.USER_ID_COLUMN_LENGTH)
@@ -96,12 +115,12 @@ public class CdrEntry extends SimplePersistentObject {
     }
 
     @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
-    public String getOrganization() {
-        return organization;
+    public String getUsersOrganization() {
+        return usersOrganization;
     }
 
-    public void setOrganization(String organization) {
-        this.organization = organization;
+    public void setUsersOrganization(String usersOrganization) {
+        this.usersOrganization = usersOrganization;
     }
 
     @Column(nullable = false)
@@ -124,7 +143,6 @@ public class CdrEntry extends SimplePersistentObject {
         this.slotEnd = slotEnd;
     }
 
-    @Column(nullable = false)
     public int getLicenseCount()
     {
         return licenseCount;
@@ -132,5 +150,32 @@ public class CdrEntry extends SimplePersistentObject {
 
     public void setLicenseCount(int licenseCount) {
         this.licenseCount = licenseCount;
+    }
+
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+    public String getMeetingDescription() {
+        return meetingDescription;
+    }
+
+    public void setMeetingDescription(String meetingDescription) {
+        this.meetingDescription = meetingDescription;
+    }
+
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
+    }
+
+    @Access(AccessType.FIELD)
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
 }
