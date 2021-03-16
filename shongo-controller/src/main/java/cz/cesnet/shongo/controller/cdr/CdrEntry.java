@@ -14,11 +14,9 @@ import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 /**
  * Represents an CDR (Call detail record) entry for RoomEndpoint requested by {@link #requestedBy}.
@@ -49,11 +47,6 @@ public class CdrEntry extends SimplePersistentObject {
     private DateTime slotEnd;
 
     /**
-     * Duration of the meeting.
-     */
-    private Duration duration;
-
-    /**
      * Licences reserved for this call.
      */
     private int licenseCount;
@@ -80,7 +73,6 @@ public class CdrEntry extends SimplePersistentObject {
         setLicenseCount(roomEndpoint.getRoomConfiguration().getLicenseCount());
         setMeetingDescription(roomEndpoint.getMeetingDescription());
         setResourceName(roomEndpoint.getResource().getName());
-        setDuration(new Duration(roomEndpoint.getSlotStart().getMillis(), roomEndpoint.getSlotEnd().getMillis()));
         if (roomEndpoint.getRequestedBy() != null) {
             setRequestedBy(roomEndpoint.getRequestedBy());
         } else {
@@ -170,12 +162,9 @@ public class CdrEntry extends SimplePersistentObject {
         this.resourceName = resourceName;
     }
 
-    @Access(AccessType.FIELD)
+    @Transient
     public Duration getDuration() {
-        return duration;
+        return new Duration(getSlotStart().getMillis(), getSlotEnd().getMillis());
     }
 
-    public void setDuration(Duration duration) {
-        this.duration = duration;
-    }
 }
