@@ -488,13 +488,12 @@ public class ReservationRequestManager extends AbstractManager
                                     + " WHERE setAllocation.childReservationRequests IS EMPTY) "   // all child request have been removed for resReqSet
                             + ") AND reqAllocation NOT IN ("
                                 + "SELECT reusedAllocation from ReservationRequest req"
-                                + " INNER JOIN req.reusedAllocation reusedAllocation)"    // no referencing capacities
+                                + " INNER JOIN req.reusedAllocation reusedAllocation)"       // no referencing capacities
                             + " AND abstractReservationRequest.state <> :modifiedState",     // consider only last version of request for permanent rooms
                         AbstractReservationRequest.class)
                 .setParameter("dateTime", expirationDate)
                 .setParameter("modifiedState", AbstractReservationRequest.State.MODIFIED)
                 .getResultList();
-
 
         return expiredRequests;
     }

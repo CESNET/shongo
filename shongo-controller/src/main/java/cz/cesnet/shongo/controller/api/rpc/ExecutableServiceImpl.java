@@ -681,6 +681,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED) ||
                             executableState.equals(
                                     cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                        executableToUpdate.setExecutionSkipped(Boolean.TRUE);
                         executableToUpdate.setState(
                                 cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                     }

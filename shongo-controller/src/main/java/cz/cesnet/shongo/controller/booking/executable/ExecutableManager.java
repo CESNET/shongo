@@ -386,7 +386,8 @@ public class ExecutableManager extends AbstractManager
                                 +      "FROM Reservation reservation)"        //executable is not referenced by a reservation anymore
                                 + " AND executable.state = :finalized"        //request was deleted
                                 + " AND (executable.cdrCreated = :true"       //CDR already created
-                                + " OR executable.executionSkipped = :true)",
+                                + " OR executable.executionSkipped = :true)"
+                                + " AND executable NOT IN (SELECT usedRoomEndpoint.reusedRoomEndpoint from UsedRoomEndpoint usedRoomEndpoint)",     // do not remove room executable until used rooms are not deleted
                         Executable.class)
                 .setParameter("finalized", Executable.State.FINALIZED)
                 .setParameter("true", Boolean.TRUE)
