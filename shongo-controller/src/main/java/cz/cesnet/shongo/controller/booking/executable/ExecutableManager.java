@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -66,7 +67,7 @@ public class ExecutableManager extends AbstractManager
      */
     public void delete(Executable executable, AuthorizationManager authorizationManager)
     {
-        authorizationManager.deleteAclEntriesForEntity(executable);
+        authorizationManager.deleteAclEntriesWithIdentity(executable);
         super.delete(executable);
         executable.updateExecutableSummary(entityManager, true);
     }
@@ -364,6 +365,7 @@ public class ExecutableManager extends AbstractManager
                 .setParameter("finalized", Executable.State.FINALIZED)
                 .setParameter("stopped", Executable.State.STOPPED)
                 .setParameter("false", Boolean.FALSE)
+                .setMaxResults(100)
                 .getResultList();
 
         for (RoomEndpoint roomEndpoint : finishedRooms) {
@@ -386,11 +388,15 @@ public class ExecutableManager extends AbstractManager
                                 +      "FROM Reservation reservation)"        //executable is not referenced by a reservation anymore
                                 + " AND executable.state = :finalized"        //request was deleted
                                 + " AND (executable.cdrCreated = :true"       //CDR already created
-                                + " OR executable.executionSkipped = :true)"
-                                + " AND executable NOT IN (SELECT usedRoomEndpoint.reusedRoomEndpoint from UsedRoomEndpoint usedRoomEndpoint)",     // do not remove room executable until used rooms are not deleted
+                                + " OR executable.executionSkipped = :true OR TYPE(executable) NOT IN (:classes))"
+                                + " AND executable NOT IN (SELECT usedRoomEndpoint.reusedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint )"     // do not remove room executable until used rooms are not deleted
+                                + " AND executable NOT IN (SELECT executable.migrateFromExecutable FROM Executable executable)"
+                                + " AND executable NOT IN (SELECT executable.migrateToExecutable FROM Executable executable)",
                         Executable.class)
                 .setParameter("finalized", Executable.State.FINALIZED)
                 .setParameter("true", Boolean.TRUE)
+                .setParameter("classes", Arrays.asList(RoomEndpoint.class))
+                .setMaxResults(100)
                 .getResultList();
 
         int removedRooms = 0;

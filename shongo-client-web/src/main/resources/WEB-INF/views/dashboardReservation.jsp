@@ -386,7 +386,7 @@
 
             <%-- Single reservation: start --%>
             <tr ng-repeat-start="reservationRequest in items" ng-class-odd="'odd'" ng-class-even="'even'"
-                ng-class="{'deprecated': reservationRequest.isDeprecated, 'isExpiringSoon': reservationRequest.isExpiringSoon}">
+                ng-class="{'deprecated': reservationRequest.isDeprecated}">
                 <c:if test="${advancedUserInterface}">
                     <td>{{reservationRequest.dateTime}}</td>
                     <td>{{reservationRequest.user}}</td>

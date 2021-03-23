@@ -218,7 +218,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", objectId);
             }
 
-            authorizationManager.deleteAclEntriesForEntity(resource);
+            authorizationManager.deleteAclEntriesWithIdentity(resource);
 
             // Delete the resource
             resourceManager.delete(resource);
@@ -830,7 +830,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Delete the tag
             cz.cesnet.shongo.controller.booking.resource.Tag persistanceTag;
             persistanceTag = entityManager.find(cz.cesnet.shongo.controller.booking.resource.Tag.class, persistanceId);
-            authorizationManager.deleteAclEntriesForEntity(persistanceTag);
+            authorizationManager.deleteAclEntriesWithIdentity(persistanceTag);
             resourceManager.deleteTag(persistanceTag);
 
             entityManager.getTransaction().commit();
@@ -1186,11 +1186,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 if (!tags.isEmpty()) {
                     ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(cz.cesnet.shongo.controller.booking.resource.ForeignResources.class, foreignResources.getId());
                 }
-                authorizationManager.deleteAclEntriesForEntity(foreignResources);
+                authorizationManager.deleteAclEntriesWithIdentity(foreignResources);
                 resourceManager.deleteForeignResources(foreignResources);
             }
 
-            authorizationManager.deleteAclEntriesForEntity(persistenceDomain);
+            authorizationManager.deleteAclEntriesWithIdentity(persistenceDomain);
             resourceManager.deleteDomain(persistenceDomain);
 
             entityManager.getTransaction().commit();

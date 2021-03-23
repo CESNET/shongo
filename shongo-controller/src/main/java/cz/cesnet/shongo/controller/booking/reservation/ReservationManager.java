@@ -87,7 +87,7 @@ public class ReservationManager extends AbstractManager
 
         // Delete ACL entries
         for (Reservation reservationToDelete : reservationsToDelete) {
-            authorizationManager.deleteAclEntriesForEntity(reservationToDelete);
+            authorizationManager.deleteAclEntriesWithIdentity(reservationToDelete);
         }
 
         // Stop all executables
@@ -372,7 +372,11 @@ public class ReservationManager extends AbstractManager
                 "SELECT allocation FROM Allocation allocation"
                         + " WHERE ((allocation.state = :stateDeleted)"
                         + " OR (allocation.state = :stateWithoutReservations AND allocation.reservations.size != 0))"
-                        + " AND (allocation.reservationRequest = null OR allocation.reservations.size != 0)",
+                        + " AND (allocation.reservationRequest = null OR allocation.reservations.size != 0)"
+                        + " AND allocation NOT IN ("
+                        +   " SELECT reusedAllocation from AbstractReservationRequest reservationRequest"
+                        +   " JOIN reservationRequest.reusedAllocation reusedAllocation"
+                        + " )",
                 Allocation.class)
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);

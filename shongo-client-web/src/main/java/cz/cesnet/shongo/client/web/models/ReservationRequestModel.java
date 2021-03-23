@@ -25,7 +25,6 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.SlotHelper;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
@@ -157,7 +156,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected boolean collidingWithFirstSlot = false;
 
-    protected boolean prolonged = false;
 
     protected boolean allowGuests = false;
 
@@ -251,12 +249,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         return parentReservationRequestId;
     }
-
-    public void setParentReservationRequestId(String parentReservationRequestId)
-    {
-        this.parentReservationRequestId = parentReservationRequestId;
-    }
-
 
     public ReservationRequestType getType()
     {
@@ -771,14 +763,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.allowGuests = allowGuests;
     }
 
-    public boolean getProlonged() {
-        return prolonged;
-    }
-
-    public void setProlonged(boolean prolonged) {
-        this.prolonged = prolonged;
-    }
-
     public List<? extends ParticipantModel> getRoomParticipants()
     {
         return roomParticipants;
@@ -1004,7 +988,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             boolean periodicityEndSet = false;
 
             int index = 0;
-            // Multiple slots available only for WEEKLY periodicity, check done few lines lower
+            // Multiple slots awailable only for WEEKLY periodicity, check done few lines lower
             periodicDaysInWeek = new PeriodicDateTimeSlot.DayOfWeek[slots.size()];
             // Set slot properties and periodicity
             for (Object slot : slots) {
@@ -1124,7 +1108,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @return {@link Specification} with stored attributes
      */
-    public Specification toSpecificationApi(SpecificationType specificationType)
+    public Specification toSpecificationApi()
     {
         Specification specification;
         switch (specificationType) {
@@ -1181,30 +1165,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
-            case PERMANENT_ROOM_AND_CAPACITY: {
-                RoomSpecification roomSpecification = new RoomSpecification();
-                // Room establishment
-                RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
-                roomEstablishment.setTechnologies(technology.getTechnologies());
-                AliasSpecification roomNameSpecification = new AliasSpecification();
-                roomNameSpecification.addTechnologies(technology.getTechnologies());
-                roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
-                roomNameSpecification.setValue(roomName);
-                roomEstablishment.addAliasSpecification(roomNameSpecification);
-                RoomAvailability roomAvailability = roomSpecification.createAvailability();
-                roomAvailability.setParticipantCount(roomParticipantCount);
-                roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
-                roomAvailability.setMeetingName(roomMeetingName);
-                roomAvailability.setMeetingDescription(roomMeetingDescription);
-                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
-                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
-                }
-                specification = roomSpecification;
-                break;
-            }
-
-
             case PARKING_PLACE:
             case MEETING_ROOM: {
                 specification = new ResourceSpecification(meetingRoomResourceId);
@@ -1276,7 +1236,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public Period getDuration()
     {
         switch (specificationType) {
-            case PERMANENT_ROOM_AND_CAPACITY:
             case PERMANENT_ROOM:
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
@@ -1294,23 +1253,18 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                         throw new IllegalStateException("Slot duration should be not empty.");
                     }
                 }
-                return getDurationCountPeriod();
+                switch (durationType) {
+                    case MINUTE:
+                        return Period.minutes(durationCount);
+                    case HOUR:
+                        return Period.hours(durationCount);
+                    case DAY:
+                        return Period.days(durationCount);
+                    default:
+                        throw new TodoImplementException(durationType);
+                }
             default:
                 throw new TodoImplementException("Reservation request duration.");
-        }
-    }
-
-
-    public Period getDurationCountPeriod() {
-        switch (durationType) {
-            case MINUTE:
-                return Period.minutes(durationCount);
-            case HOUR:
-                return Period.hours(durationCount);
-            case DAY:
-                return Period.days(durationCount);
-            default:
-                throw new TodoImplementException(durationType);
         }
     }
 
@@ -1518,34 +1472,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
     }
 
-    public void updateAliasEnd()
-    {
-        // update only if capacity is set as well
-        if (roomParticipantCount != null && roomParticipantCount.intValue() > 0) {
-            setEnd(getEndDate());
-        }
-
-    }
-
-    //End date
-    public DateTime getEndDate()
-    {
-        DateTime end;
-        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
-            end = getRequestStart().plus(getDurationCountPeriod());
-        } else {
-            end = getPeriodicityEnd().toDateTime(LocalTime.parse("23:59:59"), getTimeZone());
-        }
-
-        if (prolonged) {
-            if (getRequestStart().plus(Period.days(180)).isAfter(end)) {
-                end = getRequestStart().plus(Period.days(180));
-            }
-        }
-
-        return end;
-    }
-
     public LocalDate getFirstFutureSlotStart()
     {
         DateTime slotStart = getRequestStart();
@@ -1584,85 +1510,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         return slotStart.toLocalDate();
     }
-
-    public ReservationRequest toAliasApi(HttpServletRequest request) {
-
-        ReservationRequest reservationRequest = new ReservationRequest();
-        if (!Strings.isNullOrEmpty(permanentRoomReservationRequestId)) {
-            reservationRequest.setId(permanentRoomReservationRequestId);
-        }
-
-
-        DateTime end = getEnd();
-        if (end == null) {
-            SortedSet<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
-        }
-        reservationRequest.setSlot(getRequestStart(), getEnd());
-
-        reservationRequest.setPurpose(purpose);
-        reservationRequest.setDescription(description);
-        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
-
-        // Create specification
-        Specification specification = toSpecificationApi(SpecificationType.PERMANENT_ROOM);
-        reservationRequest.setSpecification(specification);
-
-        // Set reservation request to be deleted by scheduler if foreign resource is specified
-        reservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
-
-        return reservationRequest;
-    }
-
-    public AbstractReservationRequest toCapacityApi(HttpServletRequest request) {
-
-        setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
-
-        SortedSet<PeriodicDateTimeSlot> slots = getSlots(UserSession.getInstance(request).getTimeZone());
-        // Create reservation request
-        AbstractReservationRequest abstractReservationRequest;
-        if (periodicityType == PeriodicDateTimeSlot.PeriodicityType.NONE) {
-            // Create single reservation request
-            ReservationRequest reservationRequest = new ReservationRequest();
-            PeriodicDateTimeSlot slot = slots.first();
-            reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(slot.getDuration()));
-            abstractReservationRequest = reservationRequest;
-        }
-        else {
-            // Create set of reservation requests
-            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-            reservationRequestSet.addAllSlots(slots);
-            if (excludeDates != null && !excludeDates.isEmpty()) {
-                for (LocalDate excludeDate : excludeDates) {
-                    for (PeriodicDateTimeSlot slot : slots) {
-/*                        if (Temporal.dateFitsInterval(slot.getStart(), slot.getEnd(), excludeDate)) {
-                            slot.addExcludeDate(excludeDate);
-                        }*/
-                    }
-                }
-            }
-            abstractReservationRequest = reservationRequestSet;
-        }
-        if (!Strings.isNullOrEmpty(id)) {
-            abstractReservationRequest.setId(id);
-        }
-        abstractReservationRequest.setPurpose(purpose);
-        abstractReservationRequest.setDescription(description);
-
-
-        abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
-
-
-        // Create specification
-        Specification specification = toSpecificationApi(SpecificationType.PERMANENT_ROOM_CAPACITY);
-        abstractReservationRequest.setSpecification(specification);
-
-        // Set reservation request to be deleted by scheduler if foreign resource is specified
-        abstractReservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
-
-        return abstractReservationRequest;
-    }
-
-
 
     /**
      * Store all attributes to {@link AbstractReservationRequest}.
@@ -1709,7 +1556,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         // Create specification
-        Specification specification = toSpecificationApi(this.specificationType);
+        Specification specification = toSpecificationApi();
         abstractReservationRequest.setSpecification(specification);
 
         // Set reservation request to be deleted by scheduler if foreign resource is specified
@@ -2036,8 +1883,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 ", roomName='" + roomName + '\'' +
                 ", roomResourceId='" + roomResourceId + '\'' +
                 ", meetingRoomResourceId='" + meetingRoomResourceId + '\'' +
-                ", durationCount='" + durationCount + '\'' +
-                ", durationType='" + durationType + '\'' +
                 '}';
     }
 }

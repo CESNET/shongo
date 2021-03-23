@@ -199,35 +199,13 @@ public class ReservationRequestValidator implements Validator
                     }
                     break;
                 case PERMANENT_ROOM:
-                    //validateInterval(reservationRequestModel, errors);
+                    validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     validateIdentifier("roomName", errors);
                     if (TechnologyModel.H323_SIP.equals(reservationRequestModel.getTechnology())) {
                         validateE164Number("e164Number", errors);
                     }
                     break;
-                case PERMANENT_ROOM_AND_CAPACITY:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
-                    validateIdentifier("roomName", errors);
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotBeforeMinutes", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotAfterMinutes", "validation.field.required");
-                    if (reservationRequestModel.getDurationType() != null) {
-                        validateDurationCount(reservationRequestModel, errors);
-                    }
-                    else {
-                        validateInterval(reservationRequestModel, errors);
-                    }
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomParticipantCount", "validation.field.required");
-                    Integer participantCount = reservationRequestModel.getRoomParticipantCount();
-                    if (participantCount != null && participantCount <= 0) {
-                        errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
-                    }
-                    validatePeriodicity(reservationRequestModel, errors);
-                    validatePeriodicSlotsStart(reservationRequestModel, errors);
-                    validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
-                    validateParticipants(reservationRequestModel, errors, true);
-                    break;
-
             }
         }
 
@@ -295,7 +273,7 @@ public class ReservationRequestValidator implements Validator
                 }
             }
 
-            availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi(reservationRequestModel.specificationType));
+            availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
             switch (specificationType) {
                 case PERMANENT_ROOM_CAPACITY:
                     String permanentRoomId = reservationRequestModel.getPermanentRoomReservationRequestId();

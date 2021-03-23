@@ -39,9 +39,8 @@
         $scope.periodicityCycle = $scope.value('${reservationRequest.periodicityCycle}', 1);
         $scope.monthPeriodicityType = $scope.value('${reservationRequest.monthPeriodicityType}', 'STANDARD');
         $scope.roomRecorded = $scope.value(${reservationRequest.roomRecorded == true}, false);
-        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
         $scope.allowGuests = $scope.value(${reservationRequest.allowGuests == true}, false);
-        $scope.prolonged = $scope.value(${reservationRequest.prolonged == true}, false);
         $scope.guestPin = '${reservationRequest.guestPin}';
         </c:if>
 
@@ -61,7 +60,9 @@
             removeId: $scope.excludeDates.length + 1});
         </c:if>
 
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         $("#start").timepicker('setTime', $scope.value(new Date('${reservationRequest.requestStart}'), new Date()));
+        </c:if>
 
         // Update end when start is changed
         $("#startDate").change(function () {
@@ -89,7 +90,7 @@
 
         $scope.getStart = function() {
             <c:choose>
-            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
+            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             var startTimePicker = $("#start").data("timepicker");
             var start = $("#startDate").val();
             var hours = (startTimePicker.meridian == "PM" ? startTimePicker.hour + 12 : startTimePicker.hour);
@@ -136,7 +137,7 @@
         };
 
         // Periodicity full options init
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         $scope.days = [];
         <c:forEach items="${weekDays}" var="day">
         $scope.days[${day.dayIndex} - 1] = '${day}';
@@ -541,27 +542,6 @@
            method="post"
            ng-controller="ReservationRequestFormController">
 
-    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' || reservationRequest.specificationType != 'PARKING_PLACE'}">
-        <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="prolonged">
-                <spring:message code="views.reservationRequest.specification.usage" var="pinLabel"/>
-                <tag:help label="${pinLabel}:">
-                    <spring:message code="views.reservationRequest.specification.allowGuests.help"/>
-                </tag:help>
-            </form:label>
-            <div class="col-xs-9 space-padding">
-                <div class="col-xs-5 center-content">
-                    <label><spring:message code="views.reservationRequest.specification.oneTime"/></label>
-                    <label for="prolonged" class="switch">
-                        <input id="prolonged" name="prolonged" type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                    <label><spring:message code="views.reservationRequest.specification.prolonged"/></label>
-                </div>
-            </div>
-        </div>
-    </c:if>
-
     <c:if test="${not empty reservationRequest.id}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="id">
@@ -706,6 +686,28 @@
         </div>
     </c:if>
 
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="permanentRoomReservationRequestId">
+                <spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:
+            </form:label>
+            <div class="col-xs-4">
+                <form:select cssClass="form-control" cssErrorClass="form-control error"
+                             path="permanentRoomReservationRequestId"
+                             ng-model="permanentRoom"
+                             ng-options="option.name for (value, option) in permanentRooms" tabindex="${tabIndex}">
+                    <form:option value="">-- <spring:message code="views.select.choose"/> --</form:option>
+                    {{option}}
+                </form:select>
+                <form:errors path="permanentRoomReservationRequestId" cssClass="error"/>
+                <div ng-show="permanentRoom" class="description">
+                    <b><spring:message code="views.reservationRequest.validity"/>:</b>
+                    {{permanentRoom.formattedSlot}}
+                </div>
+            </div>
+        </div>
+    </c:if>
+
     <div class="form-group">
         <form:label class="col-xs-3 control-label" path="description">
             <spring:message code="views.reservationRequest.description" var="descriptionLabel"/>
@@ -719,7 +721,7 @@
         </div>
     </div>
 
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="roomName">
                 <spring:message code="views.reservationRequest.specification.roomName"/>:
@@ -734,7 +736,7 @@
     </c:if>
 
     <%-- Show retaing option H323_E164 number for permanent rooms --%>
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_AND_CAPACITY'}">
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
         <c:choose>
             <c:when test="${reservationRequestModification != null && not empty reservationRequest.e164Number}">
                 <div class="form-group" ng-show="technology == 'H323_SIP'">
@@ -790,47 +792,74 @@
         </c:choose>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
-        <div class="form-group" ng-hide="technology == 'FREEPBX'">
-            <form:label class="col-xs-3 control-label" path="roomParticipantCount">
-                <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
+    <c:if test="${reservationRequestModification != null && reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="roomName">
+                <spring:message code="views.reservationRequest.specification.roomName" var="roomNameLabel"/>
+                <tag:help label="${roomNameLabel}:">
+                    <spring:message code="views.reservationRequest.specification.retainHelp"/>
+                </tag:help>
             </form:label>
-            <div class="col-xs-9 space-padding">
-                <div class="col-xs-2">
-                    <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
-                </div>
+            <div class="col-xs-3">
+                <label class="radio-inline" for="room-name-new">
+                    <form:radiobutton id="room-name-new" path="adhocRoomRetainRoomName" value="false" tabindex="${tabIndex}"/>
+                    <span><spring:message code="views.reservationRequest.specification.new"/></span>
+                </label>
+                <label class="radio-inline" for="room-name-retain">
+                    <form:radiobutton id="room-name-retain" path="adhocRoomRetainRoomName" value="true" tabindex="${tabIndex}"/>
+                    <span><spring:message code="views.reservationRequest.specification.retain"/></span>
+                </label>
             </div>
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="roomParticipantCount" cssClass="error"/>
+            <div class="col-xs-3">
+                <form:input cssClass="form-control" path="roomName" tabindex="${tabIndex}" readonly="true"/>
             </div>
         </div>
     </c:if>
-    <div class="form-group">
-        <form:label class="col-xs-3 control-label" path="timeZone">
-            <spring:message code="views.reservationRequest.timeZone" var="timeZoneLabel"/>
-            <tag:help label="${timeZoneLabel}:">
-                <spring:message code="views.reservationRequest.timeZone.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-5">
-            <c:set var="timeZone" value="${sessionScope.SHONGO_USER.timeZone}"/>
-            <c:set var="locale" value="${sessionScope.SHONGO_USER.locale}"/>
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).getTimeZones(locale)" var="timeZones"/>
-            <form:select cssClass="form-control" path="timeZone" tabindex="${tabIndex}">
-                <form:option value="">
-                    <spring:message code="views.reservationRequest.timeZone.default"/>
-                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(timeZone, locale)" var="timeZoneName"/>
-                    <c:if test="${not empty timeZoneName}">
-                        - ${timeZoneName}
-                    </c:if>
-                    (<spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(timeZone)"/>)
-                </form:option>
-                <c:forEach items="${timeZones}" var="timeZone">
-                    <form:option value="${timeZone.key}">${timeZone.value}</form:option>
-                </c:forEach>
-            </form:select>
+
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+        <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+            <div class="form-group" ng-hide="technology == 'FREEPBX'">
+                <form:label class="col-xs-3 control-label" path="roomParticipantCount">
+                    <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
+                </form:label>
+                <div class="col-xs-9 space-padding">
+                    <div class="col-xs-2">
+                        <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+                    </div>
+                </div>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="roomParticipantCount" cssClass="error"/>
+                </div>
+            </div>
+        </c:if>
+
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="timeZone">
+                <spring:message code="views.reservationRequest.timeZone" var="timeZoneLabel"/>
+                <tag:help label="${timeZoneLabel}:">
+                    <spring:message code="views.reservationRequest.timeZone.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-5">
+                <c:set var="timeZone" value="${sessionScope.SHONGO_USER.timeZone}"/>
+                <c:set var="locale" value="${sessionScope.SHONGO_USER.locale}"/>
+                <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).getTimeZones(locale)" var="timeZones"/>
+                <form:select cssClass="form-control" path="timeZone" tabindex="${tabIndex}">
+                    <form:option value="">
+                        <spring:message code="views.reservationRequest.timeZone.default"/>
+                        <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(timeZone, locale)" var="timeZoneName"/>
+                        <c:if test="${not empty timeZoneName}">
+                            - ${timeZoneName}
+                        </c:if>
+                        (<spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(timeZone)"/>)
+                    </form:option>
+                    <c:forEach items="${timeZones}" var="timeZone">
+                        <form:option value="${timeZone.key}">${timeZone.value}</form:option>
+                    </c:forEach>
+                </form:select>
+            </div>
         </div>
-    </div>
+    </c:if>
 
     <div class="form-group">
         <label class="col-xs-3 control-label" path="start">
@@ -841,10 +870,11 @@
                 <form:input cssClass="form-control" cssErrorClass="form-control error" path="startDate" date-picker="true" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-2">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-show-inputs="false" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-show-inputs="false" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
+                </c:if>
             </div>
-
-            <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
                 <div class="col-xs-4">
                     <div class="input-group" style="width: 100%;">
                         <form:select path="slotBeforeMinutes" cssClass="form-control" tabindex="${tabIndex}">
@@ -871,339 +901,351 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <form:label class="col-xs-3 control-label" path="durationCount">
-            <spring:message code="views.reservationRequest.duration"/>:
-        </form:label>
-        <div class="col-xs-9 space-padding">
-            <div class="col-xs-2">
-                <input type="hidden" name="end" value=""/>
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="durationCount" tabindex="${tabIndex}"/>
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="end">
+                <spring:message code="views.reservationRequest.end"/>:
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
+                </div>
             </div>
-            <div class="col-xs-2">
-                <form:select path="durationType" cssClass="form-control" tabindex="${tabIndex}">
-                    <form:option value="MINUTE"><spring:message code="views.reservationRequest.duration.minutes"/></form:option>
-                    <form:option value="HOUR"><spring:message code="views.reservationRequest.duration.hours"/></form:option>
-                    <form:option value="DAY"><spring:message code="views.reservationRequest.duration.days"/></form:option>
-                </form:select>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="end" cssClass="error"/>
             </div>
-            <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
-                <div class="col-xs-4">
-                    <div class="input-group" style="width: 100%;">
-                        <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
-                            <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
-                            <form:option value="5">5</form:option>
-                            <form:option value="10">10</form:option>
-                            <form:option value="15">15</form:option>
-                            <form:option value="20">20</form:option>
-                            <form:option value="30">30</form:option>
-                            <form:option value="45">45</form:option>
-                        </form:select>
-                        <span class="input-group-addon" style="width: 120px;">
+        </div>
+    </c:if>
+
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="durationCount">
+                <spring:message code="views.reservationRequest.duration"/>:
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <input type="hidden" name="end" value=""/>
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="durationCount" tabindex="${tabIndex}"/>
+                </div>
+                <div class="col-xs-2">
+                    <form:select path="durationType" cssClass="form-control" tabindex="${tabIndex}">
+                        <form:option value="MINUTE"><spring:message code="views.reservationRequest.duration.minutes"/></form:option>
+                        <form:option value="HOUR"><spring:message code="views.reservationRequest.duration.hours"/></form:option>
+                        <form:option value="DAY"><spring:message code="views.reservationRequest.duration.days"/></form:option>
+                    </form:select>
+                </div>
+                <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+                    <div class="col-xs-4">
+                        <div class="input-group" style="width: 100%;">
+                            <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
+                                <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
+                                <form:option value="5">5</form:option>
+                                <form:option value="10">10</form:option>
+                                <form:option value="15">15</form:option>
+                                <form:option value="20">20</form:option>
+                                <form:option value="30">30</form:option>
+                                <form:option value="45">45</form:option>
+                            </form:select>
+                            <span class="input-group-addon" style="width: 120px;">
                                 <spring:message code="views.reservationRequest.slotAfterMinutes" var="slotAfterMinutesLabel"/>
                                 <tag:help label="${slotAfterMinutesLabel}"><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
                             </span>
+                        </div>
                     </div>
-                </div>
-            </c:if>
+                </c:if>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="durationCount" cssClass="error"/>
+                <form:errors path="slotAfterMinutes" cssClass="error"/>
+            </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="durationCount" cssClass="error"/>
-            <form:errors path="slotAfterMinutes" cssClass="error"/>
-        </div>
-    </div>
 
-    <div ng-hide="technology == 'FREEPBX'">
-        <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="periodicityType">
-                <spring:message code="views.reservationRequest.periodicity"/>:
-            </form:label>
-            <div class="col-xs-9 row">
-                <div class="col-xs-1">
-                    <div class="radio">
-                        <label for="periodicity-none">
-                            <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                            <spring:message code="views.reservationRequest.periodicity.NONE"/>
-                        </label>
+        <div ng-hide="technology == 'FREEPBX'">
+            <div class="form-group">
+                <form:label class="col-xs-3 control-label" path="periodicityType">
+                    <spring:message code="views.reservationRequest.periodicity"/>:
+                </form:label>
+                <div class="col-xs-9 row">
+                    <div class="col-xs-1">
+                        <div class="radio">
+                            <label for="periodicity-none">
+                                <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                                <spring:message code="views.reservationRequest.periodicity.NONE"/>
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label for="periodicity-daily">
+                                <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                                <spring:message code="views.reservationRequest.periodicity.DAILY"/>
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label for="periodicity-weekly">
+                                <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                                <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label for="periodicity-monthly">
+                                <form:radiobutton id="periodicity-monthly" path="periodicityType" value="MONTHLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
+                                <span><spring:message code="views.reservationRequest.periodicity.MONTHLY"/></span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="radio">
-                        <label for="periodicity-daily">
-                            <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                            <spring:message code="views.reservationRequest.periodicity.DAILY"/>
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label for="periodicity-weekly">
-                            <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                            <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label for="periodicity-monthly">
-                            <form:radiobutton id="periodicity-monthly" path="periodicityType" value="MONTHLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
-                            <span><spring:message code="views.reservationRequest.periodicity.MONTHLY"/></span>
-                        </label>
-                    </div>
-                </div>
 
-                <div class="vdivider" ></div>
+                    <div class="vdivider" ></div>
 
-                <div class="col-xs-7" ng-show="periodicityType == 'WEEKLY'">
-                    <div class="row">
-                        <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
-                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'">
-                            <form:option value="1" />
-                            <form:option value="2" />
-                            <form:option value="3" />
-                            <form:option value="4" />
-                            <form:option value="5" />
-                        </form:select>
-                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.weeks"/>:</span>
-                    </div>
-                    <div class="row">
-                        <c:forEach items="${weekDays}" var="day">
+                    <div class="col-xs-7" ng-show="periodicityType == 'WEEKLY'">
+                        <div class="row">
+                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                            <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="periodicityType != 'WEEKLY'">
+                                <form:option value="1" />
+                                <form:option value="2" />
+                                <form:option value="3" />
+                                <form:option value="4" />
+                                <form:option value="5" />
+                            </form:select>
+                            <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.weeks"/>:</span>
+                        </div>
+                        <div class="row">
+                            <c:forEach items="${weekDays}" var="day">
                             <span class="checkbox col-xs-3">
                                 <label for="periodic-day-${day}">
                                     <form:checkbox cssErrorClass="error" path="periodicDaysInWeek" id="periodic-day-${day}" ng-model="periodicDay${day}" tabindex="${tabIndex}" value="${day}"/>
                                     <spring:message code="views.reservationRequest.periodicity.day.${day}"/>
                                 </label>
                             </span>
-                        </c:forEach>
-                    </div>
-                    <form:errors path="periodicDaysInWeek" cssClass="error row"/>
-                </div>
-
-                <div class="col-xs-7" ng-show="periodicityType == 'MONTHLY'">
-                    <div class="radio">
-                        <label for="month-periodicity-standard">
-                            <form:radiobutton id="month-periodicity-standard" cssErrorClass="form-control error" path="monthPeriodicityType" value="STANDARD" tabindex="${tabIndex}" ng-model="monthPeriodicityType" />
-                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
-                        </label>
-                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'">
-                            <form:option value="1" />
-                            <form:option value="2" />
-                            <form:option value="3" />
-                            <form:option value="4" />
-                            <form:option value="5" />
-                        </form:select>
-                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
-                    </div>
-                    <div class="radio form-inline">
-                        <label for="month-periodicity-specific-day">
-                            <form:radiobutton id="month-periodicity-specific-day" path="monthPeriodicityType" value="SPECIFIC_DAY" tabindex="${tabIndex}" ng-model="monthPeriodicityType"/>
-                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
-                        </label>
-                        <form:select id="periodicityDayOrder" path="periodicityDayOrder" cssErrorClass="form-control error" size="1" ng-model="periodicityDayOrder" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
-                            <form:option value="1">1.</form:option>
-                            <form:option value="2">2.</form:option>
-                            <form:option value="3">3.</form:option>
-                            <form:option value="4">4.</form:option>
-                            <form:option value="-1"><spring:message code="views.reservationRequest.periodicity.recureEvery.last"/></form:option>
-                        </form:select>
-                        <form:select id="periodicityDayInMonth" path="periodicityDayInMonth" cssErrorClass="error" ng-model="periodicityDayInMonth" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
-                            <c:forEach items="${weekDays}" var="day">
-                                <form:option cssErrorClass="error" value="${day}"><spring:message code="views.reservationRequest.periodicity.day.${day}" /></form:option>
                             </c:forEach>
-                        </form:select>
-                        <span><spring:message code="views.reservationRequest.periodicity.recureEvery.inEvery"/></span>
-                        <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'">
-                            <form:option value="1" />
-                            <form:option value="2" />
-                            <form:option value="3" />
-                            <form:option value="4" />
-                            <form:option value="5" />
-                        </form:select>
-                        <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
+                        </div>
+                        <form:errors path="periodicDaysInWeek" cssClass="error row"/>
+                    </div>
+
+                    <div class="col-xs-7" ng-show="periodicityType == 'MONTHLY'">
+                        <div class="radio">
+                            <label for="month-periodicity-standard">
+                                <form:radiobutton id="month-periodicity-standard" cssErrorClass="form-control error" path="monthPeriodicityType" value="STANDARD" tabindex="${tabIndex}" ng-model="monthPeriodicityType" />
+                                <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                            </label>
+                            <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'STANDARD'">
+                                <form:option value="1" />
+                                <form:option value="2" />
+                                <form:option value="3" />
+                                <form:option value="4" />
+                                <form:option value="5" />
+                            </form:select>
+                            <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
+                        </div>
+                        <div class="radio form-inline">
+                            <label for="month-periodicity-specific-day">
+                                <form:radiobutton id="month-periodicity-specific-day" path="monthPeriodicityType" value="SPECIFIC_DAY" tabindex="${tabIndex}" ng-model="monthPeriodicityType"/>
+                                <span><spring:message code="views.reservationRequest.periodicity.recureEvery"/></span>
+                            </label>
+                            <form:select id="periodicityDayOrder" path="periodicityDayOrder" cssErrorClass="form-control error" size="1" ng-model="periodicityDayOrder" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
+                                <form:option value="1">1.</form:option>
+                                <form:option value="2">2.</form:option>
+                                <form:option value="3">3.</form:option>
+                                <form:option value="4">4.</form:option>
+                                <form:option value="-1"><spring:message code="views.reservationRequest.periodicity.recureEvery.last"/></form:option>
+                            </form:select>
+                            <form:select id="periodicityDayInMonth" path="periodicityDayInMonth" cssErrorClass="error" ng-model="periodicityDayInMonth" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'" >
+                                <c:forEach items="${weekDays}" var="day">
+                                    <form:option cssErrorClass="error" value="${day}"><spring:message code="views.reservationRequest.periodicity.day.${day}" /></form:option>
+                                </c:forEach>
+                            </form:select>
+                            <span><spring:message code="views.reservationRequest.periodicity.recureEvery.inEvery"/></span>
+                            <form:select path="periodicityCycle" cssErrorClass="error" size="1" tabindex="${tabIndex}" ng-disabled="monthPeriodicityType != 'SPECIFIC_DAY'">
+                                <form:option value="1" />
+                                <form:option value="2" />
+                                <form:option value="3" />
+                                <form:option value="4" />
+                                <form:option value="5" />
+                            </form:select>
+                            <span>. <spring:message code="views.reservationRequest.periodicity.recureEvery.months"/>.</span>
+                        </div>
+                    </div>
+
+                        <%-- SHOW CALCULATED SLOTS --%>
+                        <%--<div class="col-xs-3">--%>
+                        <%--<div class="top-margin" ng-show="periodicityType != 'NONE'">--%>
+                        <%--<span class="input-group">--%>
+                        <%--<span class="input-group-addon">--%>
+                        <%--<spring:message code="views.reservationRequest.periodicity.until"/>--%>
+                        <%--</span>--%>
+                        <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>--%>
+                        <%--</span>--%>
+                        <%--</div>--%>
+                        <%--<div ng-show="periodicityType != 'NONE'">--%>
+                        <%--<label class="control-label">--%>
+                        <%--<c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>--%>
+                        <%--<tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true" position="bottom-left"/>--%>
+                        <%--</label>--%>
+                        <%--</div>--%>
+                        <%--<div class="col-xs-12" >--%>
+                        <%--<form:errors path="periodicityEnd" cssClass="error"/>--%>
+                        <%--</div>--%>
+                        <%--</div>--%>
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-3 control-label" path="periodicityEnd">
+                    <spring:message code="views.reservationRequest.periodicity.end"/>:
+                </label>
+                <div class="col-xs-9 space-padding">
+                    <div class="col-xs-2 bg-danger">
+                        <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                     </div>
                 </div>
-
-                    <%-- SHOW CALCULATED SLOTS --%>
-                    <%--<div class="col-xs-3">--%>
-                    <%--<div class="top-margin" ng-show="periodicityType != 'NONE'">--%>
-                    <%--<span class="input-group">--%>
-                    <%--<span class="input-group-addon">--%>
-                    <%--<spring:message code="views.reservationRequest.periodicity.until"/>--%>
-                    <%--</span>--%>
-                    <%--<form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>--%>
-                    <%--</span>--%>
-                    <%--</div>--%>
-                    <%--<div ng-show="periodicityType != 'NONE'">--%>
-                    <%--<label class="control-label">--%>
-                    <%--<c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>--%>
-                    <%--<tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true" position="bottom-left"/>--%>
-                    <%--</label>--%>
-                    <%--</div>--%>
-                    <%--<div class="col-xs-12" >--%>
-                    <%--<form:errors path="periodicityEnd" cssClass="error"/>--%>
-                    <%--</div>--%>
-                    <%--</div>--%>
-
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-xs-3 control-label" path="periodicityEnd">
-                <spring:message code="views.reservationRequest.periodicity.end"/>:
-            </label>
-            <div class="col-xs-9 space-padding">
-                <div class="col-xs-2 bg-danger">
-                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="periodicityEnd" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="periodicityEnd" cssClass="error"/>
                 </div>
             </div>
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="periodicityEnd" cssClass="error"/>
-            </div>
-        </div>
 
-        <div class="form-group row">
-            <label class="col-xs-3 control-label" path="excludeDates">
-                <spring:message code="views.reservationRequest.periodicity.exclude"/>:
-            </label>
+            <div class="form-group row">
+                <label class="col-xs-3 control-label" path="excludeDates">
+                    <spring:message code="views.reservationRequest.periodicity.exclude"/>:
+                </label>
 
-            <div class="row col-xs-9" id="excludeDates">
-                <c:forEach items="${reservationRequest.excludeDates}" var="slot" varStatus="status">
-                    <div class="row space-padding padding-line">
+                <div class="row col-xs-9" id="excludeDates">
+                    <c:forEach items="${reservationRequest.excludeDates}" var="slot" varStatus="status">
+                        <div class="row space-padding padding-line">
+                            <div class="col-xs-2 bg-danger">
+                                <form:input cssClass="form-control" cssErrorClass="form-control error" path="excludeDates[${status.index}]" id="excludeDatesStatic_${status.index}" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                            </div>
+                            <div class="col-xs-10 action-padding">
+                                <tag:listAction code="remove" ngClick="removeStaticExcludeDates('excludeDatesStatic_${status.index}')" tabindex="${tabIndex}" />
+                            </div>
+                        </div>
+                    </c:forEach>
+
+                    <div class="row space-padding padding-line" ng-repeat="date in excludeDates">
                         <div class="col-xs-2 bg-danger">
-                            <form:input cssClass="form-control" cssErrorClass="form-control error" path="excludeDates[${status.index}]" id="excludeDatesStatic_${status.index}" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
+                            <input name="excludeDates[{{date.id}}]" class="form-control" tabindex="1" ng-disabled="periodicityType == 'NONE'" date-picker="true" type="text">
                         </div>
                         <div class="col-xs-10 action-padding">
-                            <tag:listAction code="remove" ngClick="removeStaticExcludeDates('excludeDatesStatic_${status.index}')" tabindex="${tabIndex}" />
+                            <tag:listAction code="remove" ngClick="removeExcludeDates(date.removeId)" tabindex="${tabIndex}" />
                         </div>
                     </div>
-                </c:forEach>
 
-                <div class="row space-padding padding-line" ng-repeat="date in excludeDates">
-                    <div class="col-xs-2 bg-danger">
-                        <input name="excludeDates[{{date.id}}]" class="form-control" tabindex="1" ng-disabled="periodicityType == 'NONE'" date-picker="true" type="text">
+                    <div class="col-xs-9 padding-line action-padding" ng-hide="periodicityType == 'NONE'">
+                        <tag:listAction code="add" ngClick="addExcludeDates()" showTitle="true" tabindex="${tabIndex}" />
                     </div>
-                    <div class="col-xs-10 action-padding">
-                        <tag:listAction code="remove" ngClick="removeExcludeDates(date.removeId)" tabindex="${tabIndex}" />
+                    <div class="col-xs-9 padding-line action-padding" ng-show="periodicityType == 'NONE'">
+                        <tag:listAction code="add" showTitle="true" disabled="true" tabindex="${tabIndex}" />
                     </div>
                 </div>
 
-                <div class="col-xs-9 padding-line action-padding" ng-hide="periodicityType == 'NONE'">
-                    <tag:listAction code="add" ngClick="addExcludeDates()" showTitle="true" tabindex="${tabIndex}" />
+                <div class="col-xs-offset-3 col-xs-9">
+                    <form:errors path="excludeDates" cssClass="error"/>
                 </div>
-                <div class="col-xs-9 padding-line action-padding" ng-show="periodicityType == 'NONE'">
-                    <tag:listAction code="add" showTitle="true" disabled="true" tabindex="${tabIndex}" />
-                </div>
-            </div>
-
-            <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="excludeDates" cssClass="error"/>
             </div>
         </div>
-    </div>
+    </c:if>
 
-
-
-    <!-- Room access mode -->
-    <div class="form-group" ng-show="technology == 'ADOBE_CONNECT'" class="hide">
-        <form:label class="col-xs-3 control-label" path="roomAccessMode">
-            <spring:message code="views.reservationRequest.specification.roomAccessMode" var="roomAccessModeLabel"/>
-            <tag:help label="${roomAccessModeLabel}:">
-                <spring:message code="views.reservationRequest.specification.roomAccessMode.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-4">
-            <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectPermissions).values()"/>
-            <c:forEach var="accessMode" items="${enumAdobeConnectAccessMode}">
-            <c:choose>
-            <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
-            <label class="radio-inline" for="${accessMode}">
-                    <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
-                    <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
-                </c:when>
-                <c:when test="${accessMode.isUsableByMeetings() == 'true'}">
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+        <div class="form-group" ng-show="technology == 'ADOBE_CONNECT'" class="hide">
+            <form:label class="col-xs-3 control-label" path="roomAccessMode">
+                <spring:message code="views.reservationRequest.specification.roomAccessMode" var="roomAccessModeLabel"/>
+                <tag:help label="${roomAccessModeLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomAccessMode.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-4">
+                <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectPermissions).values()"/>
+                <c:forEach var="accessMode" items="${enumAdobeConnectAccessMode}">
+                <c:choose>
+                <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
                 <label class="radio-inline" for="${accessMode}">
-                    <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
-                    <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                        <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
+                        <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
                     </c:when>
-                    </c:choose>
-                </label>
-                </c:forEach>
-                    <form:errors path="roomAccessMode" cssClass="error"/>
+                    <c:when test="${accessMode.isUsableByMeetings() == 'true'}">
+                    <label class="radio-inline" for="${accessMode}">
+                        <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
+                        <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                        </c:when>
+                        </c:choose>
+                    </label>
+                    </c:forEach>
+                        <form:errors path="roomAccessMode" cssClass="error"/>
+            </div>
         </div>
-    </div>
-
+    </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
-    <!-- Pins -->
-    <div class="form-group" ng-show="technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
-        <form:label class="col-xs-3 control-label" path="adminPin">
-            <spring:message code="views.reservationRequest.specification.adminPin" var="pinLabel"/>
-            <tag:help label="${pinLabel}:">
-                <spring:message code="views.reservationRequest.specification.adminPin.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-9 space-padding">
-            <div class="col-xs-2">
-                <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="adminPin"  tabindex="${tabIndex}"/>
+        <div class="form-group" ng-show="technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
+            <form:label class="col-xs-3 control-label" path="adminPin">
+                <spring:message code="views.reservationRequest.specification.adminPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.adminPin.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="adminPin"  tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="adminPin" cssClass="error"/>
             </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="adminPin" cssClass="error"/>
-        </div>
-    </div>
 
-    <!-- Allow guests -->
-    <div class="form-group" ng-show="technology == 'PEXIP'" class="hide">
-        <form:label class="col-xs-3 control-label" path="allowGuests">
-            <spring:message code="views.reservationRequest.specification.allowGuests" var="pinLabel"/>
-            <tag:help label="${pinLabel}:">
-                <spring:message code="views.reservationRequest.specification.allowGuests.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-9 space-padding">
-            <div class="col-xs-2">
-                <form:checkbox id="allowGuests" path="allowGuests" ng-model="allowGuests" tabindex="${tabIndex}"/>
+        <div class="form-group" ng-show="technology == 'PEXIP'" class="hide">
+            <form:label class="col-xs-3 control-label" path="allowGuests">
+                <spring:message code="views.reservationRequest.specification.allowGuests" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.allowGuests.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:checkbox id="allowGuests" path="allowGuests" ng-model="allowGuests" tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="allowGuests" cssClass="error"/>
             </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="allowGuests" cssClass="error"/>
-        </div>
-    </div>
 
-    <!-- Guests pin -->
-    <div class="form-group" ng-show="showHideGuestPin()" >
-        <form:label class="col-xs-3 control-label" path="guestPin">
-            <spring:message code="views.reservationRequest.specification.guestPin" var="pinLabel"/>
-            <tag:help label="${pinLabel}:">
-                <spring:message code="views.reservationRequest.specification.guestPin.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-9 space-padding">
-            <div class="col-xs-2">
-                <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="guestPin"  tabindex="${tabIndex}"/>
+
+        <div class="form-group" ng-show="showHideGuestPin()" >
+            <form:label class="col-xs-3 control-label" path="guestPin">
+                <spring:message code="views.reservationRequest.specification.guestPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.guestPin.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="guestPin"  tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="guestPin" cssClass="error"/>
             </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="guestPin" cssClass="error"/>
-        </div>
-    </div>
 
-    <!-- Room pin -->
-    <div class="form-group" ng-show="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
-        <form:label class="col-xs-3 control-label" path="roomPin">
-            <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
-            <tag:help label="${pinLabel}:">
-                <spring:message code="views.reservationRequest.specification.roomPin.help"/>
-            </tag:help>
-        </form:label>
-        <div class="col-xs-9 space-padding">
-            <div class="col-xs-2">
-                <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+        <div class="form-group" ng-show="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'" class="hide">
+            <form:label class="col-xs-3 control-label" path="roomPin">
+                <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomPin.help"/>
+                </tag:help>
+            </form:label>
+            <div class="col-xs-9 space-padding">
+                <div class="col-xs-2">
+                    <form:input cssClass="form-control col-xs-3" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+                </div>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
+                <form:errors path="roomPin" cssClass="error"/>
             </div>
         </div>
-        <div class="col-xs-offset-3 col-xs-9">
-            <form:errors path="roomPin" cssClass="error"/>
-        </div>
-    </div>
-
+    </c:if>
 
     <%-- TODO: Check if resource has recording capability --%>
-
-
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>

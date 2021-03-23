@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -92,7 +93,12 @@ public class CdrEntry extends SimplePersistentObject {
             setRequestedBy(null);
         }
         if (!Strings.isNullOrEmpty(getRequestedBy())) {
-            UserInformation userInformation = authorizationManager.getUserInformation(getRequestedBy());
+            UserInformation userInformation;
+            try {
+                userInformation = authorizationManager.getUserInformation(getRequestedBy());
+            } catch (ControllerReportSet.UserNotExistsException exception) {
+                userInformation = new UserInformation();
+            }
             setUsersOrganization(userInformation.getOrganization());
         }
     }

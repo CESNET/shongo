@@ -28,11 +28,6 @@ public enum SpecificationType
     PERMANENT_ROOM_CAPACITY(false),
 
     /**
-     * For permanent room and capacity.
-     */
-    PERMANENT_ROOM_AND_CAPACITY(true),
-
-    /**
      * For meeting room.
      */
     MEETING_ROOM(false),

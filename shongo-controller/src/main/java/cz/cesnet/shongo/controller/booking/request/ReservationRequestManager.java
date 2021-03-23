@@ -192,7 +192,7 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         // Delete acl records
-        authorizationManager.deleteAclEntriesForEntity(reservationRequest);
+        authorizationManager.deleteAclEntriesWithIdentity(reservationRequest);
 
         allocation.setReservationRequest(null);
 
@@ -278,7 +278,7 @@ public class ReservationRequestManager extends AbstractManager
     private List<AbstractReservationRequest> listVersions(AbstractReservationRequest reservationRequest)
     {
         return entityManager.createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                + " WHERE reservationRequest.allocation = :allocation", AbstractReservationRequest.class)
+                + " WHERE reservationRequest.allocation = :allocation ORDER BY id DESC", AbstractReservationRequest.class)
                 .setParameter("allocation", reservationRequest.getAllocation())
                 .getResultList();
     }
@@ -478,7 +478,6 @@ public class ReservationRequestManager extends AbstractManager
                 List<AbstractReservationRequest> expiredRequests = entityManager.createQuery(
                         "SELECT  abstractReservationRequest "
                             + " FROM AbstractReservationRequest abstractReservationRequest"
-                            + " LEFT JOIN abstractReservationRequest.allocation reqAllocation"
                             + " WHERE (abstractReservationRequest.id IN ("
                                     + "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                                     + " WHERE reservationRequest.slotEnd < :dateTime"             // is before expiration period
@@ -486,13 +485,13 @@ public class ReservationRequestManager extends AbstractManager
                                     + "SELECT reservationRequestSet.id FROM ReservationRequestSet reservationRequestSet"
                                     + " INNER JOIN reservationRequestSet.allocation setAllocation"
                                     + " WHERE setAllocation.childReservationRequests IS EMPTY) "   // all child request have been removed for resReqSet
-                            + ") AND reqAllocation NOT IN ("
-                                + "SELECT reusedAllocation from ReservationRequest req"
-                                + " INNER JOIN req.reusedAllocation reusedAllocation)"       // no referencing capacities
+                            + ") AND abstractReservationRequest.allocation NOT IN ("
+                                + "SELECT req.reusedAllocation from AbstractReservationRequest req)"     // no referencing capacities
                             + " AND abstractReservationRequest.state <> :modifiedState",     // consider only last version of request for permanent rooms
                         AbstractReservationRequest.class)
                 .setParameter("dateTime", expirationDate)
                 .setParameter("modifiedState", AbstractReservationRequest.State.MODIFIED)
+                .setMaxResults(100)
                 .getResultList();
 
         return expiredRequests;

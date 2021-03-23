@@ -325,7 +325,18 @@ public class AuthorizationManager extends AclEntryManager
         for (AclEntry aclEntry : activeTransaction.getAclEntries(objectIdentity)) {
             deleteAclEntry(aclEntry, true);
         }
-        //entityManager.remove(entityManager.contains(objectIdentity) ? objectIdentity : entityManager.merge(objectIdentity));
+    }
+
+    /**
+     * Delete all {@link AclEntry}s for given {@code object} with its ACL identity (for complete object removal).
+     *
+     * @param object
+     */
+    public void deleteAclEntriesWithIdentity(PersistentObject object)
+    {
+        deleteAclEntriesForEntity(object);
+        AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(object);
+        entityManager.remove(entityManager.contains(objectIdentity) ? objectIdentity : entityManager.merge(objectIdentity));
     }
 
     /**
