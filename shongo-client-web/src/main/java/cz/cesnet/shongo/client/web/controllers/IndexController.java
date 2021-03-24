@@ -67,34 +67,29 @@ public class IndexController
 
             OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
 
-            // Get all readable resources with assigned meeting-room tag even not allocatable (previous reservations)
-            ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
-            resourceListRequest.setTagName(ClientWebConfiguration.getInstance().getMeetingRoomTagName());
-            resourceListRequest.setAllocatable(false);
-
-            List<Map<String, Object>> items = listResources(resourceListRequest, authenticationToken);
-            modelAndView.addObject("meetingRoomResources", items);
-
             // Get all readable resources with assigned parking-place tag even not allocatable (previous reservations)
-                String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
-            List<Map<String, Object>> ppItems = null;
-            if (!Strings.isNullOrEmpty(parkTagName)) {
-                ResourceListRequest ppResourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
-                ppResourceListRequest.setTagName(parkTagName);
-                ppResourceListRequest.setAllocatable(false);
-                ppItems = listResources(ppResourceListRequest, authenticationToken);
-            }
+            String meetingRoomTag = ClientWebConfiguration.getInstance().getMeetingRoomTagName();
+            String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
+            String vehicleTagName = ClientWebConfiguration.getInstance().getVehicleTagName();
+            List<Map<String, Object>> meetingRooms = listResourcesByTag(meetingRoomTag, authenticationToken);
+            List<Map<String, Object>> ppItems = listResourcesByTag(parkTagName, authenticationToken);
+            List<Map<String, Object>> vehicleItems = listResourcesByTag(vehicleTagName, authenticationToken);
+
+            modelAndView.addObject("meetingRoomResources", meetingRooms);
             modelAndView.addObject("parkingPlaceResources", ppItems);
+            modelAndView.addObject("vehicleResources", vehicleItems);
             List<Map<String, Object>> physicalResources = new LinkedList<Map<String, Object>>();
-            if (items != null) {
-                physicalResources.addAll(items);
+            if (meetingRooms != null) {
+                physicalResources.addAll(meetingRooms);
             }
             if (ppItems != null) {
                 physicalResources.addAll(ppItems);
             }
+            if (vehicleItems != null) {
+                physicalResources.addAll(vehicleItems);
+            }
             modelAndView.addObject("physicalResources", physicalResources);
         }
-
 
         // Not functional without controller annotation @SessionAttributes
         sessionStatus.setComplete();
@@ -166,5 +161,20 @@ public class IndexController
     public String handleDevelopmentView()
     {
         return "development";
+    }
+
+    protected List<Map<String, Object>> listResourcesByTag(String tagName, OpenIDConnectAuthenticationToken authenticationToken) {
+        if (Strings.isNullOrEmpty(tagName)) {
+            return null;
+        }
+        ResourceListRequest resourceListRequest = new ResourceListRequest(authenticationToken.getSecurityToken());
+        resourceListRequest.setTagName(tagName);
+        resourceListRequest.setAllocatable(false);
+        List<Map<String, Object>> resources = listResources(resourceListRequest, authenticationToken);
+        for (Map<String, Object> resource: resources) {
+            resource.put("tag", tagName);
+        }
+        return resources;
+
     }
 }

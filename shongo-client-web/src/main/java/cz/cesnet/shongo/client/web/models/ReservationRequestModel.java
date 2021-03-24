@@ -8,7 +8,6 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.controller.ObjectPermission;
@@ -126,7 +125,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * TODO:MR
      * Temporary for meeting rooms,
      */
-    protected String meetingRoomResourceId;
+    protected String physicalResourceId;
 
     protected Integer roomParticipantCount;
 
@@ -352,12 +351,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return slotBeforeMinutes;
     }
 
-    public String getMeetingRoomResourceId() {
-        return meetingRoomResourceId;
+    public String getPhysicalResourceId() {
+        return physicalResourceId;
     }
 
-    public void setMeetingRoomResourceId(String meetingRoomResourceId) {
-        this.meetingRoomResourceId = meetingRoomResourceId;
+    public void setPhysicalResourceId(String physicalResourceId) {
+        this.physicalResourceId = physicalResourceId;
     }
 
     public PeriodicDateTimeSlot.DayOfWeek[] getPeriodicDaysInWeek() {
@@ -475,8 +474,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getMeetingRoomResourceName()
     {
-        if (meetingRoomResourceId != null) {
-            ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        if (physicalResourceId != null) {
+            ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
             if (resource != null) {
                 return resource.getName();
             }
@@ -486,7 +485,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getMeetingRoomResourceDescription()
     {
-        ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
         if (resource != null) {
             return resource.getDescription();
         }
@@ -495,8 +494,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public String getMeetingRoomResourceDomain()
     {
-        if (meetingRoomResourceId != null) {
-            ResourceSummary resource = cacheProvider.getResourceSummary(meetingRoomResourceId);
+        if (physicalResourceId != null) {
+            ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
             if (resource != null) {
                 return resource.getDomainName();
             }
@@ -932,15 +931,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
         } else if (specification instanceof ResourceSpecification) {
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
-            meetingRoomResourceId = resourceSpecification.getResourceId();
+            physicalResourceId = resourceSpecification.getResourceId();
             ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
-            String parkingTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
-            if (parkingTagName != null && summary.getResourceTags().contains(parkingTagName)) {
-                specificationType = SpecificationType.PARKING_PLACE;
-            } else {
-                specificationType = SpecificationType.MEETING_ROOM;
-            }
-
+            specificationType = SpecificationType.fromReservationRequestSummary(summary);
         } else {
             throw new UnsupportedApiException(specification);
         }
@@ -1165,9 +1158,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
+            case VEHICLE:
             case PARKING_PLACE:
             case MEETING_ROOM: {
-                specification = new ResourceSpecification(meetingRoomResourceId);
+                specification = new ResourceSpecification(physicalResourceId);
                 break;
             }
             default:
@@ -1243,6 +1237,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withZone(timeZone).withTime(23, 59, 59, 0));
             case MEETING_ROOM:
             case PARKING_PLACE:
+            case VEHICLE:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
@@ -1275,6 +1270,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         switch (specificationType) {
             case PARKING_PLACE:
+            case VEHICLE:
             case MEETING_ROOM:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
@@ -1882,7 +1878,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 ", excludeDates=" + excludeDates +
                 ", roomName='" + roomName + '\'' +
                 ", roomResourceId='" + roomResourceId + '\'' +
-                ", meetingRoomResourceId='" + meetingRoomResourceId + '\'' +
+                ", physicalResourceId='" + physicalResourceId + '\'' +
                 '}';
     }
 }

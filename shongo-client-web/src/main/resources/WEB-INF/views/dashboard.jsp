@@ -9,9 +9,15 @@
 
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
-<tag:url var="createMeetingRoomUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>" />
-
-<tag:url var="createParkingPlaceUrl" value="<%= ClientWebUrl.WIZARD_PARKING_PLACE_BOOK %>" />
+<tag:url var="createMeetingRoomReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
+    <tag:param name="tag" value="meeting-rooms" escape="false" />
+</tag:url>
+<tag:url var="createParkingPlaceReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
+    <tag:param name="tag" value="park-place" escape="false" />
+</tag:url>
+<tag:url var="createVehicleReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
+    <tag:param name="tag" value="vehicle" escape="false" />
+</tag:url>
 
 <tag:url var="reservationRequestMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>" />
 
@@ -103,20 +109,27 @@
                         </a>
                     </li>
                 </c:if>
-                <c:if test="${!meetingRoomResources.isEmpty()}">
+                <c:if test="${!physicalResources.isEmpty()}">
                     <li>
-                        <a href="${createMeetingRoomUrl}" tabindex="2">
-                            <spring:message code="views.index.action.bookMeetingRoom"/>
+                        <spring:message code="views.index.action.bookPhysicalResource"/>
+                        <a href="${createMeetingRoomReservationUrl}" tabindex="2">
+                            <spring:message code="views.index.action.meetingRoom"/>
                         </a>
+                        <c:if test="${parkingPlaceResources != null && !parkingPlaceResources.isEmpty()}">
+                            |
+                            <a href="${createParkingPlaceReservationUrl}" tabindex="2">
+                                <spring:message code="views.index.action.parkingPlace"/>
+                            </a>
+                        </c:if>
+                        <c:if test="${vehicleResources != null && !vehicleResources.isEmpty()}">
+                            |
+                            <a href="${createVehicleReservationUrl}" tabindex="2">
+                                <spring:message code="views.index.action.vehicle"/>
+                            </a>
+                        </c:if>
                     </li>
                 </c:if>
-                <c:if test="${parkingPlaceResources != null && !parkingPlaceResources.isEmpty()}">
-                    <li>
-                        <a href="${createParkingPlaceUrl}" tabindex="3">
-                            <spring:message code="views.index.action.bookParkingPlace"/>
-                        </a>
-                    </li>
-                </c:if>
+
             </ul>
         </tag:expandableBlock>
     </security:authorize>

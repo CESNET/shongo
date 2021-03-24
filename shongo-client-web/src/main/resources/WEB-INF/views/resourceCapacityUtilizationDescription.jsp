@@ -55,9 +55,9 @@
         <c:forEach items="${resourceCapacityUtilization.reservations}" var="reservation">
             <c:set var="user" value="${users.get(reservation.userId)}"/>
             <c:set var="cssClass" value=""/>
-            <c:if test="${reservation.slot.contains(peakBucket.dateTime.millis)}">
+            <%--<c:if test="${reservation.slot.contains(peakBucket.dateTime.millis)}">--%>
                 <c:set var="cssClass" value="${resourceCapacity.getCssClass(resourceCapacityUtilization)}"/>
-            </c:if>
+            <%--</c:if>--%>
             <tr class="${cssClass}">
                 <td>
                     ${reservation.id}

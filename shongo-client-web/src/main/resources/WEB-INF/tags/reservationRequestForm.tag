@@ -554,7 +554,7 @@
     </c:if>
 
     <c:choose>
-        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+        <c:when test="${!reservationRequest.specificationType.isPhysical() && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
             <div class="form-group">
                 <form:label class="col-xs-3 control-label" path="technology">
                     <spring:message code="views.reservationRequest.technology"/>:
@@ -572,12 +572,12 @@
                 </div>
             </div>
         </c:when>
-        <c:when test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+        <c:when test="${!reservationRequest.specificationType.isPhysical()}">
             <input type="hidden" name="technology" id="technology" value="{{technology}}"/>
         </c:when>
     </c:choose>
 
-    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+    <c:if test="${administrationMode && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && !reservationRequest.specificationType.isPhysical()}">
         <script type="text/javascript">
             $(function(){
                 var updateResources = function() {
@@ -637,20 +637,23 @@
         <%--</div>--%>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType == 'MEETING_ROOM' || reservationRequest.specificationType == 'PARKING_PLACE'}">
+    <c:if test="${reservationRequest.specificationType.isPhysical()}">
         <script type="text/javascript">
             <c:choose>
-            <c:when test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
-            var tag = "${configuration.getMeetingRoomTagName()}";
-            </c:when>
-            <c:otherwise>
-            var tag = "${configuration.getParkingPlaceTagName()}";
-            </c:otherwise>
+                <c:when test="${reservationRequest.specificationType == 'MEETING_ROOM'}">
+                    var tag = "${configuration.getMeetingRoomTagName()}";
+                </c:when>
+                <c:when test="${reservationRequest.specificationType == 'PARKING_PLACE'}">
+                    var tag = "${configuration.getParkingPlaceTagName()}";
+                </c:when>
+                <c:when test="${reservationRequest.specificationType == 'VEHICLE'}">
+                    var tag = "${configuration.getVehicleTagName()}";
+                </c:when>
             </c:choose>
             $(function(){
                 var updateResources = function() {
                     window.getResourcesByTag(tag, function(resources) {
-                        $("#meetingRoomResourceId").select2({
+                        $("#physicalResourceId").select2({
                             data: resources,
                             escapeMarkup: function (markup) {
                                 return markup;
@@ -665,7 +668,7 @@
                                 }
                                 // Id wasn't found and thus set default value
                                 callback(resources[0]);
-                                $("#meetingRoomResourceId").val(resources[0].id);
+                                $("#physicalResourceId").val(resources[0].id);
                             }
                         });
                     });
@@ -674,14 +677,14 @@
             });
         </script>
         <div class="form-group">
-            <form:label class="col-xs-3 control-label" path="meetingRoomResourceId">
+            <form:label class="col-xs-3 control-label" path="physicalResourceId">
                 <spring:message code="views.reservationRequest.object"/>:
             </form:label>
             <div class="col-xs-4">
-                <form:input cssClass="form-control" cssErrorClass="form-control error" path="meetingRoomResourceId" tabindex="${tabIndex}"/>
+                <form:input cssClass="form-control" cssErrorClass="form-control error" path="physicalResourceId" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-offset-3 col-xs-9">
-                <form:errors path="meetingRoomResourceId" cssClass="error"/>
+                <form:errors path="physicalResourceId" cssClass="error"/>
             </div>
         </div>
     </c:if>
@@ -817,7 +820,7 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-        <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+        <c:if test="${!reservationRequest.specificationType.isPhysical()}">
             <div class="form-group" ng-hide="technology == 'FREEPBX'">
                 <form:label class="col-xs-3 control-label" path="roomParticipantCount">
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
@@ -874,7 +877,7 @@
                     <form:input cssClass="form-control" cssErrorClass="form-control error" path="start" time-picker="true" data-show-inputs="false" data-minute-step="5" data-second-step="60" tabindex="${tabIndex}"/>
                 </c:if>
             </div>
-            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+            <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && !reservationRequest.specificationType.isPhysical()}">
                 <div class="col-xs-4">
                     <div class="input-group" style="width: 100%;">
                         <form:select path="slotBeforeMinutes" cssClass="form-control" tabindex="${tabIndex}">
@@ -934,7 +937,7 @@
                         <form:option value="DAY"><spring:message code="views.reservationRequest.duration.days"/></form:option>
                     </form:select>
                 </div>
-                <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+                <c:if test="${!reservationRequest.specificationType.isPhysical()}">
                     <div class="col-xs-4">
                         <div class="input-group" style="width: 100%;">
                             <form:select cssClass="form-control" path="slotAfterMinutes" tabindex="${tabIndex}">
@@ -1173,7 +1176,7 @@
         </div>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+    <c:if test="${!reservationRequest.specificationType.isPhysical()}">
         <div class="form-group" ng-show="technology == 'FREEPBX' || technology == 'PEXIP'" class="hide">
             <form:label class="col-xs-3 control-label" path="adminPin">
                 <spring:message code="views.reservationRequest.specification.adminPin" var="pinLabel"/>
@@ -1245,7 +1248,7 @@
     </c:if>
 
     <%-- TODO: Check if resource has recording capability --%>
-    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.specificationType != 'MEETING_ROOM' && reservationRequest.specificationType != 'PARKING_PLACE'}">
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && !reservationRequest.specificationType.isPhysical()}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT' || technology == 'FREEPBX'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>

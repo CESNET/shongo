@@ -68,10 +68,8 @@ public class ClientWebUrl
     public static final String WIZARD_ROOM_FINISH_WITH_CAPACITY =
             "/wizard/room/finish?create-capacity=true";
 
-    public static final String WIZARD_MEETING_ROOM_BOOK =
-            "/wizard/meeting-room/book";
-    public static final String WIZARD_PARKING_PLACE_BOOK =
-            "/wizard/parking-place/book";
+    public static final String WIZARD_PHYSICAL_RESOURCE_BOOK =
+            "/wizard/physical-resource/book";
     public static final String WIZARD_MEETING_ROOM_ATTRIBUTES =
             "/wizard/meeting-room/attributes";
     public static final String WIZARD_MEETING_ROOM_MODIFY =

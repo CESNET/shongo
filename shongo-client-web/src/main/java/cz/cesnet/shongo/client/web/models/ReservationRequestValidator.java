@@ -90,7 +90,7 @@ public class ReservationRequestValidator implements Validator
             reservationRequestModel.setExcludeDates(excludeDates);
         }
 
-        if (specificationType != SpecificationType.MEETING_ROOM && specificationType != SpecificationType.PARKING_PLACE) {
+        if (!specificationType.isPhysical()) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         }
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
@@ -185,13 +185,14 @@ public class ReservationRequestValidator implements Validator
                     validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
+                case VEHICLE:
                 case PARKING_PLACE:
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
                     validatePeriodicSlotsStart(reservationRequestModel, errors);
                     validatePeriodicExclusions(reservationRequestModel, timeZone, errors);
                     if (reservationRequestModel.getDurationType() != null) {
-                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "meetingRoomResourceId", "validation.field.required");
+                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "physicalResourceId", "validation.field.required");
                         validateDurationCount(reservationRequestModel, errors);
                     }
                     else {
@@ -340,9 +341,9 @@ public class ReservationRequestValidator implements Validator
                         if (userError instanceof AllocationStateReport.ResourceUnderMaintenance) {
                             // If resource is allocated, but virtual room is requested
                             errors.rejectValue("roomParticipantCount", null, error.getMessage(locale, timeZone));
-                        } else if (reservationRequestModel.getMeetingRoomResourceId() != null) {
+                        } else if (reservationRequestModel.getPhysicalResourceId() != null) {
                             // Meeting room already allocated
-                            errors.rejectValue("meetingRoomResourceId", null, userError.getMessage(locale, timeZone));
+                            errors.rejectValue("physicalResourceId", null, userError.getMessage(locale, timeZone));
                             // check if colliding interval is not the first one for periodic reservation request
                             if (!SlotHelper.areIntervalsColliding(error.getInterval(), reservationRequestModel.getFirstSlot())) {
                                 errors.rejectValue("collidingInterval", null, error.getInterval().toString());

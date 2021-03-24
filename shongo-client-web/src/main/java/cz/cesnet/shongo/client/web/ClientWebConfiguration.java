@@ -277,6 +277,13 @@ public class ClientWebConfiguration extends CombinedConfiguration {
     }
 
     /**
+     * @return name of tag for cars
+     */
+    public String getVehicleTagName() {
+        return getString("tags.vehicle");
+    }
+
+    /**
      * @return name of tag for parking places
      */
     public String getParkingPlaceTagName() {

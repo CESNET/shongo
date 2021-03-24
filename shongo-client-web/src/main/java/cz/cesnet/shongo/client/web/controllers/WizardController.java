@@ -101,6 +101,8 @@ public class WizardController
             case PERMANENT_ROOM_CAPACITY:
                 return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
                         ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_MODIFY, reservationRequestId));
+            case VEHICLE:
+            case PARKING_PLACE:
             case MEETING_ROOM:
                 return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
                         ClientWebUrl.WIZARD_MEETING_ROOM_MODIFY, reservationRequestId));

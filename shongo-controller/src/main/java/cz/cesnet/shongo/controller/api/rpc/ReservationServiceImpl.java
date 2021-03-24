@@ -1264,11 +1264,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             Set<Long> ownedResourceIds = authorization.getEntitiesWithRole(securityToken, Resource.class, ObjectRole.OWNER);
 
             // Return empty response when user doesn't own any resources
-            if (ownedResourceIds == null || ownedResourceIds.isEmpty()) {
+            if (ownedResourceIds != null && ownedResourceIds.isEmpty()) {
                 return new ListResponse<>();
             } else {
-                queryFilter.addFilter("specification_summary.resource_id IN (:resourceIds)");
-                queryFilter.addFilterParameter("resourceIds", ownedResourceIds);
+                if (ownedResourceIds != null) {
+                    queryFilter.addFilter("specification_summary.resource_id IN (:resourceIds)");
+                    queryFilter.addFilterParameter("resourceIds", ownedResourceIds);
+                }
             }
 
             // Filter specification resource id

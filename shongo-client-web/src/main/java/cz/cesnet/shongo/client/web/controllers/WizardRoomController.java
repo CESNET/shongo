@@ -11,8 +11,10 @@ import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.TagListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,9 @@ public class WizardRoomController extends WizardParticipantsController
     @Resource
     private AuthorizationService authorizationService;
 
+    @Resource
+    private ResourceService resourceService;
+
     private static enum Page
     {
         SELECT,
@@ -77,7 +82,7 @@ public class WizardRoomController extends WizardParticipantsController
         if (reservationRequest != null && reservationRequest instanceof ReservationRequestModificationModel) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.room.modify"));
         }
-        else if (reservationRequest != null && (SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType()) || SpecificationType.PARKING_PLACE.equals(reservationRequest.getSpecificationType()))) {
+        else if (reservationRequest != null && (reservationRequest.getSpecificationType().isPhysical())) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.meetingRoom.book"));
         } else {
             wizardView.addPage(new WizardPage(Page.SELECT, ClientWebUrl.WIZARD_ROOM,
@@ -92,7 +97,7 @@ public class WizardRoomController extends WizardParticipantsController
                     "views.wizard.page.userRoles"));
         }
         //TODO:MR temporary until model is changed
-        if (reservationRequest == null || (!SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType()) && !SpecificationType.PARKING_PLACE.equals(reservationRequest.getSpecificationType()))) {
+        if (reservationRequest == null || (!getReservationRequest().getSpecificationType().isPhysical())) {
             wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
                     "views.wizard.page.participants"));
         }
@@ -187,56 +192,16 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * TODO:Change new room to meeting type and show form for editing room attributes.
+     * Change new room to meeting type and show form for editing room attributes.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_PARKING_PLACE_BOOK, method = RequestMethod.GET)
-    public String handleParkingPlace(
-            SecurityToken securityToken,
-            UserSession userSession,
-            @RequestParam(value = "start", required = false) DateTime start,
-            @RequestParam(value = "end", required = false) DateTime end,
-            @RequestParam(value = "resourceId", required = false) String meetingRoomResourceId
-    )
-    {
-        ReservationRequestModel reservationRequest = getReservationRequest();
-        if (reservationRequest == null) {
-            reservationRequest = createReservationRequest(securityToken);
-            synchronized (request) {
-                WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
-            }
-        }
-
-        reservationRequest.setSpecificationType(SpecificationType.PARKING_PLACE);
-
-        if (start != null) {
-            reservationRequest.setStart(start.toLocalTime());
-            reservationRequest.setStartDate(start.toLocalDate());
-        }
-
-        if (end != null) {
-            reservationRequest.setEnd(end);
-        }
-
-        if (start != null && end != null) {
-            reservationRequest.setDuration(Temporal.getIntervalDuration(new Interval(start,end)));
-        }
-
-        if (meetingRoomResourceId != null) {
-            reservationRequest.setMeetingRoomResourceId(meetingRoomResourceId);
-        }
-        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
-    }
-
-    /**
-     * TODO:Change new room to meeting type and show form for editing room attributes.
-     */
-    @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK, method = RequestMethod.GET)
     public String handleMeetingRoom(
             SecurityToken securityToken,
             UserSession userSession,
+            @RequestParam(value = "tag", required = false) String tag,
             @RequestParam(value = "start", required = false) DateTime start,
             @RequestParam(value = "end", required = false) DateTime end,
-            @RequestParam(value = "resourceId", required = false) String meetingRoomResourceId
+            @RequestParam(value = "resourceId", required = false) String physicalResourceId
     )
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
@@ -247,7 +212,7 @@ public class WizardRoomController extends WizardParticipantsController
             }
         }
 
-        reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
+        reservationRequest.setSpecificationType(SpecificationType.fromString(tag));
 
         if (start != null) {
             reservationRequest.setStart(start.toLocalTime());
@@ -262,8 +227,8 @@ public class WizardRoomController extends WizardParticipantsController
             reservationRequest.setDuration(Temporal.getIntervalDuration(new Interval(start,end)));
         }
 
-        if (meetingRoomResourceId != null) {
-            reservationRequest.setMeetingRoomResourceId(meetingRoomResourceId);
+        if (physicalResourceId != null) {
+            reservationRequest.setPhysicalResourceId(physicalResourceId);
         }
         return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_MEETING_ROOM_ATTRIBUTES);
     }
@@ -271,13 +236,14 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * TODO:Change new room to meeting type and show form for editing room attributes.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_MEETING_ROOM_BOOK, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK, method = RequestMethod.POST)
     public Object handleMeetingRoomConfirm(
             SecurityToken securityToken,
             SessionStatus sessionStatus,
+            @RequestParam(value = "tag", required = false) String tag,
             @RequestParam(value = "start") DateTime start,
             @RequestParam(value = "end") DateTime end,
-            @RequestParam(value = "resourceId") String meetingRoomResourceId,
+            @RequestParam(value = "resourceId") String physicalResourceId,
             @RequestParam(value = "description", required = false) String description)
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
@@ -288,7 +254,8 @@ public class WizardRoomController extends WizardParticipantsController
             }
         }
 
-        reservationRequest.setSpecificationType(SpecificationType.MEETING_ROOM);
+        SpecificationType specificationType = SpecificationType.fromString(tag);
+        reservationRequest.setSpecificationType(specificationType);
 
         if (start != null) {
             reservationRequest.setStart(start.toLocalTime());
@@ -303,8 +270,8 @@ public class WizardRoomController extends WizardParticipantsController
             reservationRequest.setDuration(Temporal.getIntervalDuration(new Interval(start, end)));
         }
 
-        if (meetingRoomResourceId != null) {
-            reservationRequest.setMeetingRoomResourceId(meetingRoomResourceId);
+        if (physicalResourceId != null) {
+            reservationRequest.setPhysicalResourceId(physicalResourceId);
         }
 
         if (!Strings.isNullOrEmpty(description)) {
@@ -454,7 +421,7 @@ public class WizardRoomController extends WizardParticipantsController
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
         }
         //TODO MR: temporary until model change
-        else if (SpecificationType.MEETING_ROOM.equals(reservationRequest.getSpecificationType()) || SpecificationType.PARKING_PLACE.equals(reservationRequest.getSpecificationType())) {
+        else if (reservationRequest.getSpecificationType().isPhysical()) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
         }
         else {

@@ -11,7 +11,7 @@
     <tag:param name="objectUriKey" value="" escape="false" />
 </tag:url>
 <%-- Has to be without back-url for form action --%>
-<tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_MEETING_ROOM_BOOK %>"/>
+<tag:url var="meetingRoomBookUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>"/>
 <tag:url var="periodicMeetingRoomModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="\" + event.parentRequestId + \"" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -115,6 +115,8 @@
         // Prompt dialog for confirmation of reservation request
         $scope.reservationRequestPrompt = function(start, end, calendar) {
             var bookReservationParamUrl = "${meetingRoomBookUrl}";
+            bookReservationParamUrl += "&tag=";
+            bookReservationParamUrl += $scope.resourceTags.data[$scope.reservationsFilter.resourceId.id];
             bookReservationParamUrl += "?start=";
             bookReservationParamUrl += start.toISOString();
             bookReservationParamUrl += "&end=";
@@ -126,6 +128,13 @@
                         action: '${meetingRoomBookUrl}',
                         method: 'POST'
                     });
+            form.append(
+                $('<input />', {
+                    type: 'hidden',
+                    name: 'tag',
+                    value: $scope.resourceTags.data[$scope.reservationsFilter.resourceId.id]
+                })
+            );
             form.append(
                     $('<input />', {
                                 type: 'hidden',
@@ -221,6 +230,18 @@
                 <c:if test="${physicalResource.isCalendarPublic}">
                 "${physicalResource.id}": "${physicalResource.calendarUriKey}",
                 </c:if>
+                </c:forEach>
+            }
+        };
+
+        // Tags of resources
+        $scope.resourceTags = {
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            data: {
+                <c:forEach items="${physicalResources}" var="physicalResource">
+                "${physicalResource.id}": "${physicalResource.tag}",
                 </c:forEach>
             }
         };
@@ -466,8 +487,8 @@
     <button class="pull-right fa fa-refresh btn btn-default" ng-click="refreshCalendar()"></button>
     <div class="btn-group pull-right">
         <form class="form-inline">
-            <label for="meetingRoomResourceId"><spring:message code="views.room"/>:</label>
-            <input id="meetingRoomResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
+            <label for="physicalResourceId"><spring:message code="views.room"/>:</label>
+            <input id="physicalResourceId" ng-model="reservationsFilter.resourceId" ui-select2="resourceIdOptions" class="min-input"/>
         </form>
 
         <input id="highlightOwnedReservations" type="checkbox" ng-model="highlightOwnedReservations"/>
