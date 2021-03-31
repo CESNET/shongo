@@ -115,14 +115,14 @@
         // Prompt dialog for confirmation of reservation request
         $scope.reservationRequestPrompt = function(start, end, calendar) {
             var bookReservationParamUrl = "${meetingRoomBookUrl}";
-            bookReservationParamUrl += "&tag=";
-            bookReservationParamUrl += $scope.resourceTags.data[$scope.reservationsFilter.resourceId.id];
             bookReservationParamUrl += "?start=";
             bookReservationParamUrl += start.toISOString();
             bookReservationParamUrl += "&end=";
             bookReservationParamUrl += end.toISOString();
             bookReservationParamUrl += "&resourceId=";
             bookReservationParamUrl += $scope.reservationsFilter.resourceId.id;
+            bookReservationParamUrl += "&tag=";
+            bookReservationParamUrl += $scope.resourceTags.data[$scope.reservationsFilter.resourceId.id];
 
             var form = $('<form />', {
                         action: '${meetingRoomBookUrl}',
