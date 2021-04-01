@@ -78,11 +78,11 @@ public class WizardRoomController extends WizardParticipantsController
     {
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
-
+        SpecificationType specificationType = reservationRequest.getSpecificationType();
         if (reservationRequest != null && reservationRequest instanceof ReservationRequestModificationModel) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.room.modify"));
         }
-        else if (reservationRequest != null && (reservationRequest.getSpecificationType().isPhysical())) {
+        else if (reservationRequest != null && (specificationType != null) && specificationType.isPhysical()) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.meetingRoom.book"));
         } else {
             wizardView.addPage(new WizardPage(Page.SELECT, ClientWebUrl.WIZARD_ROOM,
@@ -91,13 +91,13 @@ public class WizardRoomController extends WizardParticipantsController
 
         wizardView.addPage(new WizardPage(Page.ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
                 "views.wizard.page.attributes"));
-        if (reservationRequest == null || reservationRequest.getSpecificationType() == null
-                || reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+        if (reservationRequest == null || specificationType == null
+                || specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             wizardView.addPage(new WizardPage(Page.ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
                     "views.wizard.page.userRoles"));
         }
         //TODO:MR temporary until model is changed
-        if (reservationRequest == null || (!getReservationRequest().getSpecificationType().isPhysical())) {
+        if (reservationRequest == null || ((specificationType != null) && (!specificationType.isPhysical()))) {
             wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
                     "views.wizard.page.participants"));
         }
