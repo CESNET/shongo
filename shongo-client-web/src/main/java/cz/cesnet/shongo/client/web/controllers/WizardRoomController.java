@@ -78,7 +78,10 @@ public class WizardRoomController extends WizardParticipantsController
     {
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
-        SpecificationType specificationType = reservationRequest.getSpecificationType();
+        SpecificationType specificationType = null;
+        if (reservationRequest != null) {
+            specificationType = reservationRequest.getSpecificationType();
+        }
         if (reservationRequest != null && reservationRequest instanceof ReservationRequestModificationModel) {
             wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.room.modify"));
         }
