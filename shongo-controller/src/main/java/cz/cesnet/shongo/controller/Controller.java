@@ -1073,6 +1073,8 @@ public class Controller
                 controller.getConfiguration().getString(ControllerConfiguration.DATABASE_USERNAME));
         properties.put("hibernate.connection.password",
                 controller.getConfiguration().getString(ControllerConfiguration.DATABASE_PASSWORD));
+        properties.put("hibernate.dialect",
+                "cz.cesnet.shongo.controller.util.CustomPostgres10Dialect");
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 

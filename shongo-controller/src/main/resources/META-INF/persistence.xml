@@ -22,7 +22,6 @@
             <property name="hibernate.connection.provider_class"
                       value="org.hibernate.service.jdbc.connections.internal.C3P0ConnectionProvider" />
             <!-- Other configurations -->
-            <property name="hibernate.dialect" value="cz.cesnet.shongo.controller.util.CustomPostgres10Dialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.physical_naming_strategy" value="cz.cesnet.shongo.controller.util.CustomPhysicalNamingStrategy" />
             <property name="hibernate.implicit_naming_strategy" value="cz.cesnet.shongo.controller.util.CustomImplicitNamingStrategy" />
