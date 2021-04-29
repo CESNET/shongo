@@ -19,7 +19,7 @@
     <properties>
         <spring.version>5.2.2.RELEASE</spring.version>
         <spring.security.version>5.2.1.RELEASE</spring.security.version>
-        <jetty.version>9.4.25.v20191220</jetty.version><!--9.4.0.v20161208-->
+        <jetty.version>9.4.40.v20210413</jetty.version><!--9.4.0.v20161208-->
         <!--<jetty.version>8.1.15.v20140411</jetty.version>-->
         <!--<jetty.version>9.2.5.v20141112</jetty.version>-->
     </properties>
@@ -91,17 +91,17 @@
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-core</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-jsp</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tiles</groupId>
             <artifactId>tiles-el</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.8</version>
         </dependency>
 
         <!-- Jetty dependencies -->
@@ -151,14 +151,14 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.20</version>
+            <version>2.3.30</version>
         </dependency>
 
         <!-- HTTP Client for performing HTTP requests -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.10</version>
+            <version>4.5.13</version>
         </dependency>
 
         <!-- Joda time JSP tags -->
@@ -201,12 +201,25 @@
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-taglib-dependencies</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <includeArtifactIds>apache-jstl,taglibs-standard-spec,taglibs-standard-impl,tiles-jsp,spring-webmvc,spring-security-taglibs</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/lib/taglibs/</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
                         </configuration>
@@ -222,6 +235,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
                             <mainClass>cz.cesnet.shongo.client.web.ClientWeb</mainClass>
                         </manifest>
                     </archive>

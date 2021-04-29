@@ -4,18 +4,15 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
-import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
-import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.*;
 
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +20,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
@@ -37,6 +38,8 @@ import java.util.jar.Manifest;
 public class ClientWeb
 {
     private static Logger logger = LoggerFactory.getLogger(ClientWeb.class);
+
+    private static String[] taglibs = {"taglibs-standard", "apache-jstl", "tiles-jsp"};
 
     /**
      * @return version of the {@link Connector}
@@ -84,7 +87,7 @@ public class ClientWeb
         options.addOption(optionDaemon);
 
         // Parse command line
-        CommandLine commandLine = null;
+        CommandLine commandLine;
         try {
             CommandLineParser parser = new PosixParser();
             commandLine = parser.parse(options, arguments);
@@ -117,39 +120,6 @@ public class ClientWeb
             System.exit(0);
         }
 
-        // Setup class-path for JAR file
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        if (classLoader instanceof URLClassLoader) {
-            URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-            URL[] urls = urlClassLoader.getURLs();
-            // Only when current class-path is single JAR file
-            if (urls.length == 1 && urls[0].toExternalForm().endsWith(".jar")) {
-                // Get directory from single JAR file
-                File mainFile = new File(urls[0].toExternalForm());
-                String path = mainFile.getParent();
-
-                // Read class-path from manifest
-                InputStream manifestStream = classLoader.getResourceAsStream("META-INF/MANIFEST.MF");
-                String manifestClassPath;
-                try {
-                    Manifest manifest = new Manifest(manifestStream);
-                    manifestClassPath = manifest.getMainAttributes().getValue("Class-Path");
-                }
-                finally {
-                    manifestStream.close();
-                }
-
-                // Setup new class loader from the manifest class-path
-                List<URL> newUrls = new LinkedList<URL>();
-                for (String library : manifestClassPath.split(" ")) {
-                    URL url = new URL(path + "/" + library);
-                    newUrls.add(url);
-                }
-                urlClassLoader = new URLClassLoader(newUrls.toArray(new URL[newUrls.size()]));
-                Thread.currentThread().setContextClassLoader(urlClassLoader);
-            }
-        }
-
         final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
         final Server server = new Server();
 
@@ -163,21 +133,18 @@ public class ClientWeb
         webAppContext.setContextPath(clientWebConfiguration.getServerPath());
         webAppContext.setParentLoaderPriority(true);
 
-        // To control which parts of the container’s classpath should be processed
+        // Including taglibs to get scanned for TLDs
+        webAppContext.setExtraClasspath("../shongo-client-web/target/lib/taglibs/*");
+
+        Configuration.ClassList classList = Configuration.ClassList
+                .setServerDefault(server);
+        classList.addBefore(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                // Annotation config must follow immediately after JettyWebXmlConfiguration
+                "org.eclipse.jetty.annotations.AnnotationConfiguration");
+
         webAppContext.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
-                ".*/[^/]*.jar$");
-
-        // Establish Scratch directory for the servlet context (used by JSP compilation)
-        webAppContext.setAttribute("javax.servlet.context.tempdir", getScratchDir());
-
-        // Configure the application to support the compilation of JSP files.
-        // We need a new class loader and some stuff so that Jetty can call the
-        // onStartup() methods as required.
-        webAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
-        webAppContext.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
-        webAppContext.addBean(new ServletContainerInitializersStarter(webAppContext), true);
-        webAppContext.setClassLoader(new URLClassLoader(new URL[0], ClientWeb.class.getClassLoader()));
-
+                ".*\\.jar$");
 
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
             String resourceBase = arguments[0];
@@ -314,36 +281,5 @@ public class ClientWeb
         }
     }
 
-    private static File getScratchDir() throws IOException {
-        File tempDir = new File(System.getProperty("java.io.tmpdir"));
-        File scratchDir = new File(tempDir.toString(), "jetty-jsp");
 
-        if (!scratchDir.exists()) {
-            if (!scratchDir.mkdirs()) {
-                throw new IOException("Unable to create scratch directory: " + scratchDir);
-            }
-        }
-        return scratchDir;
-    }
-
-    private static List<ContainerInitializer> jspInitializers() {
-        JettyJasperInitializer sci = new JettyJasperInitializer();
-        ContainerInitializer initializer = new ContainerInitializer(sci, null);
-        List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
-        initializers.add(initializer);
-        return initializers;
-    }
-
-/*    *//**
-     * Redirecting {@link SelectChannelConnector}.
-     *//*
-    public static class HttpsRedirectingSelectChannelConnector extends SelectChannelConnector
-    {
-        @Override
-        public void customize(EndPoint endpoint, Request request) throws IOException
-        {
-            request.setScheme("https");
-            super.customize(endpoint, request);
-        }
-    }*/
 }
