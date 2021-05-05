@@ -218,7 +218,7 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includeArtifactIds>apache-jstl,taglibs-standard-spec,taglibs-standard-impl,tiles-jsp,spring-webmvc,spring-security-taglibs</includeArtifactIds>
+                            <includeArtifactIds>apache-jstl,taglibs-standard-spec,taglibs-standard-impl,tiles-jsp,spring-webmvc,spring-security-taglibs,joda-time-jsptags</includeArtifactIds>
                             <outputDirectory>${project.build.directory}/lib/taglibs/</outputDirectory>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>

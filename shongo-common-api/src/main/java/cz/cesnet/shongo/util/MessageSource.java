@@ -141,7 +141,7 @@ public class MessageSource
                 return null;
             }
             try {
-                message = new String(message.getBytes("ISO-8859-1"), "UTF-8");
+                message = new String(message.getBytes(), "UTF-8");
             }
             catch (UnsupportedEncodingException exception) {
                 throw new RuntimeException("Encoding not supported", exception);
