@@ -281,7 +281,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public void before() throws Exception
     {
         super.before();
-
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         synchronized (AbstractControllerTest.class) {
 
             // Configure system properties
