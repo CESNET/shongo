@@ -28,4 +28,8 @@
     <bean id="controllerReservationService" factory-bean="controllerClient" factory-method="getService">
         <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.ReservationService" type="java.lang.Class"/>
     </bean>
+
+    <bean id="controllerAuthorizationService" factory-bean="controllerClient" factory-method="getService">
+        <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.AuthorizationService" type="java.lang.Class"/>
+    </bean>
 </beans>
