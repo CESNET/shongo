@@ -108,7 +108,12 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String CALDAV_BASIC_AUTH_USERNAME = "caldav-connector.basic-auth.username";
     public static final String CALDAV_BASIC_AUTH_PASSWORD = "caldav-connector.basic-auth.password";
 
-
+    /**
+     * Tags configuration.
+     */
+    public static final String VEHICLE_TAG = "tags.vehicle";
+    public static final String PARKING_PLACE_TAG = "tags.parking-place";
+    public static final String MEETING_ROOM_TAG = "tags.meeting-room";
 
     /**
      * Period in which the executor works.
@@ -605,5 +610,27 @@ public class ControllerConfiguration extends CombinedConfiguration
         String authString = username + ":" + password;
         String authStringEnc = Base64.encodeBytes(authString.getBytes(StandardCharsets.UTF_8));
         return authStringEnc;
+    }
+
+
+    /**
+     * @return name of tag for meeting rooms
+     */
+    public String getMeetingRoomTagName() {
+        return getString(MEETING_ROOM_TAG);
+    }
+
+    /**
+     * @return name of tag for cars
+     */
+    public String getVehicleTagName() {
+        return getString(VEHICLE_TAG);
+    }
+
+    /**
+     * @return name of tag for parking places
+     */
+    public String getParkingPlaceTagName() {
+        return getString(PARKING_PLACE_TAG);
     }
 }
