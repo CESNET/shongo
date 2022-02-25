@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.SpecificationType;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
+import io.swagger.v3.oas.annotations.Operation;
 import org.joda.time.Interval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public class ReservationRequestController {
         this.reservationService = reservationService;
     }
 
+    @Operation(summary = "Lists reservation requests")
     @GetMapping("")
     ListResponse<ReservationRequestSummary> listRequests(
             @RequestAttribute(TOKEN) SecurityToken securityToken,

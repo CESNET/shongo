@@ -102,6 +102,13 @@
             <version>${spring.version}</version>
         </dependency>
 
+        <!-- Spring OpenApi and swagger -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
         <!-- Jackson JSON Mapper for Spring MVC remapper -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
