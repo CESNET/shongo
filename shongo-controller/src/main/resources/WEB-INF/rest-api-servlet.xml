@@ -14,7 +14,14 @@
     <context:component-scan base-package="cz.cesnet.shongo.controller"/>
     <mvc:annotation-driven />
     <aop:aspectj-autoproxy />
-    <mvc:interceptors>
-        <bean class="cz.cesnet.shongo.controller.domains.InterDomainControllerLogInterceptor" />
-    </mvc:interceptors>
+
+    <bean id="controller" class="cz.cesnet.shongo.controller.Controller" factory-method="getInstance"/>
+
+    <bean id="configuration" factory-bean="controller" factory-method="getConfiguration"/>
+
+    <bean id="controllerClient" class="cz.cesnet.shongo.controller.ControllerClient">
+        <constructor-arg>
+            <bean factory-bean="configuration" factory-method="getRpcUrl"/>
+        </constructor-arg>
+    </bean>
 </beans>

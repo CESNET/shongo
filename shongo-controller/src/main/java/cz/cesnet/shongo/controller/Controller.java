@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import com.google.common.base.Strings;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
@@ -11,20 +10,18 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.calendar.CalendarManager;
 import cz.cesnet.shongo.controller.calendar.connector.CalDAVConnector;
 import cz.cesnet.shongo.controller.calendar.connector.CalendarConnector;
-import cz.cesnet.shongo.controller.domains.BasicAuthFilter;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
-import cz.cesnet.shongo.controller.domains.SSLClientCertFilter;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.rest.RESTApiServer;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import cz.cesnet.shongo.ssl.SSLCommunication;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
@@ -35,21 +32,15 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.servlet.DispatcherType;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -537,7 +528,7 @@ public class Controller
         start();
         startRpc();
         startJade();
-        startInterDomainRESTApi();
+        startRESTApi();
         startWorkerThread();
         startComponents();
     }
@@ -629,87 +620,21 @@ public class Controller
         return jadeContainer;
     }
 
-    public Server startInterDomainRESTApi() throws NoSuchAlgorithmException, CertificateException, InvalidAlgorithmParameterException, IOException, KeyStoreException {
+    /**
+     * Creates a Jetty REST api server for frontend and inter-domain extension.
+     */
+    public Server startRESTApi() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+        logger.info("Starting REST api server on {}:{}...",
+                configuration.getRESTApiHost(), configuration.getRESTApiPort());
+
+        restServer = RESTApiServer.start(configuration);
+
         if (configuration.isInterDomainConfigured()) {
-            logger.info("Starting Inter Domain REST server on {}:{}...",
-                    configuration.getInterDomainHost(), configuration.getInterDomainPort());
-
-            restServer = new Server();
-            // Configure SSL
-            ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
-
-            // Create web app
-            WebAppContext webAppContext = new WebAppContext();
-            String servletPath = "/*";
-            webAppContext.addServlet(new ServletHolder("interDomain", DispatcherServlet.class), servletPath);
-            webAppContext.setParentLoaderPriority(true);
-
-            URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
-            if (resourceBaseUrl == null) {
-                throw new RuntimeException("WEB-INF is not in classpath.");
-            }
-            String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
-            webAppContext.setResourceBase(resourceBase);
-
-            final HttpConfiguration http_config = new HttpConfiguration();
-
-            // Configure HTTPS connector
-            http_config.setSecureScheme(HttpScheme.HTTPS.asString());
-            http_config.setSecurePort(configuration.getInterDomainPort());
-            final HttpConfiguration https_config = new HttpConfiguration(http_config);
-            https_config.addCustomizer(new SecureRequestCustomizer());
-
-
-            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-            KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
-            trustStore.load(null);
-            // Load certificates of foreign domain's CAs
-            for (String certificatePath : configuration.getForeignDomainsCaCertFiles()) {
-                trustStore.setCertificateEntry(certificatePath.substring(0, certificatePath.lastIndexOf('.')),
-                        SSLCommunication.readPEMCert(certificatePath));
-            }
-            sslContextFactory.setKeyStorePath(configuration.getInterDomainSslKeyStore());
-            sslContextFactory.setKeyStoreType(configuration.getInterDomainSslKeyStoreType());
-            sslContextFactory.setKeyStorePassword(configuration.getInterDomainSslKeyStorePassword());
-            sslContextFactory.setTrustStore(trustStore);
-            if (configuration.requiresClientPKIAuth()) {
-                // Enable forced client auth
-                sslContextFactory.setNeedClientAuth(true);
-                // Enable SSL client filter by certificates
-                EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-                webAppContext.addFilter(SSLClientCertFilter.class, servletPath, filterTypes);
-            }
-            else {
-                EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-                webAppContext.addFilter(BasicAuthFilter.class, servletPath, filterTypes);
-            }
-
-            final ServerConnector httpsConnector = new ServerConnector(restServer,
-                    new SslConnectionFactory(sslContextFactory, "http/1.1"),
-                    new HttpConnectionFactory(https_config));
-            String host = configuration.getInterDomainHost();
-            if (!Strings.isNullOrEmpty(host)) {
-                httpsConnector.setHost(host);
-            }
-            httpsConnector.setPort(configuration.getInterDomainPort());
-            httpsConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
-
-
-
-            restServer.setConnectors(new Connector[]{httpsConnector});
-
-            restServer.setHandler(webAppContext);
-            try {
-                restServer.start();
-                logger.info("Inter Domain REST server successfully started.");
-            } catch (Exception exception) {
-                throw new RuntimeException(exception);
-            }
-
-            this.interDomainInitialized = true;
-            return restServer;
+            interDomainInitialized = true;
         }
-        return null;
+        logger.info("REST api server successfully started.");
+
+        return restServer;
     }
 
     /**
@@ -803,7 +728,7 @@ public class Controller
         }
 
         if (restServer != null) {
-            logger.info("Stopping Controller Inter Domain REST server...");
+            logger.info("Stopping Controller REST server...");
             try {
                 restServer.stop();
             } catch (Exception exception) {

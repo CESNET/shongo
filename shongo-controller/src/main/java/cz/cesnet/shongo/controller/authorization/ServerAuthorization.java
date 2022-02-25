@@ -47,7 +47,7 @@ public class ServerAuthorization extends Authorization
     /**
      * Authentication service path in auth-server.
      */
-    private static final String AUTHENTICATION_SERVICE_PATH = "/oidc-authn/oic";
+    private static final String AUTHENTICATION_SERVICE_PATH = "/oidc";
 
     /**
      * User web service path in auth-server.
