@@ -609,27 +609,28 @@ public class Cache
         if (objectId.contains(":exe:")) {
             return objectId;
         }
-        else {
-            if (objectId.contains(":req:")) {
-                ReservationRequestSummary request = getAllocatedReservationRequestSummary(securityToken, objectId);
-                String reservationId = request.getAllocatedReservationId();
-                if (reservationId == null) {
-                    throw new TodoImplementException("Reservation doesn't exist.");
-                }
-                objectId = reservationId;
+
+        if (objectId.contains(":req:")) {
+            ReservationRequestSummary request = getAllocatedReservationRequestSummary(securityToken, objectId);
+            String reservationId = request.getAllocatedReservationId();
+            if (reservationId == null) {
+                logger.info("Reservation doesn't exist.");
+                return null;
             }
-            if (objectId.contains(":rsv:")) {
-                Reservation reservation = getReservation(securityToken, objectId);
-                Executable executable = reservation.getExecutable();
-                if (executable == null) {
-                    throw new UnsupportedApiException("Reservation " + objectId + " doesn't have executable.");
-                }
-                return executable.getId();
-            }
-            else {
-                throw new TodoImplementException(objectId);
-            }
+            objectId = reservationId;
         }
+
+        if (objectId.contains(":rsv:")) {
+            Reservation reservation = getReservation(securityToken, objectId);
+            Executable executable = reservation.getExecutable();
+            if (executable == null) {
+                logger.info("Reservation " + objectId + " doesn't have executable.");
+                return null;
+            }
+            return executable.getId();
+        }
+
+        throw new TodoImplementException(objectId);
     }
 
     /**
