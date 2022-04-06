@@ -3,28 +3,52 @@ package cz.cesnet.shongo.controller.rest.api;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
+import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.*;
+import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.RRR;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestHistoryModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.SpecificationType;
+import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import io.swagger.v3.oas.annotations.Operation;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.joda.time.DateTime;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static cz.cesnet.shongo.controller.api.ResourceSummary.Type.RESOURCE;
+import static cz.cesnet.shongo.controller.api.ResourceSummary.Type.ROOM_PROVIDER;
 import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
+import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORMATTER;
 
 /**
  * Rest controller for reservation request endpoints.
@@ -37,15 +61,18 @@ public class ReservationRequestController {
 
     private final Cache cache;
     private final ReservationService reservationService;
+    private final AuthorizationService authorizationService;
     private final ExecutableService executableService;
 
     public ReservationRequestController(
             @Autowired Cache cache,
             @Autowired ReservationService reservationService,
+            @Autowired AuthorizationService authorizationService,
             @Autowired ExecutableService executableService)
     {
         this.cache = cache;
         this.reservationService = reservationService;
+        this.authorizationService = authorizationService;
         this.executableService = executableService;
     }
 
@@ -60,13 +87,14 @@ public class ReservationRequestController {
             @RequestParam(value = "sort_desc", required = false, defaultValue = "true") boolean sortDescending,
             @RequestParam(value = "allocation_state", required = false) AllocationState allocationState,
             @RequestParam(value = "parentRequestId", required = false) String permanentRoomId,
-            @RequestParam(value = "specification_type", required = false) Set<SpecificationType> specificationTypes,
             @RequestParam(value = "technology", required = false) TechnologyModel technology,
-            @RequestParam(value = "interval_from", required = false) DateTime intervalFrom,
-            @RequestParam(value = "interval_to", required = false) DateTime intervalTo,
+            @RequestParam(value = "interval_from", required = false) String fromParam,
+            @RequestParam(value = "interval_to", required = false) String toParam,
             @RequestParam(value = "user_id", required = false) String userId,
             @RequestParam(value = "participant_user_id", required = false) String participantUserId,
-            @RequestParam(value = "search", required = false) String search)
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "type", required = false) Set<ReservationType> reservationTypes,
+            @RequestParam(value = "resource", required = false) String resourceId)
     {
         ReservationRequestListRequest request = new ReservationRequestListRequest();
 
@@ -78,28 +106,38 @@ public class ReservationRequestController {
         request.setAllocationState(allocationState);
         request.setParticipantUserId(participantUserId);
         request.setSearch(search);
+        request.setSpecificationResourceId(resourceId);
 
+        if (reservationTypes == null) {
+            reservationTypes = new HashSet<>();
+        }
         if (permanentRoomId != null) {
             request.setReusedReservationRequestId(permanentRoomId);
-            specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
+            reservationTypes.add(ReservationType.ROOM_CAPACITY);
         }
 
-        if (specificationTypes != null && !specificationTypes.isEmpty()) {
-            if (specificationTypes.contains(SpecificationType.ADHOC_ROOM)) {
-                request.addSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
-            }
-            if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM)) {
-                request.addSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
-            }
-            if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-                request.addSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
-            }
-            if (specificationTypes.contains(SpecificationType.MEETING_ROOM)) {
-                request.addSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
-            }
+        if (reservationTypes.contains(ReservationType.VIRTUAL_ROOM)) {
+            request.addSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
+            request.addSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
         }
+        if (reservationTypes.contains(ReservationType.ROOM_CAPACITY)) {
+            request.addSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
+        }
+        if (reservationTypes.contains(ReservationType.PHYSICAL_RESOURCE)) {
+            request.addSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
+        }
+
         if (technology != null) {
             request.setSpecificationTechnologies(technology.getTechnologies());
+        }
+
+        DateTime intervalFrom = null;
+        DateTime intervalTo = null;
+        if (fromParam != null) {
+            intervalFrom = DATETIME_FORMATTER.parseDateTime(fromParam);
+        }
+        if (toParam != null) {
+            intervalTo = DATETIME_FORMATTER.parseDateTime(toParam);
         }
         if (intervalFrom != null || intervalTo != null) {
             if (intervalFrom == null) {
@@ -128,6 +166,43 @@ public class ReservationRequestController {
         listResponse.setStart(response.getStart());
         listResponse.setCount(response.getCount());
         return listResponse;
+    }
+
+    @Operation(summary = "Creates reservation request.")
+    @PostMapping()
+    void createRequest(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @RequestBody RRR request)
+    {
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        UserInformation userInformation = securityToken.getUserInformation();
+
+        request.setCacheProvider(cacheProvider);
+        String resource = request.getResource();
+        if (resource == null) {
+            request.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
+            reservationService.createReservationRequest(securityToken, request.toApi());
+            return;
+        }
+        ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resource);
+        if (resourceSummary.getType() == ROOM_PROVIDER) {
+            request.setTechnology(TechnologyModel.find(resourceSummary.getTechnologies()));
+            request.setRoomResourceId(resource);
+            // TODO get SpecificationType from resource
+            request.setSpecificationType(SpecificationType.PERMANENT_ROOM);
+            // Add default participant
+            request.addRoomParticipant(userInformation, request.getDefaultOwnerParticipantRole());
+        } else if (resourceSummary.getType() == RESOURCE) {
+            request.setPhysicalResourceId(resource);
+            request.setSpecificationType(SpecificationType.MEETING_ROOM);
+        }
+
+        String reservationId = reservationService.createReservationRequest(securityToken, request.toApi());
+
+        // Create default role for the user
+        request.setId(reservationId);
+        UserRoleModel userRoleModel = request.addUserRole(userInformation, ObjectRole.OWNER);
+        authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
     }
 
     @Operation(summary = "Returns reservation request.")
@@ -197,5 +272,11 @@ public class ReservationRequestController {
             @PathVariable String id)
     {
         reservationService.revertReservationRequest(securityToken, id);
+    }
+
+    public enum ReservationType {
+        VIRTUAL_ROOM,
+        PHYSICAL_RESOURCE,
+        ROOM_CAPACITY
     }
 }
