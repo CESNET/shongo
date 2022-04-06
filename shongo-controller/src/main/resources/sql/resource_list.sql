@@ -2,6 +2,7 @@
  * Select query for list of resources.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Filip Karnis
  */
 SELECT
     resource_summary.id AS id,
@@ -14,7 +15,9 @@ SELECT
     resource_summary.description AS description,
     resource_summary.calendar_public AS calendar_public,
     resource_summary.calendar_uri_key AS calendar_uri_key,
-    resource_summary.confirm_by_owner AS confirm_by_owner
+    resource_summary.confirm_by_owner AS confirm_by_owner,
+    resource_summary.type AS type,
+    resource_summary.tag_names AS tag_names
 FROM resource_summary
 WHERE ${filter}
 ORDER BY ${order}
