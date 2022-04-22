@@ -211,11 +211,14 @@ public class ReservationRequestController {
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
     {
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         ReservationRequestSummary summary = cache.getReservationRequestSummary(securityToken, id);
 
         List<ReservationRequestHistoryModel> history =
                 reservationService.getReservationRequestHistory(securityToken, id)
-                        .stream().map(ReservationRequestHistoryModel::new).collect(Collectors.toList());
+                        .stream()
+                        .map(item -> new ReservationRequestHistoryModel(item, cacheProvider))
+                        .collect(Collectors.toList());
 
         String roomId = cache.getExecutableId(securityToken, id);
         RoomAuthorizedData authorizedData = null;
