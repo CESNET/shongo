@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.CommonModel;
 import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
+import lombok.NoArgsConstructor;
 
 /**
  * Model for {@link AbstractParticipant}.
@@ -14,15 +15,16 @@ import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Filip Karnis
  */
+@NoArgsConstructor
 public class ParticipantModel //implements ReportModel.ContextSerializable
 {
-    private final CacheProvider cacheProvider;
+    private CacheProvider cacheProvider;
 
     protected String id;
 
     private Type type;
 
-    private UserInformation user;
+    private String userId;
 
     private String name;
 
@@ -42,7 +44,7 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         this.type = Type.USER;
-        setUser(userInformation);
+        setUserId(userInformation.getUserId());
     }
 
     public ParticipantModel(AbstractParticipant participant, CacheProvider cacheProvider)
@@ -57,9 +59,10 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
                 UserPerson userPerson = (UserPerson) person;
                 setType(Type.USER);
                 setUserId(userPerson.getUserId());
-/*                setName(userPerson.getName());
-                setEmail(userPerson.getEmail());
-                setOrganization(userPerson.getOrganization());*/
+                UserInformation userInformation = cacheProvider.getUserInformation(userPerson.getUserId());
+                setName(userInformation.getFullName());
+                setEmail(userInformation.getEmail());
+                setOrganization(userInformation.getOrganization());
             }
             else if (person instanceof AnonymousPerson) {
                 AnonymousPerson anonymousPerson = (AnonymousPerson) person;
@@ -86,13 +89,10 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
         switch (type) {
             case USER: {
                 UserPerson userPerson = new UserPerson();
-                if (user == null) {
+                if (userId == null) {
                     throw new IllegalStateException("User must not be null.");
                 }
-                userPerson.setUserId(user.getUserId());
-/*                userPerson.setName(name);
-                userPerson.setEmail(email);
-                userPerson.setOrganization(organization);*/
+                userPerson.setUserId(userId);
                 personParticipant.setPerson(userPerson);
                 return personParticipant;
             }
@@ -140,34 +140,16 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
 
     public String getUserId()
     {
-        if (user == null) {
-            return null;
-        }
-        return user.getUserId();
+        return userId;
     }
 
     public void setUserId(String userId)
     {
-        if (userId == null || userId.isEmpty()) {
-            setUser(null);
-            return;
-        }
-        if (cacheProvider == null) {
-            throw new IllegalStateException(CacheProvider.class + " isn't set.");
-        }
-        setUser(cacheProvider.getUserInformation(userId));
-    }
-
-    public void setUser(UserInformation user)
-    {
-        this.user = user;
+        this.userId = userId;
     }
 
     public String getName()
     {
-        if (user != null) {
-            return user.getFullName();
-        }
         return name;
     }
 
@@ -178,9 +160,6 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
 
     public String getEmail()
     {
-        if (user != null) {
-            return user.getPrimaryEmail();
-        }
         return email;
     }
 
@@ -190,9 +169,6 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
     }
 
     public String getOrganization() {
-        if (user != null) {
-            return user.getOrganization();
-        }
         return organization;
     }
 
@@ -224,16 +200,14 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
 //        return ReportModel.formatAttributes(attributes);
 //    }
 
-//    @Override
-//    public String toString()
-//    {
-//        switch (type) {
-//            case USER:
-//                return String.format("UserParticipant(userId: %s, role: %s)", getUserId(), role);
-//            default:
-//                return String.format("Participant(type: %s, role: %s)", type, role);
-//        }
-//    }
+    @Override
+    public String toString()
+    {
+        if (type == Type.USER) {
+            return String.format("UserParticipant(userId: %s, role: %s)", getUserId(), role);
+        }
+        return String.format("Participant(type: %s, role: %s)", type, role);
+    }
 
     public enum Type
     {

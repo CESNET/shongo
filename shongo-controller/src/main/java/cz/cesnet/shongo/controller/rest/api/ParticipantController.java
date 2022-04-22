@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.rest.api;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -89,10 +88,7 @@ public class ParticipantController {
     void addParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable("id") String id,
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String email,
-            @RequestParam ParticipantRole role)
+            @RequestBody ParticipantModel newParticipant)
     {
         String executableId = cache.getExecutableId(securityToken, id);
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
@@ -106,17 +102,6 @@ public class ParticipantController {
             participantConfigurationModel.addParticipant(new ParticipantModel(existingParticipant, cacheProvider));
         }
         // Modify model
-        final ParticipantModel newParticipant;
-        if (userId != null) {
-            UserInformation participantInformation = cacheProvider.getUserInformation(userId);
-            newParticipant = new ParticipantModel(participantInformation, cacheProvider);
-        } else {
-            newParticipant = new ParticipantModel(cacheProvider);
-            newParticipant.setType(ParticipantModel.Type.ANONYMOUS);
-            newParticipant.setName(name);
-            newParticipant.setEmail(email);
-        }
-        newParticipant.setRole(role);
         participantConfigurationModel.addParticipant(newParticipant);
         // Initialize API from model
         participantConfiguration.clearParticipants();
