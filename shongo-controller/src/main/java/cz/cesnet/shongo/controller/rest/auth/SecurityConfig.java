@@ -27,7 +27,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers("/domain/**")
                 .antMatchers("/v3/api-docs")
-                .antMatchers("/swagger-ui/**");
+                .antMatchers("/swagger-ui/**")
+                .antMatchers("/**/report");
     }
 
     @Override
@@ -38,7 +39,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/domain/**").permitAll()
                 .antMatchers("/v3/api-docs").permitAll()
-                .antMatchers("/swagger-ui/**").permitAll();
+                .antMatchers("/swagger-ui/**").permitAll()
+                .antMatchers("/**/report").permitAll();
     }
 
     @Bean

@@ -50,4 +50,7 @@
 
     <bean id="roomManagementCache" class="cz.cesnet.shongo.controller.rest.RoomCache">
     </bean>
+
+    <bean id="errorHandler" class="cz.cesnet.shongo.controller.rest.ErrorHandler">
+    </bean>
 </beans>
