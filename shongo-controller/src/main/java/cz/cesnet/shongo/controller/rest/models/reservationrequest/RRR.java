@@ -852,12 +852,7 @@ public class RRR //implements ReportModel.ContextSerializable
             }
 
             if (roomEstablishment != null) {
-                if (roomAvailability != null) {
-                    specificationType = SpecificationType.ADHOC_ROOM;
-                }
-                else {
-                    specificationType = SpecificationType.PERMANENT_ROOM;
-                }
+                specificationType = SpecificationType.VIRTUAL_ROOM;
             }
             else {
                 specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
@@ -904,7 +899,7 @@ public class RRR //implements ReportModel.ContextSerializable
             parentReservationRequestId = reservationRequest.getParentReservationRequestId();
         }
         else if (abstractReservationRequest instanceof ReservationRequestSet) {
-            if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
+            if (specificationType.equals(SpecificationType.VIRTUAL_ROOM)) {
                 throw new UnsupportedApiException("Periodicity is not allowed for permanent rooms.");
             }
 
@@ -1004,7 +999,7 @@ public class RRR //implements ReportModel.ContextSerializable
         }
 
         // Room duration
-        if (!specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
+        if (!specificationType.equals(SpecificationType.VIRTUAL_ROOM)) {
             setDuration(duration);
         }
     }
@@ -1035,25 +1030,7 @@ public class RRR //implements ReportModel.ContextSerializable
     {
         Specification specification;
         switch (specificationType) {
-            case ADHOC_ROOM: {
-                RoomSpecification roomSpecification = new RoomSpecification();
-                // Room establishment
-                RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
-                roomEstablishment.setTechnologies(technology.getTechnologies());
-                // Room availability
-                RoomAvailability roomAvailability = roomSpecification.createAvailability();
-                roomAvailability.setParticipantCount(participantCount);
-                roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
-                roomAvailability.setMeetingName(roomMeetingName);
-                roomAvailability.setMeetingDescription(roomMeetingDescription);
-                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
-                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
-                }
-                specification = roomSpecification;
-                break;
-            }
-            case PERMANENT_ROOM: {
+            case VIRTUAL_ROOM: {
                 RoomSpecification roomSpecification = new RoomSpecification();
                 // Room establishment
                 RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
@@ -1205,7 +1182,6 @@ public class RRR //implements ReportModel.ContextSerializable
             case PARKING_PLACE:
             case VEHICLE:
             case MEETING_ROOM:
-            case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 int minutes;
                 try {
@@ -1246,7 +1222,7 @@ public class RRR //implements ReportModel.ContextSerializable
             start = localDateTime.toDateTime(timeZone);
         }
         switch (specificationType) {
-            case PERMANENT_ROOM:
+            case VIRTUAL_ROOM:
                 return new Interval(getRequestStart().withTime(0, 0, 0, 0), getDuration());
             default:
                 return new Interval(start, getDuration());
@@ -1278,7 +1254,7 @@ public class RRR //implements ReportModel.ContextSerializable
         SortedSet<PeriodicDateTimeSlot> slots = new TreeSet<>();
         if (PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicity.getType())) {
             DateTime requestStart = getRequestStart();
-            if (SpecificationType.PERMANENT_ROOM.equals(getSpecificationType())) {
+            if (SpecificationType.VIRTUAL_ROOM.equals(getSpecificationType())) {
                 requestStart = requestStart.withTimeAtStartOfDay();
             }
             PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(requestStart, getDuration(), Period.ZERO);
@@ -1479,7 +1455,7 @@ public class RRR //implements ReportModel.ContextSerializable
         }
         abstractReservationRequest.setPurpose(purpose);
         abstractReservationRequest.setDescription(description);
-        if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
+        if (specificationType.equals(SpecificationType.VIRTUAL_ROOM)) {
             abstractReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         }
         else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {

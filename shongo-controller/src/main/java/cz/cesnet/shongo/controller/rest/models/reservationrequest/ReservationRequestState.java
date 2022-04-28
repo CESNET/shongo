@@ -139,7 +139,7 @@ public enum ReservationRequestState
             case ALLOCATED:
                 if (executableState != null) {
                     switch (specificationType) {
-                        case PERMANENT_ROOM:
+                        case VIRTUAL_ROOM:
                             switch (executableState) {
                                 case STARTED:
                                     if (usageExecutableState != null && usageExecutableState.isAvailable()) {
@@ -157,18 +157,6 @@ public enum ReservationRequestState
                                     return ALLOCATED;
                             }
                         case PERMANENT_ROOM_CAPACITY:
-                            switch (executableState) {
-                                case STARTED:
-                                    return ALLOCATED_STARTED;
-                                case STOPPED:
-                                case STOPPING_FAILED:
-                                    return ALLOCATED_FINISHED;
-                                case STARTING_FAILED:
-                                    return FAILED;
-                                default:
-                                    return ALLOCATED;
-                            }
-                        case ADHOC_ROOM:
                             switch (executableState) {
                                 case STARTED:
                                     return ALLOCATED_STARTED;

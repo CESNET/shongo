@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +31,7 @@ public class ReservationRequestModel {
     private String ownerEmail;
     private TimeInterval slot;
     private Boolean isDeprecated;
-    private ReservationRequestType type;
+    private SpecificationType type;
     private VirtualRoomModel virtualRoomData;
     private RoomCapacityModel roomCapacityData;
     private String lastReservationId;
@@ -51,7 +50,7 @@ public class ReservationRequestModel {
         this.ownerName = ownerInformation.getFullName();
         this.ownerEmail = ownerInformation.getEmail();
         this.slot = new TimeInterval(summary.getEarliestSlot());
-        this.type = summary.getType();
+        this.type = SpecificationType.fromReservationRequestSummary(summary);
         this.virtualRoomData = new VirtualRoomModel(summary);
         this.roomCapacityData = new RoomCapacityModel(summary);
         this.lastReservationId = summary.getLastReservationId();

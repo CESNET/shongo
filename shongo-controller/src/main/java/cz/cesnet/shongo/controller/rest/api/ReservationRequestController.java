@@ -189,7 +189,7 @@ public class ReservationRequestController {
             request.setTechnology(TechnologyModel.find(resourceSummary.getTechnologies()));
             request.setRoomResourceId(resource);
             // TODO get SpecificationType from resource
-            request.setSpecificationType(SpecificationType.PERMANENT_ROOM);
+            request.setSpecificationType(SpecificationType.VIRTUAL_ROOM);
             // Add default participant
             request.addRoomParticipant(userInformation, request.getDefaultOwnerParticipantRole());
         } else if (resourceSummary.getType() == RESOURCE) {

@@ -13,14 +13,9 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 public enum SpecificationType
 {
     /**
-     * For ad-hoc room.
-     */
-    ADHOC_ROOM(true, false),
-
-    /**
      * For permanent room.
      */
-    PERMANENT_ROOM(true, false),
+    VIRTUAL_ROOM(true, false),
 
     /**
      * For permanent room capacity.
@@ -89,9 +84,8 @@ public enum SpecificationType
 
         switch (reservationRequestSummary.getSpecificationType()) {
             case ROOM:
-                return ADHOC_ROOM;
             case PERMANENT_ROOM:
-                return PERMANENT_ROOM;
+                return VIRTUAL_ROOM;
             case USED_ROOM:
                 return PERMANENT_ROOM_CAPACITY;
             case RESOURCE:
