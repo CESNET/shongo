@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
@@ -27,6 +28,7 @@ import cz.cesnet.shongo.controller.rest.models.detail.ParticipantModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import cz.cesnet.shongo.util.SlotHelper;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
@@ -40,6 +42,7 @@ import java.util.*;
  * @author Filip Karnis
  */
 @Slf4j
+@Data
 public class RRR //implements ReportModel.ContextSerializable
 {
 
@@ -50,6 +53,7 @@ public class RRR //implements ReportModel.ContextSerializable
 
     protected String parentReservationRequestId;
 
+    @JsonProperty("requestType")
     protected ReservationRequestType type;
 
     protected String description;
@@ -77,6 +81,7 @@ public class RRR //implements ReportModel.ContextSerializable
      */
     protected LocalDate removedReservationDate;
 
+    @JsonProperty("type")
     protected SpecificationType specificationType;
 
     protected String roomName;
@@ -86,14 +91,6 @@ public class RRR //implements ReportModel.ContextSerializable
     protected String roomReservationRequestId;
 
     protected ReservationRequestSummary permanentRoomReservationRequest;
-
-    protected String roomResourceId;
-
-    /**
-     * TODO:MR
-     * Temporary for meeting rooms,
-     */
-    protected String physicalResourceId;
 
     protected Integer participantCount;
 
@@ -125,19 +122,10 @@ public class RRR //implements ReportModel.ContextSerializable
 
     protected boolean allowGuests = false;
 
-    protected String resource;
+    @JsonProperty("resource")
+    protected String resourceId;
 
     private TimeInterval slot;
-
-    public TimeInterval getSlot()
-    {
-        return slot;
-    }
-
-    public void setSlot(TimeInterval slot)
-    {
-        this.slot = slot;
-    }
 
     /**
      * Create new {@link ReservationRequestModel} from scratch.
@@ -180,7 +168,7 @@ public class RRR //implements ReportModel.ContextSerializable
         fromApi(reservationRequest, cacheProvider);
 
         // Load permanent room
-        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY) && cacheProvider != null) {
+        if (specificationType.equals(SpecificationType.ROOM_CAPACITY) && cacheProvider != null) {
             loadPermanentRoom(cacheProvider);
         }
     }
@@ -221,99 +209,6 @@ public class RRR //implements ReportModel.ContextSerializable
 //        return null;
 //    }
 
-    public void setCacheProvider(CacheProvider cacheProvider)
-    {
-        this.cacheProvider = cacheProvider;
-    }
-
-    public PeriodicityModel getPeriodicity()
-    {
-        return periodicity;
-    }
-
-    public void setPeriodicity(PeriodicityModel periodicity)
-    {
-        this.periodicity = periodicity;
-    }
-
-    public String getResource()
-    {
-        return resource;
-    }
-
-    public void setResource(String resource)
-    {
-        this.resource = resource;
-    }
-
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
-    public String getParentReservationRequestId()
-    {
-        return parentReservationRequestId;
-    }
-
-    public ReservationRequestType getType()
-    {
-        return type;
-    }
-
-    public void setType(ReservationRequestType type)
-    {
-        this.type = type;
-    }
-
-    public DateTime getDateTime()
-    {
-        return dateTime;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public ReservationRequestPurpose getPurpose() {
-        return purpose;
-    }
-
-    public void setPurpose(ReservationRequestPurpose purpose) {
-        this.purpose = purpose;
-    }
-
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
-
-    public TechnologyModel getTechnology()
-    {
-        return technology;
-    }
-
-    public void setTechnology(TechnologyModel technology)
-    {
-        this.technology = technology;
-    }
-
-    public DateTimeZone getTimeZone()
-    {
-        return timeZone;
-    }
-
-    public void setTimeZone(DateTimeZone timeZone)
-    {
-        this.timeZone = timeZone;
-    }
-
     public LocalTime getStart()
     {
         return slot.getStart().toLocalTime();
@@ -331,61 +226,6 @@ public class RRR //implements ReportModel.ContextSerializable
     public void setEnd(DateTime end)
     {
         slot.setEnd(end);
-    }
-
-    public Integer getDurationCount()
-    {
-        return durationCount;
-    }
-
-    public void setDurationCount(Integer durationCount)
-    {
-        this.durationCount = durationCount;
-    }
-
-    public DurationType getDurationType()
-    {
-        return durationType;
-    }
-
-    public void setDurationType(DurationType durationType)
-    {
-        this.durationType = durationType;
-    }
-
-    public int getSlotBeforeMinutes()
-    {
-        return slotBeforeMinutes;
-    }
-
-    public String getPhysicalResourceId() {
-        return physicalResourceId;
-    }
-
-    public void setPhysicalResourceId(String physicalResourceId) {
-        this.physicalResourceId = physicalResourceId;
-    }
-
-    public String getAdminPin()
-    {
-        return adminPin;
-    }
-
-    public void setAdminPin(String adminPin)
-    {
-        this.adminPin = adminPin;
-    }
-
-    public String getGuestPin() {
-        return guestPin;
-    }
-
-    public void setGuestPin(String guestPin) {
-        this.guestPin = guestPin;
-    }
-
-    public Interval getCollidingInterval() {
-        return collidingInterval;
     }
 
     public void setCollidingInterval(Interval collidingInterval) {
@@ -417,20 +257,12 @@ public class RRR //implements ReportModel.ContextSerializable
         collidingWithFirstSlot = false;
     }
 
-    public void setCollidingWithFirstSlot(boolean collidingWithFirstSlot) {
-        this.collidingWithFirstSlot = collidingWithFirstSlot;
-    }
-
-    public boolean isCollidingWithFirstSlot() {
-        return collidingWithFirstSlot;
-    }
-
     public String getMeetingRoomResourceName()
     {
-        if (physicalResourceId != null) {
-            ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
-            if (resource != null) {
-                return resource.getName();
+        if (resourceId != null) {
+            ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resourceId);
+            if (resourceSummary != null) {
+                return resourceSummary.getName();
             }
         }
         return null;
@@ -438,19 +270,19 @@ public class RRR //implements ReportModel.ContextSerializable
 
     public String getMeetingRoomResourceDescription()
     {
-        ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
-        if (resource != null) {
-            return resource.getDescription();
+        ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resourceId);
+        if (resourceSummary != null) {
+            return resourceSummary.getDescription();
         }
         return null;
     }
 
     public String getMeetingRoomResourceDomain()
     {
-        if (physicalResourceId != null) {
-            ResourceSummary resource = cacheProvider.getResourceSummary(physicalResourceId);
-            if (resource != null) {
-                return resource.getDomainName();
+        if (resourceId != null) {
+            ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resourceId);
+            if (resourceSummary != null) {
+                return resourceSummary.getDomainName();
             }
         }
         return null;
@@ -466,16 +298,6 @@ public class RRR //implements ReportModel.ContextSerializable
         }
     }
 
-    public void setSlotBeforeMinutes(int slotBeforeMinutes)
-    {
-        this.slotBeforeMinutes = slotBeforeMinutes;
-    }
-
-    public int getSlotAfterMinutes()
-    {
-        return slotAfterMinutes;
-    }
-
     public Period getSlotAfter()
     {
         if (slotAfterMinutes != 0) {
@@ -486,52 +308,12 @@ public class RRR //implements ReportModel.ContextSerializable
         }
     }
 
-    public void setSlotAfterMinutes(int slotAfterMinutes)
-    {
-        this.slotAfterMinutes = slotAfterMinutes;
-    }
-
     public LocalDate getStartDate() {
         return slot.getStart().toLocalDate();
     }
 
     public void setStartDate(LocalDate startDate) {
         this.slot.setStart(startDate.toDateTimeAtStartOfDay());
-    }
-
-    public SpecificationType getSpecificationType()
-    {
-        return specificationType;
-    }
-
-    public void setSpecificationType(SpecificationType specificationType)
-    {
-        this.specificationType = specificationType;
-    }
-
-    public String getRoomName()
-    {
-        return roomName;
-    }
-
-    public void setRoomName(String roomName)
-    {
-        this.roomName = roomName;
-    }
-
-    public String getE164Number()
-    {
-        return e164Number;
-    }
-
-    public void setE164Number(String e164Number)
-    {
-        this.e164Number = e164Number;
-    }
-
-    public String getRoomReservationRequestId()
-    {
-        return roomReservationRequestId;
     }
 
     public void setRoomReservationRequestId(String roomReservationRequestId)
@@ -544,7 +326,7 @@ public class RRR //implements ReportModel.ContextSerializable
     }
 
     public void setPermanentRoomReservationRequestId(String permanentRoomReservationRequestId,
-                                                     List<ReservationRequestSummary> permanentRooms)
+            List<ReservationRequestSummary> permanentRooms)
     {
         this.roomReservationRequestId = permanentRoomReservationRequestId;
 
@@ -564,63 +346,13 @@ public class RRR //implements ReportModel.ContextSerializable
         }
     }
 
-    public ReservationRequestSummary getPermanentRoomReservationRequest()
-    {
-        return permanentRoomReservationRequest;
-    }
-
-    public String getRoomResourceId()
-    {
-        return roomResourceId;
-    }
-
     public String getRoomResourceName()
     {
-        ResourceSummary resource = cacheProvider.getResourceSummary(roomResourceId);
-        if (resource != null) {
-            return resource.getName();
+        ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resourceId);
+        if (resourceSummary != null) {
+            return resourceSummary.getName();
         }
         return null;
-    }
-
-    public void setRoomResourceId(String roomResourceId)
-    {
-        this.roomResourceId = roomResourceId;
-    }
-
-    public Integer getParticipantCount()
-    {
-        return participantCount;
-    }
-
-    public void setParticipantCount(Integer participantCount)
-    {
-        this.participantCount = participantCount;
-    }
-
-    public String getRoomPin()
-    {
-        return roomPin;
-    }
-
-    public void setRoomPin(String roomPin)
-    {
-        this.roomPin = roomPin;
-    }
-
-    public boolean isRoomRecorded()
-    {
-        return roomRecorded;
-    }
-
-    public void setRoomRecorded(boolean roomRecorded)
-    {
-        this.roomRecorded = roomRecorded;
-    }
-
-    public String getRoomRecordingResourceId()
-    {
-        return roomRecordingResourceId;
     }
 
     public String getRoomRecordingResourceName()
@@ -634,25 +366,10 @@ public class RRR //implements ReportModel.ContextSerializable
         }
     }
 
-    public void setRoomRecordingResourceId(String roomRecordingResourceId)
-    {
-        this.roomRecordingResourceId = roomRecordingResourceId;
-    }
-
-    public AdobeConnectPermissions getRoomAccessMode()
-    {
-        return roomAccessMode;
-    }
-
     public void setRoomAccessMode(AdobeConnectPermissions roomAccessMode)
     {
         AdobeConnectPermissions.checkIfUsableByMeetings(roomAccessMode);
         this.roomAccessMode = roomAccessMode;
-    }
-
-    public List<UserRoleModel> getUserRoles()
-    {
-        return userRoles;
     }
 
     public UserRoleModel getUserRole(String userRoleId)
@@ -685,19 +402,6 @@ public class RRR //implements ReportModel.ContextSerializable
     public void removeUserRole(UserRoleModel userRole)
     {
         userRoles.remove(userRole);
-    }
-
-    public boolean getAllowGuests() {
-        return allowGuests;
-    }
-
-    public void setAllowGuests(boolean allowGuests) {
-        this.allowGuests = allowGuests;
-    }
-
-    public List<? extends ParticipantModel> getRoomParticipants()
-    {
-        return roomParticipants;
     }
 
     public void addRoomParticipant(ParticipantModel participantModel)
@@ -734,46 +438,6 @@ public class RRR //implements ReportModel.ContextSerializable
         participantModel.setOrganization(participantModel.getOrganization());
         addRoomParticipant(participantModel);
         return participantModel;
-    }
-
-    public String getRoomMeetingName()
-    {
-        return roomMeetingName;
-    }
-
-    public void setRoomMeetingName(String roomMeetingName)
-    {
-        this.roomMeetingName = roomMeetingName;
-    }
-
-    public String getRoomMeetingDescription()
-    {
-        return roomMeetingDescription;
-    }
-
-    public void setRoomMeetingDescription(String roomMeetingDescription)
-    {
-        this.roomMeetingDescription = roomMeetingDescription;
-    }
-
-    public boolean isRoomParticipantNotificationEnabled()
-    {
-        return roomParticipantNotificationEnabled;
-    }
-
-    public void setRoomParticipantNotificationEnabled(boolean roomParticipantNotificationEnabled)
-    {
-        this.roomParticipantNotificationEnabled = roomParticipantNotificationEnabled;
-    }
-
-    public LocalDate getRemovedReservationDate()
-    {
-        return removedReservationDate;
-    }
-
-    public void setRemovedReservationDate(LocalDate removedReservationDate)
-    {
-        this.removedReservationDate = removedReservationDate;
     }
 
     /**
@@ -821,7 +485,7 @@ public class RRR //implements ReportModel.ContextSerializable
             RoomEstablishment roomEstablishment = roomSpecification.getEstablishment();
             if (roomEstablishment != null) {
                 technology = TechnologyModel.find(roomEstablishment.getTechnologies());
-                roomResourceId = roomEstablishment.getResourceId();
+                resourceId = roomEstablishment.getResourceId();
 
                 AliasSpecification roomNameAlias =
                         roomEstablishment.getAliasSpecificationByType(AliasType.ROOM_NAME);
@@ -855,11 +519,11 @@ public class RRR //implements ReportModel.ContextSerializable
                 specificationType = SpecificationType.VIRTUAL_ROOM;
             }
             else {
-                specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
+                specificationType = SpecificationType.ROOM_CAPACITY;
             }
         } else if (specification instanceof ResourceSpecification) {
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
-            physicalResourceId = resourceSpecification.getResourceId();
+            resourceId = resourceSpecification.getResourceId();
             ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
             specificationType = SpecificationType.fromReservationRequestSummary(summary);
         } else {
@@ -882,7 +546,7 @@ public class RRR //implements ReportModel.ContextSerializable
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
         fromSpecificationApi(specification, cacheProvider);
-        if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
+        if (SpecificationType.ROOM_CAPACITY.equals(specificationType)) {
             roomReservationRequestId = abstractReservationRequest.getReusedReservationRequestId();
         }
 
@@ -963,9 +627,9 @@ public class RRR //implements ReportModel.ContextSerializable
                     Partial partial = (Partial) slotEnd;
                     DateTimeField[] partialFields = partial.getFields();
                     if (!(partialFields.length == 3
-                            && partial.isSupported(DateTimeFieldType.year())
-                            && partial.isSupported(DateTimeFieldType.monthOfYear())
-                            && partial.isSupported(DateTimeFieldType.dayOfMonth()))) {
+                                  && partial.isSupported(DateTimeFieldType.year())
+                                  && partial.isSupported(DateTimeFieldType.monthOfYear())
+                                  && partial.isSupported(DateTimeFieldType.dayOfMonth()))) {
                         throw new UnsupportedApiException("Slot end %s.", slotEnd);
                     }
                     periodicityEnd = new LocalDate(partial.getValue(0), partial.getValue(1), partial.getValue(2));
@@ -1050,7 +714,7 @@ public class RRR //implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
-            case PERMANENT_ROOM_CAPACITY: {
+            case ROOM_CAPACITY: {
                 RoomSpecification roomSpecification = new RoomSpecification();
                 // Room availability
                 RoomAvailability roomAvailability = roomSpecification.createAvailability();
@@ -1065,10 +729,11 @@ public class RRR //implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
+            case PHYSICAL_RESOURCE:
             case VEHICLE:
             case PARKING_PLACE:
             case MEETING_ROOM: {
-                specification = new ResourceSpecification(physicalResourceId);
+                specification = new ResourceSpecification(resourceId);
                 break;
             }
             default:
@@ -1118,8 +783,8 @@ public class RRR //implements ReportModel.ContextSerializable
             }
             RoomEstablishment roomEstablishment = roomSpecification.getEstablishment();
             if (roomEstablishment != null) {
-                if (!Strings.isNullOrEmpty(roomResourceId)) {
-                    roomEstablishment.setResourceId(roomResourceId);
+                if (!Strings.isNullOrEmpty(resourceId)) {
+                    roomEstablishment.setResourceId(resourceId);
                 }
             }
             RoomAvailability roomAvailability = roomSpecification.getAvailability();
@@ -1179,10 +844,11 @@ public class RRR //implements ReportModel.ContextSerializable
     public void setDuration(Period duration)
     {
         switch (specificationType) {
+            case PHYSICAL_RESOURCE:
             case PARKING_PLACE:
             case VEHICLE:
             case MEETING_ROOM:
-            case PERMANENT_ROOM_CAPACITY:
+            case ROOM_CAPACITY:
                 int minutes;
                 try {
                     minutes = duration.toStandardMinutes().getMinutes();
@@ -1335,8 +1001,11 @@ public class RRR //implements ReportModel.ContextSerializable
                 || !PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
             throw new IllegalStateException("Periodicity type has to be monthly for a specific day.");
         }
-        if (periodicity.getPeriodicityDayInMonth() == null || (periodicity.getPeriodicityDayOrder() != -1 &&
-                (periodicity.getPeriodicityDayOrder() < 1 || periodicity.getPeriodicityDayOrder() > 4))
+        if (periodicity.getPeriodicityDayInMonth() == null ||
+                (
+                        periodicity.getPeriodicityDayOrder() != -1 &&
+                                (periodicity.getPeriodicityDayOrder() < 1 || periodicity.getPeriodicityDayOrder() > 4)
+                )
                 || periodicity.getPeriodicityEnd() == null) {
             throw new IllegalStateException("For periodicity type MONTHLY must be set day of month.");
         }
@@ -1428,7 +1097,13 @@ public class RRR //implements ReportModel.ContextSerializable
         SortedSet<PeriodicDateTimeSlot> slots = getSlots(DateTimeZone.UTC);
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
-        if (periodicity.getType() == PeriodicDateTimeSlot.PeriodicityType.NONE) {
+        if (specificationType == SpecificationType.VIRTUAL_ROOM) {
+            cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new ReservationRequest();
+            PeriodicDateTimeSlot slot = slots.first();
+            reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(Duration.standardDays(730)));
+            abstractReservationRequest = reservationRequest;
+        }
+        else if (periodicity.getType() == PeriodicDateTimeSlot.PeriodicityType.NONE) {
             // Create single reservation request
             cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new ReservationRequest();
             PeriodicDateTimeSlot slot = slots.first();
@@ -1458,7 +1133,7 @@ public class RRR //implements ReportModel.ContextSerializable
         if (specificationType.equals(SpecificationType.VIRTUAL_ROOM)) {
             abstractReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         }
-        else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+        else if (specificationType.equals(SpecificationType.ROOM_CAPACITY)) {
             abstractReservationRequest.setReusedReservationRequestId(roomReservationRequestId);
         }
 
@@ -1707,7 +1382,7 @@ public class RRR //implements ReportModel.ContextSerializable
     /**
      * Type of duration unit.
      */
-    public static enum DurationType
+    public enum DurationType
     {
         MINUTE,
         HOUR,
@@ -1721,7 +1396,7 @@ public class RRR //implements ReportModel.ContextSerializable
      * @return list of reservation requests for permanent rooms
      */
     public static List<ReservationRequestSummary> getPermanentRooms(ReservationService reservationService,
-                                                                    SecurityToken securityToken, Cache cache)
+            SecurityToken securityToken, Cache cache)
     {
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
@@ -1759,7 +1434,7 @@ public class RRR //implements ReportModel.ContextSerializable
      * @return list of deletion dependencies for reservation request with given {@code reservationRequestId}
      */
     public static List<ReservationRequestSummary> getDeleteDependencies(String reservationRequestId,
-                                                                        ReservationService reservationService, SecurityToken securityToken)
+            ReservationService reservationService, SecurityToken securityToken)
     {
         // List reservation requests which reuse the reservation request to be deleted
         ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
@@ -1783,8 +1458,7 @@ public class RRR //implements ReportModel.ContextSerializable
                 ", end=" + getEnd() +
                 ", excludeDates=" + periodicity.getExcludeDates() +
                 ", roomName='" + roomName + '\'' +
-                ", roomResourceId='" + roomResourceId + '\'' +
-                ", physicalResourceId='" + physicalResourceId + '\'' +
+                ", resourceId='" + resourceId + '\'' +
                 '}';
     }
 }

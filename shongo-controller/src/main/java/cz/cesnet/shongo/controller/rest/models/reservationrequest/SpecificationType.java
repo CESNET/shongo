@@ -18,9 +18,14 @@ public enum SpecificationType
     VIRTUAL_ROOM(true, false),
 
     /**
-     * For permanent room capacity.
+     * For room capacity.
      */
-    PERMANENT_ROOM_CAPACITY(false, false),
+    ROOM_CAPACITY(false, false),
+
+    /**
+     * For physical resource.
+     */
+    PHYSICAL_RESOURCE(false, true),
 
     /**
      * For meeting room.
@@ -87,7 +92,7 @@ public enum SpecificationType
             case PERMANENT_ROOM:
                 return VIRTUAL_ROOM;
             case USED_ROOM:
-                return PERMANENT_ROOM_CAPACITY;
+                return ROOM_CAPACITY;
             case RESOURCE:
                 String resourceTags = reservationRequestSummary.getResourceTags();
                 String parkTagName = configuration.getParkingPlaceTagName();

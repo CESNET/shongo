@@ -17,11 +17,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.RRR;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestHistoryModel;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestModel;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.SpecificationType;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.*;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,8 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static cz.cesnet.shongo.controller.api.ResourceSummary.Type.RESOURCE;
-import static cz.cesnet.shongo.controller.api.ResourceSummary.Type.ROOM_PROVIDER;
 import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
 import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORMATTER;
 
@@ -175,34 +169,40 @@ public class ReservationRequestController {
             @RequestBody RRR request)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        request.setCacheProvider(cacheProvider);
+
+        String resourceId = request.getResourceId();
+        if (resourceId != null) {
+            ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resourceId);
+            request.setTechnology(TechnologyModel.find(resourceSummary.getTechnologies()));
+        }
         UserInformation userInformation = securityToken.getUserInformation();
 
-        request.setCacheProvider(cacheProvider);
-        String resource = request.getResource();
-        if (resource == null) {
-            request.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
-            reservationService.createReservationRequest(securityToken, request.toApi());
-            return;
-        }
-        ResourceSummary resourceSummary = cacheProvider.getResourceSummary(resource);
-        if (resourceSummary.getType() == ROOM_PROVIDER) {
-            request.setTechnology(TechnologyModel.find(resourceSummary.getTechnologies()));
-            request.setRoomResourceId(resource);
-            // TODO get SpecificationType from resource
-            request.setSpecificationType(SpecificationType.VIRTUAL_ROOM);
+        if (request.getSpecificationType() == SpecificationType.VIRTUAL_ROOM) {
             // Add default participant
             request.addRoomParticipant(userInformation, request.getDefaultOwnerParticipantRole());
-        } else if (resourceSummary.getType() == RESOURCE) {
-            request.setPhysicalResourceId(resource);
-            request.setSpecificationType(SpecificationType.MEETING_ROOM);
+
+            // Create VIRTUAL_ROOM
+            String reservationId = reservationService.createReservationRequest(securityToken, request.toApi());
+
+            // Add default role
+            request.setId(reservationId);
+            UserRoleModel userRoleModel = request.addUserRole(userInformation, ObjectRole.OWNER);
+            authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
+
+            // Set request to ROOM_CAPACITY for created VIRTUAL_ROOM
+            request.setSpecificationType(SpecificationType.ROOM_CAPACITY);
+            request.setRoomReservationRequestId(reservationId);
         }
 
         String reservationId = reservationService.createReservationRequest(securityToken, request.toApi());
+        request.setId(reservationId);
 
         // Create default role for the user
-        request.setId(reservationId);
-        UserRoleModel userRoleModel = request.addUserRole(userInformation, ObjectRole.OWNER);
-        authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
+        if (request.getSpecificationType() != SpecificationType.ROOM_CAPACITY) {
+            UserRoleModel userRoleModel = request.addUserRole(userInformation, ObjectRole.OWNER);
+            authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
+        }
     }
 
     @Operation(summary = "Returns reservation request.")

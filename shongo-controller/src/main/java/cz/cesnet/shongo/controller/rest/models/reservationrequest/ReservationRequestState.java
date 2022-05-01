@@ -156,7 +156,7 @@ public enum ReservationRequestState
                                 default:
                                     return ALLOCATED;
                             }
-                        case PERMANENT_ROOM_CAPACITY:
+                        case ROOM_CAPACITY:
                             switch (executableState) {
                                 case STARTED:
                                     return ALLOCATED_STARTED;
