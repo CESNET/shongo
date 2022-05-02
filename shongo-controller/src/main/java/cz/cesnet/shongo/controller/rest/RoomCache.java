@@ -11,7 +11,7 @@ import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
+import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

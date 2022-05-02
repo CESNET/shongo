@@ -1,7 +1,7 @@
-package cz.cesnet.shongo.controller.rest;
+package cz.cesnet.shongo.controller.rest.error;
 
 /**
- * TODO:
+ * Object is inaccessible.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

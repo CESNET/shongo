@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.models;
+package cz.cesnet.shongo.controller.rest.error;
 
 /**
  * Unsupported API data.

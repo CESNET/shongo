@@ -6,7 +6,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.CommonModel;
-import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
+import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import lombok.NoArgsConstructor;
 
 /**

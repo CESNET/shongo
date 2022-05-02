@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
+import cz.cesnet.shongo.controller.rest.error.ObjectInaccessibleException;
 import cz.cesnet.shongo.controller.rest.models.resource.ResourcesUtilization;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

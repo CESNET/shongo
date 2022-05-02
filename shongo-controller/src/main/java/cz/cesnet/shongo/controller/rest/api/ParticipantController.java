@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.models.UnsupportedApiException;
+import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.detail.ParticipantConfigurationModel;
 import cz.cesnet.shongo.controller.rest.models.detail.ParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
