@@ -164,7 +164,7 @@ public class RRR //implements ReportModel.ContextSerializable
      */
     public RRR(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
     {
-        this.cacheProvider = cacheProvider;
+        this(cacheProvider);
         fromApi(reservationRequest, cacheProvider);
 
         // Load permanent room
@@ -525,7 +525,7 @@ public class RRR //implements ReportModel.ContextSerializable
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
             resourceId = resourceSpecification.getResourceId();
             ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
-            specificationType = SpecificationType.fromReservationRequestSummary(summary);
+            specificationType = SpecificationType.fromReservationRequestSummary(summary, true);
         } else {
             throw new UnsupportedApiException(specification);
         }

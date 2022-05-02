@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -249,6 +251,46 @@ public class ReservationRequestController {
         return new ReservationRequestDetailModel(
                 summary, permissionsByReservationRequestId, ownerInformation, authorizedData, history, resourceSummary
         );
+    }
+
+    @Operation(summary = "Modifies reservation request.")
+    @PutMapping("/{id}")
+    void modifyRequest(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @PathVariable("id") String id,
+            @RequestBody RRR request)
+    {
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+
+        AbstractReservationRequest originalRequest = reservationService.getReservationRequest(securityToken, id);
+        RRR modifiedRequest = new RRR(originalRequest, cacheProvider);
+
+        if (request.getRoomName() != null) {
+            modifiedRequest.setRoomName(request.getRoomName());
+        }
+        if (request.getDescription() != null) {
+            modifiedRequest.setDescription(request.getDescription());
+        }
+        if (request.getSlot() != null) {
+            modifiedRequest.setSlot(request.getSlot());
+        }
+        if (request.getPeriodicity() != null) {
+            modifiedRequest.setPeriodicity(request.getPeriodicity());
+        }
+        if (request.getResourceId() != null) {
+            ResourceSummary resourceSummary = cacheProvider.getResourceSummary(request.getResourceId());
+            modifiedRequest.setTechnology(TechnologyModel.find(resourceSummary.getTechnologies()));
+        }
+        if (request.getAdminPin() != null) {
+            modifiedRequest.setAdminPin(request.getAdminPin());
+        }
+        if (request.getParticipantCount() != null) {
+            modifiedRequest.setParticipantCount(request.getParticipantCount());
+        }
+        modifiedRequest.setAllowGuests(request.isAllowGuests());
+        modifiedRequest.setRoomRecorded(request.isRoomRecorded());
+
+        reservationService.modifyReservationRequest(securityToken, modifiedRequest.toApi());
     }
 
     @Operation(summary = "Accepts reservation request.")
