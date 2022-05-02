@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,9 +34,10 @@ public class ReservationRequestDetailModel extends ReservationRequestModel {
             Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
             UserInformation ownerInformation,
             RoomAuthorizedData authorizedData,
-            List<ReservationRequestHistoryModel> history)
+            List<ReservationRequestHistoryModel> history,
+            ResourceSummary resourceSummary)
     {
-        super(summary, permissionsByReservationRequestId, ownerInformation);
+        super(summary, permissionsByReservationRequestId, ownerInformation, resourceSummary);
 
         this.allocationState = summary.getAllocationState();
         this.executableState = summary.getExecutableState();

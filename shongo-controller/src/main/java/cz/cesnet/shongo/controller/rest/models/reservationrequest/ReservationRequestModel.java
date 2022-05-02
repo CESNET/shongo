@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 
 import java.util.Map;
@@ -33,6 +35,7 @@ public class ReservationRequestModel {
     private Boolean isDeprecated;
     private SpecificationType type;
     private VirtualRoomModel virtualRoomData;
+    private PhysicalResourceData physicalResourceData;
     private RoomCapacityModel roomCapacityData;
     private String lastReservationId;
     private Integer futureSlotCount;
@@ -40,7 +43,8 @@ public class ReservationRequestModel {
     public ReservationRequestModel(
             ReservationRequestSummary summary,
             Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
-            UserInformation ownerInformation)
+            UserInformation ownerInformation,
+            ResourceSummary resourceSummary)
     {
         this.id = summary.getId();
         this.description = summary.getDescription();
@@ -50,8 +54,9 @@ public class ReservationRequestModel {
         this.ownerName = ownerInformation.getFullName();
         this.ownerEmail = ownerInformation.getEmail();
         this.slot = new TimeInterval(summary.getEarliestSlot());
-        this.type = SpecificationType.fromReservationRequestSummary(summary);
+        this.type = SpecificationType.fromReservationRequestSummary(summary, true);
         this.virtualRoomData = new VirtualRoomModel(summary);
+        this.physicalResourceData = PhysicalResourceData.fromApi(resourceSummary);
         this.roomCapacityData = new RoomCapacityModel(summary);
         this.lastReservationId = summary.getLastReservationId();
         this.futureSlotCount = summary.getFutureSlotCount();

@@ -155,7 +155,12 @@ public class ReservationRequestController {
         ListResponse<ReservationRequestModel> listResponse = new ListResponse<>();
         listResponse.addAll(response.getItems().stream().map(item -> {
             UserInformation user = cache.getUserInformation(securityToken, item.getUserId());
-            return new ReservationRequestModel(item, permissionsByReservationRequestId, user);
+            String resource = item.getResourceId();
+            ResourceSummary resourceSummary = null;
+            if (resource != null) {
+                resourceSummary = cache.getResourceSummary(securityToken, resource);
+            }
+            return new ReservationRequestModel(item, permissionsByReservationRequestId, user, resourceSummary);
         }).collect(Collectors.toList()));
         listResponse.setStart(response.getStart());
         listResponse.setCount(response.getCount());
@@ -235,8 +240,14 @@ public class ReservationRequestController {
 
         UserInformation ownerInformation = cache.getUserInformation(securityToken, summary.getUserId());
 
+        String resourceId = summary.getResourceId();
+        ResourceSummary resourceSummary = null;
+        if (resourceId != null) {
+            resourceSummary = cacheProvider.getResourceSummary(resourceId);
+        }
+
         return new ReservationRequestDetailModel(
-                summary, permissionsByReservationRequestId, ownerInformation, authorizedData, history
+                summary, permissionsByReservationRequestId, ownerInformation, authorizedData, history, resourceSummary
         );
     }
 

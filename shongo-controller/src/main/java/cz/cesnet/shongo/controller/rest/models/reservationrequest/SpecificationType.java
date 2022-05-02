@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
  * Type of specification for a reservation request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Filip Karnis
  */
 public enum SpecificationType
 {
@@ -85,6 +86,17 @@ public enum SpecificationType
      */
     public static SpecificationType fromReservationRequestSummary(ReservationRequestSummary reservationRequestSummary)
     {
+        return fromReservationRequestSummary(reservationRequestSummary, false);
+    }
+
+    /**
+     * @param reservationRequestSummary
+     * @return {@link SpecificationType} from given {@code reservationRequestSummary}
+     */
+    public static SpecificationType fromReservationRequestSummary(
+            ReservationRequestSummary reservationRequestSummary,
+            boolean onlyGeneralType)
+    {
         ControllerConfiguration configuration = getControllerConfiguration();
 
         switch (reservationRequestSummary.getSpecificationType()) {
@@ -94,6 +106,9 @@ public enum SpecificationType
             case USED_ROOM:
                 return ROOM_CAPACITY;
             case RESOURCE:
+                if (onlyGeneralType) {
+                    return PHYSICAL_RESOURCE;
+                }
                 String resourceTags = reservationRequestSummary.getResourceTags();
                 String parkTagName = configuration.getParkingPlaceTagName();
                 String vehicleTagName = configuration.getVehicleTagName();
