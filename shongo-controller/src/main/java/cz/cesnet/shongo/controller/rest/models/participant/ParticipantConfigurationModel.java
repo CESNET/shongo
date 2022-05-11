@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.models.detail;
+package cz.cesnet.shongo.controller.rest.models.participant;
 
 import cz.cesnet.shongo.ParticipantRole;
 import org.slf4j.Logger;

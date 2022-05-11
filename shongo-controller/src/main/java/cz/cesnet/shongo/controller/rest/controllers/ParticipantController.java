@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.api;
+package cz.cesnet.shongo.controller.rest.controllers;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ParticipantRole;
@@ -8,8 +8,8 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
-import cz.cesnet.shongo.controller.rest.models.detail.ParticipantConfigurationModel;
-import cz.cesnet.shongo.controller.rest.models.detail.ParticipantModel;
+import cz.cesnet.shongo.controller.rest.models.participant.ParticipantConfigurationModel;
+import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

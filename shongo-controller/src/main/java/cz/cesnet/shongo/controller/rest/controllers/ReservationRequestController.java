@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.api;
+package cz.cesnet.shongo.controller.rest.controllers;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
@@ -173,7 +173,7 @@ public class ReservationRequestController {
     @PostMapping()
     void createRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @RequestBody RRR request)
+            @RequestBody ReservationRequestCreateModel request)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         request.setCacheProvider(cacheProvider);
@@ -259,12 +259,12 @@ public class ReservationRequestController {
     void modifyRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable("id") String id,
-            @RequestBody RRR request)
+            @RequestBody ReservationRequestCreateModel request)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
 
         AbstractReservationRequest originalRequest = reservationService.getReservationRequest(securityToken, id);
-        RRR modifiedRequest = new RRR(originalRequest, cacheProvider);
+        ReservationRequestCreateModel modifiedRequest = new ReservationRequestCreateModel(originalRequest, cacheProvider);
 
         if (request.getRoomName() != null) {
             modifiedRequest.setRoomName(request.getRoomName());

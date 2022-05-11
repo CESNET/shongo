@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.api;
+package cz.cesnet.shongo.controller.rest.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.SystemPermission;
@@ -12,12 +12,10 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import io.swagger.v3.oas.annotations.Operation;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Locale;
 
 import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
 

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.api;
+package cz.cesnet.shongo.controller.rest.controllers;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.MediaData;

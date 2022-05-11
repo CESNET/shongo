@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.api;
+package cz.cesnet.shongo.controller.rest.controllers;
 
 import cz.cesnet.shongo.controller.rest.ErrorHandler;
 import cz.cesnet.shongo.controller.rest.models.report.ReportModel;

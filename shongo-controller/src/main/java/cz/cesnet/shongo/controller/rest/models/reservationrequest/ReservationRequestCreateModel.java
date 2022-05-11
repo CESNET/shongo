@@ -24,7 +24,7 @@ import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
-import cz.cesnet.shongo.controller.rest.models.detail.ParticipantModel;
+import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import cz.cesnet.shongo.util.SlotHelper;
@@ -43,7 +43,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-public class RRR //implements ReportModel.ContextSerializable
+public class ReservationRequestCreateModel //implements ReportModel.ContextSerializable
 {
 
     @JsonIgnore
@@ -130,7 +130,7 @@ public class RRR //implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
-    public RRR()
+    public ReservationRequestCreateModel()
     {
         periodicity = new PeriodicityModel();
         periodicity.setType(PeriodicDateTimeSlot.PeriodicityType.NONE);
@@ -142,7 +142,7 @@ public class RRR //implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
-    public RRR(CacheProvider cacheProvider)
+    public ReservationRequestCreateModel(CacheProvider cacheProvider)
     {
         this();
         this.cacheProvider = cacheProvider;
@@ -151,7 +151,7 @@ public class RRR //implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
-    public RRR(CacheProvider cacheProvider, SettingsModel userSettingsModel)
+    public ReservationRequestCreateModel(CacheProvider cacheProvider, SettingsModel userSettingsModel)
     {
         this(cacheProvider);
         initByUserSettings(userSettingsModel);
@@ -162,7 +162,7 @@ public class RRR //implements ReportModel.ContextSerializable
      *
      * @param reservationRequest
      */
-    public RRR(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
+    public ReservationRequestCreateModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
     {
         this(cacheProvider);
         fromApi(reservationRequest, cacheProvider);
