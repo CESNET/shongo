@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.rest.api;
 
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
@@ -12,23 +11,25 @@ import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.resource.*;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
-import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORMATTER;
 
 /**
  * Rest controller for resource endpoints.
  *
  * @author Filip Karnis
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/resources")
 public class ResourceController {
@@ -46,14 +47,13 @@ public class ResourceController {
      * Lists {@link Resource}s.
      */
     @Operation(summary = "Lists available resources.")
-    @GetMapping()
+    @GetMapping
     List<ResourceModel> listResources(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "technology", required = false) TechnologyModel technology,
             @RequestParam(value = "tag", required = false) String tag)
     {
-        ResourceListRequest resourceListRequest = new ResourceListRequest();
-        resourceListRequest.setSecurityToken(securityToken);
+        ResourceListRequest resourceListRequest = new ResourceListRequest(securityToken);
         resourceListRequest.setAllocatable(true);
         if (technology != null) {
             resourceListRequest.setTechnologies(technology.getTechnologies());
@@ -69,7 +69,11 @@ public class ResourceController {
 
         return accessibleResources.getItems()
                 .stream()
-                .map(ResourceModel::new)
+                .map(resourceSummary -> {
+                    // TODO hasCapacity
+                    Resource resource = resourceService.getResource(securityToken, resourceSummary.getId());
+                    return new ResourceModel(resourceSummary, !resource.getCapabilities().isEmpty());
+                })
                 // Filter only resources with either technology or tag
                 .filter(resource -> !(resource.getTechnology() == null && resource.getTags().isEmpty()))
                 .collect(Collectors.toList());
@@ -79,60 +83,60 @@ public class ResourceController {
      * Gets {@link ResourceCapacityUtilization}s.
      */
     @Operation(summary = "Returns resource utilization.")
-    @GetMapping("/utilization")
-    ResourceCapacityUtilizationModel getResourceUtilization(
+    @GetMapping("/capacity_utilizations")
+    ListResponse<ResourceUtilizationModel> listResourcesUtilization(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @RequestParam(value = "period") Period period,
-            @RequestParam(value = "start") String startParam,
-            @RequestParam(value = "end") String endParam,
-            @RequestParam(value = "refresh", required = false) boolean refresh)
+            @RequestParam(value = "interval_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalFrom,
+            @RequestParam(value = "interval_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalTo,
+            @RequestParam Unit unit,
+            @RequestParam(required = false) int start,
+            @RequestParam(required = false) int count,
+            @RequestParam(required = false) boolean refresh)
     {
-        DateTime start = DATETIME_FORMATTER.parseDateTime(startParam);
-        DateTime end = DATETIME_FORMATTER.parseDateTime(endParam);
-
+        Period period = unit.getPeriod();
         ResourcesUtilization resourcesUtilization = cache.getResourcesUtilization(securityToken, refresh);
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
-                resourcesUtilization.getUtilization(new Interval(start, end), period);
-
-        return new ResourceCapacityUtilizationModel(resourcesUtilization.getResourceCapacities(), utilization);
+                resourcesUtilization.getUtilization(new Interval(intervalFrom, intervalTo), period);
+        List<ResourceUtilizationModel> items = new ArrayList<>();
+        utilization.forEach((interval, resourceCapacityUtilizations) -> {
+            items.add(ResourceUtilizationModel.fromApi(interval, resourceCapacityUtilizations));
+        });
+        return ListResponse.fromRequest(start, count, items);
     }
 
     /**
-     * Gets {@link ResourceCapacityUtilization}s.
+     * Lists {@link Resource}s.
      */
-    @Operation(summary = "Returns resource utilization.")
-    @GetMapping("/utilization2")
-    RModel getResourceUtilization(
+    @Operation(summary = "Gets resource utilization.")
+    @GetMapping("/{id}/capacity_utilizations")
+    ResourceUtilizationDetailModel getResourceUtilization(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-//            @RequestParam(value = "interval") Interval interval,
-//            @RequestParam(value = "resourceCapacityClass") String resourceCapacityClassName,
-            @RequestParam(value = "resourceId") String resourceId) throws ClassNotFoundException
+            @PathVariable("id") String resourceId,
+            @RequestParam String resource,
+            @RequestParam(value = "interval_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalFrom,
+            @RequestParam(value = "interval_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalTo)
+            throws ClassNotFoundException
     {
-//        Class<? extends ResourceCapacity> resourceCapacityClass = (Class<? extends ResourceCapacity>)
-//                Class.forName(ResourceCapacity.class.getCanonicalName() + "$" + resourceCapacityClassName);
+        @SuppressWarnings("unchecked")
+        Class<? extends ResourceCapacity> resourceCapacityClass = (Class<? extends ResourceCapacity>)
+                Class.forName(ResourceCapacity.class.getCanonicalName() + "$" + "Room");
         ResourcesUtilization resourcesUtilization =
                 cache.getResourcesUtilization(securityToken, false);
         ResourceCapacity resourceCapacity =
-//                resourcesUtilization.getResourceCapacity(resourceId, resourceCapacityClass);
-                resourcesUtilization.getResourceCapacity(resourceId, ResourceCapacity.Room.class);
+                resourcesUtilization.getResourceCapacity(resourceId, resourceCapacityClass);
         ResourceCapacityUtilization resourceCapacityUtilization =
-//                resourcesUtilization.getUtilization(resourceCapacity, interval);
-                resourcesUtilization.getUtilization(resourceCapacity, new Interval(DateTime.parse("2020-12-09T10:10:30"), DateTime.parse("2023-12-09T10:10:30")));
-//        ModelAndView modelAndView = new ModelAndView("resourceCapacityUtilizationDescription");
+                resourcesUtilization.getUtilization(resourceCapacity, new Interval(intervalFrom, intervalTo));
 
-        Map<String, UserInformation> users = new HashMap<String, UserInformation>();
-        if (resourceCapacityUtilization != null) {
-            Collection<String> userIds = resourceCapacityUtilization.getReservationUserIds();
-            cache.fetchUserInformation(securityToken, userIds);
-            for (String userId : userIds) {
-                UserInformation userInformation = cache.getUserInformation(securityToken, userId);
-                users.put(userId, userInformation);
-            }
-        }
-//        modelAndView.addObject("users", users);
-//        modelAndView.addObject("interval", interval);
-//        modelAndView.addObject("resourceCapacity", resourceCapacity);
-//        modelAndView.addObject("resourceCapacityUtilization", resourceCapacityUtilization);
-        return new RModel(resourceCapacity, resourceCapacityUtilization);
+        ResourceCapacity.Room roomCapacity = (ResourceCapacity.Room) resourceCapacity;
+        List<ReservationModel> reservations = (resourceCapacityUtilization != null)
+                ? resourceCapacityUtilization.getReservations()
+                .stream().map(res ->
+                        ReservationModel.fromApi(res, cache.getUserInformation(securityToken, res.getUserId()))
+                ).collect(Collectors.toList())
+                : Collections.emptyList();
+        return ResourceUtilizationDetailModel.fromApi(
+                resourceCapacityUtilization, roomCapacity, new Interval(intervalFrom, intervalTo), reservations);
     }
 }

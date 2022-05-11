@@ -15,13 +15,15 @@ public class ResourceModel {
     private String description;
     private TechnologyModel technology;
     private Set<String> tags;
+    private boolean hasCapacity;
 
-    public ResourceModel(ResourceSummary summary) {
+    public ResourceModel(ResourceSummary summary, boolean hasCapacity) {
         this.id = summary.getId();
         this.type = summary.getType();
         this.name = summary.getName();
         this.description = summary.getDescription();
         this.technology = TechnologyModel.find(summary.getTechnologies());
         this.tags = summary.getTags();
+        this.hasCapacity = hasCapacity;
     }
 }

@@ -143,9 +143,7 @@ public class ResourcesUtilization
             for (ResourceCapacity resourceCapacity : resourceCapacities) {
                 ResourceCapacityUtilization utilization =
                         getUtilization(resourceCapacity, utilizationInterval, true, interval);
-                if (utilization != null) {
-                    utilizations.put(resourceCapacity, utilization);
-                }
+                utilizations.put(resourceCapacity, utilization);
             }
             utilizationsByInterval.put(utilizationInterval, utilizations);
             start = end;
