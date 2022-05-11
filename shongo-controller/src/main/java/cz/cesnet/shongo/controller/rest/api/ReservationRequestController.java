@@ -200,6 +200,7 @@ public class ReservationRequestController {
             // Set request to ROOM_CAPACITY for created VIRTUAL_ROOM
             request.setSpecificationType(SpecificationType.ROOM_CAPACITY);
             request.setRoomReservationRequestId(reservationId);
+            request.clearRoomParticipants();
         }
 
         String reservationId = reservationService.createReservationRequest(securityToken, request.toApi());

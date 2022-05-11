@@ -433,11 +433,16 @@ public class RRR //implements ReportModel.ContextSerializable
         ParticipantModel participantModel = new ParticipantModel(userInformation, cacheProvider);
         participantModel.setNewId();
         participantModel.setRole(role);
-        participantModel.setEmail(participantModel.getEmail());
-        participantModel.setName(participantModel.getName());
-        participantModel.setOrganization(participantModel.getOrganization());
+        participantModel.setEmail(userInformation.getEmail());
+        participantModel.setName(userInformation.getFullName());
+        participantModel.setOrganization(userInformation.getOrganization());
         addRoomParticipant(participantModel);
         return participantModel;
+    }
+
+    public void clearRoomParticipants()
+    {
+        roomParticipants.clear();
     }
 
     /**
