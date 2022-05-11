@@ -321,6 +321,15 @@ public class ReservationRequestController {
         reservationService.deleteReservationRequest(securityToken, id);
     }
 
+    @Operation(summary = "Deletes multiple reservation requests.")
+    @DeleteMapping()
+    void deleteRequests(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @RequestBody List<String> ids)
+    {
+        ids.forEach(id -> reservationService.deleteReservationRequest(securityToken, id));
+    }
+
     @Operation(summary = "Reverts reservation request modifications.")
     @PostMapping("/{id:.+}/revert")
     void revertRequest(
