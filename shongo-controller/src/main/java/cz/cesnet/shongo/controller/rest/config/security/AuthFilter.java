@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.auth;
+package cz.cesnet.shongo.controller.rest.config.security;
 
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
+import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
 /**
  * Rest controller for user endpoints.

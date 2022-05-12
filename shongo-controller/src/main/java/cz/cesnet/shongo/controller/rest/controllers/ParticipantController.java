@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
+import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
 /**
  * Rest controller for participant endpoints.

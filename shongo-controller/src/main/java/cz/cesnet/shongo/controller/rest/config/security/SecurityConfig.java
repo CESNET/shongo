@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.rest.auth;
+package cz.cesnet.shongo.controller.rest.config.security;
 
 import cz.cesnet.shongo.controller.Controller;
 import org.springframework.context.annotation.Bean;

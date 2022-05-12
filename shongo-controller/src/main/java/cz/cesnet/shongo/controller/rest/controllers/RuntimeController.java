@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
+import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
 /**
  * Rest controller for runtime endpoints.

@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
+import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORMATTER;
 
 /**
