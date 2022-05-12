@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantConfigurationModel;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
@@ -27,7 +28,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1/reservation_requests/{id:.+}/participants")
+@RequestMapping(ClientWebUrl.PARTICIPANTS)
 public class ParticipantController {
 
     private final Cache cache;
@@ -42,7 +43,7 @@ public class ParticipantController {
     }
 
     @Operation(summary = "Lists reservation request participants.")
-    @GetMapping()
+    @GetMapping
     ListResponse<ParticipantModel> listRequestParticipants(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -84,10 +85,10 @@ public class ParticipantController {
     }
 
     @Operation(summary = "Adds new participant to reservation request.")
-    @PostMapping()
+    @PostMapping
     void addParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String id,
+            @PathVariable String id,
             @RequestBody ParticipantModel newParticipant)
     {
         String executableId = cache.getExecutableId(securityToken, id);
@@ -113,11 +114,11 @@ public class ParticipantController {
     }
 
     @Operation(summary = "Adds new participant to reservation request.")
-    @PutMapping("/{participantId:.+}")
+    @PutMapping(ClientWebUrl.PARTICIPANTS_ID_SUFFIX)
     void updateParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String id,
-            @PathVariable("participantId") String participantId,
+            @PathVariable String id,
+            @PathVariable String participantId,
             @RequestParam ParticipantRole role)
     {
         String executableId = cache.getExecutableId(securityToken, id);
@@ -137,11 +138,11 @@ public class ParticipantController {
     }
 
     @Operation(summary = "Removes participant from reservation request.")
-    @DeleteMapping("/{participantId:.+}")
+    @DeleteMapping(ClientWebUrl.PARTICIPANTS_ID_SUFFIX)
     void removeParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String id,
-            @PathVariable("participantId") String participantId)
+            @PathVariable String id,
+            @PathVariable String participantId)
     {
         String executableId = cache.getExecutableId(securityToken, id);
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);

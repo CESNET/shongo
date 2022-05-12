@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.*;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
@@ -52,7 +53,7 @@ import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORM
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1/reservation_requests")
+@RequestMapping(ClientWebUrl.RESERVATION_REQUESTS)
 public class ReservationRequestController {
 
     private final Cache cache;
@@ -73,7 +74,7 @@ public class ReservationRequestController {
     }
 
     @Operation(summary = "Lists reservation requests.")
-    @GetMapping()
+    @GetMapping
     ListResponse<ReservationRequestModel> listRequests(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
@@ -170,7 +171,7 @@ public class ReservationRequestController {
     }
 
     @Operation(summary = "Creates reservation request.")
-    @PostMapping()
+    @PostMapping
     void createRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestBody ReservationRequestCreateModel request)
@@ -214,7 +215,7 @@ public class ReservationRequestController {
     }
 
     @Operation(summary = "Returns reservation request.")
-    @GetMapping("/{id:.+}")
+    @GetMapping(ClientWebUrl.ID_SUFFIX)
     ReservationRequestDetailModel getRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
@@ -255,10 +256,10 @@ public class ReservationRequestController {
     }
 
     @Operation(summary = "Modifies reservation request.")
-    @PatchMapping("/{id}")
+    @PatchMapping(ClientWebUrl.ID_SUFFIX)
     void modifyRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String id,
+            @PathVariable String id,
             @RequestBody ReservationRequestCreateModel request)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -294,27 +295,8 @@ public class ReservationRequestController {
         reservationService.modifyReservationRequest(securityToken, modifiedRequest.toApi());
     }
 
-    @Operation(summary = "Accepts reservation request.")
-    @PostMapping("/{id:.+}/accept")
-    void acceptRequest(
-            @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable String id)
-    {
-        reservationService.confirmReservationRequest(securityToken, id, true);
-    }
-
-    @Operation(summary = "Rejects reservation request.")
-    @PostMapping("/{id:.+}/reject")
-    void rejectRequest(
-            @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable String id,
-            @RequestParam(required = false) String reason)
-    {
-        reservationService.denyReservationRequest(securityToken, id, reason);
-    }
-
     @Operation(summary = "Deletes reservation request.")
-    @DeleteMapping("/{id:.+}")
+    @DeleteMapping(ClientWebUrl.ID_SUFFIX)
     void deleteRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
@@ -323,7 +305,7 @@ public class ReservationRequestController {
     }
 
     @Operation(summary = "Deletes multiple reservation requests.")
-    @DeleteMapping()
+    @DeleteMapping
     void deleteRequests(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestBody List<String> ids)
@@ -331,8 +313,27 @@ public class ReservationRequestController {
         ids.forEach(id -> reservationService.deleteReservationRequest(securityToken, id));
     }
 
+    @Operation(summary = "Accepts reservation request.")
+    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_ACCEPT)
+    void acceptRequest(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @PathVariable String id)
+    {
+        reservationService.confirmReservationRequest(securityToken, id, true);
+    }
+
+    @Operation(summary = "Rejects reservation request.")
+    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_REJECT)
+    void rejectRequest(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @PathVariable String id,
+            @RequestParam(required = false) String reason)
+    {
+        reservationService.denyReservationRequest(securityToken, id, reason);
+    }
+
     @Operation(summary = "Reverts reservation request modifications.")
-    @PostMapping("/{id:.+}/revert")
+    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_REVERT)
     void revertRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.error.LastOwnerRoleNotDeletableException;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +26,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1/reservation_requests/{id:.+}/roles")
+@RequestMapping(ClientWebUrl.ROLES)
 public class UserRoleController {
 
     private final AuthorizationService authorizationService;
@@ -37,10 +38,10 @@ public class UserRoleController {
     }
 
     @Operation(summary = "Lists reservation request roles.")
-    @GetMapping()
+    @GetMapping
     ListResponse<UserRoleModel> listRequestRoles(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable(value = "id") String objectId,
+            @PathVariable String id,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
@@ -48,7 +49,7 @@ public class UserRoleController {
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        request.addObjectId(objectId);
+        request.addObjectId(id);
         ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
 
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -57,26 +58,26 @@ public class UserRoleController {
     }
 
     @Operation(summary = "Creates new role for reservation request.")
-    @PostMapping()
+    @PostMapping
     void createRequestRoles(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String objectId,
+            @PathVariable String id,
             @RequestBody UserRoleModel userRoleModel)
     {
-        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+        String reservationRequestId = cache.getReservationRequestId(securityToken, id);
         userRoleModel.setObjectId(reservationRequestId);
         userRoleModel.setDeletable(true);
         authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
     }
 
     @Operation(summary = "Deletes role for reservation request.")
-    @DeleteMapping("/{entityId:.+}")
+    @DeleteMapping(ClientWebUrl.ENTITY_SUFFIX)
     void deleteRequestRoles(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("id") String objectId,
-            @PathVariable("entityId") String entityId)
+            @PathVariable String id,
+            @PathVariable String entityId)
     {
-        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+        String reservationRequestId = cache.getReservationRequestId(securityToken, id);
         AclEntryListRequest request = new AclEntryListRequest();
         request.setSecurityToken(securityToken);
         request.addObjectId(reservationRequestId);

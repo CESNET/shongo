@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import cz.cesnet.shongo.controller.rest.models.room.RoomModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +24,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1/rooms")
+@RequestMapping(ClientWebUrl.ROOMS)
 public class RoomController {
 
     private final Cache cache;
@@ -35,7 +36,7 @@ public class RoomController {
     }
 
     @Operation(summary = "Lists rooms (executables).")
-    @GetMapping("")
+    @GetMapping
     public ListResponse<RoomModel> listRooms(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
@@ -73,12 +74,12 @@ public class RoomController {
     }
 
     @Operation(summary = "Gets room's (executable's) authorized data.")
-    @GetMapping("/{objectId}")
+    @GetMapping(ClientWebUrl.ID_SUFFIX)
     public RoomAuthorizedData getRoom(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable("objectId") String objectId)
+            @PathVariable String id)
     {
-        String roomId = cache.getExecutableId(securityToken, objectId);
+        String roomId = cache.getExecutableId(securityToken, id);
         AbstractRoomExecutable roomExecutable =
                 (AbstractRoomExecutable) executableService.getExecutable(securityToken, roomId);
 

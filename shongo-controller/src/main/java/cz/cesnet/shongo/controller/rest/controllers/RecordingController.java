@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.Cache;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import io.swagger.v3.oas.annotations.Operation;
 import org.joda.time.Duration;
@@ -26,7 +27,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1/reservation_requests/{id:.+}/recordings")
+@RequestMapping(ClientWebUrl.RECORDINGS)
 public class RecordingController {
 
     private final Cache cache;
@@ -44,7 +45,7 @@ public class RecordingController {
     }
 
     @Operation(summary = "Lists reservation request recordings.")
-    @GetMapping()
+    @GetMapping
     Map<String, Object> listRequestRecordings(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -99,7 +100,7 @@ public class RecordingController {
     }
 
     @Operation(summary = "Deletes recording from reservation request.")
-    @DeleteMapping("/{recordingId:.+}")
+    @DeleteMapping(ClientWebUrl.RECORDINGS_ID_SUFFIX)
     void deleteRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,

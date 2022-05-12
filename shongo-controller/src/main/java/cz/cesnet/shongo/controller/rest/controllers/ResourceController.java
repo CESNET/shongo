@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.rest.Cache;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.resource.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +32,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/resources")
+@RequestMapping(ClientWebUrl.RESOURCES)
 public class ResourceController {
 
     private final Cache cache;
@@ -83,7 +84,7 @@ public class ResourceController {
      * Gets {@link ResourceCapacityUtilization}s.
      */
     @Operation(summary = "Returns resource utilization.")
-    @GetMapping("/capacity_utilizations")
+    @GetMapping(ClientWebUrl.CAPACITY_UTILIZATION)
     ListResponse<ResourceUtilizationModel> listResourcesUtilization(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "interval_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -110,7 +111,7 @@ public class ResourceController {
      * Lists {@link Resource}s.
      */
     @Operation(summary = "Gets resource utilization.")
-    @GetMapping("/{id}/capacity_utilizations")
+    @GetMapping(ClientWebUrl.CAPACITY_UTILIZATION_DETAIL)
     ResourceUtilizationDetailModel getResourceUtilization(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable("id") String resourceId,

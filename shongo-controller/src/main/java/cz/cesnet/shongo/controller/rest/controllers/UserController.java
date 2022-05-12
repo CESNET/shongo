@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.rest.Cache;
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ import static cz.cesnet.shongo.controller.rest.auth.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping(ClientWebUrl.USERS_AND_GROUPS)
 public class UserController {
 
     private final AuthorizationService authorizationService;
@@ -43,7 +44,7 @@ public class UserController {
      * @return list of {@link UserInformation}s
      */
     @Operation(summary = "Lists users.")
-    @GetMapping("/users")
+    @GetMapping(ClientWebUrl.USERS_LIST)
     public ListResponse<UserInformation> getUsers(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "filter", required = false) String filter,
@@ -66,7 +67,7 @@ public class UserController {
      * @return {@link UserInformation}
      */
     @Operation(summary = "Returns information about user.")
-    @GetMapping("/users/{userId:.+}")
+    @GetMapping(ClientWebUrl.USERS_DETAIL)
     public UserInformation getUser(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String userId)
@@ -80,7 +81,7 @@ public class UserController {
      * @return {@link SettingsModel}
      */
     @Operation(summary = "Returns user's settings.")
-    @GetMapping("/settings")
+    @GetMapping(ClientWebUrl.SETTINGS)
     public SettingsModel getUserSettings(@RequestAttribute(TOKEN) SecurityToken securityToken)
     {
         UserSettings settings = authorizationService.getUserSettings(securityToken);
@@ -94,7 +95,7 @@ public class UserController {
      * @param newSettings new settings of user
      */
     @Operation(summary = "Updates user's settings.")
-    @PutMapping("/settings")
+    @PutMapping(ClientWebUrl.SETTINGS)
     public SettingsModel updateUserSettings(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestBody UserSettings newSettings)
@@ -122,7 +123,7 @@ public class UserController {
      * @return list of {@link Group}s
      */
     @Operation(summary = "Lists groups.")
-    @GetMapping("/groups")
+    @GetMapping(ClientWebUrl.GROUPS_LIST)
     public ListResponse<Group> getGroups(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "filter", required = false) String filter)
@@ -141,7 +142,7 @@ public class UserController {
      * @return {@link Group}
      */
     @Operation(summary = "Returns information about group.")
-    @GetMapping("/groups/{groupId:.+}")
+    @GetMapping(ClientWebUrl.GROUPS_DETAIL)
     public Group getGroup(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String groupId)

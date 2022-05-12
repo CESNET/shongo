@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.rest.controllers;
 
+import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.ErrorHandler;
 import cz.cesnet.shongo.controller.rest.models.report.ReportModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +22,7 @@ import javax.mail.MessagingException;
 @Slf4j
 @SecurityRequirements
 @RestController
-@RequestMapping("/api/v1/report")
+@RequestMapping(ClientWebUrl.REPORT)
 public class ReportController {
 
     private final ErrorHandler errorHandler;
