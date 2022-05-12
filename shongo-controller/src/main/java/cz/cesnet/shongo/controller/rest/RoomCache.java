@@ -1,4 +1,3 @@
-
 package cz.cesnet.shongo.controller.rest;
 
 import cz.cesnet.shongo.CommonReportSet;
@@ -13,8 +12,6 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -26,7 +23,6 @@ import java.util.*;
  */
 public class RoomCache
 {
-    private static Logger logger = LoggerFactory.getLogger(RoomCache.class);
 
     private final ResourceControlService resourceControlService;
 
@@ -37,32 +33,27 @@ public class RoomCache
     /**
      * {@link RoomExecutable} by roomExecutableId.
      */
-    private final ExpirationMap<String, RoomExecutable> roomExecutableCache =
-            new ExpirationMap<String, RoomExecutable>();
+    private final ExpirationMap<String, RoomExecutable> roomExecutableCache = new ExpirationMap<>();
 
     /**
      * {@link Room} by roomExecutableId".
      */
-    private final ExpirationMap<String, Room> roomCache =
-            new ExpirationMap<String, Room>();
+    private final ExpirationMap<String, Room> roomCache = new ExpirationMap<>();
 
     /**
      * Collection of {@link RoomParticipant}s by roomExecutableId.
      */
-    private final ExpirationMap<String, List<RoomParticipant>> roomParticipantsCache =
-            new ExpirationMap<String, List<RoomParticipant>>();
+    private final ExpirationMap<String, List<RoomParticipant>> roomParticipantsCache = new ExpirationMap<>();
 
     /**
      * {@link RoomParticipant} by "roomExecutableId:participantId".
      */
-    private final ExpirationMap<String, RoomParticipant> roomParticipantCache =
-            new ExpirationMap<String, RoomParticipant>();
+    private final ExpirationMap<String, RoomParticipant> roomParticipantCache = new ExpirationMap<>();
 
     /**
      * Participant snapshots in {@link MediaData} by "roomExecutableId:participantId".
      */
-    private final ExpirationMap<String, MediaData> roomParticipantSnapshotCache =
-            new ExpirationMap<String, MediaData>();
+    private final ExpirationMap<String, MediaData> roomParticipantSnapshotCache = new ExpirationMap<>();
 
     /**
      * Constructor.
@@ -155,7 +146,10 @@ public class RoomCache
      * @param roomParticipantId
      * @return {@link RoomParticipant} for given {@code roomExecutableId} and {@code roomParticipantId}
      */
-    public RoomParticipant getRoomParticipant(SecurityToken securityToken, String roomExecutableId, String roomParticipantId)
+    public RoomParticipant getRoomParticipant(
+            SecurityToken securityToken,
+            String roomExecutableId,
+            String roomParticipantId)
     {
         String cacheId = roomExecutableId + ":" + roomParticipantId;
         synchronized (roomParticipantCache) {
@@ -178,9 +172,12 @@ public class RoomCache
     /**
      * @param securityToken
      * @param roomExecutableId
-     * @param roomParticipant to be modified in the given {@code roomExecutableId}
+     * @param roomParticipant  to be modified in the given {@code roomExecutableId}
      */
-    public void modifyRoomParticipant(SecurityToken securityToken, String roomExecutableId, RoomParticipant roomParticipant)
+    public void modifyRoomParticipant(
+            SecurityToken securityToken,
+            String roomExecutableId,
+            RoomParticipant roomParticipant)
     {
         RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
         String resourceId = roomExecutable.getResourceId();
@@ -200,7 +197,10 @@ public class RoomCache
      * @param roomExecutableId
      * @param roomParticipants configuration to which all room participants should be modified in the given {@code roomExecutableId}
      */
-    public void modifyRoomParticipants(SecurityToken securityToken, String roomExecutableId, RoomParticipant roomParticipants)
+    public void modifyRoomParticipants(
+            SecurityToken securityToken,
+            String roomExecutableId,
+            RoomParticipant roomParticipants)
     {
         RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
         String resourceId = roomExecutable.getResourceId();
@@ -226,7 +226,10 @@ public class RoomCache
      * @param roomParticipantId
      * @return {@link MediaData} snapshot of room participant
      */
-    public MediaData getRoomParticipantSnapshot(SecurityToken securityToken, String roomExecutableId, String roomParticipantId)
+    public MediaData getRoomParticipantSnapshot(
+            SecurityToken securityToken,
+            String roomExecutableId,
+            String roomParticipantId)
     {
         String cacheId = roomExecutableId + ":" + roomParticipantId;
         synchronized (roomParticipantSnapshotCache) {
@@ -250,7 +253,10 @@ public class RoomCache
      * @param roomExecutableId
      * @param roomParticipantId to be disconnected from given {@code roomExecutableId}
      */
-    public void disconnectRoomParticipant(SecurityToken securityToken, String roomExecutableId, String roomParticipantId)
+    public void disconnectRoomParticipant(
+            SecurityToken securityToken,
+            String roomExecutableId,
+            String roomParticipantId)
     {
         RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
         String resourceId = roomExecutable.getResourceId();

@@ -12,7 +12,8 @@ import org.joda.time.Interval;
  * @author Filip Karnis
  */
 @Data
-public class RoomModel {
+public class RoomModel
+{
 
     private String id;
     private ExecutableSummary.Type type;
@@ -26,7 +27,8 @@ public class RoomModel {
     private int licenceCount;
     private int usageCount;
 
-    public RoomModel(ExecutableSummary summary) {
+    public RoomModel(ExecutableSummary summary)
+    {
         this.id = summary.getId();
         this.type = summary.getType();
         this.name = summary.getRoomName();
@@ -42,7 +44,7 @@ public class RoomModel {
         if (slot == null) {
             slot = summary.getSlot();
         }
-        this.slot = new TimeInterval(slot);
+        this.slot = TimeInterval.fromApi(slot);
 
         boolean isDeprecated;
         switch (state) {

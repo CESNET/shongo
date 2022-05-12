@@ -54,7 +54,8 @@ import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORM
  */
 @RestController
 @RequestMapping(ClientWebUrl.RESERVATION_REQUESTS)
-public class ReservationRequestController {
+public class ReservationRequestController
+{
 
     private final Cache cache;
     private final ReservationService reservationService;
@@ -265,7 +266,8 @@ public class ReservationRequestController {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
 
         AbstractReservationRequest originalRequest = reservationService.getReservationRequest(securityToken, id);
-        ReservationRequestCreateModel modifiedRequest = new ReservationRequestCreateModel(originalRequest, cacheProvider);
+        ReservationRequestCreateModel modifiedRequest =
+                new ReservationRequestCreateModel(originalRequest, cacheProvider);
 
         if (request.getRoomName() != null) {
             modifiedRequest.setRoomName(request.getRoomName());
@@ -341,7 +343,8 @@ public class ReservationRequestController {
         reservationService.revertReservationRequest(securityToken, id);
     }
 
-    public enum ReservationType {
+    public enum ReservationType
+    {
         VIRTUAL_ROOM,
         PHYSICAL_RESOURCE,
         ROOM_CAPACITY

@@ -18,15 +18,17 @@ import java.io.IOException;
  *
  * @author Filip Karnis
  */
-public class AuthFilter extends GenericFilterBean {
+public class AuthFilter extends GenericFilterBean
+{
 
+    public static final String TOKEN = "TOKEN";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER = "Bearer";
-    public static final String TOKEN = "TOKEN";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws ControllerReportSet.SecurityInvalidTokenException, ServletException, IOException {
+            throws ControllerReportSet.SecurityInvalidTokenException, ServletException, IOException
+    {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         Authorization authorization = Authorization.getInstance();
@@ -50,7 +52,8 @@ public class AuthFilter extends GenericFilterBean {
         try {
             authorization.validate(securityToken);
             httpRequest.setAttribute(TOKEN, securityToken);
-        } catch (ControllerReportSet.SecurityInvalidTokenException e) {
+        }
+        catch (ControllerReportSet.SecurityInvalidTokenException e) {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Request unauthorized.");
             return;
         }

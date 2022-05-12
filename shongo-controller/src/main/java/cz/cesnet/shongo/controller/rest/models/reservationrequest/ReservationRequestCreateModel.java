@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -21,9 +20,9 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
+import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
-import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
@@ -43,7 +42,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-public class ReservationRequestCreateModel //implements ReportModel.ContextSerializable
+public class ReservationRequestCreateModel
 {
 
     @JsonIgnore
@@ -149,15 +148,6 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     }
 
     /**
-     * Create new {@link ReservationRequestModel} from scratch.
-     */
-    public ReservationRequestCreateModel(CacheProvider cacheProvider, SettingsModel userSettingsModel)
-    {
-        this(cacheProvider);
-        initByUserSettings(userSettingsModel);
-    }
-
-    /**
      * Create new {@link ReservationRequestModel} from existing {@code reservationRequest}.
      *
      * @param reservationRequest
@@ -174,47 +164,73 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     }
 
     /**
-     * @param userSettingsModel to be inited from
+     * @param reservationService
+     * @param securityToken
+     * @param cache
+     * @return list of reservation requests for permanent rooms
      */
-    public void initByUserSettings(SettingsModel userSettingsModel)
+    public static List<ReservationRequestSummary> getPermanentRooms(
+            ReservationService reservationService,
+            SecurityToken securityToken,
+            Cache cache)
     {
-        // TODO
-//        if (userSettingsModel.getSlotBefore() != null) {
-//            setSlotBeforeMinutes(userSettingsModel.getSlotBefore());
-//        }
-//        if (userSettingsModel.getSlotAfter() != null) {
-//            setSlotAfterMinutes(userSettingsModel.getSlotAfter());
-//        }
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(securityToken);
+        request.addSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
+        List<ReservationRequestSummary> reservationRequests = new LinkedList<>();
+
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
+        if (response.getItemCount() > 0) {
+            Set<String> reservationRequestIds = new HashSet<>();
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                reservationRequestIds.add(reservationRequestSummary.getId());
+            }
+            cache.fetchObjectPermissions(securityToken, reservationRequestIds);
+
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                ExecutableState executableState = reservationRequestSummary.getExecutableState();
+                if (executableState == null || (!executableState.isAvailable() && !executableState.equals(
+                        ExecutableState.NOT_STARTED))) {
+                    continue;
+                }
+                Set<ObjectPermission> objectPermissions = cache.getObjectPermissions(securityToken,
+                        reservationRequestSummary.getId());
+                if (!objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST)) {
+                    continue;
+                }
+                reservationRequests.add(reservationRequestSummary);
+            }
+        }
+        return reservationRequests;
     }
 
-//    /**
-//     * @return this as {@link ReservationRequestDetailModel}
-//     */
-//    public ReservationRequestDetailModel getDetail()
-//    {
-//        if (this instanceof ReservationRequestDetailModel) {
-//            return (ReservationRequestDetailModel) this;
-//        }
-//        return null;
-//    }
-//
-//    /**
-//     * @return this as {@link ReservationRequestModificationModel}
-//     */
-//    public ReservationRequestModificationModel getModification()
-//    {
-//        if (this instanceof ReservationRequestModificationModel) {
-//            return (ReservationRequestModificationModel) this;
-//        }
-//        return null;
-//    }
+    /**
+     * @param reservationRequestId
+     * @param reservationService
+     * @param securityToken
+     * @return list of deletion dependencies for reservation request with given {@code reservationRequestId}
+     */
+    public static List<ReservationRequestSummary> getDeleteDependencies(
+            String reservationRequestId,
+            ReservationService reservationService,
+            SecurityToken securityToken)
+    {
+        // List reservation requests which reuse the reservation request to be deleted
+        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
+        reservationRequestListRequest.setSecurityToken(securityToken);
+        reservationRequestListRequest.setReusedReservationRequestId(reservationRequestId);
+        ListResponse<ReservationRequestSummary> reservationRequests =
+                reservationService.listReservationRequests(reservationRequestListRequest);
+        return reservationRequests.getItems();
+    }
 
     public LocalTime getStart()
     {
         return slot.getStart().toLocalTime();
     }
 
-    public DateTime getRequestStart() {
+    public DateTime getRequestStart()
+    {
         return slot.getStart();
     }
 
@@ -228,7 +244,8 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         slot.setEnd(end);
     }
 
-    public void setCollidingInterval(Interval collidingInterval) {
+    public void setCollidingInterval(Interval collidingInterval)
+    {
         this.collidingInterval = collidingInterval;
 
         collidingWithFirstSlot = false;
@@ -236,23 +253,28 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         if (getEnd() == null) {
             switch (this.durationType) {
                 case MINUTE:
-                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,this.durationCount,0,0,collidingInterval);
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start, this.durationCount, 0, 0,
+                            collidingInterval);
                     break;
                 case HOUR:
-                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,0,this.durationCount,0,collidingInterval);
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start, 0, this.durationCount, 0,
+                            collidingInterval);
                     break;
                 case DAY:
-                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,0,0,this.durationCount,collidingInterval);
+                    collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start, 0, 0, this.durationCount,
+                            collidingInterval);
                     break;
                 default:
                     return;
             }
-        } else {
-            collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start,getEnd(),collidingInterval);
+        }
+        else {
+            collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start, getEnd(), collidingInterval);
         }
     }
 
-    public void resetCollidingInterval() {
+    public void resetCollidingInterval()
+    {
         collidingInterval = null;
         collidingWithFirstSlot = false;
     }
@@ -308,11 +330,13 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         }
     }
 
-    public LocalDate getStartDate() {
+    public LocalDate getStartDate()
+    {
         return slot.getStart().toLocalDate();
     }
 
-    public void setStartDate(LocalDate startDate) {
+    public void setStartDate(LocalDate startDate)
+    {
         this.slot.setStart(startDate.toDateTimeAtStartOfDay());
     }
 
@@ -430,7 +454,7 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
 
     public ParticipantModel addRoomParticipant(UserInformation userInformation, ParticipantRole role)
     {
-        ParticipantModel participantModel = new ParticipantModel(userInformation, cacheProvider);
+        ParticipantModel participantModel = new ParticipantModel(userInformation);
         participantModel.setNewId();
         participantModel.setRole(role);
         participantModel.setEmail(userInformation.getEmail());
@@ -526,12 +550,14 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
             else {
                 specificationType = SpecificationType.ROOM_CAPACITY;
             }
-        } else if (specification instanceof ResourceSpecification) {
+        }
+        else if (specification instanceof ResourceSpecification) {
             ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
             resourceId = resourceSpecification.getResourceId();
             ReservationRequestSummary summary = cacheProvider.getAllocatedReservationRequestSummary(this.id);
             specificationType = SpecificationType.fromReservationRequestSummary(summary, true);
-        } else {
+        }
+        else {
             throw new UnsupportedApiException(specification);
         }
     }
@@ -585,12 +611,14 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                     throw new UnsupportedApiException("Only periodic date/time slots are allowed.");
                 }
                 PeriodicDateTimeSlot periodicSlot = (PeriodicDateTimeSlot) slot;
-                PeriodicDateTimeSlot.PeriodicityType periodicityType= PeriodicDateTimeSlot.PeriodicityType.fromPeriod(periodicSlot.getPeriod());
+                PeriodicDateTimeSlot.PeriodicityType periodicityType =
+                        PeriodicDateTimeSlot.PeriodicityType.fromPeriod(periodicSlot.getPeriod());
                 int periodicityCycle = PeriodicDateTimeSlot.PeriodicityType.getPeriodCycle(periodicSlot.getPeriod());
 
                 // Allows multiple slots only for WEEKLY
                 if (!PeriodicDateTimeSlot.PeriodicityType.WEEKLY.equals(periodicityType) && slots.size() != 1) {
-                    throw new UnsupportedApiException("Multiple periodic date/time slots are allowed only for week period.");
+                    throw new UnsupportedApiException(
+                            "Multiple periodic date/time slots are allowed only for week period.");
                 }
                 // Check if all slots have the same periodicity
                 if (periodicity.getType() == null) {
@@ -599,12 +627,16 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                     timeZone = periodicSlot.getTimeZone();
                     duration = periodicSlot.getDuration();
                 }
-                else if (!periodicity.getType().equals(periodicityType) || periodicity.getPeriodicityCycle() != periodicityCycle
-                        || !periodicSlot.getDuration().equals(duration) || !timeZone.equals(periodicSlot.getTimeZone())) {
-                    throw new UnsupportedApiException("Multiple periodic date/time slots with different periodicity are not allowed.");
+                else if (!periodicity.getType()
+                        .equals(periodicityType) || periodicity.getPeriodicityCycle() != periodicityCycle
+                        || !periodicSlot.getDuration().equals(duration) || !timeZone.equals(
+                        periodicSlot.getTimeZone())) {
+                    throw new UnsupportedApiException(
+                            "Multiple periodic date/time slots with different periodicity are not allowed.");
                 }
 
-                int dayIndex = (periodicSlot.getStart().getDayOfWeek() == 7 ? 1  : periodicSlot.getStart().getDayOfWeek() + 1);
+                int dayIndex = (periodicSlot.getStart().getDayOfWeek() == 7 ? 1 : periodicSlot.getStart()
+                        .getDayOfWeek() + 1);
                 if (getStartDate() == null || getStartDate().isAfter(periodicSlot.getStart().toLocalDate())) {
                     this.slot.setStart(periodicSlot.getStart().toDateTime(timeZone));
                     this.slot.setEnd(periodicSlot.getStart().plus(duration));
@@ -612,9 +644,11 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                 periodicity.getPeriodicDaysInWeek()[index] = PeriodicDateTimeSlot.DayOfWeek.fromDayIndex(dayIndex);
                 index++;
 
-                if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicityType) && periodicity.getMonthPeriodicityType() == null) {
+                if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicityType)
+                        && periodicity.getMonthPeriodicityType() == null) {
                     periodicity.setMonthPeriodicityType(periodicSlot.getMonthPeriodicityType());
-                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
+                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(
+                            periodicity.getMonthPeriodicityType())) {
                         periodicity.setPeriodicityDayOrder(periodicSlot.getPeriodicityDayOrder());
                         periodicity.setPeriodicityDayInMonth(periodicSlot.getPeriodicityDayInMonth());
                     }
@@ -648,7 +682,8 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                     periodicityEndSet = true;
                 }
                 else if ((periodicity.getPeriodicityEnd() == null && periodicity.getPeriodicityEnd() != periodicityEnd)
-                        || (periodicity.getPeriodicityEnd() != null && !periodicity.getPeriodicityEnd().equals(periodicityEnd))) {
+                        || (periodicity.getPeriodicityEnd() != null && !periodicity.getPeriodicityEnd()
+                        .equals(periodicityEnd))) {
                     throw new UnsupportedApiException("Slot end %s is not same for all slots.", slotEnd);
                 }
 
@@ -806,41 +841,7 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
      */
     public Period getDuration()
     {
-        // TODO filip
-        log.info(String.valueOf(slot));
         return new Period(slot.getStart(), slot.getEnd());
-//        switch (specificationType) {
-//            case PERMANENT_ROOM:
-//                if (end == null) {
-//                    throw new IllegalStateException("Slot end must be not empty for alias.");
-//                }
-//                return new Period(startDate.toDateTimeAtStartOfDay(timeZone), end.withZone(timeZone).withTime(23, 59, 59, 0));
-//            case MEETING_ROOM:
-//            case PARKING_PLACE:
-//            case VEHICLE:
-//            case ADHOC_ROOM:
-//            case PERMANENT_ROOM_CAPACITY:
-//                if (durationCount == null || durationType == null) {
-//                    if (end != null) {
-//                        return new Period(startDate.toDateTime(start,timeZone), end);
-//                    }
-//                    else {
-//                        throw new IllegalStateException("Slot duration should be not empty.");
-//                    }
-//                }
-//                switch (durationType) {
-//                    case MINUTE:
-//                        return Period.minutes(durationCount);
-//                    case HOUR:
-//                        return Period.hours(durationCount);
-//                    case DAY:
-//                        return Period.days(durationCount);
-//                    default:
-//                        throw new TodoImplementException(durationType);
-//                }
-//            default:
-//                throw new TodoImplementException("Reservation request duration.");
-//        }
     }
 
     /**
@@ -886,18 +887,15 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     {
         PeriodicDateTimeSlot first = getSlots(timeZone).first();
         DateTime start = first.getStart();
-//        DateTime start = this.start;
         if (timeZone != null) {
             // Use specified time zone
             LocalDateTime localDateTime = start.toLocalDateTime();
             start = localDateTime.toDateTime(timeZone);
         }
-        switch (specificationType) {
-            case VIRTUAL_ROOM:
-                return new Interval(getRequestStart().withTime(0, 0, 0, 0), getDuration());
-            default:
-                return new Interval(start, getDuration());
+        if (specificationType == SpecificationType.VIRTUAL_ROOM) {
+            return new Interval(getRequestStart().withTime(0, 0, 0, 0), getDuration());
         }
+        return new Interval(start, getDuration());
     }
 
     public Period getPeriod()
@@ -918,21 +916,23 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     }
 
     /**
-     *
      * @return all calculated slots
      */
-    public SortedSet<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone) {
+    public SortedSet<PeriodicDateTimeSlot> getSlots(DateTimeZone timeZone)
+    {
         SortedSet<PeriodicDateTimeSlot> slots = new TreeSet<>();
         if (PeriodicDateTimeSlot.PeriodicityType.NONE.equals(periodicity.getType())) {
             DateTime requestStart = getRequestStart();
             if (SpecificationType.VIRTUAL_ROOM.equals(getSpecificationType())) {
                 requestStart = requestStart.withTimeAtStartOfDay();
             }
-            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot(requestStart, getDuration(), Period.ZERO);
+            PeriodicDateTimeSlot periodicDateTimeSlot =
+                    new PeriodicDateTimeSlot(requestStart, getDuration(), Period.ZERO);
             periodicDateTimeSlot.setEnd(getStartDate());
             periodicDateTimeSlot.setTimeZone(getTimeZone());
             slots.add(periodicDateTimeSlot);
-        } else {
+        }
+        else {
             // Determine period
             Period period = periodicity.getType().toPeriod(periodicity.getPeriodicityCycle());
 
@@ -956,7 +956,8 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                     periodicDateTimeSlot.setEnd(periodicity.getPeriodicityEnd());
                     slots.add(periodicDateTimeSlot);
                 }
-            } else {
+            }
+            else {
                 PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
                 periodicDateTimeSlot.setStart(getFirstSlotStart());
                 if (this.timeZone != null) {
@@ -969,11 +970,13 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                 periodicDateTimeSlot.setPeriod(period);
                 periodicDateTimeSlot.setEnd(periodicity.getPeriodicityEnd());
                 if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicity.getType())) {
-                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
+                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(
+                            periodicity.getMonthPeriodicityType())) {
                         periodicDateTimeSlot.setMonthPeriodicityType(periodicity.getMonthPeriodicityType());
                         periodicDateTimeSlot.setPeriodicityDayOrder(periodicity.getPeriodicityDayOrder());
                         periodicDateTimeSlot.setPeriodicityDayInMonth(periodicity.getPeriodicityDayInMonth());
-                    } else {
+                    }
+                    else {
                         periodicDateTimeSlot.setMonthPeriodicityType(periodicity.getMonthPeriodicityType());
                     }
                 }
@@ -988,7 +991,8 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     {
         DateTime slotStart = getRequestStart();
         if (PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicity.getType())
-                && PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
+                && PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(
+                periodicity.getMonthPeriodicityType())) {
             slotStart = getMonthFirstSlotStart(slotStart);
         }
         return slotStart;
@@ -1003,7 +1007,8 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
     private DateTime getMonthFirstSlotStart(DateTime slotStart)
     {
         if (!PeriodicDateTimeSlot.PeriodicityType.MONTHLY.equals(periodicity.getType())
-                || !PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
+                || !PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(
+                periodicity.getMonthPeriodicityType())) {
             throw new IllegalStateException("Periodicity type has to be monthly for a specific day.");
         }
         if (periodicity.getPeriodicityDayInMonth() == null ||
@@ -1015,12 +1020,15 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
             throw new IllegalStateException("For periodicity type MONTHLY must be set day of month.");
         }
 
-        while (slotStart.getDayOfWeek() != (periodicity.getPeriodicityDayInMonth().getDayIndex() == 1 ? 7 : periodicity.getPeriodicityDayInMonth().getDayIndex() - 1)) {
+        while (slotStart.getDayOfWeek() != (periodicity.getPeriodicityDayInMonth().getDayIndex() == 1 ? 7
+                                                    : periodicity.getPeriodicityDayInMonth().getDayIndex() - 1)) {
             slotStart = slotStart.plusDays(1);
         }
-        DateTime monthEnd = slotStart.plusMonths(1).minusDays(slotStart.getDayOfMonth() - 1);;
+        DateTime monthEnd = slotStart.plusMonths(1).minusDays(slotStart.getDayOfMonth() - 1);
         if (0 < periodicity.getPeriodicityDayOrder() && periodicity.getPeriodicityDayOrder() < 5) {
-            while ((slotStart.getDayOfMonth() % 7 == 0 ? slotStart.getDayOfMonth() / 7 : slotStart.getDayOfMonth() / 7 + 1) != periodicity.getPeriodicityDayOrder()) {
+            while ((slotStart.getDayOfMonth() % 7 == 0
+                            ? slotStart.getDayOfMonth() / 7
+                            : slotStart.getDayOfMonth() / 7 + 1) != periodicity.getPeriodicityDayOrder()) {
                 if (slotStart.plusDays(7).isBefore(monthEnd.plusMonths(1))) {
                     slotStart = slotStart.plusDays(7);
                 }
@@ -1042,16 +1050,79 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         return slotStart;
     }
 
-    public void updateSlotStartToFutureSlot()
+    /**
+     * @param participantId
+     * @return {@link ParticipantModel} with given {@code participantId}
+     */
+    public ParticipantModel getParticipant(String participantId)
     {
-        try {
-            setStartDate(getFirstFutureSlotStart());
+        ParticipantModel participant = null;
+        for (ParticipantModel possibleParticipant : roomParticipants) {
+            if (participantId.equals(possibleParticipant.getId())) {
+                participant = possibleParticipant;
+            }
         }
-        catch (IllegalStateException ex) {
-            // Continue if model is not set properly yet
-            return;
+        if (participant == null) {
+            throw new IllegalArgumentException("Participant " + participantId + " doesn't exist.");
         }
+        return participant;
     }
+
+    /**
+     * @param userId
+     * @param role
+     * @return true wheter {@link #roomParticipants} contains user participant with given {@code userId} and {@code role}
+     */
+    public boolean hasUserParticipant(String userId, ParticipantRole role)
+    {
+        for (ParticipantModel participant : roomParticipants) {
+            if (participant.getType().equals(ParticipantModel.Type.USER) && participant.getUserId().equals(userId)
+                    && role.equals(participant.getRole())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Add new participant.
+     *
+     * @param participant
+     * @param bindingResult
+     */
+    public boolean createParticipant(ParticipantModel participant, SecurityToken securityToken)
+    {
+        participant.setNewId();
+        addRoomParticipant(participant);
+        return true;
+    }
+
+    /**
+     * Modify existing participant
+     *
+     * @param participantId
+     * @param participant
+     * @param bindingResult
+     */
+    public boolean modifyParticipant(String participantId, ParticipantModel participant, SecurityToken securityToken)
+    {
+        ParticipantModel oldParticipant = getParticipant(participantId);
+        roomParticipants.remove(oldParticipant);
+        addRoomParticipant(participant);
+        return true;
+    }
+
+    /**
+     * Delete existing participant.
+     *
+     * @param participantId
+     */
+    public void deleteParticipant(String participantId)
+    {
+        ParticipantModel participant = getParticipant(participantId);
+        roomParticipants.remove(participant);
+    }
+
 
     public LocalDate getFirstFutureSlotStart()
     {
@@ -1067,18 +1138,22 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                         for (PeriodicDateTimeSlot.DayOfWeek day : periodicity.getPeriodicDaysInWeek()) {
                             daysOfWeek.add(day.getDayIndex() == 1 ? 7 : day.getDayIndex() - 1);
                         }
-                        while (!daysOfWeek.contains(slotStart.getDayOfWeek()) || slotStart.plus(duration).isBeforeNow()) {
+                        while (!daysOfWeek.contains(slotStart.getDayOfWeek()) || slotStart.plus(duration)
+                                .isBeforeNow()) {
                             slotStart = slotStart.plusDays(1);
                         }
-                    } else {
+                    }
+                    else {
                         slotStart = slotStart.plus(period);
                     }
                     break;
                 case MONTHLY:
-                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(periodicity.getMonthPeriodicityType())) {
+                    if (PeriodicDateTimeSlot.PeriodicityType.MonthPeriodicityType.SPECIFIC_DAY.equals(
+                            periodicity.getMonthPeriodicityType())) {
                         slotStart = getMonthFirstSlotStart(slotStart.plus(period).withDayOfMonth(1));
                         break;
-                    } else {
+                    }
+                    else {
                         slotStart = slotStart.plus(period);
                     }
                     break;
@@ -1152,180 +1227,6 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         return abstractReservationRequest;
     }
 
-//    /**
-//     * @param reservationRequest
-//     * @return list of {@link Page}s for given {@code reservationRequest}
-//     */
-//    public static List<Page> getPagesForBreadcrumb(ReservationRequestSummary reservationRequest)
-//    {
-//        SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-//        return getPagesForBreadcrumb(reservationRequest.getId(), specificationType,
-//                reservationRequest.getParentReservationRequestId(), reservationRequest.getReusedReservationRequestId());
-//    }
-//
-//    /**
-//     * @param specificationType
-//     * @param parentReservationRequestId
-//     * @param permanentRoomReservationRequestId
-//     * @return list of {@link Page}s for this reservation request
-//     */
-//    public static List<Page> getPagesForBreadcrumb(String reservationRequestId,
-//                                                   SpecificationType specificationType, String parentReservationRequestId,
-//                                                   String permanentRoomReservationRequestId)
-//    {
-//        List<Page> pages = new LinkedList<Page>();
-//
-//        String titleCode;
-//        if (parentReservationRequestId != null) {
-//            if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-//                // Add page for permanent room reservation request
-//                pages.add(new Page(
-//                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
-//                        "navigation.detail"));
-//
-//                // Add page for reservation request set
-//                pages.add(new Page(
-//                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
-//                        "navigation.detail.capacity"));
-//            }
-//            else {
-//                // Add page for reservation request set
-//                pages.add(new Page(
-//                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
-//                        "navigation.detail"));
-//            }
-//
-//            // This reservation request is periodic event
-//            titleCode = "navigation.detail.event";
-//        }
-//        else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-//            // Add page for permanent room reservation request
-//            pages.add(new Page(
-//                    ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
-//                    "navigation.detail"));
-//
-//            // This reservation request is capacity
-//            titleCode = "navigation.detail.capacity";
-//        }
-//        else {
-//            titleCode = "navigation.detail";
-//        }
-//
-//        // Add page for this reservation request
-//        pages.add(new Page(ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId), titleCode));
-//
-//        return pages;
-//    }
-//
-//    @Override
-//    public String toContextString()
-//    {
-//        Map<String, Object> attributes = new LinkedHashMap<String, Object>();
-//        attributes.put("ID", id);
-//        attributes.put("Type", specificationType);
-//        attributes.put("Description", description);
-//        attributes.put("Purpose", purpose);
-//        attributes.put("Technology", technology);
-//        attributes.put("Start", start);
-//        attributes.put("End", end);
-//        attributes.put("Duration count", durationCount);
-//        attributes.put("Duration type", durationType);
-//        attributes.put("Periodicity type", periodicityType);
-//        attributes.put("Periodicity end", periodicityEnd);
-//        attributes.put("Room name", roomName);
-//        attributes.put("Permanent room", permanentRoomReservationRequestId);
-//        attributes.put("Participant count", roomParticipantCount);
-//        attributes.put("PIN", roomPin);
-//        attributes.put("Access mode", roomAccessMode);
-//        attributes.put("Exclude dates", excludeDates);
-//        return ReportModel.formatAttributes(attributes);
-//    }
-
-//    /**
-//     * @param participantId
-//     * @return {@link ParticipantModel} with given {@code participantId}
-//     */
-//    public ParticipantModel getParticipant(String participantId)
-//    {
-//        ParticipantModel participant = null;
-//        for (ParticipantModel possibleParticipant : roomParticipants) {
-//            if (participantId.equals(possibleParticipant.getId())) {
-//                participant = possibleParticipant;
-//            }
-//        }
-//        if (participant == null) {
-//            throw new IllegalArgumentException("Participant " + participantId + " doesn't exist.");
-//        }
-//        return participant;
-//    }
-//
-//    /**
-//     * @param userId
-//     * @param role
-//     * @return true wheter {@link #roomParticipants} contains user participant with given {@code userId} and {@code role}
-//     */
-//    public boolean hasUserParticipant(String userId, ParticipantRole role)
-//    {
-//        for (ParticipantModel participant : roomParticipants) {
-//            if (participant.getType().equals(ParticipantModel.Type.USER) && participant.getUserId().equals(userId)
-//                    && role.equals(participant.getRole())) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//
-//    /**
-//     * Add new participant.
-//     *
-//     * @param participant
-//     * @param bindingResult
-//     */
-//    public boolean createParticipant(ParticipantModel participant, BindingResult bindingResult,
-//                                     SecurityToken securityToken)
-//    {
-//        participant.validate(bindingResult);
-//        if (bindingResult.hasErrors()) {
-//            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-//            return false;
-//        }
-//        participant.setNewId();
-//        addRoomParticipant(participant);
-//        return true;
-//    }
-//
-//    /**
-//     * Modify existing participant
-//     *
-//     * @param participantId
-//     * @param participant
-//     * @param bindingResult
-//     */
-//    public boolean modifyParticipant(String participantId, ParticipantModel participant, BindingResult bindingResult,
-//                                     SecurityToken securityToken)
-//    {
-//        participant.validate(bindingResult);
-//        if (bindingResult.hasErrors()) {
-//            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
-//            return false;
-//        }
-//        ParticipantModel oldParticipant = getParticipant(participantId);
-//        roomParticipants.remove(oldParticipant);
-//        addRoomParticipant(participant);
-//        return true;
-//    }
-//
-//    /**
-//     * Delete existing participant.
-//     *
-//     * @param participantId
-//     */
-//    public void deleteParticipant(String participantId)
-//    {
-//        ParticipantModel participant = getParticipant(participantId);
-//        roomParticipants.remove(participant);
-//    }
-//
     /**
      * Add all {@link ParticipantModel} from {@link #permanentRoomReservationRequest} to {@link #roomParticipants}
      */
@@ -1384,72 +1285,6 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
         }
     }
 
-    /**
-     * Type of duration unit.
-     */
-    public enum DurationType
-    {
-        MINUTE,
-        HOUR,
-        DAY
-    }
-
-    /**
-     * @param reservationService
-     * @param securityToken
-     * @param cache
-     * @return list of reservation requests for permanent rooms
-     */
-    public static List<ReservationRequestSummary> getPermanentRooms(ReservationService reservationService,
-            SecurityToken securityToken, Cache cache)
-    {
-        ReservationRequestListRequest request = new ReservationRequestListRequest();
-        request.setSecurityToken(securityToken);
-        request.addSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
-        List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
-
-        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
-        if (response.getItemCount() > 0) {
-            Set<String> reservationRequestIds = new HashSet<String>();
-            for (ReservationRequestSummary reservationRequestSummary : response) {
-                reservationRequestIds.add(reservationRequestSummary.getId());
-            }
-            cache.fetchObjectPermissions(securityToken, reservationRequestIds);
-
-            for (ReservationRequestSummary reservationRequestSummary : response) {
-                ExecutableState executableState = reservationRequestSummary.getExecutableState();
-                if (executableState == null || (!executableState.isAvailable() && !executableState.equals(ExecutableState.NOT_STARTED))) {
-                    continue;
-                }
-                Set<ObjectPermission> objectPermissions = cache.getObjectPermissions(securityToken,
-                        reservationRequestSummary.getId());
-                if (!objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST)) {
-                    continue;
-                }
-                reservationRequests.add(reservationRequestSummary);
-            }
-        }
-        return reservationRequests;
-    }
-
-    /**
-     * @param reservationRequestId
-     * @param reservationService
-     * @param securityToken
-     * @return list of deletion dependencies for reservation request with given {@code reservationRequestId}
-     */
-    public static List<ReservationRequestSummary> getDeleteDependencies(String reservationRequestId,
-            ReservationService reservationService, SecurityToken securityToken)
-    {
-        // List reservation requests which reuse the reservation request to be deleted
-        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
-        reservationRequestListRequest.setSecurityToken(securityToken);
-        reservationRequestListRequest.setReusedReservationRequestId(reservationRequestId);
-        ListResponse<ReservationRequestSummary> reservationRequests =
-                reservationService.listReservationRequests(reservationRequestListRequest);
-        return reservationRequests.getItems();
-    }
-
     @Override
     public String toString()
     {
@@ -1465,5 +1300,15 @@ public class ReservationRequestCreateModel //implements ReportModel.ContextSeria
                 ", roomName='" + roomName + '\'' +
                 ", resourceId='" + resourceId + '\'' +
                 '}';
+    }
+
+    /**
+     * Type of duration unit.
+     */
+    public enum DurationType
+    {
+        MINUTE,
+        HOUR,
+        DAY
     }
 }

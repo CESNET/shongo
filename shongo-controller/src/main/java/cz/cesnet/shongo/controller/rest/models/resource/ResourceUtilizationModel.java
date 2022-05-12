@@ -15,16 +15,6 @@ public class ResourceUtilizationModel
     private TimeInterval interval;
     private List<UtilizationModel> resources;
 
-    @Data
-    public static class UtilizationModel
-    {
-
-        private String id;
-        private String name;
-        private int totalCapacity;
-        private int usedCapacity;
-    }
-
     public static ResourceUtilizationModel fromApi(
             Interval interval,
             Map<ResourceCapacity, ResourceCapacityUtilization> resourceCapacityUtilizations)
@@ -37,7 +27,8 @@ public class ResourceUtilizationModel
             utilizationModel.setId(roomCapacity.getResourceId());
             utilizationModel.setName(roomCapacity.getResourceName());
             utilizationModel.setTotalCapacity(roomCapacity.getLicenseCount());
-            utilizationModel.setUsedCapacity((resourceCapacityUtilization != null) ? resourceCapacityUtilization.getPeakBucket().getLicenseCount() : 0);
+            utilizationModel.setUsedCapacity((resourceCapacityUtilization != null)
+                    ? resourceCapacityUtilization.getPeakBucket().getLicenseCount() : 0);
             resources.add(utilizationModel);
         });
 
@@ -45,5 +36,15 @@ public class ResourceUtilizationModel
         resourceUtilizationModel.setInterval(TimeInterval.fromApi(interval));
         resourceUtilizationModel.setResources(resources);
         return resourceUtilizationModel;
+    }
+
+    @Data
+    public static class UtilizationModel
+    {
+
+        private String id;
+        private String name;
+        private int totalCapacity;
+        private int usedCapacity;
     }
 }

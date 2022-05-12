@@ -5,8 +5,8 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.models.CommonModel;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
+import cz.cesnet.shongo.controller.rest.models.CommonModel;
 import lombok.NoArgsConstructor;
 
 /**
@@ -16,12 +16,10 @@ import lombok.NoArgsConstructor;
  * @author Filip Karnis
  */
 @NoArgsConstructor
-public class ParticipantModel //implements ReportModel.ContextSerializable
+public class ParticipantModel
 {
-    private CacheProvider cacheProvider;
 
     protected String id;
-
     private Type type;
 
     private String userId;
@@ -34,15 +32,8 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
 
     private String organization;
 
-    public ParticipantModel(CacheProvider cacheProvider)
+    public ParticipantModel(UserInformation userInformation)
     {
-        this.cacheProvider = cacheProvider;
-        this.type = Type.USER;
-    }
-
-    public ParticipantModel(UserInformation userInformation, CacheProvider cacheProvider)
-    {
-        this.cacheProvider = cacheProvider;
         this.type = Type.USER;
         setUserId(userInformation.getUserId());
     }
@@ -50,7 +41,6 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
     public ParticipantModel(AbstractParticipant participant, CacheProvider cacheProvider)
     {
         this.id = participant.getId();
-        this.cacheProvider = cacheProvider;
         if (participant instanceof PersonParticipant) {
             PersonParticipant personParticipant = (PersonParticipant) participant;
             this.role = personParticipant.getRole();
@@ -168,11 +158,13 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
         this.email = email;
     }
 
-    public String getOrganization() {
+    public String getOrganization()
+    {
         return organization;
     }
 
-    public void setOrganization(String organization) {
+    public void setOrganization(String organization)
+    {
         this.organization = organization;
     }
 
@@ -185,20 +177,6 @@ public class ParticipantModel //implements ReportModel.ContextSerializable
     {
         this.role = role;
     }
-
-//    @Override
-//    public String toContextString()
-//    {
-//        Map<String, Object> attributes = new LinkedHashMap<String, Object>();
-//        attributes.put("ID", id);
-//        attributes.put("Type", type);
-//        attributes.put("User ID", user != null ? user.getUserId() : null);
-//        attributes.put("Name", name);
-//        attributes.put("Email", email);
-//        attributes.put("Role", role);
-//        attributes.put("Organization", organization);
-//        return ReportModel.formatAttributes(attributes);
-//    }
 
     @Override
     public String toString()

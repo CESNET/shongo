@@ -65,40 +65,15 @@ public enum RoomState
     }
 
     /**
-     * @return {@link #isStarted}
-     */
-    public boolean isStarted()
-    {
-        return isStarted;
-    }
-
-    /**
-     * @return {@link #isAvailable}
-     */
-    public boolean isAvailable()
-    {
-        return isAvailable;
-    }
-
-    public String getMessage(MessageSource messageSource, Locale locale, RoomType roomType)
-    {
-        return messageSource.getMessage(
-                "views.executable.roomState." + roomType + "." + this, null, locale);
-    }
-
-    public String getHelp(MessageSource messageSource, Locale locale, RoomType roomType)
-    {
-        return messageSource.getMessage(
-                "views.executable.roomStateHelp." + roomType + "." + this, null, locale);
-    }
-
-    /**
      * @param roomState
      * @param roomLicenseCount
      * @param roomUsageState
      * @return {@link RoomState}
      */
-    public static RoomState fromRoomState(ExecutableState roomState, Integer roomLicenseCount, ExecutableState roomUsageState)
+    public static RoomState fromRoomState(
+            ExecutableState roomState,
+            Integer roomLicenseCount,
+            ExecutableState roomUsageState)
     {
         switch (roomState) {
             case NOT_STARTED:
@@ -133,5 +108,33 @@ public enum RoomState
     public static RoomState fromRoomState(ExecutableState roomState)
     {
         return fromRoomState(roomState, 1, null);
+    }
+
+    /**
+     * @return {@link #isStarted}
+     */
+    public boolean isStarted()
+    {
+        return isStarted;
+    }
+
+    /**
+     * @return {@link #isAvailable}
+     */
+    public boolean isAvailable()
+    {
+        return isAvailable;
+    }
+
+    public String getMessage(MessageSource messageSource, Locale locale, RoomType roomType)
+    {
+        return messageSource.getMessage(
+                "views.executable.roomState." + roomType + "." + this, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, RoomType roomType)
+    {
+        return messageSource.getMessage(
+                "views.executable.roomStateHelp." + roomType + "." + this, null, locale);
     }
 }

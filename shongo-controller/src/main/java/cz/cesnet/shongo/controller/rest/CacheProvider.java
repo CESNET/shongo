@@ -18,12 +18,12 @@ public class CacheProvider
     /**
      * {@link Cache} to be used for retrieving {@link UserInformation}.
      */
-    private Cache cache;
+    private final Cache cache;
 
     /**
      * {@link SecurityToken} to be used for retrieving {@link UserInformation} by the {@link #cache}.
      */
-    private SecurityToken securityToken;
+    private final SecurityToken securityToken;
 
     /**
      * Constructor.

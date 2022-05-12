@@ -11,7 +11,8 @@ import java.util.Locale;
 
 @Data
 @NoArgsConstructor
-public class SettingsModel {
+public class SettingsModel
+{
 
     private Boolean useWebService;
     private Locale locale;
@@ -20,7 +21,8 @@ public class SettingsModel {
     private Boolean administrationMode;
     private List<SystemPermission> permissions;
 
-    public SettingsModel(UserSettings userSettings, List<SystemPermission> permissions) {
+    public SettingsModel(UserSettings userSettings, List<SystemPermission> permissions)
+    {
         this.useWebService = userSettings.isUseWebService();
         this.locale = userSettings.getLocale();
         this.homeTimeZone = userSettings.getHomeTimeZone();

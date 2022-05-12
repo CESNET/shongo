@@ -13,7 +13,8 @@ import org.joda.time.DateTime;
  * @author Filip Karnis
  */
 @Data
-public class ReservationRequestHistoryModel {
+public class ReservationRequestHistoryModel
+{
 
     private String id;
     private DateTime createdAt;
@@ -22,7 +23,8 @@ public class ReservationRequestHistoryModel {
     private AllocationState allocationState;
     private ReservationRequestState state;
 
-    public ReservationRequestHistoryModel(ReservationRequestSummary summary, CacheProvider cacheProvider) {
+    public ReservationRequestHistoryModel(ReservationRequestSummary summary, CacheProvider cacheProvider)
+    {
         this.id = summary.getId();
         this.createdAt = summary.getDateTime();
         this.createdBy = cacheProvider.getUserInformation(summary.getUserId()).getFullName();

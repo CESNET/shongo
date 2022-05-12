@@ -20,7 +20,7 @@ public class ResourceCapacityUtilization
      * utilized in some way. Different buckets means different utilization. Buckets shall be sorted to be able to
      * determine maximum utilization.
      */
-    private List<ResourceCapacityBucket> buckets = new LinkedList<ResourceCapacityBucket>();
+    private final List<ResourceCapacityBucket> buckets = new LinkedList<>();
 
     /**
      * List of {@link ReservationSummary} in all {@link #buckets}.
@@ -71,23 +71,18 @@ public class ResourceCapacityUtilization
             for (ResourceCapacityBucket bucket : buckets) {
                 reservations.addAll(bucket);
             }
-            this.reservations = new LinkedList<ReservationSummary>();
+            this.reservations = new LinkedList<>();
             this.reservations.addAll(reservations);
-            Collections.sort(this.reservations, new Comparator<ReservationSummary>()
-            {
-                @Override
-                public int compare(ReservationSummary reservation1, ReservationSummary reservation2)
-                {
-                    Interval reservationSlot1 = reservation1.getSlot();
-                    Interval reservationSlot2 = reservation2.getSlot();
+            this.reservations.sort((reservation1, reservation2) -> {
+                Interval reservationSlot1 = reservation1.getSlot();
+                Interval reservationSlot2 = reservation2.getSlot();
 
-                    int result = reservationSlot1.getStart().compareTo(reservationSlot2.getStart());
-                    if (result != 0) {
-                        return result;
-                    }
-
-                    return reservationSlot1.getEnd().compareTo(reservationSlot2.getEnd());
+                int result = reservationSlot1.getStart().compareTo(reservationSlot2.getStart());
+                if (result != 0) {
+                    return result;
                 }
+
+                return reservationSlot1.getEnd().compareTo(reservationSlot2.getEnd());
             });
         }
         return Collections.unmodifiableList(this.reservations);
@@ -98,7 +93,7 @@ public class ResourceCapacityUtilization
      */
     public Collection<String> getReservationUserIds()
     {
-        Set<String> userIds = new HashSet<String>();
+        Set<String> userIds = new HashSet<>();
         for (ReservationSummary reservation : getReservations()) {
             userIds.add(reservation.getUserId());
         }

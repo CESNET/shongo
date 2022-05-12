@@ -4,7 +4,8 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import lombok.Data;
 
 @Data
-public class RoomCapacityModel {
+public class RoomCapacityModel
+{
 
     private String roomReservationRequestId;
     private Integer capacityParticipantCount;
@@ -12,7 +13,8 @@ public class RoomCapacityModel {
     private Boolean hasRoomRecordings;
     private Boolean isRecordingActive;
 
-    public RoomCapacityModel(ReservationRequestSummary summary) {
+    public RoomCapacityModel(ReservationRequestSummary summary)
+    {
         this.roomReservationRequestId = summary.getReusedReservationRequestId();
         this.capacityParticipantCount = summary.getRoomParticipantCount();
         this.hasRoomRecordingService = summary.hasRoomRecordingService();

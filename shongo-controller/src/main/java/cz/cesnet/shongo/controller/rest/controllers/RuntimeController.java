@@ -33,7 +33,8 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 @Slf4j
 @RestController
 @RequestMapping(ClientWebUrl.RUNTIME_MANAGEMENT)
-public class RuntimeController {
+public class RuntimeController
+{
 
     private final Cache cache;
     private final RoomCache roomCache;

@@ -15,10 +15,9 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.rest.error.ObjectInaccessibleException;
 import cz.cesnet.shongo.controller.rest.models.resource.ResourcesUtilization;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -32,9 +31,9 @@ import java.util.stream.Stream;
  * @author Filip Karnis
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Slf4j
 public class Cache
 {
-    private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
      * Expiration of user information/permissions in minutes.
@@ -50,82 +49,52 @@ public class Cache
     private final ExecutableService executableService;
 
     /**
+     * @see ResourcesUtilization
+     */
+    private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken = new ExpirationMap<>();
+
+    /**
      * {@link UserInformation}s by {@link SecurityToken}.
      */
-    private ExpirationMap<SecurityToken, List<SystemPermission>> userPermissionsByToken = new ExpirationMap<>();
+    private final ExpirationMap<SecurityToken, List<SystemPermission>> userPermissionsByToken = new ExpirationMap<>();
 
     /**
      * {@link UserInformation}s by user-ids.
      */
-    private ExpirationMap<String, UserInformation> userInformationByUserId =
-            new ExpirationMap<String, UserInformation>();
+    private final ExpirationMap<String, UserInformation> userInformationByUserId = new ExpirationMap<>();
 
     /**
      * {@link Group}s by group-ids.
      */
-    private ExpirationMap<String, Group> groupByGroupId =
-            new ExpirationMap<String, Group>();
+    private final ExpirationMap<String, Group> groupByGroupId = new ExpirationMap<>();
 
     /**
      * {@link UserState}s by {@link SecurityToken}.
      */
-    private ExpirationMap<SecurityToken, UserState> userStateByToken = new ExpirationMap<SecurityToken, UserState>();
-
+    private final ExpirationMap<SecurityToken, UserState> userStateByToken = new ExpirationMap<SecurityToken, UserState>();
     /**
      * {@link ResourceSummary} by identifier.
      */
-    private ExpirationMap<String, ResourceSummary> resourceById =
-            new ExpirationMap<String, ResourceSummary>();
-
+    private final ExpirationMap<String, ResourceSummary> resourceById = new ExpirationMap<>();
     /**
      * {@link ReservationRequestSummary} by identifier.
      */
-    private ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
-            new ExpirationMap<String, ReservationRequestSummary>();
+    private final ExpirationMap<String, ReservationRequestSummary> reservationRequestById = new ExpirationMap<>();
 
     /**
      * {@link Reservation} by identifier.
      */
-    private ExpirationMap<String, Reservation> reservationById =
-            new ExpirationMap<String, Reservation>();
+    private final ExpirationMap<String, Reservation> reservationById = new ExpirationMap<>();
 
     /**
      * Ids of resources with public calendar by their calendarUriKey
      */
-    private ExpirationMap<String,String> resourceIdsWithPublicCalendarByUriKey =
-            new ExpirationMap<String,String>();
+    private final ExpirationMap<String, String> resourceIdsWithPublicCalendarByUriKey = new ExpirationMap<>();
 
     /**
      * {@link Reservation} by identifier.
      */
-    private ExpirationMap<String, Executable> executableById =
-            new ExpirationMap<String, Executable>();
-
-    /**
-     * @see ResourcesUtilization
-     */
-    private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken =
-            new ExpirationMap<SecurityToken, ResourcesUtilization>();
-
-    /**
-     * Cached information for single user.
-     */
-    private static class UserState
-    {
-        /**
-         * Set of permissions which the user has for object.
-         */
-        private ExpirationMap<String, Set<ObjectPermission>> objectPermissionsByObject =
-                new ExpirationMap<String, Set<ObjectPermission>>();
-
-        /**
-         * Constructor.
-         */
-        public UserState()
-        {
-            objectPermissionsByObject.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
-        }
-    }
+    private final ExpirationMap<String, Executable> executableById = new ExpirationMap<>();
 
     /**
      * Constructor.
@@ -155,12 +124,25 @@ public class Cache
     }
 
     /**
+     * @param userId
+     * @return {@link UserInformation} for not existing user with given {@code userId}
+     */
+    private static UserInformation createNotExistingUserInformation(String userId)
+    {
+        UserInformation userInformation = new UserInformation();
+        userInformation.setUserId(userId);
+        userInformation.setFirstName("Non-Existent-User");
+        userInformation.setLastName("(" + userId + ")");
+        return userInformation;
+    }
+
+    /**
      * Method called each 5 minutes to clear expired items.
      */
     @Scheduled(fixedDelay = (USER_EXPIRATION_MINUTES * 60 * 1000))
     public synchronized void clearExpired()
     {
-        logger.debug("Clearing expired user cache...");
+        log.debug("Clearing expired user cache...");
         DateTime dateTimeNow = DateTime.now();
         userPermissionsByToken.clearExpired(dateTimeNow);
         userInformationByUserId.clearExpired(dateTimeNow);
@@ -232,7 +214,7 @@ public class Cache
             userInformation = response.getItem(0);
         }
         catch (ControllerReportSet.UserNotExistsException exception) {
-            logger.warn("User with id '" + userId + "' doesn't exist.", exception);
+            log.warn("User with id '" + userId + "' doesn't exist.", exception);
             userInformation = createNotExistingUserInformation(userId);
         }
         userInformationByUserId.put(userId, userInformation);
@@ -249,7 +231,7 @@ public class Cache
         for (String userId : userIds) {
             if (!userInformationByUserId.contains(userId)) {
                 if (missingUserIds == null) {
-                    missingUserIds = new HashSet<String>();
+                    missingUserIds = new HashSet<>();
                 }
                 missingUserIds.add(userId);
             }
@@ -270,11 +252,10 @@ public class Cache
                 }
                 catch (ControllerReportSet.UserNotExistsException exception) {
                     String userId = exception.getUser();
-                    logger.warn("User with id '" + userId + "' doesn't exist.", exception);
+                    log.warn("User with id '" + userId + "' doesn't exist.", exception);
                     UserInformation userInformation = createNotExistingUserInformation(userId);
                     userInformationByUserId.put(userId, userInformation);
                     missingUserIds.remove(userId);
-                    continue;
                 }
             }
         }
@@ -326,7 +307,7 @@ public class Cache
         if (objectPermissions == null) {
             Map<String, ObjectPermissionSet> permissionsByObject = authorizationService.listObjectPermissions(
                     new ObjectPermissionListRequest(securityToken, objectId));
-            objectPermissions = new HashSet<ObjectPermission>();
+            objectPermissions = new HashSet<>();
             objectPermissions.addAll(permissionsByObject.get(objectId).getObjectPermissions());
             userState.objectPermissionsByObject.put(objectId, objectPermissions);
         }
@@ -341,8 +322,8 @@ public class Cache
     public Map<String, Set<ObjectPermission>> getReservationRequestsPermissions(SecurityToken securityToken,
             Collection<ReservationRequestSummary> reservationRequests)
     {
-        Map<String, Set<ObjectPermission>> permissionsByReservationRequestId = new HashMap<String, Set<ObjectPermission>>();
-        Set<String> reservationRequestIds = new HashSet<String>();
+        Map<String, Set<ObjectPermission>> permissionsByReservationRequestId = new HashMap<>();
+        Set<String> reservationRequestIds = new HashSet<>();
         for (ReservationRequestSummary reservationRequest : reservationRequests) {
             String reservationRequestId = reservationRequest.getId();
             Set<ObjectPermission> objectPermissions =
@@ -364,7 +345,7 @@ public class Cache
      * @param securityToken of the requesting user
      * @param objectId      of the object
      * @return set of {@link ObjectPermission} for requesting user and given {@code objectId}
-     *         or null if the {@link ObjectPermission}s aren't cached
+     * or null if the {@link ObjectPermission}s aren't cached
      */
     public synchronized Set<ObjectPermission> getObjectPermissionsWithoutFetching(
             SecurityToken securityToken, String objectId)
@@ -383,7 +364,7 @@ public class Cache
     public synchronized Map<String, Set<ObjectPermission>> fetchObjectPermissions(
             SecurityToken securityToken, Set<String> objectIds)
     {
-        Map<String, Set<ObjectPermission>> result = new HashMap<String, Set<ObjectPermission>>();
+        Map<String, Set<ObjectPermission>> result = new HashMap<>();
         if (objectIds.isEmpty()) {
             return result;
         }
@@ -394,7 +375,7 @@ public class Cache
             String objectId = entry.getKey();
             Set<ObjectPermission> objectPermissions = userState.objectPermissionsByObject.get(objectId);
             if (objectPermissions == null) {
-                objectPermissions = new HashSet<ObjectPermission>();
+                objectPermissions = new HashSet<>();
                 userState.objectPermissionsByObject.put(objectId, objectPermissions);
             }
             objectPermissions.clear();
@@ -474,7 +455,7 @@ public class Cache
         for (String reservationRequestId : reservationRequestIds) {
             if (!reservationRequestById.contains(reservationRequestId)) {
                 if (missingReservationRequestIds == null) {
-                    missingReservationRequestIds = new HashSet<String>();
+                    missingReservationRequestIds = new HashSet<>();
                 }
                 missingReservationRequestIds.add(reservationRequestId);
             }
@@ -614,7 +595,7 @@ public class Cache
             ReservationRequestSummary request = getAllocatedReservationRequestSummary(securityToken, objectId);
             String reservationId = request.getAllocatedReservationId();
             if (reservationId == null) {
-                logger.info("Reservation doesn't exist.");
+                log.info("Reservation doesn't exist.");
                 return null;
             }
             objectId = reservationId;
@@ -624,7 +605,7 @@ public class Cache
             Reservation reservation = getReservation(securityToken, objectId);
             Executable executable = reservation.getExecutable();
             if (executable == null) {
-                logger.info("Reservation " + objectId + " doesn't have executable.");
+                log.info("Reservation " + objectId + " doesn't have executable.");
                 return null;
             }
             return executable.getId();
@@ -650,7 +631,7 @@ public class Cache
 
     /**
      * @param securityToken for which the {@link ResourcesUtilization} shall be returned
-     * @param forceRefresh specifies whether a fresh version should be returned
+     * @param forceRefresh  specifies whether a fresh version should be returned
      * @return {@link ResourcesUtilization} for given {@code securityToken}
      */
     public ResourcesUtilization getResourcesUtilization(SecurityToken securityToken, boolean forceRefresh)
@@ -678,8 +659,8 @@ public class Cache
         resourceIdsWithPublicCalendarByUriKey.clearExpired(DateTime.now());
         //Check if resource really exists
         if (resourceIdsWithPublicCalendarByUriKey.size() == 0) {
-            for (ResourceSummary resourceSummary: resourceService.getResourceIdsWithPublicCalendar()) {
-                resourceIdsWithPublicCalendarByUriKey.put(resourceSummary.getCalendarUriKey(),resourceSummary.getId());
+            for (ResourceSummary resourceSummary : resourceService.getResourceIdsWithPublicCalendar()) {
+                resourceIdsWithPublicCalendarByUriKey.put(resourceSummary.getCalendarUriKey(), resourceSummary.getId());
             }
         }
         if (!resourceIdsWithPublicCalendarByUriKey.contains(uriKey)) {
@@ -689,15 +670,22 @@ public class Cache
     }
 
     /**
-     * @param userId
-     * @return {@link UserInformation} for not existing user with given {@code userId}
+     * Cached information for single user.
      */
-    private static UserInformation createNotExistingUserInformation(String userId)
+    private static class UserState
     {
-        UserInformation userInformation = new UserInformation();
-        userInformation.setUserId(userId);
-        userInformation.setFirstName("Non-Existent-User");
-        userInformation.setLastName("(" + userId + ")");
-        return userInformation;
+        /**
+         * Set of permissions which the user has for object.
+         */
+        private final ExpirationMap<String, Set<ObjectPermission>> objectPermissionsByObject =
+                new ExpirationMap<>();
+
+        /**
+         * Constructor.
+         */
+        public UserState()
+        {
+            objectPermissionsByObject.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
+        }
     }
 }

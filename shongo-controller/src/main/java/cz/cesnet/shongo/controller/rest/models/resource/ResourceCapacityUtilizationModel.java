@@ -7,7 +7,8 @@ import java.util.Collection;
 import java.util.Map;
 
 @Data
-public class ResourceCapacityUtilizationModel {
+public class ResourceCapacityUtilizationModel
+{
 
     private Collection<ResourceCapacity> resourceCapacitySet;
     private Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> resourceCapacityUtilization;

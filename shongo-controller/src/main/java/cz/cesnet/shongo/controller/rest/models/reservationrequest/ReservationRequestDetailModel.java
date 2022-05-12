@@ -21,7 +21,8 @@ import java.util.Set;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ReservationRequestDetailModel extends ReservationRequestModel {
+public class ReservationRequestDetailModel extends ReservationRequestModel
+{
 
     private AllocationState allocationState;
     private ExecutableState executableState;

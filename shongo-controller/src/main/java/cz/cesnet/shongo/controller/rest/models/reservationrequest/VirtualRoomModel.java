@@ -9,14 +9,16 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class VirtualRoomModel {
+public class VirtualRoomModel
+{
 
     private String roomName;
     private ExecutableState state;
     private TechnologyModel technology;
     private Boolean hasRoomRecordings;
 
-    public VirtualRoomModel(ReservationRequestSummary summary) {
+    public VirtualRoomModel(ReservationRequestSummary summary)
+    {
         this.roomName = summary.getRoomName();
         this.hasRoomRecordings = summary.hasRoomRecordings();
         this.state = summary.getExecutableState();

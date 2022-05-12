@@ -25,12 +25,14 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.ROOMS)
-public class RoomController {
+public class RoomController
+{
 
     private final Cache cache;
     private final ExecutableService executableService;
 
-    public RoomController(@Autowired Cache cache, @Autowired ExecutableService executableService) {
+    public RoomController(@Autowired Cache cache, @Autowired ExecutableService executableService)
+    {
         this.cache = cache;
         this.executableService = executableService;
     }

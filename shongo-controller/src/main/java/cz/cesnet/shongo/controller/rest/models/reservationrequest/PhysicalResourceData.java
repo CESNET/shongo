@@ -12,7 +12,8 @@ public class PhysicalResourceData
     private String resourceDescription;
     private String periodicity;
 
-    public static PhysicalResourceData fromApi(ResourceSummary summary) {
+    public static PhysicalResourceData fromApi(ResourceSummary summary)
+    {
         if (summary == null) {
             return null;
         }

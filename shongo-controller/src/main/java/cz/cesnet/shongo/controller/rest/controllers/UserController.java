@@ -27,12 +27,14 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.USERS_AND_GROUPS)
-public class UserController {
+public class UserController
+{
 
     private final AuthorizationService authorizationService;
     private final Cache cache;
 
-    public UserController(@Autowired AuthorizationService reservationService, @Autowired Cache cache) {
+    public UserController(@Autowired AuthorizationService reservationService, @Autowired Cache cache)
+    {
         this.authorizationService = reservationService;
         this.cache = cache;
     }

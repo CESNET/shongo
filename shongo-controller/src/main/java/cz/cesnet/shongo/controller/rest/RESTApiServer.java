@@ -25,12 +25,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.EnumSet;
 
-public class RESTApiServer {
+public class RESTApiServer
+{
     private static final String SERVLET_PATH = "/";
     private static final String SERVLET_NAME = "rest-api";
     private static final String INTER_DOMAIN_API_PATH = "/domain/**";
 
-    public static Server start(ControllerConfiguration configuration) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    public static Server start(ControllerConfiguration configuration)
+            throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+    {
         Server restServer = new Server();
         ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
         String resourceBase = RESTApiServer.getResourceBase();
@@ -51,14 +54,16 @@ public class RESTApiServer {
 
         try {
             restServer.start();
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             throw new RuntimeException(exception);
         }
 
         return restServer;
     }
 
-    private static String getResourceBase() {
+    private static String getResourceBase()
+    {
         URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
         if (resourceBaseUrl == null) {
             throw new RuntimeException("WEB-INF is not in classpath.");
@@ -66,7 +71,12 @@ public class RESTApiServer {
         return resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
     }
 
-    private static ServerConnector createHTTPConnector(ControllerConfiguration configuration, WebAppContext webAppContext, Server server)  throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    private static ServerConnector createHTTPConnector(
+            ControllerConfiguration configuration,
+            WebAppContext webAppContext,
+            Server server)
+            throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
+    {
         final HttpConfiguration http_config = new HttpConfiguration();
         http_config.setSecurePort(configuration.getRESTApiPort());
         ServerConnector serverConnector;
@@ -99,7 +109,8 @@ public class RESTApiServer {
                     // Enable SSL client filter by certificates
                     EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
                     webAppContext.addFilter(SSLClientCertFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
-                } else {
+                }
+                else {
                     EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
                     webAppContext.addFilter(BasicAuthFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
                 }
@@ -107,7 +118,8 @@ public class RESTApiServer {
             serverConnector = new ServerConnector(server,
                     new SslConnectionFactory(sslContextFactory, "http/1.1"),
                     new HttpConnectionFactory(https_config));
-        } else {
+        }
+        else {
             http_config.setSecureScheme(HttpScheme.HTTP.asString());
             serverConnector = new ServerConnector(server, new HttpConnectionFactory(http_config));
         }
@@ -117,7 +129,6 @@ public class RESTApiServer {
             serverConnector.setHost(host);
         }
         serverConnector.setPort(configuration.getRESTApiPort());
-//        serverConnector.setIdleTimeout(configuration.getInterDomainCommandTimeout());
 
         return serverConnector;
     }

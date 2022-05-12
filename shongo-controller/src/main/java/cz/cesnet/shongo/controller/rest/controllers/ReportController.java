@@ -23,7 +23,8 @@ import javax.mail.MessagingException;
 @SecurityRequirements
 @RestController
 @RequestMapping(ClientWebUrl.REPORT)
-public class ReportController {
+public class ReportController
+{
 
     private final ErrorHandler errorHandler;
 

@@ -13,7 +13,7 @@ import java.util.Set;
 
 /**
  * Represents a type of capacity which can be utilized in a resource.
- *
+ * <p>
  * Theoretically multiple different capacities can be utilized for a single resource
  * (e.g., capacity of room licenses and recording capacity)
  *
@@ -74,8 +74,8 @@ public abstract class ResourceCapacity
 
     /**
      * @param utilization
-     * @param t {@link FormatType} which should be used
-     * @param s {@link FormatStyle} which should be used
+     * @param t           {@link FormatType} which should be used
+     * @param s           {@link FormatStyle} which should be used
      * @return html content which shall be rendered for given {@code utilization}
      */
     public abstract String formatUtilization(ResourceCapacityUtilization utilization, FormatType t, FormatStyle s);
@@ -83,7 +83,7 @@ public abstract class ResourceCapacity
     /**
      * Specifies what utilization should be formatted in {@link #formatUtilization}.
      */
-    public static enum FormatType
+    public enum FormatType
     {
         /**
          * Maximum utilization of resource capacity (e.g., maximum number of utilized license count).
@@ -99,7 +99,7 @@ public abstract class ResourceCapacity
     /**
      * Specifies how the utilization value should be formatted in {@link #formatUtilization}.
      */
-    public static enum FormatStyle
+    public enum FormatStyle
     {
         /**
          * Absolute utilization (e.g., number of licenses).
@@ -125,7 +125,7 @@ public abstract class ResourceCapacity
         /**
          * Constructor.
          *
-         * @param resource sets the {@link #resource}
+         * @param resource     sets the {@link #resource}
          * @param licenseCount sets the {@link #licenseCount}
          */
         public LicenseCount(ResourceSummary resource, Integer licenseCount)
@@ -170,7 +170,7 @@ public abstract class ResourceCapacity
                     output.append(value);
                     break;
                 case RELATIVE:
-                    output.append((int)((utilizedLicenseCount.doubleValue() * 100.0) / (double) licenseCount));
+                    output.append((int) ((utilizedLicenseCount.doubleValue() * 100.0) / (double) licenseCount));
                     output.append("%");
                     break;
                 default:
@@ -229,7 +229,7 @@ public abstract class ResourceCapacity
         /**
          * Constructor.
          *
-         * @param resource sets the {@link #resource}
+         * @param resource   sets the {@link #resource}
          * @param capability to be used for determining available license count
          */
         public Room(ResourceSummary resource, RoomProviderCapability capability)
@@ -252,7 +252,7 @@ public abstract class ResourceCapacity
         /**
          * Constructor.
          *
-         * @param resource sets the {@link #resource}
+         * @param resource   sets the {@link #resource}
          * @param capability to be used for determining available license count
          */
         public Recording(ResourceSummary resource, RecordingCapability capability)

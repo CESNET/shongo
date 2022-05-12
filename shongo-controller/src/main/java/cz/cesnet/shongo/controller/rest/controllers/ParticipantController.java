@@ -29,7 +29,8 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.PARTICIPANTS)
-public class ParticipantController {
+public class ParticipantController
+{
 
     private final Cache cache;
     private final ExecutableService executableService;
@@ -165,7 +166,7 @@ public class ParticipantController {
     }
 
     protected ParticipantModel getParticipant(RoomExecutableParticipantConfiguration participantConfiguration,
-                                              String participantId, SecurityToken securityToken)
+            String participantId, SecurityToken securityToken)
     {
         AbstractParticipant participant = participantConfiguration.getParticipant(participantId);
         if (participant == null) {

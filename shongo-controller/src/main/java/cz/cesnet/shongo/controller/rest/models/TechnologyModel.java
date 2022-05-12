@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.rest.models;
 
 import cz.cesnet.shongo.Technology;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,7 @@ public enum TechnologyModel
     ADOBE_CONNECT("views.technologyModel.ADOBE_CONNECT", Technology.ADOBE_CONNECT),
 
     /**
-     *  {@link Technology#FREEPBX}
+     * {@link Technology#FREEPBX}
      */
     FREEPBX("views.technologyModel.FREEPBX", Technology.FREEPBX),
     /**
@@ -46,33 +47,14 @@ public enum TechnologyModel
     /**
      * Constructor.
      *
-     * @param titleCode        sets the {@link #titleCode}
+     * @param titleCode    sets the {@link #titleCode}
      * @param technologies sets the {@link #technologies}
      */
     TechnologyModel(String titleCode, Technology... technologies)
     {
         this.titleCode = titleCode;
-        Set<Technology> technologySet = new HashSet<Technology>();
-        for (Technology technology : technologies) {
-            technologySet.add(technology);
-        }
+        Set<Technology> technologySet = new HashSet<>(Arrays.asList(technologies));
         this.technologies = Collections.unmodifiableSet(technologySet);
-    }
-
-    /**
-     * @return {@link #titleCode}
-     */
-    public String getTitleCode()
-    {
-        return titleCode;
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    public Set<Technology> getTechnologies()
-    {
-        return technologies;
     }
 
     /**
@@ -97,5 +79,21 @@ public enum TechnologyModel
             return PEXIP;
         }
         return null;
+    }
+
+    /**
+     * @return {@link #titleCode}
+     */
+    public String getTitleCode()
+    {
+        return titleCode;
+    }
+
+    /**
+     * @return {@link #technologies}
+     */
+    public Set<Technology> getTechnologies()
+    {
+        return technologies;
     }
 }

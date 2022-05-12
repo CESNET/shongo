@@ -56,28 +56,13 @@ public enum SpecificationType
     /**
      * Constructor.
      *
-     * @param isRoom sets the {@link #isRoom}
+     * @param isRoom     sets the {@link #isRoom}
      * @param isPhysical
      */
     SpecificationType(boolean isRoom, boolean isPhysical)
     {
         this.isRoom = isRoom;
         this.isPhysical = isPhysical;
-    }
-
-    /**
-     * @return {@link #isRoom}
-     */
-    public boolean isRoom()
-    {
-        return isRoom;
-    }
-
-    /**
-     * @return {@link #isPhysical}
-     */
-    public boolean isPhysical() {
-        return isPhysical;
     }
 
     /**
@@ -115,7 +100,8 @@ public enum SpecificationType
                 if (resourceTags != null) {
                     if (parkTagName != null && resourceTags.contains(parkTagName)) {
                         return PARKING_PLACE;
-                    } else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
+                    }
+                    else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
                         return VEHICLE;
                     }
                 }
@@ -135,19 +121,39 @@ public enum SpecificationType
 
         if (string == null) {
             return null;
-        } else if (string.equals(configuration.getMeetingRoomTagName())) {
+        }
+        else if (string.equals(configuration.getMeetingRoomTagName())) {
             return MEETING_ROOM;
-        } else if (string.equals(configuration.getVehicleTagName())) {
+        }
+        else if (string.equals(configuration.getVehicleTagName())) {
             return VEHICLE;
-        } else if (string.equals(configuration.getParkingPlaceTagName())) {
+        }
+        else if (string.equals(configuration.getParkingPlaceTagName())) {
             return PARKING_PLACE;
         }
         throw new TodoImplementException("SpecificationType.fromString for " + string);
 
     }
 
-    private static ControllerConfiguration getControllerConfiguration() {
+    private static ControllerConfiguration getControllerConfiguration()
+    {
         Controller controller = Controller.getInstance();
         return controller.getConfiguration();
+    }
+
+    /**
+     * @return {@link #isRoom}
+     */
+    public boolean isRoom()
+    {
+        return isRoom;
+    }
+
+    /**
+     * @return {@link #isPhysical}
+     */
+    public boolean isPhysical()
+    {
+        return isPhysical;
     }
 }

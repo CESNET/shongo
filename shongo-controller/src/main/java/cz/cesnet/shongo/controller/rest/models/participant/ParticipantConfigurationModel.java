@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.rest.models.participant;
 
 import cz.cesnet.shongo.ParticipantRole;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,14 +11,14 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Slf4j
 public class ParticipantConfigurationModel
 {
-    private static Logger logger = LoggerFactory.getLogger(ParticipantConfigurationModel.class);
 
     /**
      * List of participants.
      */
-    protected List<ParticipantModel> participants = new LinkedList<ParticipantModel>();
+    protected List<ParticipantModel> participants = new LinkedList<>();
 
 
     /**
@@ -44,11 +43,11 @@ public class ParticipantConfigurationModel
                 if (existingType.equals(ParticipantModel.Type.USER) && existingUserId.equals(userId)) {
                     ParticipantRole existingRole = existingParticipant.getRole();
                     if (existingRole.compareTo(participant.getRole()) >= 0) {
-                        logger.warn("Skip adding {} because {} already exists.", participant, existingParticipant);
+                        log.warn("Skip adding {} because {} already exists.", participant, existingParticipant);
                         return;
                     }
                     else {
-                        logger.warn("Removing {} because {} will be added.", existingParticipant, participant);
+                        log.warn("Removing {} because {} will be added.", existingParticipant, participant);
                         participants.remove(existingParticipant);
                     }
                     break;

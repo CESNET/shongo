@@ -7,11 +7,10 @@ import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.RangeSet;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -20,9 +19,9 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Slf4j
 public class ResourcesUtilization
 {
-    private static Logger logger = LoggerFactory.getLogger(ResourcesUtilization.class);
 
     /**
      * {@link SecurityToken} of user to which the {@link ResourcesUtilization} belongs.
@@ -43,19 +42,19 @@ public class ResourcesUtilization
      * Map of {@link ResourceCapacity} by class and by resource-id.
      */
     private final Map<String, Map<Class<? extends ResourceCapacity>, ResourceCapacity>> resourceCapacityMap =
-            new HashMap<String, Map<Class<? extends ResourceCapacity>, ResourceCapacity>>();
+            new HashMap<>();
 
     /**
      * Map of cached {@link ResourceCapacityUtilization} for {@link ResourceCapacity} and for {@link Interval}.
      */
-    private Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> resourceCapacityUtilizationMap =
-            new HashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
+    private final Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> resourceCapacityUtilizationMap =
+            new HashMap<>();
 
     /**
      * Map of cached {@link ReservationSummary}s for {@link ResourceCapacity}.
      */
-    private Map<ResourceCapacity, RangeSet<ReservationSummary, DateTime>> reservationSetMap =
-            new HashMap<ResourceCapacity, RangeSet<ReservationSummary, DateTime>>();
+    private final Map<ResourceCapacity, RangeSet<ReservationSummary, DateTime>> reservationSetMap =
+            new HashMap<>();
 
     /**
      * {@link Interval} which is already cached in {@link #reservationSetMap}.
@@ -125,11 +124,12 @@ public class ResourcesUtilization
      * @param period   by which the {@code interval} should be split and for each part should be {@link ResourceCapacityUtilization} computed
      * @return map of {@link ResourceCapacityUtilization} by {@link ResourceCapacity}s and by {@link Interval}s
      */
-    public Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> getUtilization(Interval interval,
-                                                                                            Period period)
+    public Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> getUtilization(
+            Interval interval,
+            Period period)
     {
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilizationsByInterval =
-                new LinkedHashMap<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>>();
+                new LinkedHashMap<>();
         DateTime start = interval.getStart();
         DateTime maxEnd = interval.getEnd();
         while (start.isBefore(maxEnd)) {
@@ -173,7 +173,7 @@ public class ResourcesUtilization
             Map<Class<? extends ResourceCapacity>, ResourceCapacity> resourceCapacitiesByClass =
                     resourceCapacityMap.get(resourceId);
             if (resourceCapacitiesByClass == null) {
-                resourceCapacitiesByClass = new HashMap<Class<? extends ResourceCapacity>, ResourceCapacity>();
+                resourceCapacitiesByClass = new HashMap<>();
                 resourceCapacityMap.put(resourceId, resourceCapacitiesByClass);
             }
             resourceCapacitiesByClass.put(resourceCapacityClass, resourceCapacity);
@@ -189,13 +189,15 @@ public class ResourcesUtilization
      * @param fetchInterval
      * @return {@link ResourceCapacityUtilization} for given {@code resourceCapacity} and {@code interval}
      */
-    private ResourceCapacityUtilization getUtilization(ResourceCapacity resourceCapacity, Interval interval,
-                                                       boolean fetchAll, Interval fetchInterval)
+    private ResourceCapacityUtilization getUtilization(
+            ResourceCapacity resourceCapacity,
+            Interval interval,
+            boolean fetchAll, Interval fetchInterval)
     {
         // Try to return cached utilization
         Map<ResourceCapacity, ResourceCapacityUtilization> utilizations = resourceCapacityUtilizationMap.get(interval);
         if (utilizations == null) {
-            utilizations = new HashMap<ResourceCapacity, ResourceCapacityUtilization>();
+            utilizations = new HashMap<>();
             resourceCapacityUtilizationMap.put(interval, utilizations);
         }
         if (utilizations.containsKey(resourceCapacity)) {
@@ -261,13 +263,13 @@ public class ResourcesUtilization
         }
         // Load the whole reservation cache
         else {
-            logger.info("Clearing cached reservations...");
+            log.info("Clearing cached reservations...");
             reservationSetMap.clear();
             reservationInterval = interval;
         }
 
         // Fetch reservations for all resource capacities
-        logger.info("Loading reservations for {}...", interval);
+        log.info("Loading reservations for {}...", interval);
         ReservationListRequest reservationListRequest = new ReservationListRequest(securityToken);
         for (ResourceCapacity currentResourceCapacity : resourceCapacities) {
             reservationListRequest.addResourceId(currentResourceCapacity.getResourceId());
@@ -281,7 +283,7 @@ public class ResourcesUtilization
             ResourceCapacity reservationResourceCapacity = getResourceCapacity(reservationResourceId, reservation);
             RangeSet<ReservationSummary, DateTime> reservationSet = reservationSetMap.get(reservationResourceCapacity);
             if (reservationSet == null) {
-                reservationSet = new RangeSet<ReservationSummary, DateTime>()
+                reservationSet = new RangeSet<>()
                 {
                     @Override
                     protected Bucket<DateTime, ReservationSummary> createBucket(DateTime rangeValue)
@@ -307,8 +309,9 @@ public class ResourcesUtilization
      * @param interval
      * @return {@link RangeSet} of {@link ReservationSummary}
      */
-    private RangeSet<ReservationSummary, DateTime> getReservations(ResourceCapacity resourceCapacity,
-                                                                   Interval interval)
+    private RangeSet<ReservationSummary, DateTime> getReservations(
+            ResourceCapacity resourceCapacity,
+            Interval interval)
     {
         // Try to return cached reservations
         synchronized (this) {
@@ -318,7 +321,7 @@ public class ResourcesUtilization
         }
 
         // Fetch reservations for single resource capacity
-        RangeSet<ReservationSummary, DateTime> reservationSet = new RangeSet<ReservationSummary, DateTime>()
+        RangeSet<ReservationSummary, DateTime> reservationSet = new RangeSet<>()
         {
             @Override
             protected Bucket<DateTime, ReservationSummary> createBucket(DateTime rangeValue)

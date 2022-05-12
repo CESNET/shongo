@@ -5,7 +5,8 @@ import lombok.Data;
 import org.joda.time.DateTimeZone;
 
 @Data
-public class MetaModel {
+public class MetaModel
+{
 
     private DateTimeZone timeZone;
     private SettingsModel settings;

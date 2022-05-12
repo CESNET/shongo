@@ -27,12 +27,14 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.ROLES)
-public class UserRoleController {
+public class UserRoleController
+{
 
     private final AuthorizationService authorizationService;
     private final Cache cache;
 
-    public UserRoleController(@Autowired AuthorizationService reservationService, @Autowired Cache cache) {
+    public UserRoleController(@Autowired AuthorizationService reservationService, @Autowired Cache cache)
+    {
         this.authorizationService = reservationService;
         this.cache = cache;
     }
@@ -53,7 +55,10 @@ public class UserRoleController {
         ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
 
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        List<UserRoleModel> items = aclEntries.getItems().stream().map(item -> new UserRoleModel(item, cacheProvider)).collect(Collectors.toList());
+        List<UserRoleModel> items = aclEntries.getItems()
+                .stream()
+                .map(item -> new UserRoleModel(item, cacheProvider))
+                .collect(Collectors.toList());
         return ListResponse.fromRequest(start, count, items);
     }
 

@@ -7,7 +7,8 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class ResourceModel {
+public class ResourceModel
+{
 
     private String id;
     private ResourceSummary.Type type;
@@ -17,7 +18,8 @@ public class ResourceModel {
     private Set<String> tags;
     private boolean hasCapacity;
 
-    public ResourceModel(ResourceSummary summary, boolean hasCapacity) {
+    public ResourceModel(ResourceSummary summary, boolean hasCapacity)
+    {
         this.id = summary.getId();
         this.type = summary.getType();
         this.name = summary.getName();

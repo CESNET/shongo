@@ -28,7 +28,8 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.RECORDINGS)
-public class RecordingController {
+public class RecordingController
+{
 
     private final Cache cache;
     private final ExecutableService executableService;
@@ -84,11 +85,11 @@ public class RecordingController {
             else {
                 item.put("duration", duration.toPeriod());
             }
-            item.put("isPublic",recording.isPublic());
+            item.put("isPublic", recording.isPublic());
             item.put("downloadUrl", recording.getDownloadUrl());
             item.put("viewUrl", recording.getViewUrl());
             item.put("editUrl", recording.getEditUrl());
-            item.put("filename",recording.getFileName());
+            item.put("filename", recording.getFileName());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<>();

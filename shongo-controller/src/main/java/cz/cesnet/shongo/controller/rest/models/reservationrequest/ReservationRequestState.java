@@ -76,39 +76,9 @@ public enum ReservationRequestState
      *
      * @param allocated sets the {@link #allocated}
      */
-    private ReservationRequestState(boolean allocated)
+    ReservationRequestState(boolean allocated)
     {
         this.allocated = allocated;
-    }
-
-    /**
-     * @return {@link #allocated}
-     */
-    public boolean isAllocated()
-    {
-        return allocated;
-    }
-
-    public String getMessage(MessageSource messageSource, Locale locale, SpecificationType specificationType)
-    {
-        return messageSource.getMessage(
-                "views.reservationRequest.state." + specificationType + "." + this, null, locale);
-    }
-
-    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType,
-            String reservationId)
-    {
-        String helpMessage = "views.reservationRequest.stateHelp." + specificationType + "." +  this;
-        if (this.equals(FAILED) && reservationId != null) {
-            return messageSource.getMessage(helpMessage + ".hasReservation", null, locale);
-        }
-        return messageSource.getMessage(helpMessage, null, locale);
-    }
-
-    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType)
-    {
-        String helpMessageCode = "views.reservationRequest.stateHelp." + specificationType + "." +  this;
-        return messageSource.getMessage(helpMessageCode, null, locale);
     }
 
     public static ReservationRequestState fromApi(ReservationRequestSummary reservationRequest)
@@ -185,5 +155,35 @@ public enum ReservationRequestState
             default:
                 return NOT_ALLOCATED;
         }
+    }
+
+    /**
+     * @return {@link #allocated}
+     */
+    public boolean isAllocated()
+    {
+        return allocated;
+    }
+
+    public String getMessage(MessageSource messageSource, Locale locale, SpecificationType specificationType)
+    {
+        return messageSource.getMessage(
+                "views.reservationRequest.state." + specificationType + "." + this, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType,
+            String reservationId)
+    {
+        String helpMessage = "views.reservationRequest.stateHelp." + specificationType + "." + this;
+        if (this.equals(FAILED) && reservationId != null) {
+            return messageSource.getMessage(helpMessage + ".hasReservation", null, locale);
+        }
+        return messageSource.getMessage(helpMessage, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType)
+    {
+        String helpMessageCode = "views.reservationRequest.stateHelp." + specificationType + "." + this;
+        return messageSource.getMessage(helpMessageCode, null, locale);
     }
 }

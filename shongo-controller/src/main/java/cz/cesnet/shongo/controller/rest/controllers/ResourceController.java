@@ -20,7 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
@@ -33,7 +36,8 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 @Slf4j
 @RestController
 @RequestMapping(ClientWebUrl.RESOURCES)
-public class ResourceController {
+public class ResourceController
+{
 
     private final Cache cache;
     private final ResourceService resourceService;

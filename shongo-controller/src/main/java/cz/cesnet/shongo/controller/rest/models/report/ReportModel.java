@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.rest.models.report;
 
-import cz.cesnet.shongo.controller.api.SecurityToken;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

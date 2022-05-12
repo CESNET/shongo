@@ -36,7 +36,8 @@ public class ErrorHandler
      * @param content
      * @return result
      */
-    public void sendEmailToAdministrator(String replyTo, String subject, String content) throws MessagingException {
+    public void sendEmailToAdministrator(String replyTo, String subject, String content) throws MessagingException
+    {
         Collection<String> administratorEmails = configuration.getAdministratorEmails();
         if (administratorEmails.size() == 0) {
             log.warn("Administrator email for sending error reports is not configured.");
@@ -46,7 +47,8 @@ public class ErrorHandler
         try {
             EmailSender.Email email = new EmailSender.Email(administratorEmails, replyTo, subject, content);
             controller.getEmailSender().sendEmail(email);
-        } catch (MessagingException e) {
+        }
+        catch (MessagingException e) {
             log.error("Failed to send email '" + subject + "':\n" + content, e);
             throw e;
         }

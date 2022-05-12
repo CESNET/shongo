@@ -12,7 +12,8 @@ import java.util.List;
  * @author Filip Karnis
  */
 @Data
-public class RoomAuthorizedData {
+public class RoomAuthorizedData
+{
 
     private String pin;
     private String adminPin;
@@ -20,7 +21,8 @@ public class RoomAuthorizedData {
     private Boolean allowGuests;
     private List<Alias> aliases;
 
-    public RoomAuthorizedData(AbstractRoomExecutable roomExecutable) {
+    public RoomAuthorizedData(AbstractRoomExecutable roomExecutable)
+    {
         pin = roomExecutable.getPin();
         adminPin = roomExecutable.getAdminPin();
         guestPin = roomExecutable.getGuestPin();

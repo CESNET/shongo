@@ -21,10 +21,12 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig extends WebSecurityConfigurerAdapter
+{
 
     @Override
-    public void configure(WebSecurity web) {
+    public void configure(WebSecurity web)
+    {
         web.ignoring()
                 .antMatchers("/domain/**")
                 .antMatchers("/v3/api-docs")
@@ -33,7 +35,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    protected void configure(HttpSecurity http) throws Exception
+    {
         http.cors().and().csrf().disable();
         AuthFilter authFilter = new AuthFilter();
         http.addFilterAt(authFilter, BasicAuthenticationFilter.class)
@@ -45,7 +48,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource()
+    {
         CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
         configuration.setAllowedMethods(List.of(CorsConfiguration.ALL));
         configuration.setAllowedOrigins(allowedOrigins());
@@ -54,7 +58,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    private List<String> allowedOrigins() {
+    private List<String> allowedOrigins()
+    {
         return Controller.getInstance().getConfiguration().getRESTApiAllowedOrigins();
     }
 }

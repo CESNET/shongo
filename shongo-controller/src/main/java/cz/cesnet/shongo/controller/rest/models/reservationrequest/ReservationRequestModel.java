@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 
 import java.util.Map;
@@ -20,7 +19,8 @@ import java.util.Set;
  */
 @Data
 @NoArgsConstructor
-public class ReservationRequestModel {
+public class ReservationRequestModel
+{
 
     private String id;
     private String description;
@@ -53,7 +53,7 @@ public class ReservationRequestModel {
         this.state = ReservationRequestState.fromApi(summary);
         this.ownerName = ownerInformation.getFullName();
         this.ownerEmail = ownerInformation.getEmail();
-        this.slot = new TimeInterval(summary.getEarliestSlot());
+        this.slot = TimeInterval.fromApi(summary.getEarliestSlot());
         this.type = SpecificationType.fromReservationRequestSummary(summary, true);
         this.virtualRoomData = new VirtualRoomModel(summary);
         this.physicalResourceData = PhysicalResourceData.fromApi(resourceSummary);

@@ -12,7 +12,8 @@ import java.util.List;
  * @author Filip Karnis
  */
 @Data
-public class PeriodicityModel {
+public class PeriodicityModel
+{
 
     /**
      * Type of the period

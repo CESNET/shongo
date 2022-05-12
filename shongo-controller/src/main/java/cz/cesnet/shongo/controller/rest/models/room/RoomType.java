@@ -13,15 +13,11 @@ import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
  */
 public enum RoomType
 {
-    /**
-     * Ad-hoc room.
-     */
-    ADHOC_ROOM,
 
     /**
      * Permanent room.
      */
-    PERMANENT_ROOM,
+    VIRTUAL_ROOM,
 
     /**
      * Used room.
@@ -35,12 +31,7 @@ public enum RoomType
     public static RoomType fromExecutableSummary(ExecutableSummary executableSummary)
     {
         if (executableSummary.getType().equals(ExecutableSummary.Type.ROOM)) {
-            if (executableSummary.getRoomLicenseCount() == 0) {
-                return PERMANENT_ROOM;
-            }
-            else {
-                return ADHOC_ROOM;
-            }
+            return VIRTUAL_ROOM;
         }
         else if (executableSummary.getType().equals(ExecutableSummary.Type.USED_ROOM)) {
             return USED_ROOM;
@@ -57,12 +48,7 @@ public enum RoomType
     public static RoomType fromRoomExecutable(AbstractRoomExecutable roomExecutable)
     {
         if (roomExecutable instanceof RoomExecutable) {
-            if (roomExecutable.getLicenseCount() == 0) {
-                return PERMANENT_ROOM;
-            }
-            else {
-                return ADHOC_ROOM;
-            }
+            return VIRTUAL_ROOM;
         }
         else if (roomExecutable instanceof UsedRoomExecutable) {
             return USED_ROOM;
