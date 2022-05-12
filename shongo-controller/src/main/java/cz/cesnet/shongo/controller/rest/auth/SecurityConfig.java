@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.rest.auth;
 
+import cz.cesnet.shongo.controller.Controller;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,8 +48,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
         configuration.setAllowedMethods(List.of(CorsConfiguration.ALL));
+        configuration.setAllowedOrigins(allowedOrigins());
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> allowedOrigins() {
+        return Controller.getInstance().getConfiguration().getRESTApiAllowedOrigins();
     }
 }

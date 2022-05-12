@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Configuration for the {@link Controller}.
@@ -67,6 +68,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String REST_API = "rest-api";
     public static final String REST_API_HOST = "rest-api.host";
     public static final String REST_API_PORT = "rest-api.port";
+    public static final String REST_API_ORIGIN = "rest-api.origin";
     public static final String REST_API_SSL_KEY_STORE = REST_API + ".ssl-key-store";
     public static final String REST_API_SSL_KEY_STORE_TYPE = REST_API + ".ssl-key-store-type";
     public static final String REST_API_SSL_KEY_STORE_PASSWORD = REST_API + ".ssl-key-store-password";
@@ -529,6 +531,14 @@ public class ControllerConfiguration extends CombinedConfiguration
     {
         Integer port = getInteger(ControllerConfiguration.REST_API_PORT, null);
         return port != null ? port : 9999;
+    }
+
+    /**
+     * @return list of allowed origins for CORS configuration.
+     */
+    public synchronized List<String> getRESTApiAllowedOrigins()
+    {
+        return getList(REST_API_ORIGIN).stream().map(origin -> (String) origin).collect(Collectors.toList());
     }
 
     public String getRESTApiSslKeyStore()
