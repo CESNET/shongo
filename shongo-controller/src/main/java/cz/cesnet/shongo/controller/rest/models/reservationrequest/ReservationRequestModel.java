@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -11,6 +12,8 @@ import org.joda.time.DateTime;
 
 import java.util.Map;
 import java.util.Set;
+
+import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATTERN;
 
 /**
  * Represents reservation request.
@@ -24,6 +27,7 @@ public class ReservationRequestModel
 
     private String id;
     private String description;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ISO_8601_PATTERN)
     private DateTime createdAt;
     private String parentRequestId;
     private ReservationRequestState state;

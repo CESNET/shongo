@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
@@ -34,6 +35,8 @@ import org.joda.time.*;
 
 import java.util.*;
 
+import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATTERN;
+
 /**
  * Model for {@link AbstractReservationRequest}.
  *
@@ -59,6 +62,7 @@ public class ReservationRequestCreateModel
 
     protected ReservationRequestPurpose purpose = ReservationRequestPurpose.USER;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ISO_8601_PATTERN)
     protected DateTime dateTime;
 
     protected TechnologyModel technology;

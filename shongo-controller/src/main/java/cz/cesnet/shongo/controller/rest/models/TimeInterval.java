@@ -9,7 +9,7 @@ import org.joda.time.Interval;
 public class TimeInterval
 {
 
-    private static final String ISO_8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static final String ISO_8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ISO_8601_PATTERN)
     private DateTime start;
