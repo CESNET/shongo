@@ -75,7 +75,7 @@ public class ResourceController
         return accessibleResources.getItems()
                 .stream()
                 .map(resourceSummary -> {
-                    // TODO hasCapacity
+                    // Find out whether the resource has capacity
                     Resource resource = resourceService.getResource(securityToken, resourceSummary.getId());
                     return new ResourceModel(resourceSummary, !resource.getCapabilities().isEmpty());
                 })
@@ -105,8 +105,8 @@ public class ResourceController
         Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
                 resourcesUtilization.getUtilization(new Interval(intervalFrom, intervalTo), period);
         List<ResourceUtilizationModel> items = new ArrayList<>();
-        utilization.forEach((interval, resourceCapacityUtilizations) -> {
-            items.add(ResourceUtilizationModel.fromApi(interval, resourceCapacityUtilizations));
+        utilization.forEach((interval, resourceCapacityUtilization) -> {
+            items.add(ResourceUtilizationModel.fromApi(interval, resourceCapacityUtilization));
         });
         return ListResponse.fromRequest(start, count, items);
     }
@@ -119,7 +119,6 @@ public class ResourceController
     ResourceUtilizationDetailModel getResourceUtilization(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable("id") String resourceId,
-            @RequestParam String resource,
             @RequestParam(value = "interval_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalFrom,
             @RequestParam(value = "interval_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalTo)
             throws ClassNotFoundException
@@ -142,6 +141,6 @@ public class ResourceController
                 ).collect(Collectors.toList())
                 : Collections.emptyList();
         return ResourceUtilizationDetailModel.fromApi(
-                resourceCapacityUtilization, roomCapacity, new Interval(intervalFrom, intervalTo), reservations);
+                resourceCapacityUtilization, roomCapacity, reservations);
     }
 }

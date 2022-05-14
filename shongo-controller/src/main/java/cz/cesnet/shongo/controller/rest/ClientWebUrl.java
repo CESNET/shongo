@@ -17,8 +17,8 @@ public class ClientWebUrl
     public static final String GROUPS_DETAIL = "/groups/{groupId:.+}";
 
     public static final String RESOURCES = API_PREFIX + "/resources";
-    public static final String CAPACITY_UTILIZATION = "/capacity_utilizations";
-    public static final String CAPACITY_UTILIZATION_DETAIL = "/{id}/capacity_utilizations";
+    public static final String CAPACITY_UTILIZATION = "/capacity_utilization";
+    public static final String CAPACITY_UTILIZATION_DETAIL = "/{id}/capacity_utilization";
 
     public static final String RESERVATION_REQUESTS = API_PREFIX + "/reservation_requests";
     public static final String RESERVATION_REQUESTS_ACCEPT = ID_SUFFIX + "/accept";

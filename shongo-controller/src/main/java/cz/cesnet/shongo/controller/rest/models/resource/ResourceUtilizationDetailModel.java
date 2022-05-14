@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.rest.models.resource;
 
-import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
-import org.joda.time.Interval;
 
 import java.util.List;
 
@@ -14,13 +12,11 @@ public class ResourceUtilizationDetailModel
     private String name;
     private int totalCapacity;
     private int usedCapacity;
-    private TimeInterval interval;
     private List<ReservationModel> reservations;
 
     public static ResourceUtilizationDetailModel fromApi(
             ResourceCapacityUtilization resourceCapacityUtilization,
             ResourceCapacity.Room roomCapacity,
-            Interval interval,
             List<ReservationModel> reservations)
     {
         int licenseCount = (resourceCapacityUtilization != null)
@@ -32,7 +28,6 @@ public class ResourceUtilizationDetailModel
         resourceUtilizationDetailModel.setName(roomCapacity.getResourceName());
         resourceUtilizationDetailModel.setTotalCapacity(roomCapacity.getLicenseCount());
         resourceUtilizationDetailModel.setUsedCapacity(licenseCount);
-        resourceUtilizationDetailModel.setInterval(TimeInterval.fromApi(interval));
         resourceUtilizationDetailModel.setReservations(reservations);
         return resourceUtilizationDetailModel;
     }
