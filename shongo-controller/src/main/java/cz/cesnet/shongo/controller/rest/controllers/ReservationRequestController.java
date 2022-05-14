@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -45,7 +46,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
-import static cz.cesnet.shongo.controller.rest.models.TimeInterval.DATETIME_FORMATTER;
 
 /**
  * Rest controller for reservation request endpoints.
@@ -86,8 +86,10 @@ public class ReservationRequestController
             @RequestParam(value = "allocation_state", required = false) AllocationState allocationState,
             @RequestParam(value = "parentRequestId", required = false) String permanentRoomId,
             @RequestParam(value = "technology", required = false) TechnologyModel technology,
-            @RequestParam(value = "interval_from", required = false) String fromParam,
-            @RequestParam(value = "interval_to", required = false) String toParam,
+            @RequestParam(value = "interval_from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalFrom,
+            @RequestParam(value = "interval_to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalTo,
             @RequestParam(value = "user_id", required = false) String userId,
             @RequestParam(value = "participant_user_id", required = false) String participantUserId,
             @RequestParam(value = "search", required = false) String search,
@@ -129,14 +131,6 @@ public class ReservationRequestController
             request.setSpecificationTechnologies(technology.getTechnologies());
         }
 
-        DateTime intervalFrom = null;
-        DateTime intervalTo = null;
-        if (fromParam != null) {
-            intervalFrom = DATETIME_FORMATTER.parseDateTime(fromParam);
-        }
-        if (toParam != null) {
-            intervalTo = DATETIME_FORMATTER.parseDateTime(toParam);
-        }
         if (intervalFrom != null || intervalTo != null) {
             if (intervalFrom == null) {
                 intervalFrom = Temporal.DATETIME_INFINITY_START;
