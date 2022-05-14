@@ -586,8 +586,8 @@ public class ReservationRequestCreateModel
 
         // Date/time slot and periodicity
         Period duration = null;
-        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
-            cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) abstractReservationRequest;
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             periodicity.setType(PeriodicDateTimeSlot.PeriodicityType.NONE);
             Interval slot = reservationRequest.getSlot();
             this.slot.setStart(slot.getStart());
@@ -1179,14 +1179,14 @@ public class ReservationRequestCreateModel
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
         if (specificationType == SpecificationType.VIRTUAL_ROOM) {
-            cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new ReservationRequest();
+            ReservationRequest reservationRequest = new ReservationRequest();
             PeriodicDateTimeSlot slot = slots.first();
             reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(Duration.standardDays(730)));
             abstractReservationRequest = reservationRequest;
         }
         else if (periodicity.getType() == PeriodicDateTimeSlot.PeriodicityType.NONE) {
             // Create single reservation request
-            cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new ReservationRequest();
+            ReservationRequest reservationRequest = new ReservationRequest();
             PeriodicDateTimeSlot slot = slots.first();
             reservationRequest.setSlot(slot.getStart(), slot.getStart().plus(slot.getDuration()));
             abstractReservationRequest = reservationRequest;
