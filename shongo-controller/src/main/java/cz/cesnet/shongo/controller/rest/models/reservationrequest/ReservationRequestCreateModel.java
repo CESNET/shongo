@@ -26,7 +26,6 @@ import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
-import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import cz.cesnet.shongo.util.SlotHelper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +96,7 @@ public class ReservationRequestCreateModel
 
     protected Integer participantCount;
 
-    protected String roomPin;
+    protected String userPin;
 
     protected String adminPin;
 
@@ -490,7 +489,7 @@ public class ReservationRequestCreateModel
                         try {
                             String pin = h323RoomSetting.getPin();
                             if (!pin.isEmpty()) {
-                                roomPin = String.valueOf(Integer.parseInt(pin));
+                                userPin = String.valueOf(Integer.parseInt(pin));
                             }
                         }
                         catch (NumberFormatException exception) {
@@ -500,7 +499,7 @@ public class ReservationRequestCreateModel
                 }
                 if (roomSetting instanceof AdobeConnectRoomSetting) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
-                    roomPin = adobeConnectRoomSetting.getPin();
+                    userPin = adobeConnectRoomSetting.getPin();
                     roomAccessMode = adobeConnectRoomSetting.getAccessMode();
                 }
                 if (roomSetting instanceof PexipRoomSetting) {
@@ -808,19 +807,19 @@ public class ReservationRequestCreateModel
             if (TechnologyModel.FREEPBX.equals(technology)) {
                 FreePBXRoomSetting freePBXRoomSetting = new FreePBXRoomSetting();
                 freePBXRoomSetting.setAdminPin(adminPin);
-                freePBXRoomSetting.setUserPin(roomPin);
+                freePBXRoomSetting.setUserPin(userPin);
                 roomSpecification.addRoomSetting(freePBXRoomSetting);
             }
 
-            if (TechnologyModel.H323_SIP.equals(technology) && roomPin != null) {
+            if (TechnologyModel.H323_SIP.equals(technology) && userPin != null) {
                 H323RoomSetting h323RoomSetting = new H323RoomSetting();
-                h323RoomSetting.setPin(roomPin);
+                h323RoomSetting.setPin(userPin);
                 roomSpecification.addRoomSetting(h323RoomSetting);
             }
             if (TechnologyModel.ADOBE_CONNECT.equals(technology)) {
                 AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
-                if (!Strings.isNullOrEmpty(roomPin)) {
-                    adobeConnectRoomSetting.setPin(roomPin);
+                if (!Strings.isNullOrEmpty(userPin)) {
+                    adobeConnectRoomSetting.setPin(userPin);
                 }
                 adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                 roomSpecification.addRoomSetting(adobeConnectRoomSetting);
@@ -1092,7 +1091,6 @@ public class ReservationRequestCreateModel
      * Add new participant.
      *
      * @param participant
-     * @param bindingResult
      */
     public boolean createParticipant(ParticipantModel participant, SecurityToken securityToken)
     {
@@ -1106,7 +1104,6 @@ public class ReservationRequestCreateModel
      *
      * @param participantId
      * @param participant
-     * @param bindingResult
      */
     public boolean modifyParticipant(String participantId, ParticipantModel participant, SecurityToken securityToken)
     {
