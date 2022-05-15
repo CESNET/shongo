@@ -4,6 +4,8 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Type of specification for a reservation request.
@@ -11,6 +13,8 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Filip Karnis
  */
+@Getter
+@AllArgsConstructor
 public enum SpecificationType
 {
     /**
@@ -52,18 +56,6 @@ public enum SpecificationType
      * Specifies whether it is physical resource.
      */
     private final boolean isPhysical;
-
-    /**
-     * Constructor.
-     *
-     * @param isRoom     sets the {@link #isRoom}
-     * @param isPhysical
-     */
-    SpecificationType(boolean isRoom, boolean isPhysical)
-    {
-        this.isRoom = isRoom;
-        this.isPhysical = isPhysical;
-    }
 
     /**
      * @param reservationRequestSummary
@@ -139,21 +131,5 @@ public enum SpecificationType
     {
         Controller controller = Controller.getInstance();
         return controller.getConfiguration();
-    }
-
-    /**
-     * @return {@link #isRoom}
-     */
-    public boolean isRoom()
-    {
-        return isRoom;
-    }
-
-    /**
-     * @return {@link #isPhysical}
-     */
-    public boolean isPhysical()
-    {
-        return isPhysical;
     }
 }

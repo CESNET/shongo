@@ -6,6 +6,11 @@ import lombok.Data;
 
 import java.util.Set;
 
+/**
+ * Represents {@link ResourceSummary}.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class ResourceModel
 {

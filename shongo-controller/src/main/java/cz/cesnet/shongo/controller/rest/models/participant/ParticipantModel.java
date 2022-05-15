@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.CommonModel;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
 /**
  * Model for {@link AbstractParticipant}.
@@ -15,11 +15,12 @@ import lombok.NoArgsConstructor;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Filip Karnis
  */
-@NoArgsConstructor
+@Data
 public class ParticipantModel
 {
 
     protected String id;
+
     private Type type;
 
     private String userId;
@@ -103,11 +104,6 @@ public class ParticipantModel
         return id == null || CommonModel.isNewId(id);
     }
 
-    public String getId()
-    {
-        return id;
-    }
-
     public void setNewId()
     {
         this.id = CommonModel.getNewId();
@@ -116,75 +112,6 @@ public class ParticipantModel
     public void setNullId()
     {
         this.id = null;
-    }
-
-    public Type getType()
-    {
-        return type;
-    }
-
-    public void setType(Type type)
-    {
-        this.type = type;
-    }
-
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    public String getEmail()
-    {
-        return email;
-    }
-
-    public void setEmail(String email)
-    {
-        this.email = email;
-    }
-
-    public String getOrganization()
-    {
-        return organization;
-    }
-
-    public void setOrganization(String organization)
-    {
-        this.organization = organization;
-    }
-
-    public ParticipantRole getRole()
-    {
-        return role;
-    }
-
-    public void setRole(ParticipantRole role)
-    {
-        this.role = role;
-    }
-
-    @Override
-    public String toString()
-    {
-        if (type == Type.USER) {
-            return String.format("UserParticipant(userId: %s, role: %s)", getUserId(), role);
-        }
-        return String.format("Participant(type: %s, role: %s)", type, role);
     }
 
     public enum Type

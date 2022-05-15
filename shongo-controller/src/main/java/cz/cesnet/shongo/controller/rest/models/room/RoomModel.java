@@ -7,7 +7,7 @@ import lombok.Data;
 import org.joda.time.Interval;
 
 /**
- * Represents room (executable).
+ * Represents {@link ExecutableSummary}.
  *
  * @author Filip Karnis
  */

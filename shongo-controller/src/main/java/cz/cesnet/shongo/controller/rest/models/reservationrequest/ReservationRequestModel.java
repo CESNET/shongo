@@ -16,7 +16,7 @@ import java.util.Set;
 import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATTERN;
 
 /**
- * Represents reservation request.
+ * Represents {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}.
  *
  * @author Filip Karnis
  */

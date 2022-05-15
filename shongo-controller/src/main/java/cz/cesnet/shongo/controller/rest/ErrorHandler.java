@@ -4,7 +4,6 @@ import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.mail.MessagingException;
 import java.util.Collection;
@@ -22,9 +21,9 @@ public class ErrorHandler
     private final Controller controller;
     private final ControllerConfiguration configuration;
 
-    public ErrorHandler(@Autowired Controller controller)
+    public ErrorHandler()
     {
-        this.controller = controller;
+        this.controller = Controller.getInstance();
         this.configuration = controller.getConfiguration();
     }
 

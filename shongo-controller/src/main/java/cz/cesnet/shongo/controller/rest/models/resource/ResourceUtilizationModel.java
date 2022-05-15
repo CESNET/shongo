@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a utilization of all {@link ResourceCapacity} in a specific interval.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class ResourceUtilizationModel
 {

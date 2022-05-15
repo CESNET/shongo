@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Represents authorized data for room (executable).
+ * Represents authorized data for {@link AbstractRoomExecutable}.
  *
  * @author Filip Karnis
  */

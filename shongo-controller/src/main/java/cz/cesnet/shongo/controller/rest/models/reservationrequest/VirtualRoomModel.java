@@ -8,6 +8,11 @@ import lombok.Data;
 
 import java.util.Set;
 
+/**
+ * Represents data about virtual room of {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary}.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class VirtualRoomModel
 {

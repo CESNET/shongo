@@ -5,6 +5,11 @@ import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
 
+/**
+ * Represents a {@link ReservationSummary}.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class ReservationModel
 {

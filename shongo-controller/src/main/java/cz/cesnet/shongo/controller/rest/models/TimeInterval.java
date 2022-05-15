@@ -5,6 +5,11 @@ import lombok.Data;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+/**
+ * Represents {@link Interval} for REST API.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class TimeInterval
 {

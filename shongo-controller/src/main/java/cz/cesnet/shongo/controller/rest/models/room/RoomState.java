@@ -2,15 +2,17 @@ package cz.cesnet.shongo.controller.rest.models.room;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ExecutableState;
-import org.springframework.context.MessageSource;
-
-import java.util.Locale;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Represents a room state.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Filip Karnis
  */
+@Getter
+@AllArgsConstructor
 public enum RoomState
 {
     /**
@@ -52,17 +54,6 @@ public enum RoomState
      * Specifies whether this state represents an available for participants to join room.
      */
     private final boolean isAvailable;
-
-    /**
-     * Constructor.
-     *
-     * @param isAvailable sets the {@link #isAvailable}
-     */
-    RoomState(boolean isStarted, boolean isAvailable)
-    {
-        this.isStarted = isStarted;
-        this.isAvailable = isAvailable;
-    }
 
     /**
      * @param roomState
@@ -108,33 +99,5 @@ public enum RoomState
     public static RoomState fromRoomState(ExecutableState roomState)
     {
         return fromRoomState(roomState, 1, null);
-    }
-
-    /**
-     * @return {@link #isStarted}
-     */
-    public boolean isStarted()
-    {
-        return isStarted;
-    }
-
-    /**
-     * @return {@link #isAvailable}
-     */
-    public boolean isAvailable()
-    {
-        return isAvailable;
-    }
-
-    public String getMessage(MessageSource messageSource, Locale locale, RoomType roomType)
-    {
-        return messageSource.getMessage(
-                "views.executable.roomState." + roomType + "." + this, null, locale);
-    }
-
-    public String getHelp(MessageSource messageSource, Locale locale, RoomType roomType)
-    {
-        return messageSource.getMessage(
-                "views.executable.roomStateHelp." + roomType + "." + this, null, locale);
     }
 }

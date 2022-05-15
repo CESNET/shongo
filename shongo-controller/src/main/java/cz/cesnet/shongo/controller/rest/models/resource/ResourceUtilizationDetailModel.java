@@ -4,6 +4,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Represents a utilization of {@link ResourceCapacity} in a specific interval.
+ *
+ * @author Filip Karnis
+ */
 @Data
 public class ResourceUtilizationDetailModel
 {

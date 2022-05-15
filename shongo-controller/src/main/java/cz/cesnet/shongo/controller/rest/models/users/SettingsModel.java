@@ -9,6 +9,11 @@ import org.joda.time.DateTimeZone;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Represents {@link UserSettings}.
+ *
+ * @author Filip Karnis
+ */
 @Data
 @NoArgsConstructor
 public class SettingsModel

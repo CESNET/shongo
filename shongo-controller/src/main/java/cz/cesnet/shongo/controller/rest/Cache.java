@@ -307,8 +307,7 @@ public class Cache
         if (objectPermissions == null) {
             Map<String, ObjectPermissionSet> permissionsByObject = authorizationService.listObjectPermissions(
                     new ObjectPermissionListRequest(securityToken, objectId));
-            objectPermissions = new HashSet<>();
-            objectPermissions.addAll(permissionsByObject.get(objectId).getObjectPermissions());
+            objectPermissions = new HashSet<>(permissionsByObject.get(objectId).getObjectPermissions());
             userState.objectPermissionsByObject.put(objectId, objectPermissions);
         }
         return objectPermissions;

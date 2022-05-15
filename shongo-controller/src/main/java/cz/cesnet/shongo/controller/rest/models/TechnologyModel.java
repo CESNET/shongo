@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.rest.models;
 
 import cz.cesnet.shongo.Technology;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +12,9 @@ import java.util.Set;
  * Technology of the alias/room reservation request or executable.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Filip Karnis
  */
+@Getter
 public enum TechnologyModel
 {
 
@@ -79,21 +82,5 @@ public enum TechnologyModel
             return PEXIP;
         }
         return null;
-    }
-
-    /**
-     * @return {@link #titleCode}
-     */
-    public String getTitleCode()
-    {
-        return titleCode;
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    public Set<Technology> getTechnologies()
-    {
-        return technologies;
     }
 }

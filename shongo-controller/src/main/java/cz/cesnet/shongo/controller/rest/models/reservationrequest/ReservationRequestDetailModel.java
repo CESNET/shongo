@@ -16,6 +16,8 @@ import java.util.Set;
 
 /**
  * Represents reservation request's detail info.
+ * It contains additional information about reservation request
+ * including {@link RoomAuthorizedData} and {@link List} {@link ReservationRequestHistoryModel}.
  *
  * @author Filip Karnis
  */
@@ -26,7 +28,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
     private AllocationState allocationState;
     private ExecutableState executableState;
-    private Boolean notifyParticipants; // TODO
+    private Boolean notifyParticipants;
     private RoomAuthorizedData authorizedData;
     private List<ReservationRequestHistoryModel> history;
 
