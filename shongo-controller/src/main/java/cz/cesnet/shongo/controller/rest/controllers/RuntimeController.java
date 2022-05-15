@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.rest.controllers;
 
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.MediaData;
 import cz.cesnet.shongo.api.RoomParticipant;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.ExecutionReport;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -12,6 +10,7 @@ import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.RoomCache;
+import cz.cesnet.shongo.controller.rest.models.runtimemanagement.RuntimeParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
@@ -52,13 +52,11 @@ public class RuntimeController
 
     @Operation(summary = "Lists reservation request runtime participants.")
     @GetMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS)
-    Map<String, Object> listRuntimeParticipants(
+    ListResponse<RuntimeParticipantModel> listRuntimeParticipants(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
-            @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
-            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
+            @RequestParam(required = false) Integer start,
+            @RequestParam(required = false) Integer count)
     {
         String executableId = cache.getExecutableId(securityToken, id);
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -69,33 +67,12 @@ public class RuntimeController
         catch (Exception exception) {
             log.warn("Failed to load participants", exception);
         }
-        ListResponse<RoomParticipant> response = ListResponse.fromRequest(start, count, roomParticipants);
-        List<Map> items = new LinkedList<>();
-        for (RoomParticipant roomParticipant : response.getItems()) {
-            UserInformation user = null;
-            String userId = roomParticipant.getUserId();
-            if (userId != null) {
-                user = cacheProvider.getUserInformation(userId);
-            }
-            Alias alias = roomParticipant.getAlias();
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", roomParticipant.getId());
-            item.put("name", (user != null ? user.getFullName() : roomParticipant.getDisplayName()));
-            item.put("alias", (alias != null ? alias.getValue() : null));
-            item.put("role", roomParticipant.getRole());
-            item.put("email", (user != null ? user.getPrimaryEmail() : null));
-            item.put("layout", roomParticipant.getLayout());
-            item.put("microphoneEnabled", roomParticipant.getMicrophoneEnabled());
-            item.put("microphoneLevel", roomParticipant.getMicrophoneLevel());
-            item.put("videoEnabled", roomParticipant.getVideoEnabled());
-            item.put("videoSnapshot", roomParticipant.isVideoSnapshot());
-            items.add(item);
-        }
-        Map<String, Object> data = new HashMap<>();
-        data.put("start", response.getStart());
-        data.put("count", response.getCount());
-        data.put("items", items);
-        return data;
+
+        List<RuntimeParticipantModel> items = roomParticipants
+                .stream()
+                .map(roomParticipant -> new RuntimeParticipantModel(roomParticipant, cacheProvider))
+                .collect(Collectors.toList());
+        return ListResponse.fromRequest(start, count, items);
     }
 
     @Operation(summary = "Takes snapshot of reservation request runtime participant.")
@@ -129,7 +106,7 @@ public class RuntimeController
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
             @PathVariable String participantId,
-            @RequestBody Map<String, Object> body)
+            @RequestBody RuntimeParticipantModel body)
     {
         String executableId = cache.getExecutableId(securityToken, id);
         RoomParticipant oldRoomParticipant = null;
@@ -138,10 +115,10 @@ public class RuntimeController
         }
 
         // Parse body
-        String name = (String) body.get("name");
-        Boolean microphoneEnabled = (Boolean) body.get("microphoneEnabled");
-        Integer microphoneLevel = (Integer) body.get("microphoneLevel");
-        Boolean videoEnabled = (Boolean) body.get("videoEnabled");
+        String name = body.getName();
+        Boolean microphoneEnabled = body.getMicrophoneEnabled();
+        Integer microphoneLevel = body.getMicrophoneLevel();
+        Boolean videoEnabled =  body.getVideoEnabled();
 
         RoomParticipant roomParticipant = new RoomParticipant(participantId);
         if (name != null) {
@@ -201,11 +178,9 @@ public class RuntimeController
             cache.clearExecutable(executableId);
         }
         else {
-//            Locale locale = userSession.getLocale();
             String errorCode = "startingFailed";
             if (result instanceof ExecutionReport) {
                 ExecutionReport executionReport = (ExecutionReport) result;
-//                log.warn("Start recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
                 log.warn("Start recording failed: {}", executionReport);
 
                 // Detect further error
@@ -237,10 +212,9 @@ public class RuntimeController
             cache.clearExecutable(executableId);
         }
         else {
-//            Locale locale = userSession.getLocale();
             if (result instanceof ExecutionReport) {
                 ExecutionReport executionReport = (ExecutionReport) result;
-//                log.warn("Stop recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
+                log.warn("Stop recording failed: {}", executionReport);
             }
         }
         cache.clearExecutable(executableId);
