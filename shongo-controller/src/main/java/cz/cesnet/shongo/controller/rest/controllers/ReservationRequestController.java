@@ -150,7 +150,8 @@ public class ReservationRequestController
             if (resource != null) {
                 resourceSummary = cache.getResourceSummary(securityToken, resource);
             }
-            return new ReservationRequestModel(item, permissionsByReservationRequestId, user, resourceSummary);
+            VirtualRoomModel virtualRoom = new VirtualRoomModel(item);
+            return new ReservationRequestModel(item, virtualRoom, permissionsByReservationRequestId, user, resourceSummary);
         }).collect(Collectors.toList()));
         listResponse.setStart(response.getStart());
         listResponse.setCount(response.getCount());
@@ -237,9 +238,17 @@ public class ReservationRequestController
         if (resourceId != null) {
             resourceSummary = cacheProvider.getResourceSummary(resourceId);
         }
+        VirtualRoomModel virtualRoomData = new VirtualRoomModel(summary);
+
+        // If the request is a ROOM_CAPACITY, then get virtual room data from the room
+        String virtualRoomId = summary.getReusedReservationRequestId();
+        if (virtualRoomId != null) {
+            ReservationRequestSummary summaryVirtualRoom = cache.getReservationRequestSummary(securityToken, virtualRoomId);
+            virtualRoomData = new VirtualRoomModel(summaryVirtualRoom);
+        }
 
         return new ReservationRequestDetailModel(
-                summary, permissionsByReservationRequestId, ownerInformation, authorizedData, history, resourceSummary
+                summary, virtualRoomData, permissionsByReservationRequestId, ownerInformation, authorizedData, history, resourceSummary
         );
     }
 
