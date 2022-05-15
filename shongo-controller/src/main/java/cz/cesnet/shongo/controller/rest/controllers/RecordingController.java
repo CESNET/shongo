@@ -8,16 +8,14 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.models.recording.RecordingModel;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import io.swagger.v3.oas.annotations.Operation;
-import org.joda.time.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
@@ -47,7 +45,7 @@ public class RecordingController
 
     @Operation(summary = "Lists reservation request recordings.")
     @GetMapping
-    Map<String, Object> listRequestRecordings(
+    ListResponse<RecordingModel> listRequestRecordings(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
             @RequestParam(value = "start", required = false) Integer start,
@@ -70,34 +68,9 @@ public class RecordingController
         request.setSortDescending(sortDescending);
 
         ListResponse<ResourceRecording> response = executableService.listExecutableRecordings(request);
-        List<Map> items = new LinkedList<>();
-        for (ResourceRecording recording : response.getItems()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", recording.getId());
-            item.put("resourceId", recording.getResourceId());
-            item.put("name", recording.getName());
-            item.put("description", recording.getDescription());
-            item.put("beginDate", recording.getBeginDate());
-            Duration duration = recording.getDuration();
-            if (duration == null || duration.isShorterThan(Duration.standardMinutes(1))) {
-                item.put("duration", null);
-            }
-            else {
-                item.put("duration", duration.toPeriod());
-            }
-            item.put("isPublic", recording.isPublic());
-            item.put("downloadUrl", recording.getDownloadUrl());
-            item.put("viewUrl", recording.getViewUrl());
-            item.put("editUrl", recording.getEditUrl());
-            item.put("filename", recording.getFileName());
-            items.add(item);
-        }
-        Map<String, Object> data = new HashMap<>();
-        data.put("start", response.getStart());
-        data.put("count", response.getCount());
-        data.put("items", items);
 
-        return data;
+        List<RecordingModel> items = response.getItems().stream().map(RecordingModel::new).collect(Collectors.toList());
+        return ListResponse.fromRequest(response.getStart(), response.getCount(), items);
     }
 
     @Operation(summary = "Deletes recording from reservation request.")
