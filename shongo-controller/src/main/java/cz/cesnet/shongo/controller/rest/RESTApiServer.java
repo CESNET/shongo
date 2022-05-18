@@ -81,7 +81,8 @@ public class RESTApiServer
         http_config.setSecurePort(configuration.getRESTApiPort());
         ServerConnector serverConnector;
 
-        if (configuration.hasRESTApiPKI()) {
+        final String sslKeyStore = configuration.getRESTApiSslKeyStore();
+        if (sslKeyStore != null) {
             http_config.setSecureScheme(HttpScheme.HTTPS.asString());
 
             final HttpConfiguration https_config = new HttpConfiguration(http_config);
@@ -89,9 +90,12 @@ public class RESTApiServer
 
             final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 
-            sslContextFactory.setKeyStorePath(configuration.getRESTApiSslKeyStore());
-            sslContextFactory.setKeyStoreType(configuration.getRESTApiSslKeyStoreType());
+            sslContextFactory.setKeyStorePath(sslKeyStore);
             sslContextFactory.setKeyStorePassword(configuration.getRESTApiSslKeyStorePassword());
+            String keystoreType = configuration.getRESTApiSslKeyStoreType();
+            if (!Strings.isNullOrEmpty(keystoreType)) {
+                sslContextFactory.setKeyStoreType(configuration.getRESTApiSslKeyStoreType());
+            }
 
             if (configuration.isInterDomainConfigured()) {
                 KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
