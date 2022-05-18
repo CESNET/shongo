@@ -16,7 +16,10 @@ import org.postgresql.util.Base64;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -275,7 +278,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
-
      * @return timeout to receive response when performing commands from agent
      */
     public Duration getJadeCommandTimeout()
@@ -311,15 +313,21 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return XML-RPC url
      */
-    public URL getRpcUrl() throws MalformedURLException {
+    public URL getRpcUrl() throws MalformedURLException
+    {
         int rpcPort;
 
         try {
             rpcPort = getRpcPort();
-        } catch (NoSuchElementException e) {
+        }
+        catch (NoSuchElementException e) {
             rpcPort = 8181;
         }
-        String urlString = String.format("http://%s:%d", getRpcHost(false), rpcPort);
+        String scheme = (getRpcSslKeyStore() != null) ? "https" : "http";
+        String rpcHost = getRpcHost(true);
+        String urlString = (rpcHost != null)
+                ? String.format("%s://%s:%d", scheme, rpcHost, rpcPort)
+                : String.format("%s://%s:%d", scheme, getRESTApiHost(), rpcPort);
         return new URL(urlString);
     }
 
@@ -550,22 +558,21 @@ public class ControllerConfiguration extends CombinedConfiguration
         return sslKeyStore;
     }
 
-    public String getRESTApiSslKeyStoreType() {
+    public String getRESTApiSslKeyStoreType()
+    {
         return getString(ControllerConfiguration.REST_API_SSL_KEY_STORE_TYPE);
     }
 
-    public String getRESTApiSslKeyStorePassword() {
+    public String getRESTApiSslKeyStorePassword()
+    {
         return getString(ControllerConfiguration.REST_API_SSL_KEY_STORE_PASSWORD);
     }
 
     public boolean hasRESTApiPKI()
     {
-        if (Strings.isNullOrEmpty(getRESTApiSslKeyStore())
-                || Strings.isNullOrEmpty(getRESTApiSslKeyStoreType())
-                || Strings.isNullOrEmpty(getRESTApiSslKeyStorePassword())) {
-            return false;
-        }
-        return true;
+        return !Strings.isNullOrEmpty(getRESTApiSslKeyStore())
+                && !Strings.isNullOrEmpty(getRESTApiSslKeyStoreType())
+                && !Strings.isNullOrEmpty(getRESTApiSslKeyStorePassword());
     }
 
     /**
@@ -626,21 +633,24 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return name of tag for meeting rooms
      */
-    public String getMeetingRoomTagName() {
+    public String getMeetingRoomTagName()
+    {
         return getString(MEETING_ROOM_TAG);
     }
 
     /**
      * @return name of tag for cars
      */
-    public String getVehicleTagName() {
+    public String getVehicleTagName()
+    {
         return getString(VEHICLE_TAG);
     }
 
     /**
      * @return name of tag for parking places
      */
-    public String getParkingPlaceTagName() {
+    public String getParkingPlaceTagName()
+    {
         return getString(PARKING_PLACE_TAG);
     }
 }
