@@ -33,6 +33,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -993,10 +994,10 @@ public class ServerAuthorization extends Authorization
     private static UserData createUserDataFromWebServiceData(JsonNode data)
     {
         // Required fields
-        if (!data.has("id")) {
+        if (!data.has("sub")) {
             throw new IllegalArgumentException("User data must contain identifier.");
         }
-        if (!data.has("first_name") || !data.has("last_name")) {
+        if (!data.has("given_name") || !data.has("family_name")) {
             throw new IllegalArgumentException("User data must contain given and family name.");
         }
 
@@ -1004,23 +1005,23 @@ public class ServerAuthorization extends Authorization
 
         // Common user data
         UserInformation userInformation = userData.getUserInformation();
-        userInformation.setUserId(data.get("id").asText());
-        userInformation.setFirstName(data.get("first_name").asText());
-        userInformation.setLastName(data.get("last_name").asText());
+        userInformation.setUserId(data.get("sub").asText());
+        userInformation.setFirstName(data.get("given_name").asText());
+        userInformation.setLastName(data.get("family_name").asText());
         if (data.has("organization")) {
             JsonNode organization = data.get("organization");
             if (!organization.isNull()) {
                 userInformation.setOrganization(organization.asText());
             }
         }
-        if (data.has("mail")) {
-            JsonNode email = data.get("mail");
+        if (data.has("email")) {
+            JsonNode email = data.get("email");
             if (!email.isNull()) {
                 userInformation.setEmail(email.asText());
             }
         }
-        if (data.has("principal_names")) {
-            Iterator<JsonNode> principalNameIterator = data.get("principal_names").elements();
+        if (data.has("voperson_external_id")) {
+            Iterator<JsonNode> principalNameIterator = data.get("voperson_external_id").elements();
             while (principalNameIterator.hasNext()) {
                 JsonNode principalName = principalNameIterator.next();
                 userInformation.addPrincipalName(principalName.asText());
@@ -1028,8 +1029,8 @@ public class ServerAuthorization extends Authorization
         }
 
         // Additional user data
-        if (data.has("language")) {
-            JsonNode language = data.get("language");
+        if (data.has("locale")) {
+            JsonNode language = data.get("locale");
             if (!language.isNull()) {
                 Locale locale = new Locale(language.asText());
                 userData.setLocale(locale);
@@ -1061,6 +1062,21 @@ public class ServerAuthorization extends Authorization
             }
         }
 
+        // for OpenID Connect
+        if (data.has("isCesnetEligibleLastSeen")) {
+            DateTime dateTime;
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"));
+            try {
+                String date = data.get("isCesnetEligibleLastSeen").asText();
+                dateTime = new DateTime(mapper.readValue("\"" + date + "\"", Date.class));
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            userData.setUserAuthorizationData(
+                    new UserAuthorizationData(UserAuthorizationData.getLoaFromDate(dateTime)));
+        }
         // for AuthN Server v0.6.4 and newer
         if (data.has("authn_provider") && data.has("authn_instant") && data.has("loa")) {
             long instant = Long.valueOf(data.get("authn_instant").asText()) * 1000;

@@ -87,6 +87,8 @@ public class UserController
     public SettingsModel getUserSettings(@RequestAttribute(TOKEN) SecurityToken securityToken)
     {
         UserSettings settings = authorizationService.getUserSettings(securityToken);
+        // TODO: Find a better place to authorize the user as an administrator
+        authorizationService.updateUserSettings(securityToken, settings);
         List<SystemPermission> permissions = cache.getSystemPermissions(securityToken);
         return new SettingsModel(settings, permissions);
     }
