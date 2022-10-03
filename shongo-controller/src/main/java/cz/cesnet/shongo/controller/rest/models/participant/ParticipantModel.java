@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.CommonModel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Model for {@link AbstractParticipant}.
@@ -16,6 +17,7 @@ import lombok.Data;
  * @author Filip Karnis
  */
 @Data
+@NoArgsConstructor
 public class ParticipantModel
 {
 

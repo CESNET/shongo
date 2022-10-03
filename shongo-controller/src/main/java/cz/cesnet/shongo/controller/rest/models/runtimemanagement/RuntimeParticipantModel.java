@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents a {@link RoomParticipant}.
@@ -14,6 +15,7 @@ import lombok.Data;
  * @author Filip Karnis
  */
 @Data
+@NoArgsConstructor
 public class RuntimeParticipantModel
 {
 

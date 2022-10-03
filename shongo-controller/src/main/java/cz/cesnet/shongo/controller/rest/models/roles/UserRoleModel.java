@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.models.CommonModel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents entity's role for specified resource.
@@ -19,6 +20,7 @@ import lombok.Data;
  * @author Filip Karnis
  */
 @Data
+@NoArgsConstructor
 public class UserRoleModel
 {
     private String id;
