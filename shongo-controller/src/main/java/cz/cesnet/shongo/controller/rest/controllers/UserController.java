@@ -113,6 +113,7 @@ public class UserController
             userSettings.setHomeTimeZone(newSettings.getHomeTimeZone());
         }
         userSettings.setCurrentTimeZone(newSettings.getCurrentTimeZone());
+        userSettings.setAdministrationMode(newSettings.getAdministrationMode());
 
         authorizationService.updateUserSettings(securityToken, userSettings);
         cache.clearUserPermissions(securityToken);
