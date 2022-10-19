@@ -88,6 +88,32 @@ public class ReservationRequestController
             @RequestParam(value = "type", required = false) Set<ReservationType> reservationTypes,
             @RequestParam(value = "resource", required = false) String resourceId)
     {
+        if (reservationTypes == null) {
+            reservationTypes = new HashSet<>();
+        }
+
+        // room capacity does not have resource_id
+        // filter VIRTUAL_ROOMS by resource_id and then call recursively with parentRequestId
+        if (reservationTypes.contains(ReservationType.ROOM_CAPACITY) && resourceId != null) {
+            Set<ReservationType> virtualRoomReservationTypes = new HashSet<>(List.of(ReservationType.VIRTUAL_ROOM));
+            ListResponse<ReservationRequestModel> response = listRequests(securityToken, start, count, sort,
+                    sortDescending, allocationState, permanentRoomId, technology, intervalFrom, intervalTo, userId,
+                    participantUserId, search, virtualRoomReservationTypes, resourceId);
+
+            DateTime finalIntervalFrom = intervalFrom;
+            DateTime finalIntervalTo = intervalTo;
+            Set<ReservationType> capacityReservationTypes = new HashSet<>(List.of(ReservationType.ROOM_CAPACITY));
+            List<ReservationRequestModel> capacities = response.getItems()
+                    .stream()
+                    .map(room -> listRequests(securityToken, start, count, sort, sortDescending, allocationState,
+                            room.getId(), technology, finalIntervalFrom, finalIntervalTo, userId, participantUserId,
+                            search, capacityReservationTypes, null).getItems())
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+
+            return ListResponse.fromRequest(start, count, capacities);
+        }
+
         ReservationRequestListRequest request = new ReservationRequestListRequest();
 
         request.setSecurityToken(securityToken);
@@ -100,9 +126,6 @@ public class ReservationRequestController
         request.setSearch(search);
         request.setSpecificationResourceId(resourceId);
 
-        if (reservationTypes == null) {
-            reservationTypes = new HashSet<>();
-        }
         if (permanentRoomId != null) {
             request.setReusedReservationRequestId(permanentRoomId);
             reservationTypes.add(ReservationType.ROOM_CAPACITY);
