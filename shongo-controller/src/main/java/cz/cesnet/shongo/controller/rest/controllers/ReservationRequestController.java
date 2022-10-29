@@ -235,12 +235,6 @@ public class ReservationRequestController
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         ReservationRequestSummary summary = cache.getReservationRequestSummary(securityToken, id);
 
-        List<ReservationRequestHistoryModel> history =
-                reservationService.getReservationRequestHistory(securityToken, id)
-                        .stream()
-                        .map(item -> new ReservationRequestHistoryModel(item, cacheProvider))
-                        .collect(Collectors.toList());
-
         String roomId = cache.getExecutableId(securityToken, id);
         RoomAuthorizedData authorizedData = null;
         if (roomId != null) {
@@ -262,6 +256,29 @@ public class ReservationRequestController
             resourceSummary = cacheProvider.getResourceSummary(resourceId);
         }
         VirtualRoomModel virtualRoomData = new VirtualRoomModel(summary);
+
+        List<ReservationRequestSummary> historySummaries = reservationService.getReservationRequestHistory(securityToken, id);
+        Map<String, Set<ObjectPermission>> permissionsByReservationHistory =
+                cache.getReservationRequestsPermissions(securityToken, historySummaries);
+        List<ReservationRequestModel> history =
+                historySummaries
+                        .stream()
+                        .map(item -> {
+                            UserInformation user = cache.getUserInformation(securityToken, item.getUserId());
+                            String resource = item.getResourceId();
+                            ResourceSummary resourceSum = null;
+                            if (resource != null) {
+                                resourceSum = cacheProvider.getResourceSummary(resource);
+                            }
+                            return new ReservationRequestModel(
+                                    item,
+                                    new VirtualRoomModel(item),
+                                    permissionsByReservationHistory,
+                                    user,
+                                    resourceSum
+                            );
+                        })
+                        .collect(Collectors.toList());
 
         // If the request is a ROOM_CAPACITY, then get virtual room data from the room
         String virtualRoomId = summary.getReusedReservationRequestId();

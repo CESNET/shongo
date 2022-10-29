@@ -30,7 +30,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     private ExecutableState executableState;
     private Boolean notifyParticipants;
     private RoomAuthorizedData authorizedData;
-    private List<ReservationRequestHistoryModel> history;
+    private List<ReservationRequestModel> history;
 
     public ReservationRequestDetailModel(
             ReservationRequestSummary summary,
@@ -38,7 +38,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
             UserInformation ownerInformation,
             RoomAuthorizedData authorizedData,
-            List<ReservationRequestHistoryModel> history,
+            List<ReservationRequestModel> history,
             ResourceSummary resourceSummary)
     {
         super(summary, virtualRoom, permissionsByReservationRequestId, ownerInformation, resourceSummary);
