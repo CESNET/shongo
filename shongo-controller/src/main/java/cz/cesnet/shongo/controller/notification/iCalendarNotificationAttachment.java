@@ -43,8 +43,8 @@ public class iCalendarNotificationAttachment extends NotificationAttachment
      */
     public String getFileContent(String organizer, EntityManager entityManager)
     {
-        calendar.setOrganizer(organizer);
-        calendar.setSequence(NotificationState.getSequence(notificationState, entityManager));
+//        calendar.setOrganizer(organizer);
+//        calendar.setSequence(NotificationState.getSequence(notificationState, entityManager));
         return calendar.toString();
     }
 }

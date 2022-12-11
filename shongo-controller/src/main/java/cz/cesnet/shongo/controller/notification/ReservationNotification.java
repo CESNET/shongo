@@ -1,16 +1,21 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.util.iCalendar;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -28,6 +33,8 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private UserInformation user;
 
     private String id;
+
+    private UserInformation organizer;
 
     private Set<String> owners = new HashSet<String>();
 
@@ -52,6 +59,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
         this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, ObjectRole.OWNER).getUserIds());
+        this.organizer = authorizationManager.getUserInformation(reservation.getUserId());
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);
@@ -182,7 +190,76 @@ public abstract class ReservationNotification extends AbstractReservationRequest
                 renderContext.addParameter("roomRecorded", "yes");
             }
         }
-        return renderTemplateMessage(renderContext, titleBuilder.toString(), templateFileName);
+        NotificationMessage message = renderTemplateMessage(renderContext, titleBuilder.toString(), templateFileName);
+
+        ConfiguredRenderContext context = new ConfiguredRenderContext(configuration, "notification", manager);
+        // Add iCal to attachments
+        iCalendar calendar = new iCalendar();
+        //TODO: slouzi k pridavani priloh do mailu, presunout groupovani iCalu do vytvareni samotnych notifikaci
+        iCalendar.Method method;
+        if (this instanceof ReservationNotification.New) {
+            method = iCalendar.Method.CREATE;
+        }
+        else if (this instanceof ReservationNotification.Deleted) {
+            method = iCalendar.Method.CANCEL;
+        }
+        else {
+            throw new TodoImplementException(this.getClass());
+        }
+        final String summary = addEvent(calendar, context, method);
+        // TODO: ok to create new?
+        NotificationState notificationState = new NotificationState();
+        message.addAttachment(new iCalendarNotificationAttachment(summary + ".ics", calendar, notificationState));
+        return message;
+    }
+
+    private String addEvent(iCalendar iCalendar, RenderContext context, iCalendar.Method method)
+    {
+        Interval interval = slot;
+        String meetingDescription = getReservationRequestDescription();
+
+        String summary = target.getResourceName();
+        String location = target.getResourceName();
+        if (target instanceof Target.Room) {
+            Target.Room room = (Target.Room) target;
+            summary = room.getName();
+            for (Alias alias : room.getAliases()) {
+                AliasType aliasType = alias.getType();
+                if (AliasType.H323_E164.equals(aliasType)) {
+                    location = "Video: " + alias.getValue();
+                    break;
+                }
+                else if (AliasType.ADOBE_CONNECT_URI.equals(aliasType)) {
+                    location = "Web: " + alias.getValue();
+                    break;
+                }
+                else if (AliasType.FREEPBX_CONFERENCE_NUMBER.equals(aliasType)) {
+                    location = "Conference: " + alias.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (summary != null) {
+            summary = summary.replaceAll("[^a-zA-Z0-9]", "_");
+        }
+        else {
+            summary = context.message("reservation");
+        }
+
+        iCalendar.Event event = iCalendar.addEvent(LocalDomain.getLocalDomainName(), id, summary);
+        event.setInterval(interval, context.getTimeZone());
+        if (meetingDescription != null) {
+            event.setDescription(meetingDescription);
+        }
+        if (location != null) {
+            event.setLocation(location);
+        }
+        event.setOrganizer("mailto:" + organizer.getPrimaryEmail());
+        event.setOrganizerName(organizer.getFullName());
+
+        event.setMethod(method);
+        return summary;
     }
 
     /**
