@@ -30,21 +30,30 @@ public class iCalendarNotificationAttachment extends NotificationAttachment
         if (calendar == null) {
             throw new IllegalArgumentException(iCalendar.class.getSimpleName() + " must be not null.");
         }
-        if (notificationState == null) {
-            throw new IllegalArgumentException(NotificationState.class.getSimpleName() + " must be not null.");
-        }
         this.calendar = calendar;
         this.notificationState = notificationState;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param fileName sets the {@link #fileName}
+     * @param calendar sets the {@link #calendar}
+     */
+    public iCalendarNotificationAttachment(String fileName, iCalendar calendar)
+    {
+        this(fileName, calendar, null);
     }
 
     /**
      * @param organizer
      * @return file content
      */
-    public String getFileContent(String organizer, EntityManager entityManager)
+    public String getFileContent(EntityManager entityManager)
     {
-//        calendar.setOrganizer(organizer);
-//        calendar.setSequence(NotificationState.getSequence(notificationState, entityManager));
+        if (notificationState != null) {
+            calendar.setSequence(NotificationState.getSequence(notificationState, entityManager));
+        }
         return calendar.toString();
     }
 }

@@ -119,7 +119,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 byte[] byteFileContent= null;
                 if (attachment instanceof iCalendarNotificationAttachment) {
                     iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
-                    fileContent = calendarAttachment.getFileContent(emailSender.getSender(), entityManager);
+                    fileContent = calendarAttachment.getFileContent(entityManager);
                     email.addCalendarAttachment(fileName, fileContent);
                 }
                 else if (attachment instanceof PdfNotificationAttachment) {

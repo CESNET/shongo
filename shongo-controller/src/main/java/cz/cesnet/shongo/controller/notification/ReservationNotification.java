@@ -207,9 +207,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             throw new TodoImplementException(this.getClass());
         }
         addEvent(calendar, context, method);
-        // TODO: ok to create new?
-        NotificationState notificationState = new NotificationState();
-        message.addAttachment(new iCalendarNotificationAttachment("name.ics", calendar, notificationState));
+        message.addAttachment(new iCalendarNotificationAttachment("name.ics", calendar));
         logger.debug("iCalendar:\n{}", calendar);
         return message;
     }
