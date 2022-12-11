@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import com.google.common.net.MediaType;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,6 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.mail.*;
 import javax.mail.internet.*;
 import javax.mail.util.ByteArrayDataSource;
-import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -315,10 +313,10 @@ public class EmailSender
             return content;
         }
 
-        public void addAttachment(String fileName, String fileContent)
+        public void addCalendarAttachment(String fileName, String fileContent)
         {
             try {
-                DataSource dataSource = new ByteArrayDataSource(fileContent, "text/plain; charset=UTF-8");
+                DataSource dataSource = new ByteArrayDataSource(fileContent, "text/calendar; charset=UTF-8");
                 attachments.put(fileName, dataSource);
             }
             catch (IOException exception) {
