@@ -43,7 +43,7 @@ public class TestingNotificationExecutor extends NotificationExecutor
         });
         for (NotificationAttachment attachment : recipientMessage.getAttachments()) {
             iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
-            String fileContent = calendarAttachment.getFileContent("test", entityManager);
+            String fileContent = calendarAttachment.getFileContent(entityManager);
             logger.debug("ATTACHMENT {}:\n{}", attachment.getFileName(), fileContent);
         }
         notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
