@@ -86,15 +86,18 @@ public class ReservationRequestController
             @RequestParam(value = "participant_user_id", required = false) String participantUserId,
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "type", required = false) Set<ReservationType> reservationTypes,
-            @RequestParam(value = "resource", required = false) String resourceId)
+            @RequestParam(value = "resource", required = false) Set<String> resourceId)
     {
         if (reservationTypes == null) {
             reservationTypes = new HashSet<>();
         }
+        if (resourceId == null) {
+            resourceId = new HashSet<>();
+        }
 
         // room capacity does not have resource_id
         // filter VIRTUAL_ROOMS by resource_id and then call recursively with parentRequestId
-        if (reservationTypes.contains(ReservationType.ROOM_CAPACITY) && resourceId != null) {
+        if (reservationTypes.contains(ReservationType.ROOM_CAPACITY) && !resourceId.isEmpty()) {
             Set<ReservationType> virtualRoomReservationTypes = new HashSet<>(List.of(ReservationType.VIRTUAL_ROOM));
             ListResponse<ReservationRequestModel> response = listRequests(securityToken, start, count, sort,
                     sortDescending, allocationState, permanentRoomId, technology, intervalFrom, intervalTo, userId,
@@ -124,7 +127,7 @@ public class ReservationRequestController
         request.setAllocationState(allocationState);
         request.setParticipantUserId(participantUserId);
         request.setSearch(search);
-        request.setSpecificationResourceId(resourceId);
+        request.setSpecificationResourceIds(resourceId);
 
         if (permanentRoomId != null) {
             request.setReusedReservationRequestId(permanentRoomId);

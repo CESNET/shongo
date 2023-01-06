@@ -38,6 +38,7 @@ import org.joda.time.*;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link ReservationService}.
@@ -659,7 +660,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             requestListRequest.setInterval(reservationRequest.getSlot());
             requestListRequest.setIntervalDateOnly(false);
             requestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
-            requestListRequest.setSpecificationResourceId(resourceId);
+            requestListRequest.setSpecificationResourceIds(new HashSet<>(Collections.singleton(resourceId)));
 
             ListResponse<ReservationRequestSummary> listResponse = listOwnedResourcesReservationRequests(requestListRequest);
             try {
@@ -1102,11 +1103,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
 
                 // Filter specification resource id
-                String specificationResourceId = request.getSpecificationResourceId();
-                if (specificationResourceId != null) {
-                    queryFilter.addFilter("specification_summary.resource_id = :resource_id");
-                    queryFilter.addFilterParameter("resource_id",
-                            ObjectIdentifier.parseLocalId(specificationResourceId, ObjectType.RESOURCE));
+                Set<String> specificationResourceIds = request.getSpecificationResourceIds();
+                if (!specificationResourceIds.isEmpty()) {
+                    Set<Long> resourceIds = specificationResourceIds.stream()
+                            .map(id -> ObjectIdentifier.parseLocalId(id, ObjectType.RESOURCE))
+                            .collect(Collectors.toSet());
+                    queryFilter.addFilter("specification_summary.resource_id IN :resource_ids");
+                    queryFilter.addFilterParameter("resource_ids", resourceIds);
                 }
 
                 String reusedReservationRequestId = request.getReusedReservationRequestId();
@@ -1274,11 +1277,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // Filter specification resource id
-            String specificationResourceId = request.getSpecificationResourceId();
-            if (specificationResourceId != null) {
-                queryFilter.addFilter("specification_summary.resource_id = :resource_id");
-                queryFilter.addFilterParameter("resource_id",
-                        ObjectIdentifier.parseLocalId(specificationResourceId, ObjectType.RESOURCE));
+            Set<String> specificationResourceIds = request.getSpecificationResourceIds();
+            if (!specificationResourceIds.isEmpty()) {
+                Set<Long> resourceIds = specificationResourceIds.stream()
+                        .map(id -> ObjectIdentifier.parseLocalId(id, ObjectType.RESOURCE))
+                        .collect(Collectors.toSet());
+                queryFilter.addFilter("specification_summary.resource_id IN :resource_ids");
+                queryFilter.addFilterParameter("resource_ids", resourceIds);
             }
 
             // List only latest versions of a reservation requests (no it's modifications or deleted requests)

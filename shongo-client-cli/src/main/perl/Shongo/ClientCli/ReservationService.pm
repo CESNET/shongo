@@ -78,7 +78,7 @@ sub populate()
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
             options => 'technology=s search=s resource=s',
-            args => '[-technology <technologies>][-search <search>][-resource <resource-id>]',
+            args => '[-technology <technologies>][-search <search>][-resource <resource-ids>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -251,7 +251,11 @@ sub list_reservation_requests()
         }
     }
     if ( defined($options->{'resource'}) ) {
-        $request->{'specificationResourceId'} = $options->{'resource'};
+        $request->{'specificationResourceIds'} = [];
+        foreach my $resource (split(/,/, $options->{'resource'})) {
+            $resource =~ s/(^ +)|( +$)//g;
+            push(@{$request->{'specificationResourceIds'}}, $resource);
+        }
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Reservation.listReservationRequests', $request);

@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.HashSet;
@@ -45,9 +44,9 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     /**
      * Restricts the {@link ListResponse} to contain only reservation requests which have specification
-     * targeting resource with this identifier.
+     * targeting resource with one of these identifiers.
      */
-    private String specificationResourceId;
+    private Set<String> specificationResourceIds = new HashSet<>();
 
     /**
      * Restricts the {@link ListResponse} to contain only reservation requests which reuse reservation request with
@@ -212,19 +211,19 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     }
 
     /**
-     * @return {@link #specificationResourceId}
+     * @return {@link #specificationResourceIds}
      */
-    public String getSpecificationResourceId()
+    public Set<String> getSpecificationResourceIds()
     {
-        return specificationResourceId;
+        return specificationResourceIds;
     }
 
     /**
-     * @param specificationResourceId sets the {@link #specificationResourceId}
+     * @param specificationResourceIds sets the {@link #specificationResourceIds}
      */
-    public void setSpecificationResourceId(String specificationResourceId)
+    public void setSpecificationResourceIds(Set<String> specificationResourceIds)
     {
-        this.specificationResourceId = specificationResourceId;
+        this.specificationResourceIds = specificationResourceIds;
     }
 
     /**
@@ -377,7 +376,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String SPECIFICATION_TYPES = "specificationTypes";
     private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
-    private static final String SPECIFICATION_RESOURCE_ID = "specificationResourceId";
+    private static final String SPECIFICATION_RESOURCE_IDS = "specificationResourceIds";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String ALLOCATION_STATE = "allocationState";
     private static final String INTERVAL = "interval";
@@ -395,7 +394,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(SPECIFICATION_TYPES, specificationTypes);
         dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
-        dataMap.set(SPECIFICATION_RESOURCE_ID, specificationResourceId);
+        dataMap.set(SPECIFICATION_RESOURCE_IDS, specificationResourceIds);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(INTERVAL, interval);
@@ -416,7 +415,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         specificationTypes = (Set) dataMap.getSet(SPECIFICATION_TYPES,
                 ReservationRequestSummary.SpecificationType.class);
         specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
-        specificationResourceId = dataMap.getString(SPECIFICATION_RESOURCE_ID);
+        specificationResourceIds = dataMap.getSet(SPECIFICATION_RESOURCE_IDS, String.class);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         interval = dataMap.getInterval(INTERVAL);
