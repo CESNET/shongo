@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
@@ -99,14 +100,14 @@ public class ReservationRequestController
         // filter VIRTUAL_ROOMS by resource_id and then call recursively with parentRequestId
         if (reservationTypes.contains(ReservationType.ROOM_CAPACITY) && !resourceId.isEmpty()) {
             Set<ReservationType> virtualRoomReservationTypes = new HashSet<>(List.of(ReservationType.VIRTUAL_ROOM));
-            ListResponse<ReservationRequestModel> response = listRequests(securityToken, start, count, sort,
+            ListResponse<ReservationRequestModel> virtualRooms = listRequests(securityToken, start, count, sort,
                     sortDescending, allocationState, permanentRoomId, technology, intervalFrom, intervalTo, userId,
                     participantUserId, search, virtualRoomReservationTypes, resourceId);
 
             DateTime finalIntervalFrom = intervalFrom;
             DateTime finalIntervalTo = intervalTo;
             Set<ReservationType> capacityReservationTypes = new HashSet<>(List.of(ReservationType.ROOM_CAPACITY));
-            List<ReservationRequestModel> capacities = response.getItems()
+            List<ReservationRequestModel> response = virtualRooms.getItems()
                     .stream()
                     .map(room -> listRequests(securityToken, start, count, sort, sortDescending, allocationState,
                             room.getId(), technology, finalIntervalFrom, finalIntervalTo, userId, participantUserId,
@@ -114,7 +115,15 @@ public class ReservationRequestController
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
 
-            return ListResponse.fromRequest(start, count, capacities);
+            if (reservationTypes.size() > 1) {
+                reservationTypes.remove(ReservationType.ROOM_CAPACITY);
+                List<ReservationRequestModel> other = listRequests(securityToken, start, count, sort, sortDescending,
+                        allocationState, permanentRoomId, technology, intervalFrom, intervalTo, userId, participantUserId,
+                        search, reservationTypes, resourceId).getItems();
+                response.addAll(other);
+            }
+
+            return ListResponse.fromRequest(start, count, response);
         }
 
         ReservationRequestListRequest request = new ReservationRequestListRequest();
