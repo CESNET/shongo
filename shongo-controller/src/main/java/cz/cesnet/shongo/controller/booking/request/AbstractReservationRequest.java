@@ -12,6 +12,8 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
@@ -20,6 +22,7 @@ import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -114,6 +117,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
      */
     private ReservationRequestReusement reusement;
+
+    /**
+     * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
+     */
+    private String auxData;
 
     @Id
     @SequenceGenerator(name = "reservation_request_id", sequenceName = "reservation_request_id_seq", allocationSize = 1)
@@ -386,6 +394,24 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @return {@link #auxData}
+     */
+    @Type(type = "jsonb")
+    @Column(name = "aux_data", columnDefinition = "text")
+    public String getAuxData()
+    {
+        return auxData;
+    }
+
+    /**
+     * @param auxData sets the {@link #auxData}
+     */
+    public void setAuxData(String auxData)
+    {
+        this.auxData = auxData;
+    }
+
+    /**
      * Validate {@link AbstractReservationRequest}.
      *
      * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
@@ -448,6 +474,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         setReusedAllocation(reservationRequest.getReusedAllocation());
         setReusedAllocationMandatory(reservationRequest.isReusedAllocationMandatory());
         setReusement(reservationRequest.getReusement());
+        setAuxData(reservationRequest.getAuxData());
 
         Specification oldSpecification = getSpecification();
         Specification newSpecification = reservationRequest.getSpecification();
@@ -550,6 +577,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                     ObjectIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
         }
         api.setReusement(getReusement());
+        api.setAuxData(getAuxData());
 
         // Reservation request is deleted
         if (state.equals(State.DELETED)) {
@@ -604,6 +632,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         }
         setReusedAllocationMandatory(api.isReusedReservationRequestMandatory());
         setReusement(api.getReusement());
+        setAuxData(api.getAuxData());
     }
 
     /**

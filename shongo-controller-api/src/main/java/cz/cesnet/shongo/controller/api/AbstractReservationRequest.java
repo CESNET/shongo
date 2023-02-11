@@ -76,6 +76,11 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private boolean isSchedulerDeleted = false;
 
     /**
+     * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
+     */
+    private String auxData;
+
+    /**
      * Constructor.
      */
     public AbstractReservationRequest()
@@ -291,6 +296,22 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         this.isSchedulerDeleted = isSchedulerDeleted;
     }
 
+    /**
+     * @return {@link #auxData}
+     */
+    public String getAuxData()
+    {
+        return auxData;
+    }
+
+    /**
+     * @param auxData sets the {@link #auxData}
+     */
+    public void setAuxData(String auxData)
+    {
+        this.auxData = auxData;
+    }
+
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
     private static final String USER_ID = "userId";
@@ -303,6 +324,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private static final String REUSED_RESERVATION_REQUEST_MANDATORY = "reusedReservationRequestMandatory";
     private static final String REUSEMENT = "reusement";
     private static final String IS_SCHEDULER_DELETED = "isSchedulerDeleted";
+    public static final String AUX_DATA = "auxData";
 
     @Override
     public DataMap toData()
@@ -320,6 +342,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         dataMap.set(REUSED_RESERVATION_REQUEST_MANDATORY, reusedReservationRequestMandatory);
         dataMap.set(REUSEMENT, reusement);
         dataMap.set(IS_SCHEDULER_DELETED, isSchedulerDeleted);
+        dataMap.set(AUX_DATA, auxData);
         return dataMap;
     }
 
@@ -339,5 +362,6 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         reusedReservationRequestMandatory = dataMap.getBool(REUSED_RESERVATION_REQUEST_MANDATORY);
         reusement = dataMap.getEnum(REUSEMENT, ReservationRequestReusement.class);
         isSchedulerDeleted = dataMap.getBool(IS_SCHEDULER_DELETED);
+        auxData = dataMap.getString(AUX_DATA);
     }
 }

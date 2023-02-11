@@ -89,6 +89,10 @@ sub new()
             'OWNED' => 'Owned'
         )
     });
+    $self->add_attribute('auxData', {
+        'title' => 'Auxiliary data',
+        'optional' => 1,
+    });
 
     return $self;
 }
