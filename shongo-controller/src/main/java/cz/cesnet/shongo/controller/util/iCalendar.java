@@ -9,6 +9,8 @@ import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.*;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 import java.util.LinkedList;
@@ -23,6 +25,14 @@ import java.util.List;
  */
 public class iCalendar
 {
+
+    private static final Logger logger = LoggerFactory.getLogger(iCalendar.class);
+
+    /**
+     * Default time zone id.
+     */
+    private static final String DEFAULT_TIME_ZONE_ID = "Europe/Prague";
+
     /**
      * @see net.fortuna.ical4j.model.Calendar
      */
@@ -167,7 +177,8 @@ public class iCalendar
     {
         TimeZone timezone = timeZoneRegistry.getTimeZone(dateTimeZone.getID());
         if (timezone == null) {
-            throw new IllegalArgumentException("Unknown timezone " + dateTimeZone);
+            logger.info("Unknown timezone {}. Using default timezone {}.", dateTimeZone, DEFAULT_TIME_ZONE_ID);
+            timezone = timeZoneRegistry.getTimeZone(DEFAULT_TIME_ZONE_ID);
         }
         return timezone.getVTimeZone();
     }

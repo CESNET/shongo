@@ -58,6 +58,20 @@ public class iCalendarTest
         finish("delete", calendar);
     }
 
+    @Test
+    public void testUnknownTimezone() throws Exception
+    {
+        iCalendar calendar = new iCalendar();
+        calendar.setMethod(iCalendar.Method.CREATE);
+        iCalendar.Event event = calendar.addEvent(DOMAIN, EVENT_ID, "Testing meeting 3");
+        event.setOrganizer(ORGANIZER);
+        event.setSequence(0);
+        event.setDescription("description");
+        event.setInterval(Interval.parse("2014-02-11T17:30/2014-02-11T18:30"), DateTimeZone.forID("CET"));
+        event.addAttendee("Martin Srom", ATTENDEE);
+        finish("create", calendar);
+    }
+
     private void finish(String subject, iCalendar calendar) throws Exception
     {
         System.out.println(calendar);
