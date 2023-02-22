@@ -181,7 +181,8 @@ public class SchedulerContextTest
      * @param array
      * @return set from array
      */
-    private <T> Set<T> buildSet(T... array)
+    @SafeVarargs
+    private final <T> Set<T> buildSet(T... array)
     {
         Set<T> set = new HashSet<T>();
         for (T item : array) {

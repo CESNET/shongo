@@ -6,6 +6,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <tag:url var="reservationRequestConfirmationDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CONFIRMATION_DATA %>">
     <tag:param name="count" value="10"/>

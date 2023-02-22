@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.controller.api.domains.response.AbstractResponse;
-import cz.cesnet.shongo.controller.api.domains.response.Room;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+
 
 /**
  * Action to foreign virtual room to disconnect room participant.

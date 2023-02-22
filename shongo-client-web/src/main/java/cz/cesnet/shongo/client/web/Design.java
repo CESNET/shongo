@@ -422,12 +422,7 @@ public class Design
 
             private String applyBackUrl(String url)
             {
-                try {
-                    return url + "?back-url=" + UriUtils.encodeQueryParam(requestUrl, "utf8");
-                }
-                catch (UnsupportedEncodingException exception) {
-                    throw new RuntimeException(exception);
-                }
+                return url + "?back-url=" + UriUtils.encodeQueryParam(requestUrl, "utf8");
             }
         }
 

@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
-import org.codehaus.jackson.annotate.JsonProperty;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;

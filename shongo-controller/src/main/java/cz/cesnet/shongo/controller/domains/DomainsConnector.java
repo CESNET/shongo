@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.api.Domain;
-import cz.cesnet.shongo.controller.api.UserPerson;
 import cz.cesnet.shongo.controller.api.domains.InterDomainAction;
 import cz.cesnet.shongo.controller.api.domains.request.*;
 import cz.cesnet.shongo.controller.api.domains.request.ForeignRoomParticipantRole;
@@ -23,10 +24,6 @@ import cz.cesnet.shongo.ssl.SSLCommunication;
 import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.ws.commons.util.Base64;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.joda.time.Interval;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -77,7 +74,7 @@ public class DomainsConnector
         this.configuration = configuration;
         COMMAND_TIMEOUT = configuration.getInterDomainCommandTimeout();
         this.notifier = notifier;
-        mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
     protected ScheduledThreadPoolExecutor getExecutor()
@@ -100,7 +97,7 @@ public class DomainsConnector
                                                       final Collection<Domain> domains, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
-        ObjectReader reader = mapper.reader(objectClass);
+        ObjectReader reader = mapper.readerFor(objectClass);
         performRequests(method, action, parameters, data, domains, reader, resultMap, objectClass);
         return resultMap;
     }
@@ -110,7 +107,7 @@ public class DomainsConnector
                                                                 final Collection<Domain> domains, Class<T> objectClass)
     {
         final Map<String, List<T>> resultMap = new HashMap<>();
-        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+        ObjectReader reader = mapper.readerFor(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
         performRequests(method, action, parameters, data, domains, reader, resultMap, List.class);
         return resultMap;
     }
@@ -120,7 +117,7 @@ public class DomainsConnector
                                                       final Object data, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
-        ObjectReader reader = mapper.reader(objectClass);
+        ObjectReader reader = mapper.readerFor(objectClass);
         performRequests(method, action, parametersByDomain, data, reader, resultMap, objectClass);
         return resultMap;
     }
@@ -130,7 +127,7 @@ public class DomainsConnector
                                                       final Map<Domain, Object> dataByDomain, Class<T> objectClass)
     {
         final Map<String, T> resultMap = new HashMap<>();
-        ObjectReader reader = mapper.reader(objectClass);
+        ObjectReader reader = mapper.readerFor(objectClass);
         performRequests(method, action, parameters, dataByDomain, reader, resultMap, objectClass);
         return resultMap;
     }
@@ -255,12 +252,12 @@ public class DomainsConnector
 
 //    protected <T> T performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
 //    {
-//        return performRequest(method, action, parameters, domain, mapper.reader(objectClass), objectClass);
+//        return performRequest(method, action, parameters, domain, mapper.readerFor(objectClass), objectClass);
 //    }
 //
 //    protected <T> List<T> performRequest(final InterDomainAction.HttpMethod method, final String action, final Map<String, String> parameters, final Domain domain, Class<T> objectClass)
 //    {
-//        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+//        ObjectReader reader = mapper.readerFor(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
 //        return performRequest(method, action, parameters, domain, reader, List.class);
 //    }
 
@@ -476,7 +473,7 @@ public class DomainsConnector
             connection.setDoOutput(true);
 
             processError(connection, domain);
-            ObjectReader reader = mapper.reader(DomainLogin.class);
+            ObjectReader reader = mapper.readerFor(DomainLogin.class);
             InputStream inputStream = connection.getInputStream();
             domainLogin = reader.readValue(inputStream);
         } catch (IOException e) {
@@ -601,7 +598,7 @@ public class DomainsConnector
                                         String previousReservationRequestId) throws ForeignDomainConnectException
     {
         Domain domain = foreignResources.getDomain().toApi();
-        ObjectReader reader = mapper.reader(Reservation.class);
+        ObjectReader reader = mapper.readerFor(Reservation.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("slot", Converter.convertIntervalToStringUTC(slot));
         parameters.put("type", DomainCapability.Type.RESOURCE.toString());
@@ -674,7 +671,7 @@ public class DomainsConnector
 
     public Reservation getReservationByRequest(Domain domain, String foreignReservationRequestId) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(Reservation.class);
+        ObjectReader reader = mapper.readerFor(Reservation.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
@@ -712,7 +709,7 @@ public class DomainsConnector
 
     public boolean deallocateReservation(Domain domain, String foreignReservationRequestId) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(AbstractResponse.class);
+        ObjectReader reader = mapper.readerFor(AbstractResponse.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
@@ -723,7 +720,7 @@ public class DomainsConnector
 
     public List<RoomParticipant> listRoomParticipants(String foreignReservationRequestId) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, RoomParticipant.class));
+        ObjectReader reader = mapper.readerFor(mapper.getTypeFactory().constructCollectionType(List.class, RoomParticipant.class));
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
@@ -742,7 +739,7 @@ public class DomainsConnector
 
     public List<Reservation> listReservations(Domain domain, String resourceId, Interval slot) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
+        ObjectReader reader = mapper.readerFor(mapper.getTypeFactory().constructCollectionType(List.class, Reservation.class));
         MultiMap<String, String> parameters = new MultiValueMap<>();
         if (resourceId != null) {
             parameters.put("resourceId", resourceId);
@@ -774,7 +771,7 @@ public class DomainsConnector
 
     public <T extends AbstractResponse> T sendRoomAction(AbstractDomainRoomAction action, String foreignReservationRequestId, Class<T> responseClass) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(responseClass);
+        ObjectReader reader = mapper.readerFor(responseClass);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("reservationRequestId", foreignReservationRequestId);
 
@@ -791,7 +788,7 @@ public class DomainsConnector
 
     public void notifyDomain(Domain domain, String reservationRequestId, String reason) throws ForeignDomainConnectException
     {
-        ObjectReader reader = mapper.reader(AbstractResponse.class);
+        ObjectReader reader = mapper.readerFor(AbstractResponse.class);
         MultiMap<String, String> parameters = new MultiValueMap<>();
         parameters.put("foreignReservationRequestId", reservationRequestId);
         parameters.put("reason", reason);

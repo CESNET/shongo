@@ -7,3 +7,6 @@ target/
 *.fsps
 *.class
 .gitattributes
+
+shongo-deployment/**/*.cfg
+

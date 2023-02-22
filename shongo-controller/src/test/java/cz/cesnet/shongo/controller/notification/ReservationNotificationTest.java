@@ -159,8 +159,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
-        userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
-        userSettings.setCurrentTimeZone(DateTimeZone.forID("+06:00"));
+        userSettings.setHomeTimeZone(DateTimeZone.forID("Antarctica/Mawson"));
+        userSettings.setCurrentTimeZone(DateTimeZone.forID("Antarctica/Vostok"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -1164,8 +1164,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
-        userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
-        userSettings.setCurrentTimeZone(DateTimeZone.forID("+06:00"));
+        userSettings.setHomeTimeZone(DateTimeZone.forID("Antarctica/Mawson"));
+        userSettings.setCurrentTimeZone(DateTimeZone.forID("Antarctica/Vostok"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();

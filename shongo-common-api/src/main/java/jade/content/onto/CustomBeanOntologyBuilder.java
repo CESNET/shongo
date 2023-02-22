@@ -164,7 +164,7 @@ class CustomBeanOntologyBuilder
     private static org.slf4j.Logger CLASS_NAME_LOGGER =
             org.slf4j.LoggerFactory.getLogger(CustomBeanOntologyBuilder.class);
 
-    private static String getSchemaNameFromClass(Class clazz)
+    private static String getSchemaNameFromClass(Class<?> clazz)
     {
         // We allow multiple classes with same simple name (e.g., "controller:GetRoom" and "connector:GetRoom")
         String result;
@@ -185,7 +185,7 @@ class CustomBeanOntologyBuilder
         return result;
     }
 
-    private static Map<SlotKey, SlotAccessData> buildAccessorsMap(String schemaName, Class clazz, Method[] methodsArray)
+    private static Map<SlotKey, SlotAccessData> buildAccessorsMap(String schemaName, Class<?> clazz, Method[] methodsArray)
             throws BeanOntologyException
     {
         Map<SlotKey, SlotAccessData> result = new TreeMap<SlotKey, SlotAccessData>();
@@ -294,7 +294,7 @@ class CustomBeanOntologyBuilder
                             // slotType must be an array or a Collection => we expect only 1 item in actuals
                             // get first element
                             if (actuals.length > 0) {
-                                aggregateType = (Class) actuals[0];
+                                aggregateType = (Class<?>) actuals[0];
                             }
                         }
 //						if (slotType has generics) {
@@ -386,7 +386,7 @@ class CustomBeanOntologyBuilder
         return result;
     }
 
-    private static String getAggregateSchemaName(Class clazz)
+    private static String getAggregateSchemaName(Class<?> clazz)
     {
         String result = null;
         if (SlotAccessData.isSequence(clazz)) {
@@ -398,7 +398,7 @@ class CustomBeanOntologyBuilder
         return result;
     }
 
-    private ObjectSchema getSchema(Class clazz) throws OntologyException
+    private ObjectSchema getSchema(Class<?> clazz) throws OntologyException
     {
         ObjectSchema os;
         // Manage classes that require special handling:
@@ -418,7 +418,7 @@ class CustomBeanOntologyBuilder
         return os;
     }
 
-    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy, boolean manageAsSerializable)
+    private ObjectSchema doAddSchema(Class<?> clazz, boolean buildHierarchy, boolean manageAsSerializable)
             throws BeanOntologyException
     {
         // If slot is marked 'manageAsSerializable' and is present the SerializableOntology use
@@ -440,7 +440,7 @@ class CustomBeanOntologyBuilder
         return doAddSchema(clazz, buildHierarchy);
     }
 
-    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException
+    private ObjectSchema doAddSchema(Class<?> clazz, boolean buildHierarchy) throws BeanOntologyException
     {
         try {
             if (buildHierarchy) {
@@ -459,7 +459,7 @@ class CustomBeanOntologyBuilder
         }
     }
 
-    private ObjectSchema doAddHierarchicalSchema(Class clazz) throws OntologyException
+    private ObjectSchema doAddHierarchicalSchema(Class<?> clazz) throws OntologyException
     {
         ObjectSchema schema = getSchema(clazz);
         if (schema != null) {
@@ -487,7 +487,7 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    private ObjectSchema doAddFlatSchema(Class clazz) throws OntologyException
+    private ObjectSchema doAddFlatSchema(Class<?> clazz) throws OntologyException
     {
         ObjectSchema schema = getSchema(clazz);
         if (schema != null) {
@@ -511,9 +511,9 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    private void manageSuperClass(Class clazz, ObjectSchema schema) throws OntologyException
+    private void manageSuperClass(Class<?> clazz, ObjectSchema schema) throws OntologyException
     {
-        Class superClazz = clazz.getSuperclass();
+        Class<?> superClazz = clazz.getSuperclass();
         if (superClazz != null) {
             if (!Object.class.equals(superClazz)) {
                 if (!isPrivate(superClazz)) {
@@ -531,11 +531,11 @@ class CustomBeanOntologyBuilder
         }
     }
 
-    private void manageInterfaces(Class clazz, ObjectSchema schema) throws OntologyException
+    private void manageInterfaces(Class<?> clazz, ObjectSchema schema) throws OntologyException
     {
-        Class[] interfaces = clazz.getInterfaces();
+        Class<?>[] interfaces = clazz.getInterfaces();
         if (interfaces != null) {
-            for (Class interfaceClass : interfaces) {
+            for (Class<?> interfaceClass : interfaces) {
                 if (!isPrivate(interfaceClass)) {
                     // We add a new schema only for interfaces that extends Concept (if we are dealing with a Concept)
                     // or Predicate (if we are dealing with a Predicate). This is to avoid adding schemas for interfaces
@@ -570,7 +570,7 @@ class CustomBeanOntologyBuilder
         cs.addFacet(ENUM_SLOT_NAME, new PermittedValuesFacet(enumStrValues));
     }
 
-    private void manageActionResult(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
+    private void manageActionResult(Class<?> clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
     {
         Annotation annotation;
         if ((annotation = clazz.getAnnotation(Result.class)) != null) {
@@ -586,7 +586,7 @@ class CustomBeanOntologyBuilder
 
     }
 
-    private void manageSlots(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
+    private void manageSlots(Class<?> clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
     {
         Method[] methods = clazz.getMethods();
         List<Method> concreteMethodsList = new ArrayList<Method>();
@@ -711,13 +711,13 @@ class CustomBeanOntologyBuilder
         }
     }
 
-    private boolean isPrivate(Class clazz)
+    private boolean isPrivate(Class<?> clazz)
     {
         int scms = clazz.getModifiers();
         return Modifier.isPrivate(scms);
     }
 
-    private ObjectSchema createEmptySchema(Class clazz)
+    private ObjectSchema createEmptySchema(Class<?> clazz)
     {
         ObjectSchema schema;
         String schemaName = getSchemaNameFromClass(clazz);
@@ -737,7 +737,7 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    void addSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException
+    void addSchema(Class<?> clazz, boolean buildHierarchy) throws BeanOntologyException
     {
         doAddSchema(clazz, buildHierarchy);
     }
@@ -749,7 +749,7 @@ class CustomBeanOntologyBuilder
             if (classesForPackage.size() < 1) {
                 throw new BeanOntologyException("no suitable classes found");
             }
-            for (Class clazz : classesForPackage) {
+            for (Class<?> clazz : classesForPackage) {
                 if (Concept.class.isAssignableFrom(clazz) || Predicate.class.isAssignableFrom(clazz)) {
                     doAddSchema(clazz, buildHierarchy);
                 }

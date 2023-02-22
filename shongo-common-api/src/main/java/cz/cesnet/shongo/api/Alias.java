@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.AliasType;
-import jade.content.Concept;
-import org.codehaus.jackson.annotate.JsonProperty;
+
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>

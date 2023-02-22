@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.authorization;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
@@ -16,9 +19,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.ws.commons.util.Base64;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -224,8 +224,8 @@ public class ServerAuthorization extends Authorization
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
                 if (jsonNode != null) {
-                    String error = jsonNode.get("error").getTextValue();
-                    String errorDescription = jsonNode.get("error_description").getTextValue();
+                    String error = jsonNode.get("error").asText();
+                    String errorDescription = jsonNode.get("error_description").asText();
                     if (error.contains("invalid_token")) {
                         throw new ControllerReportSet.SecurityInvalidTokenException(accessToken);
                     }
@@ -459,8 +459,6 @@ public class ServerAuthorization extends Authorization
     {
 
         Group group = onGetGroup(groupId);
-
-
 
         String filter = "memberOf=" + group.getSecondaryId();
         SearchControls ctrls = new SearchControls();
@@ -973,8 +971,8 @@ public class ServerAuthorization extends Authorization
         String title = "unknown";
         String detail = "none";
         if (jsonNode != null) {
-            title = jsonNode.get("title").getTextValue();
-            detail = jsonNode.get("detail").getTextValue();
+            title = jsonNode.get("title").asText();
+            detail = jsonNode.get("detail").asText();
         }
         throw new RuntimeException(String.format("Authorization request failed: %s, %s", title, detail));
     }
@@ -1007,25 +1005,25 @@ public class ServerAuthorization extends Authorization
         // Common user data
         UserInformation userInformation = userData.getUserInformation();
         userInformation.setUserId(data.get("id").asText());
-        userInformation.setFirstName(data.get("first_name").getTextValue());
-        userInformation.setLastName(data.get("last_name").getTextValue());
+        userInformation.setFirstName(data.get("first_name").asText());
+        userInformation.setLastName(data.get("last_name").asText());
         if (data.has("organization")) {
             JsonNode organization = data.get("organization");
             if (!organization.isNull()) {
-                userInformation.setOrganization(organization.getTextValue());
+                userInformation.setOrganization(organization.asText());
             }
         }
         if (data.has("mail")) {
             JsonNode email = data.get("mail");
             if (!email.isNull()) {
-                userInformation.setEmail(email.getTextValue());
+                userInformation.setEmail(email.asText());
             }
         }
         if (data.has("principal_names")) {
-            Iterator<JsonNode> principalNameIterator = data.get("principal_names").getElements();
+            Iterator<JsonNode> principalNameIterator = data.get("principal_names").elements();
             while (principalNameIterator.hasNext()) {
                 JsonNode principalName = principalNameIterator.next();
-                userInformation.addPrincipalName(principalName.getTextValue());
+                userInformation.addPrincipalName(principalName.asText());
             }
         }
 
@@ -1033,7 +1031,7 @@ public class ServerAuthorization extends Authorization
         if (data.has("language")) {
             JsonNode language = data.get("language");
             if (!language.isNull()) {
-                Locale locale = new Locale(language.getTextValue());
+                Locale locale = new Locale(language.asText());
                 userData.setLocale(locale);
                 userInformation.setLocale(locale.toString());
             }
@@ -1041,7 +1039,7 @@ public class ServerAuthorization extends Authorization
         if (data.has("timezone")) {
             JsonNode timezone = data.get("timezone");
             if (!timezone.isNull()) {
-                DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
+                DateTimeZone timeZone = DateTimeZone.forID(timezone.asText());
                 userData.setTimeZone(timeZone);
                 userInformation.setZoneInfo(timeZone.toString());
             }
@@ -1049,37 +1047,37 @@ public class ServerAuthorization extends Authorization
         if (data.has("zoneinfo")) {
             JsonNode timezone = data.get("zoneinfo");
             if (!timezone.isNull()) {
-                DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
+                DateTimeZone timeZone = DateTimeZone.forID(timezone.asText());
                 userData.setTimeZone(timeZone);
                 userInformation.setZoneInfo(timeZone.toString());
             }
         }
 
         if(data.has("edu_person_entitlements")) {
-            Iterator<JsonNode> eduPersonEntitlementIterator = data.get("edu_person_entitlements").getElements();
+            Iterator<JsonNode> eduPersonEntitlementIterator = data.get("edu_person_entitlements").elements();
             while (eduPersonEntitlementIterator.hasNext()) {
                 JsonNode eduPersonEntitlement = eduPersonEntitlementIterator.next();
-                userInformation.addEduPersonEntitlement(eduPersonEntitlement.getTextValue());
+                userInformation.addEduPersonEntitlement(eduPersonEntitlement.asText());
             }
         }
 
         // for AuthN Server v0.6.4 and newer
         if (data.has("authn_provider") && data.has("authn_instant") && data.has("loa")) {
-            long instant = Long.valueOf(data.get("authn_instant").getTextValue()) * 1000;
+            long instant = Long.valueOf(data.get("authn_instant").asText()) * 1000;
             DateTime dateTime = new DateTime(instant);
             userData.setUserAuthorizationData(new UserAuthorizationData(
-                    data.get("authn_provider").getTextValue(),
+                    data.get("authn_provider").asText(),
                     dateTime,
-                    data.get("loa").getIntValue()));
+                    data.get("loa").asInt()));
         }
         // for AuthN Server v0.6.3 and older
         if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
                 userData.setUserAuthorizationData(new UserAuthorizationData(
-                        authenticationInfo.get("provider").getTextValue(),
-                        null,
-                        authenticationInfo.get("loa").getIntValue()));
+                    authenticationInfo.get("provider").asText(),
+                    null,
+                    authenticationInfo.get("loa").asInt()));
             }
         }
 
@@ -1133,7 +1131,7 @@ public class ServerAuthorization extends Authorization
             }
         }
         if (data.has("admins")) {
-            Iterator<JsonNode> administratorIterator = data.get("admins").getElements();
+            Iterator<JsonNode> administratorIterator = data.get("admins").elements();
             while (administratorIterator.hasNext()) {
                 JsonNode administrator = administratorIterator.next();
                 if (!administrator.has("id")) {
@@ -1248,7 +1246,7 @@ public class ServerAuthorization extends Authorization
                     {
                         Set<String> groupIds = new HashSet<String>();
                         if (data != null) {
-                            Iterator<JsonNode> userIterator = data.get("_embedded").get("admins").getElements();
+                            Iterator<JsonNode> userIterator = data.get("_embedded").get("admins").elements();
                             while (userIterator.hasNext()) {
                                 JsonNode groupNode = userIterator.next();
                                 if (!groupNode.has("id")) {

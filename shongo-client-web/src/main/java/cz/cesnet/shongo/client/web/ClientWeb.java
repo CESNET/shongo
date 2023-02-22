@@ -1,18 +1,18 @@
 package cz.cesnet.shongo.client.web;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
-import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.server.*;
+
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +20,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
@@ -34,6 +38,8 @@ import java.util.jar.Manifest;
 public class ClientWeb
 {
     private static Logger logger = LoggerFactory.getLogger(ClientWeb.class);
+
+    private static String[] taglibs = {"taglibs-standard", "apache-jstl", "tiles-jsp"};
 
     /**
      * @return version of the {@link Connector}
@@ -81,7 +87,7 @@ public class ClientWeb
         options.addOption(optionDaemon);
 
         // Parse command line
-        CommandLine commandLine = null;
+        CommandLine commandLine;
         try {
             CommandLineParser parser = new PosixParser();
             commandLine = parser.parse(options, arguments);
@@ -114,39 +120,6 @@ public class ClientWeb
             System.exit(0);
         }
 
-        // Setup class-path for JAR file
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        if (classLoader instanceof URLClassLoader) {
-            URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-            URL[] urls = urlClassLoader.getURLs();
-            // Only when current class-path is single JAR file
-            if (urls.length == 1 && urls[0].toExternalForm().endsWith(".jar")) {
-                // Get directory from single JAR file
-                File mainFile = new File(urls[0].toExternalForm());
-                String path = mainFile.getParent();
-
-                // Read class-path from manifest
-                InputStream manifestStream = classLoader.getResourceAsStream("META-INF/MANIFEST.MF");
-                String manifestClassPath;
-                try {
-                    Manifest manifest = new Manifest(manifestStream);
-                    manifestClassPath = manifest.getMainAttributes().getValue("Class-Path");
-                }
-                finally {
-                    manifestStream.close();
-                }
-
-                // Setup new class loader from the manifest class-path
-                List<URL> newUrls = new LinkedList<URL>();
-                for (String library : manifestClassPath.split(" ")) {
-                    URL url = new URL(path + "/" + library);
-                    newUrls.add(url);
-                }
-                urlClassLoader = new URLClassLoader(newUrls.toArray(new URL[newUrls.size()]));
-                Thread.currentThread().setContextClassLoader(urlClassLoader);
-            }
-        }
-
         final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
         final Server server = new Server();
 
@@ -159,6 +132,20 @@ public class ClientWeb
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath(clientWebConfiguration.getServerPath());
         webAppContext.setParentLoaderPriority(true);
+
+        // Including taglibs to get scanned for TLDs
+        webAppContext.setExtraClasspath("../shongo-client-web/target/lib/taglibs/*");
+
+        Configuration.ClassList classList = Configuration.ClassList
+                .setServerDefault(server);
+        classList.addBefore(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                // Annotation config must follow immediately after JettyWebXmlConfiguration
+                "org.eclipse.jetty.annotations.AnnotationConfiguration");
+
+        webAppContext.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                ".*\\.jar$");
+
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
             String resourceBase = arguments[0];
             logger.info("Using '{}' as resource base.", resourceBase);
@@ -180,28 +167,34 @@ public class ClientWeb
         boolean forwarded = clientWebConfiguration.isServerForwarded();
         String forwardedHost = clientWebConfiguration.getServerForwardedHost();
 
+
         // Configure HTTP connector
-        final SelectChannelConnector httpConnector;
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        ServerConnector httpConnector;
         if (forceHttps) {
-            httpConnector = new HttpsRedirectingSelectChannelConnector();
+            httpConfig.addCustomizer(new SecureRequestCustomizer());
+            httpConfig.setSecureScheme("https");
+            httpConfig.setSecurePort(clientWebConfiguration.getServerSslPort());
         }
-        else {
-            httpConnector = new SelectChannelConnector();
-        }
-        httpConnector.setPort(clientWebConfiguration.getServerPort());
         if (forwarded) {
-            httpConnector.setForwarded(true);
+            // Add support for X-Forwarded headers
+            ForwardedRequestCustomizer forwardedCustomizer = new ForwardedRequestCustomizer();
             if (forwardedHost != null) {
-                httpConnector.setHostHeader(forwardedHost);
+                forwardedCustomizer.setForwardedHostHeader(forwardedHost);
             }
+            httpConfig.addCustomizer(forwardedCustomizer);
         }
+
+        httpConnector = new ServerConnector(server);
+        httpConnector.addConnectionFactory(new HttpConnectionFactory(httpConfig));
+        httpConnector.setPort(clientWebConfiguration.getServerPort());
+
         server.addConnector(httpConnector);
 
         // Configure HTTPS connector
+        ServerConnector httpsConnector;
         if (sslKeyStore != null) {
             if (forceHttps) {
-                // Redirect HTTP to HTTPS
-                httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
                 // Require confidential (forces the HTTP to HTTPS redirection)
                 Constraint constraint = new Constraint();
                 constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
@@ -213,16 +206,18 @@ public class ClientWeb
                 webAppContext.setSecurityHandler(constraintSecurityHandler);
             }
 
-            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+            sslContextFactory.setKeyStorePath(sslKeyStore);
             sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
-            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+            httpsConnector = new ServerConnector(server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.toString()),
+                    new HttpConnectionFactory(httpsConfig));
             httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
-            if (forwarded) {
-                httpsConnector.setForwarded(true);
-                if (forwardedHost != null) {
-                    httpsConnector.setHostHeader(forwardedHost);
-                }
-            }
+
             server.addConnector(httpsConnector);
         }
 
@@ -259,11 +254,12 @@ public class ClientWeb
 
             // Request layout page to initialize
             logger.info("Initializing layout...");
-            Connector serverConnector = server.getConnectors()[0];
+            Connector connector = server.getConnectors()[0];
+            ServerConnector serverConnector = (ServerConnector) connector;
             String serverHost = serverConnector.getHost();
-            String serverUrl = String.format("http://%s:%d%s", (serverHost != null ? serverHost : "localhost"),
+            String serverUrl = String.format("http://%s:%d%s", (!Strings.isNullOrEmpty(serverHost) ? serverHost : "localhost"),
                     serverConnector.getLocalPort(), webAppContext.getContextPath());
-            URLConnection serverConnection = new URL(serverUrl + "/layout").openConnection();
+            URLConnection serverConnection = new URL(serverUrl + "layout").openConnection();
             serverConnection.getInputStream();
             logger.info("Layout successfully initialized.");
 
@@ -285,16 +281,5 @@ public class ClientWeb
         }
     }
 
-    /**
-     * Redirecting {@link SelectChannelConnector}.
-     */
-    public static class HttpsRedirectingSelectChannelConnector extends SelectChannelConnector
-    {
-        @Override
-        public void customize(EndPoint endpoint, Request request) throws IOException
-        {
-            request.setScheme("https");
-            super.customize(endpoint, request);
-        }
-    }
+
 }

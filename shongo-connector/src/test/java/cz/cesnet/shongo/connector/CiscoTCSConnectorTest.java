@@ -1,13 +1,10 @@
 package cz.cesnet.shongo.connector;
 
-import com.google.common.base.Strings;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
+
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.device.CiscoMCUConnector;
-import cz.cesnet.shongo.connector.device.CiscoTCSConnector;
-import junit.framework.Assert;
-import org.apache.http.client.utils.URIBuilder;
+import org.junit.Assert;
 import org.apache.log4j.Level;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -16,13 +13,9 @@ import org.apache.xmlrpc.server.XmlRpcServer;
 import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.webserver.WebServer;
 import org.junit.Test;
-
-import java.io.File;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tests for {@link cz.cesnet.shongo.connector.device.CiscoTCSConnector}.

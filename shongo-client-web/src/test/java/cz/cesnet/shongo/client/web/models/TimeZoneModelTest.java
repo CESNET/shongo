@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;

@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-
 import cz.cesnet.shongo.controller.api.ExecutableState;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

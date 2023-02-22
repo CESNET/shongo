@@ -4,6 +4,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <security:authentication property="principal.userId" var="userId"/>
 <tag:url var="meetingRoomReservationsUrl" value="<%= ClientWebUrl.MEETING_ROOM_RESERVATION_LIST_DATA %>"/>
@@ -134,6 +135,9 @@
                     name: 'tag',
                     value: $scope.resourceTags.data[$scope.reservationsFilter.resourceId.id]
                 })
+            );
+            form.append(
+                '<sec:csrfInput />'
             );
             form.append(
                     $('<input />', {

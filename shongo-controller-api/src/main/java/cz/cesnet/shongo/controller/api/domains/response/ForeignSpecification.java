@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.annotate.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents a specification for foreign {@link Reservation}.
@@ -13,8 +12,8 @@ import org.codehaus.jackson.annotate.JsonSubTypes.Type;
         include = JsonTypeInfo.As.PROPERTY,
         property = "@class")
 @JsonSubTypes({
-        @Type(value = ResourceSpecification.class, name = "ResourceSpecification"),
-        @Type(value = RoomSpecification.class, name = "RoomSpecification") })
+        @JsonSubTypes.Type(value = ResourceSpecification.class, name = "ResourceSpecification"),
+        @JsonSubTypes.Type(value = RoomSpecification.class, name = "RoomSpecification") })
 public abstract class ForeignSpecification
 {
 }

@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.ForeignPerson;
 import cz.cesnet.shongo.controller.api.PersonParticipant;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
 

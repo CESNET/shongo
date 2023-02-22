@@ -1,3 +1,17 @@
+0.10.0 (2023-02-11)
+
+    * Added parking places as a specific reservation resource
+
+    * Added iCalendar attachment to Reservation Notifications
+
+    * OIDC based authentication and authorization
+
+    * LDAP integration to fetch user information
+
+    * Code migrated to Java 11
+
+    * Spring updated to version 5.2.2
+
 0.9.3 (2018-11-17)
 
     * Major Pexip extension (connector, modified web client and others).

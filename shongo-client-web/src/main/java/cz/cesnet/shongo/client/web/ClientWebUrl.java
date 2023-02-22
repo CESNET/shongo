@@ -248,11 +248,6 @@ public class ClientWebUrl
 
     public static String encodeUrlParam(String url)
     {
-        try {
-            return UriUtils.encodeQueryParam(url, "UTF-8");
-        }
-        catch (UnsupportedEncodingException exception) {
-            throw new RuntimeException("Cannot encode URL to UTF-8.", exception);
-        }
+        return UriUtils.encodeQueryParam(url, "UTF-8");
     }
 }

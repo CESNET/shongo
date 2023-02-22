@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.TimestampType;
 import org.hibernate.usertype.UserType;
 import org.joda.time.DateTime;
@@ -61,7 +61,7 @@ public class PersistentDateTime implements UserType, Serializable
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         Object timestamp = TimestampType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
@@ -73,7 +73,7 @@ public class PersistentDateTime implements UserType, Serializable
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SessionImplementor session)
+    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {

@@ -3599,7 +3599,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
     /**
      * Allocating room for the following specification: 
-     *     Technology: {@link #technologySets} 
+     *     Technology: {@link #technologySet}
      *   Participants: {@link #participantCount} 
      *       Resource: {@link #resource}
      */
@@ -3607,7 +3607,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
     public static class AllocatingRoomReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets;
+        protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySet;
 
         protected Integer participantCount;
 
@@ -3624,23 +3624,23 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-room";
         }
 
-        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets, Integer participantCount, cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySet, Integer participantCount, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
-            setTechnologySets(technologySets);
+            setTechnologySet(technologySet);
             setParticipantCount(participantCount);
             setResource(resource);
         }
 
         @javax.persistence.JoinTable(name = "scheduler_report_technology_sets", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
-        public java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> getTechnologySets()
+        public java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> getTechnologySet()
         {
-            return technologySets;
+            return technologySet;
         }
 
-        public void setTechnologySets(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets)
+        public void setTechnologySet(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySet)
         {
-            this.technologySets = technologySets;
+            this.technologySet = technologySet;
         }
 
         @javax.persistence.Column
@@ -3686,7 +3686,7 @@ public class SchedulerReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("technologySets", technologySets);
+            parameters.put("technologySets", technologySet);
             parameters.put("participantCount", participantCount);
             parameters.put("resource", resource);
             return parameters;

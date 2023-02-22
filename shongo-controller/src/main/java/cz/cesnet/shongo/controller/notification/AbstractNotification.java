@@ -14,7 +14,6 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.PeriodFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

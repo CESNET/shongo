@@ -568,7 +568,8 @@ public class Controller
             http_config.setSecureScheme(HttpScheme.HTTPS.asString());
             final HttpConfiguration https_config = new HttpConfiguration(http_config);
             https_config.addCustomizer(new SecureRequestCustomizer());
-            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+            sslContextFactory.setKeyStorePath(sslKeyStore);
             sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
 
             final ServerConnector httpsConnector = new ServerConnector(rpcServer,
@@ -659,7 +660,7 @@ public class Controller
             https_config.addCustomizer(new SecureRequestCustomizer());
 
 
-            final SslContextFactory sslContextFactory = new SslContextFactory();
+            final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null);
             // Load certificates of foreign domain's CAs
@@ -1072,6 +1073,8 @@ public class Controller
                 controller.getConfiguration().getString(ControllerConfiguration.DATABASE_USERNAME));
         properties.put("hibernate.connection.password",
                 controller.getConfiguration().getString(ControllerConfiguration.DATABASE_PASSWORD));
+        properties.put("hibernate.dialect",
+                "cz.cesnet.shongo.controller.util.CustomPostgres10Dialect");
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 

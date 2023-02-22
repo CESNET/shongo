@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.api.domains.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.DateTime;
 
 /**

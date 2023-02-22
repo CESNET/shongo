@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
@@ -29,7 +29,7 @@ public abstract class PersistentStringType implements UserType, Serializable
     protected abstract Object fromNonNullString(String string) throws HibernateException;
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         String string = (String) StringType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
@@ -42,7 +42,7 @@ public abstract class PersistentStringType implements UserType, Serializable
     protected abstract String toNonNullString(Object value) throws HibernateException;
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SessionImplementor session)
+    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {

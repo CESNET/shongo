@@ -111,7 +111,7 @@ public class PersistenceTest
                 entityManager.getTransaction().rollback();
             }
             Assert.assertEquals("Constraint violation exception should be thrown.",
-                    org.hibernate.exception.ConstraintViolationException.class, exception.getCause().getClass());
+                    org.hibernate.exception.ConstraintViolationException.class, exception.getCause().getCause().getClass());
         }
         finally {
             entityManager.close();

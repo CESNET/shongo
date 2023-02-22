@@ -11,11 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -122,8 +119,8 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 byte[] byteFileContent= null;
                 if (attachment instanceof iCalendarNotificationAttachment) {
                     iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
-                    fileContent = calendarAttachment.getFileContent(emailSender.getSender(), entityManager);
-                    email.addAttachment(fileName, fileContent);
+                    fileContent = calendarAttachment.getFileContent(entityManager);
+                    email.addCalendarAttachment(fileName, fileContent);
                 }
                 else if (attachment instanceof PdfNotificationAttachment) {
                     PdfNotificationAttachment calendarAttachment = (PdfNotificationAttachment) attachment;

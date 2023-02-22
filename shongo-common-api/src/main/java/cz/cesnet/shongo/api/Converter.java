@@ -848,7 +848,7 @@ public class Converter
         }
         T atomicType = null;
         try {
-            atomicType = atomicTypeClass.newInstance();
+            atomicType = atomicTypeClass.getDeclaredConstructor().newInstance();
         }
         catch (java.lang.Exception exception) {
             throw new CommonReportSet.ClassInstantiationErrorException(ClassHelper.getClassShortName(atomicTypeClass));
@@ -939,7 +939,7 @@ public class Converter
             return (T) convertToReadablePartial(value);
         }
         else if (Long.class.equals(targetClass) && value instanceof Number) {
-            return (T) new Long(((Number) value).longValue());
+            return (T) Long.valueOf(((Number) value).longValue());
         }
         else if (ComplexType.class.isAssignableFrom(targetClass)) {
             Class<? extends ComplexType> abstractObjectClass = (Class<? extends ComplexType>) targetClass;

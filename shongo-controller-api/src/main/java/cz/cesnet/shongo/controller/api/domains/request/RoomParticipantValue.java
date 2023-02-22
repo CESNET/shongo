@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api.domains.request;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a room participant value for {@link RoomParticipantRole}.

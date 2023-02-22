@@ -55,13 +55,6 @@
         </c:if>
     </tr>
     </tfoot>
-    <%--
-    <tr>
-        <td></td>
-        <c:forEach items="10,20,30,40,50,60,70,80,90,100" var="item">
-            <td class="utilized utilized${item}">Test</td>
-        </c:forEach>
-    </tr>--%>
 </table>
 
 </div>

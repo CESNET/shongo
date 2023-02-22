@@ -12,13 +12,7 @@
  */
 package cz.cesnet.shongo.client.web.support.filters;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
@@ -161,5 +155,17 @@ public class HttpHeadFilter implements Filter {
         public void write(byte buf[], int offset, int len) throws IOException {
             contentLength += len;
         }
+
+        @Override
+        public boolean isReady() {
+            // TODO SERVLET 3.1
+            return false;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+            // TODO SERVLET 3.1
+        }
+
     }
 }

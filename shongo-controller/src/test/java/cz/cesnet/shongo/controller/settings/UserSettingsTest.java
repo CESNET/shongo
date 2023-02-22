@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.UserSettings;
-import junit.framework.Assert;
+
 import org.joda.time.DateTimeZone;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

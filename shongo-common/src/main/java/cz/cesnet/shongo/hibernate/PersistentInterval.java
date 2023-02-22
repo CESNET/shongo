@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 import org.hibernate.usertype.CompositeUserType;
@@ -31,7 +31,7 @@ public class PersistentInterval implements CompositeUserType, Serializable
     private static final Type[] TYPES = new Type[]{StandardBasicTypes.TIMESTAMP, StandardBasicTypes.TIMESTAMP};
 
     @Override
-    public Object assemble(Serializable cached, SessionImplementor session, Object owner) throws HibernateException
+    public Object assemble(Serializable cached, SharedSessionContractImplementor session, Object owner) throws HibernateException
     {
         return cached;
     }
@@ -43,7 +43,7 @@ public class PersistentInterval implements CompositeUserType, Serializable
     }
 
     @Override
-    public Serializable disassemble(Object value, SessionImplementor session) throws HibernateException
+    public Serializable disassemble(Object value, SharedSessionContractImplementor session) throws HibernateException
     {
         return (Serializable) value;
     }
@@ -93,7 +93,7 @@ public class PersistentInterval implements CompositeUserType, Serializable
 
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         if (resultSet == null) {
@@ -109,7 +109,7 @@ public class PersistentInterval implements CompositeUserType, Serializable
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement statement, Object value, int index, SessionImplementor session)
+    public void nullSafeSet(PreparedStatement statement, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {
@@ -128,7 +128,7 @@ public class PersistentInterval implements CompositeUserType, Serializable
     }
 
     @Override
-    public Object replace(Object original, Object target, SessionImplementor session, Object owner)
+    public Object replace(Object original, Object target, SharedSessionContractImplementor session, Object owner)
             throws HibernateException
     {
         return original;

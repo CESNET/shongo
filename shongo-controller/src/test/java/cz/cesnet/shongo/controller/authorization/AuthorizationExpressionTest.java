@@ -6,7 +6,7 @@ import cz.cesnet.shongo.controller.DummyAuthorization;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

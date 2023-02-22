@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.domains;
 
+import com.fasterxml.jackson.databind.ObjectReader;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ForeignDomainConnectException;
@@ -12,7 +13,6 @@ import cz.cesnet.shongo.controller.api.request.DomainCapabilityListRequest;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.collections4.map.MultiValueMap;
-import org.codehaus.jackson.map.ObjectReader;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -111,7 +111,7 @@ public class CachedDomainsConnector extends DomainsConnector
                                                                     final MultiMap<String, String> parameters, Object data, final Collection<Domain> domains,
                                                                     Class<T> objectClass, Map<String, ?> cache, Set<String> unavailableDomainsCache)
     {
-        ObjectReader reader = mapper.reader(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
+        ObjectReader reader = mapper.readerFor(mapper.getTypeFactory().constructCollectionType(List.class, objectClass));
         submitCachedRequests(method, action, parameters, data, domains, reader, cache, unavailableDomainsCache, List.class);
     }
 
@@ -128,9 +128,9 @@ public class CachedDomainsConnector extends DomainsConnector
      * @param <T> type of the returned result
      */
     synchronized protected <T> void submitCachedRequests(InterDomainAction.HttpMethod method, String action,
-                                            MultiMap<String, String> parameters, Object data, Collection<Domain> domains,
-                                            ObjectReader reader, Map<String, ?> result,
-                                            Set<String> unavailableDomainsCache, Class<T> returnClass)
+                                                         MultiMap<String, String> parameters, Object data, Collection<Domain> domains,
+                                                         ObjectReader reader, Map<String, ?> result,
+                                                         Set<String> unavailableDomainsCache, Class<T> returnClass)
     {
         for (final Domain domain : domains) {
             Runnable task = new DomainTask<>(method, action, parameters, data, domain, reader, returnClass, result, unavailableDomainsCache);

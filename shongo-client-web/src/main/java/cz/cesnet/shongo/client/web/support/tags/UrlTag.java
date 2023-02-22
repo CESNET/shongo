@@ -2,10 +2,13 @@ package cz.cesnet.shongo.client.web.support.tags;
 
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.tags.Param;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import javax.servlet.jsp.JspException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +44,6 @@ public class UrlTag extends org.springframework.web.servlet.tags.UrlTag
 
     @Override
     protected String createQueryString(List<Param> params, Set<String> usedParams, boolean includeQueryStringDelimiter)
-            throws JspException
     {
         String encoding = pageContext.getResponse().getCharacterEncoding();
         StringBuilder qs = new StringBuilder();
@@ -61,15 +63,10 @@ public class UrlTag extends org.springframework.web.servlet.tags.UrlTag
                     }
                 }
                 else {
-                    try {
-                        qs.append(UriUtils.encodeQueryParam(param.getName(), encoding));
-                        if (param.getValue() != null) {
-                            qs.append("=");
-                            qs.append(UriUtils.encodeQueryParam(param.getValue(), encoding));
-                        }
-                    }
-                    catch (UnsupportedEncodingException ex) {
-                        throw new JspException(ex);
+                    qs.append(UriUtils.encodeQueryParam(param.getName(), encoding).replace("+", "%2B"));
+                    if (param.getValue() != null) {
+                        qs.append("=");
+                        qs.append(UriUtils.encodeQueryParam(param.getValue(), encoding).replace("+", "%2B"));
                     }
                 }
             }
@@ -79,7 +76,6 @@ public class UrlTag extends org.springframework.web.servlet.tags.UrlTag
 
     @Override
     protected String replaceUriTemplateParams(String uri, List<Param> params, Set<String> usedParams)
-            throws JspException
     {
         String encoding = pageContext.getResponse().getCharacterEncoding();
         for (Param param : params) {
@@ -94,13 +90,7 @@ public class UrlTag extends org.springframework.web.servlet.tags.UrlTag
                         value = param.getValue();
                     }
                     else {
-                        try {
-                            value = UriUtils.encodePath(param.getValue(), encoding);
-
-                        }
-                        catch (UnsupportedEncodingException ex) {
-                            throw new JspException(ex);
-                        }
+                        value = UriUtils.encodePath(param.getValue(), encoding).replace("+", "%2B");
                     }
                     uri = uri.substring(0, startIndex) + value + uri.substring(endIndex + 1);
                 }

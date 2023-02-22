@@ -51,7 +51,7 @@ Alternative: https://einfra.cesnet.cz/perun-gui/#usr/info?active=1
     <c:set var="currentTimeZone" value="UTC"/>
 </c:if>
 
-<form:form class="form-horizontal" role="form" method="post" commandName="userSettings"
+<form:form class="form-horizontal" role="form" method="post" modelAttribute="userSettings"
            ng-app="jsp:userSettings" ng-controller="UserSettingsController">
 
     <div class="form-group">
