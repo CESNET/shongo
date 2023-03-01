@@ -340,6 +340,7 @@ FROM (
             reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
             abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
             abstract_reservation_request.allocation_id AS allocation_id,
+            abstract_reservation_request.aux_data #>> '{}' AS aux_data,
             reservation_request_set_earliest_child.child_id AS child_id,
             reservation_request_set_earliest_child.future_child_count AS future_child_count,
             COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,

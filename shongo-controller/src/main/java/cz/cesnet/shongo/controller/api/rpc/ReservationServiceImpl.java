@@ -2043,6 +2043,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[26] != null) {
             reservationRequestSummary.setResourceTags((String) record[26]);
         }
+        if (record[27] != null) {
+            reservationRequestSummary.setAuxData((String) record[27]);
+        }
         return reservationRequestSummary;
     }
 

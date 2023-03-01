@@ -128,6 +128,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private boolean allowCache = true;
 
     /**
+     * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
+     */
+    private String auxData;
+
+    /**
      * @return {@link #resourceTags}
      */
     public String getResourceTags() {
@@ -496,6 +501,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         this.allowCache = allowCache;
     }
 
+    /**
+     * @return {@link #auxData}
+     */
+    public String getAuxData()
+    {
+        return auxData;
+    }
+
+    /**
+     * @param auxData sets the {@link #auxData}
+     */
+    public void setAuxData(String auxData)
+    {
+        this.auxData = auxData;
+    }
+
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
@@ -518,6 +539,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String ROOM_HAS_RECORDINGS = "roomHasRecordings";
     private static final String ALLOW_CACHE = "allowCache";
     private static final String RESOURCE_TAGS = "resourceTags";
+    private static final String AUX_DATA = "auxData";
 
     @Override
     public DataMap toData()
@@ -545,6 +567,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(ROOM_HAS_RECORDINGS, roomHasRecordings);
         dataMap.set(ALLOW_CACHE, allowCache);
         dataMap.set(RESOURCE_TAGS, resourceTags);
+        dataMap.set(AUX_DATA, auxData);
         return dataMap;
     }
 
@@ -574,6 +597,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
         allowCache = dataMap.getBool(ALLOW_CACHE);
         resourceTags = dataMap.getString(RESOURCE_TAGS);
+        auxData = dataMap.getString(AUX_DATA);
     }
 
     /**
