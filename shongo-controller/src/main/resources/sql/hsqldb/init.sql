@@ -97,6 +97,7 @@ SELECT
     reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
     abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
     abstract_reservation_request.allocation_id AS allocation_id,
+    abstract_reservation_request.aux_data AS aux_data,
     NULL AS child_id,
     NULL AS future_child_count,
     reservation_request.slot_start AS slot_start,
