@@ -112,7 +112,7 @@ SELECT
       WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN recording_capability on recording_capability.id = capability.id) THEN 'RECORDING_SERVICE'
       ELSE 'RESOURCE'
     END AS type,
-    string_agg(tag.name, ',') AS tag_names
+    string_agg(tag.id || ',' || tag.name || ',' || tag.type || ',' || COALESCE(tag.data #>> '{}', ''), '|') AS tags
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
 LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id

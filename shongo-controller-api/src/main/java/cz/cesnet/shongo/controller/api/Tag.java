@@ -43,6 +43,19 @@ public class Tag extends IdentifiedComplexType
         this.data = data;
     }
 
+    public static Tag fromConcat(String concat)
+    {
+        String[] parts = concat.split(",", 4);
+        Tag tag = new Tag();
+        tag.setId(parts[0]);
+        tag.setName(parts[1]);
+        tag.setType(TagType.valueOf(parts[2]));
+        if (parts.length > 3) {
+            tag.setData(parts[3]);
+        }
+        return tag;
+    }
+
     private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String DATA = "data";

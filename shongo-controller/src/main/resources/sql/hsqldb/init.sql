@@ -30,7 +30,7 @@ SELECT
       WHEN (SELECT resource_id FROM capability INNER JOIN recording_capability on recording_capability.id = capability.id WHERE resource_id = resource.id) IS NOT NULL THEN 'RECORDING_SERVICE'
       ELSE 'RESOURCE'
     END AS type,
-    GROUP_CONCAT(tag.name SEPARATOR ',') AS tag_names
+    GROUP_CONCAT(CONCAT(tag.id, ',', tag.name, ',', tag.type, ',', tag.data) SEPARATOR '|') AS tags
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
 LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id

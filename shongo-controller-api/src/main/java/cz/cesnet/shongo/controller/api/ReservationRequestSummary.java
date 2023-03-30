@@ -110,7 +110,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * Resource tags.
      */
-    private String resourceTags;
+    private List<Tag> resourceTags = new ArrayList<>();
 
     /**
      * Specifies whether room has recording service.
@@ -135,15 +135,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * @return {@link #resourceTags}
      */
-    public String getResourceTags() {
+    public List<Tag> getResourceTags() {
         return resourceTags;
     }
 
     /**
      * @param resourceTags sets the {@link #resourceTags}
      */
-    public void setResourceTags(String resourceTags) {
+    public void setResourceTags(List<Tag> resourceTags) {
         this.resourceTags = resourceTags;
+    }
+
+    /**
+     * @param resourceTag adds tag to {@link #resourceTags}
+     */
+    public void addResourceTag(Tag resourceTag) {
+        this.resourceTags.add(resourceTag);
     }
 
     /**
@@ -596,7 +603,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomHasRecordingService = dataMap.getBool(ROOM_HAS_RECORDING_SERVICE);
         roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
         allowCache = dataMap.getBool(ALLOW_CACHE);
-        resourceTags = dataMap.getString(RESOURCE_TAGS);
+        resourceTags = dataMap.getList(RESOURCE_TAGS, Tag.class);
         auxData = dataMap.getString(AUX_DATA);
     }
 
