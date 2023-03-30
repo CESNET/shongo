@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.Specification;
+import cz.cesnet.shongo.controller.api.Tag;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -2041,7 +2042,18 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestSummary.setAllowCache((Boolean) record[25]);
         }
         if (record[26] != null) {
-            reservationRequestSummary.setResourceTags((String) record[26]);
+            String resourceTags = (String) record[26];
+            Arrays.stream(resourceTags.split("\\|")).map(String::trim).map(resourceTag -> {
+                String[] parts = resourceTag.split(",");
+                Tag tag = new Tag();
+                tag.setId(parts[0]);
+                tag.setName(parts[1]);
+                tag.setType(TagType.valueOf(parts[2]));
+                if (parts.length > 3) {
+                    tag.setData(parts[3]);
+                }
+                return tag;
+            }).forEach(reservationRequestSummary::addResourceTag);
         }
         if (record[27] != null) {
             reservationRequestSummary.setAuxData((String) record[27]);
