@@ -12,11 +12,11 @@ import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.resource.*;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,17 +36,12 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 @Slf4j
 @RestController
 @RequestMapping(ClientWebUrl.RESOURCES)
+@RequiredArgsConstructor
 public class ResourceController
 {
 
     private final Cache cache;
     private final ResourceService resourceService;
-
-    public ResourceController(@Autowired Cache cache, @Autowired ResourceService resourceService)
-    {
-        this.cache = cache;
-        this.resourceService = resourceService;
-    }
 
     /**
      * Lists {@link Resource}s.

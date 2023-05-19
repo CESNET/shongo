@@ -11,8 +11,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
+import lombok.RequiredArgsConstructor;
 import org.joda.time.Duration;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -21,6 +21,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@RequiredArgsConstructor
 public class RoomCache
 {
 
@@ -33,46 +34,32 @@ public class RoomCache
     /**
      * {@link RoomExecutable} by roomExecutableId.
      */
-    private final ExpirationMap<String, RoomExecutable> roomExecutableCache = new ExpirationMap<>();
+    private final ExpirationMap<String, RoomExecutable> roomExecutableCache =
+            new ExpirationMap<>(Duration.standardSeconds(15));
 
     /**
      * {@link Room} by roomExecutableId".
      */
-    private final ExpirationMap<String, Room> roomCache = new ExpirationMap<>();
+    private final ExpirationMap<String, Room> roomCache =
+            new ExpirationMap<>(Duration.standardSeconds(30));
 
     /**
      * Collection of {@link RoomParticipant}s by roomExecutableId.
      */
-    private final ExpirationMap<String, List<RoomParticipant>> roomParticipantsCache = new ExpirationMap<>();
+    private final ExpirationMap<String, List<RoomParticipant>> roomParticipantsCache =
+            new ExpirationMap<>(Duration.standardSeconds(15));
 
     /**
      * {@link RoomParticipant} by "roomExecutableId:participantId".
      */
-    private final ExpirationMap<String, RoomParticipant> roomParticipantCache = new ExpirationMap<>();
+    private final ExpirationMap<String, RoomParticipant> roomParticipantCache =
+            new ExpirationMap<>();
 
     /**
      * Participant snapshots in {@link MediaData} by "roomExecutableId:participantId".
      */
-    private final ExpirationMap<String, MediaData> roomParticipantSnapshotCache = new ExpirationMap<>();
-
-    /**
-     * Constructor.
-     */
-    public RoomCache(
-            @Autowired ResourceControlService resourceControlService,
-            @Autowired ExecutableService executableService,
-            @Autowired Cache cache)
-    {
-        this.resourceControlService = resourceControlService;
-        this.executableService = executableService;
-        this.cache = cache;
-
-        // Set expiration durations
-        roomCache.setExpiration(Duration.standardSeconds(30));
-        roomParticipantsCache.setExpiration(Duration.standardSeconds(15));
-        roomExecutableCache.setExpiration(Duration.standardSeconds(15));
-        roomParticipantSnapshotCache.setExpiration(Duration.standardSeconds(15));
-    }
+    private final ExpirationMap<String, MediaData> roomParticipantSnapshotCache =
+            new ExpirationMap<>(Duration.standardSeconds(15));
 
     /**
      * @param securityToken

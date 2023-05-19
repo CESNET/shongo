@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.error.LastOwnerRoleNotDeletableException;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,17 +28,12 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.ROLES)
+@RequiredArgsConstructor
 public class UserRoleController
 {
 
     private final AuthorizationService authorizationService;
     private final Cache cache;
-
-    public UserRoleController(@Autowired AuthorizationService reservationService, @Autowired Cache cache)
-    {
-        this.authorizationService = reservationService;
-        this.cache = cache;
-    }
 
     @Operation(summary = "Lists reservation request roles.")
     @GetMapping

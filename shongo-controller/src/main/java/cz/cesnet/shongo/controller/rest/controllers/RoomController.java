@@ -11,7 +11,7 @@ import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import cz.cesnet.shongo.controller.rest.models.room.RoomModel;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
@@ -25,17 +25,12 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.ROOMS)
+@RequiredArgsConstructor
 public class RoomController
 {
 
     private final Cache cache;
     private final ExecutableService executableService;
-
-    public RoomController(@Autowired Cache cache, @Autowired ExecutableService executableService)
-    {
-        this.cache = cache;
-        this.executableService = executableService;
-    }
 
     @Operation(summary = "Lists rooms (executables).")
     @GetMapping

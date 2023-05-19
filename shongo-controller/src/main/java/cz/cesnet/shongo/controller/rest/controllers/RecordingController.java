@@ -11,7 +11,7 @@ import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.recording.RecordingModel;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,22 +26,13 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.RECORDINGS)
+@RequiredArgsConstructor
 public class RecordingController
 {
 
     private final Cache cache;
     private final ExecutableService executableService;
     private final ResourceControlService resourceControlService;
-
-    public RecordingController(
-            @Autowired Cache cache,
-            @Autowired ExecutableService executableService,
-            @Autowired ResourceControlService resourceControlService)
-    {
-        this.cache = cache;
-        this.executableService = executableService;
-        this.resourceControlService = resourceControlService;
-    }
 
     @Operation(summary = "Lists reservation request recordings.")
     @GetMapping

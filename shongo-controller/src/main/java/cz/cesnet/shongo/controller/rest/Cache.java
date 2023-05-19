@@ -15,10 +15,10 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.rest.error.ObjectInaccessibleException;
 import cz.cesnet.shongo.controller.rest.models.resource.ResourcesUtilization;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.*;
@@ -32,6 +32,7 @@ import java.util.stream.Stream;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Slf4j
+@RequiredArgsConstructor
 public class Cache
 {
 
@@ -51,77 +52,60 @@ public class Cache
     /**
      * @see ResourcesUtilization
      */
-    private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken = new ExpirationMap<>();
+    private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken =
+            new ExpirationMap<>(Duration.standardMinutes(10));
 
     /**
      * {@link UserInformation}s by {@link SecurityToken}.
      */
-    private final ExpirationMap<SecurityToken, List<SystemPermission>> userPermissionsByToken = new ExpirationMap<>();
+    private final ExpirationMap<SecurityToken, List<SystemPermission>> userPermissionsByToken =
+            new ExpirationMap<>(Duration.standardMinutes(5));
 
     /**
      * {@link UserInformation}s by user-ids.
      */
-    private final ExpirationMap<String, UserInformation> userInformationByUserId = new ExpirationMap<>();
+    private final ExpirationMap<String, UserInformation> userInformationByUserId =
+            new ExpirationMap<>(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
 
     /**
      * {@link Group}s by group-ids.
      */
-    private final ExpirationMap<String, Group> groupByGroupId = new ExpirationMap<>();
+    private final ExpirationMap<String, Group> groupByGroupId =
+            new ExpirationMap<>(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
 
     /**
      * {@link UserState}s by {@link SecurityToken}.
      */
-    private final ExpirationMap<SecurityToken, UserState> userStateByToken = new ExpirationMap<SecurityToken, UserState>();
+    private final ExpirationMap<SecurityToken, UserState> userStateByToken =
+            new ExpirationMap<>(Duration.standardHours(1));
     /**
      * {@link ResourceSummary} by identifier.
      */
-    private final ExpirationMap<String, ResourceSummary> resourceById = new ExpirationMap<>();
+    private final ExpirationMap<String, ResourceSummary> resourceById =
+            new ExpirationMap<>(Duration.standardHours(1));
     /**
      * {@link ReservationRequestSummary} by identifier.
      */
-    private final ExpirationMap<String, ReservationRequestSummary> reservationRequestById = new ExpirationMap<>();
+    private final ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
+            new ExpirationMap<>(Duration.standardMinutes(5));
 
     /**
      * {@link Reservation} by identifier.
      */
-    private final ExpirationMap<String, Reservation> reservationById = new ExpirationMap<>();
+    private final ExpirationMap<String, Reservation> reservationById =
+            new ExpirationMap<>(Duration.standardMinutes(5));
 
     /**
      * Ids of resources with public calendar by their calendarUriKey
      */
-    private final ExpirationMap<String, String> resourceIdsWithPublicCalendarByUriKey = new ExpirationMap<>();
+    private final ExpirationMap<String, String> resourceIdsWithPublicCalendarByUriKey =
+            new ExpirationMap<>(Duration.standardMinutes(10));
 
     /**
      * {@link Reservation} by identifier.
      */
-    private final ExpirationMap<String, Executable> executableById = new ExpirationMap<>();
-
-    /**
-     * Constructor.
-     */
-    public Cache(
-            @Autowired AuthorizationService authorizationService,
-            @Autowired ResourceService resourceService,
-            @Autowired ReservationService reservationService,
-            @Autowired ExecutableService executableService)
-    {
-        this.authorizationService = authorizationService;
-        this.resourceService = resourceService;
-        this.reservationService = reservationService;
-        this.executableService = executableService;
-
-        // Set expiration durations
-        userPermissionsByToken.setExpiration(Duration.standardMinutes(5));
-        userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
-        groupByGroupId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
-        userStateByToken.setExpiration(Duration.standardHours(1));
-        resourceById.setExpiration(Duration.standardHours(1));
-        reservationRequestById.setExpiration(Duration.standardMinutes(5));
-        reservationById.setExpiration(Duration.standardMinutes(5));
-        executableById.setExpiration(Duration.standardSeconds(10));
-        resourcesUtilizationByToken.setExpiration(Duration.standardMinutes(10));
-        resourceIdsWithPublicCalendarByUriKey.setExpiration(Duration.standardMinutes(10));
-    }
+    private final ExpirationMap<String, Executable> executableById =
+            new ExpirationMap<>(Duration.standardSeconds(10));
 
     /**
      * @param userId

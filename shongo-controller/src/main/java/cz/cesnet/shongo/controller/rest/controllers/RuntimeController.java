@@ -12,8 +12,8 @@ import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.RoomCache;
 import cz.cesnet.shongo.controller.rest.models.runtimemanagement.RuntimeParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,22 +33,13 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 @Slf4j
 @RestController
 @RequestMapping(ClientWebUrl.RUNTIME_MANAGEMENT)
+@RequiredArgsConstructor
 public class RuntimeController
 {
 
     private final Cache cache;
     private final RoomCache roomCache;
     private final ExecutableService executableService;
-
-    public RuntimeController(
-            @Autowired Cache cache,
-            @Autowired RoomCache roomCache,
-            @Autowired ExecutableService executableService)
-    {
-        this.cache = cache;
-        this.executableService = executableService;
-        this.roomCache = roomCache;
-    }
 
     @Operation(summary = "Lists reservation request runtime participants.")
     @GetMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS)

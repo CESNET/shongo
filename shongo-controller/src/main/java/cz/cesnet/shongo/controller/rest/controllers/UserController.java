@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,17 +27,12 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.USERS_AND_GROUPS)
+@RequiredArgsConstructor
 public class UserController
 {
 
     private final AuthorizationService authorizationService;
     private final Cache cache;
-
-    public UserController(@Autowired AuthorizationService reservationService, @Autowired Cache cache)
-    {
-        this.authorizationService = reservationService;
-        this.cache = cache;
-    }
 
     /**
      * Handle request for list of {@link UserInformation}s which contains given {@code filter} text in any field.

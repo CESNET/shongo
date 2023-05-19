@@ -23,9 +23,9 @@ import cz.cesnet.shongo.controller.rest.models.reservationrequest.*;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +47,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.RESERVATION_REQUESTS)
+@RequiredArgsConstructor
 public class ReservationRequestController
 {
 
@@ -54,18 +55,6 @@ public class ReservationRequestController
     private final ReservationService reservationService;
     private final AuthorizationService authorizationService;
     private final ExecutableService executableService;
-
-    public ReservationRequestController(
-            @Autowired Cache cache,
-            @Autowired ReservationService reservationService,
-            @Autowired AuthorizationService authorizationService,
-            @Autowired ExecutableService executableService)
-    {
-        this.cache = cache;
-        this.reservationService = reservationService;
-        this.authorizationService = authorizationService;
-        this.executableService = executableService;
-    }
 
     @Operation(summary = "Lists reservation requests.")
     @GetMapping

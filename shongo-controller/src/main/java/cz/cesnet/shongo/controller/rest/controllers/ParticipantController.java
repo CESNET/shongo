@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantConfigurationModel;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,19 +30,12 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @RestController
 @RequestMapping(ClientWebUrl.PARTICIPANTS)
+@RequiredArgsConstructor
 public class ParticipantController
 {
 
     private final Cache cache;
     private final ExecutableService executableService;
-
-    public ParticipantController(
-            @Autowired Cache cache,
-            @Autowired ExecutableService executableService)
-    {
-        this.cache = cache;
-        this.executableService = executableService;
-    }
 
     @Operation(summary = "Lists reservation request participants.")
     @GetMapping

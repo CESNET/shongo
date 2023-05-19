@@ -5,8 +5,8 @@ import cz.cesnet.shongo.controller.rest.ErrorHandler;
 import cz.cesnet.shongo.controller.rest.models.report.ReportModel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,15 +23,11 @@ import javax.mail.MessagingException;
 @SecurityRequirements
 @RestController
 @RequestMapping(ClientWebUrl.REPORT)
+@RequiredArgsConstructor
 public class ReportController
 {
 
     private final ErrorHandler errorHandler;
-
-    public ReportController(@Autowired ErrorHandler errorHandler)
-    {
-        this.errorHandler = errorHandler;
-    }
 
     /**
      * Handle problem report.
