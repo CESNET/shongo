@@ -1,7 +1,13 @@
 package cz.cesnet.shongo.controller.rest.models.resource;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Capability;
+import cz.cesnet.shongo.controller.api.RecordingCapability;
+import cz.cesnet.shongo.controller.api.ReservationSummary;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.RoomProviderCapability;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -12,7 +18,13 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents utilization of all types of capacities for all resources to which a single user has access.

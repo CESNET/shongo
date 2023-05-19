@@ -3,7 +3,13 @@ package cz.cesnet.shongo.controller.rest.models.resource;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import org.joda.time.Interval;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a utilization of {@link ResourceCapacity} for a specific interval.

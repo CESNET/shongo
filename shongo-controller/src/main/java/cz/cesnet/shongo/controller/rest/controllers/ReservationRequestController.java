@@ -19,7 +19,11 @@ import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.*;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestCreateModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestModel;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.SpecificationType;
+import cz.cesnet.shongo.controller.rest.models.reservationrequest.VirtualRoomModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +32,17 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 
@@ -106,9 +119,10 @@ public class ReservationRequestController
 
             if (reservationTypes.size() > 1) {
                 reservationTypes.remove(ReservationType.ROOM_CAPACITY);
-                List<ReservationRequestModel> other = listRequests(securityToken, start, count, sort, sortDescending,
-                        allocationState, permanentRoomId, technology, intervalFrom, intervalTo, userId, participantUserId,
-                        search, reservationTypes, resourceId).getItems();
+                List<ReservationRequestModel> other = listRequests(
+                        securityToken, start, count, sort, sortDescending, allocationState, permanentRoomId, technology,
+                        intervalFrom, intervalTo, userId, participantUserId, search, reservationTypes, resourceId
+                ).getItems();
                 response.addAll(other);
             }
 
@@ -175,7 +189,9 @@ public class ReservationRequestController
                 resourceSummary = cache.getResourceSummary(securityToken, resource);
             }
             VirtualRoomModel virtualRoom = new VirtualRoomModel(item);
-            return new ReservationRequestModel(item, virtualRoom, permissionsByReservationRequestId, user, resourceSummary);
+            return new ReservationRequestModel(
+                    item, virtualRoom, permissionsByReservationRequestId, user, resourceSummary
+            );
         }).collect(Collectors.toList()));
         listResponse.setStart(response.getStart());
         listResponse.setCount(response.getCount());
@@ -258,7 +274,9 @@ public class ReservationRequestController
         }
         VirtualRoomModel virtualRoomData = new VirtualRoomModel(summary);
 
-        List<ReservationRequestSummary> historySummaries = reservationService.getReservationRequestHistory(securityToken, id);
+        List<ReservationRequestSummary> historySummaries = reservationService.getReservationRequestHistory(
+                securityToken, id
+        );
         Map<String, Set<ObjectPermission>> permissionsByReservationHistory =
                 cache.getReservationRequestsPermissions(securityToken, historySummaries);
         List<ReservationRequestModel> history =
@@ -284,12 +302,15 @@ public class ReservationRequestController
         // If the request is a ROOM_CAPACITY, then get virtual room data from the room
         String virtualRoomId = summary.getReusedReservationRequestId();
         if (virtualRoomId != null) {
-            ReservationRequestSummary summaryVirtualRoom = cache.getReservationRequestSummary(securityToken, virtualRoomId);
+            ReservationRequestSummary summaryVirtualRoom = cache.getReservationRequestSummary(
+                    securityToken, virtualRoomId
+            );
             virtualRoomData = new VirtualRoomModel(summaryVirtualRoom);
         }
 
         return new ReservationRequestDetailModel(
-                summary, virtualRoomData, permissionsByReservationRequestId, ownerInformation, authorizedData, history, resourceSummary
+                summary, virtualRoomData, permissionsByReservationRequestId, ownerInformation, authorizedData, history,
+                resourceSummary
         );
     }
 

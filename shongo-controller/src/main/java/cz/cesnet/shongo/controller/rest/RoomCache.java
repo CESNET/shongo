@@ -8,13 +8,16 @@ import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import lombok.RequiredArgsConstructor;
 import org.joda.time.Duration;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Cache of information for management of rooms.
@@ -26,8 +29,6 @@ public class RoomCache
 {
 
     private final ResourceControlService resourceControlService;
-
-    private final ExecutableService executableService;
 
     private final Cache cache;
 

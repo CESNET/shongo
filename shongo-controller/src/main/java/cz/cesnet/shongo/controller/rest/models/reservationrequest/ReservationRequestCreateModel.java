@@ -8,12 +8,39 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.AdobeConnectPermissions;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.api.FreePBXRoomSetting;
+import cz.cesnet.shongo.api.H323RoomSetting;
+import cz.cesnet.shongo.api.PexipRoomSetting;
+import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractParticipant;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
+import cz.cesnet.shongo.controller.api.AclEntry;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
+import cz.cesnet.shongo.controller.api.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.api.ExecutableState;
+import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
+import cz.cesnet.shongo.controller.api.RecordingServiceSpecification;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ResourceSpecification;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.RoomAvailability;
+import cz.cesnet.shongo.controller.api.RoomEstablishment;
+import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -30,9 +57,27 @@ import cz.cesnet.shongo.util.SlotHelper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeField;
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
+import org.joda.time.Interval;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.Partial;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATTERN;
 
@@ -46,9 +91,6 @@ import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATT
 @Data
 public class ReservationRequestCreateModel
 {
-
-    @JsonIgnore
-    private CacheProvider cacheProvider;
 
     protected String id;
 
@@ -128,6 +170,9 @@ public class ReservationRequestCreateModel
     protected String resourceId;
 
     private TimeInterval slot;
+
+    @JsonIgnore
+    private CacheProvider cacheProvider;
 
     /**
      * Create new {@link ReservationRequestModel} from scratch.
@@ -267,8 +312,6 @@ public class ReservationRequestCreateModel
                     collidingWithFirstSlot = SlotHelper.areIntervalsColliding(start, 0, 0, this.durationCount,
                             collidingInterval);
                     break;
-                default:
-                    return;
             }
         }
         else {

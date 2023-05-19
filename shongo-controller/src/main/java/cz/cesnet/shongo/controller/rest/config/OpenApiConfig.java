@@ -12,7 +12,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.resource.*;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceTransformer;
+import org.springframework.web.servlet.resource.ResourceTransformerChain;
+import org.springframework.web.servlet.resource.TransformedResource;
+import org.springframework.web.servlet.resource.WebJarsResourceResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
