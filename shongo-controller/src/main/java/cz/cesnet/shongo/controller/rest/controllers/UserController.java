@@ -10,7 +10,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.rest.Cache;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.USERS_AND_GROUPS)
+@RequestMapping(RestApiPath.USERS_AND_GROUPS)
 @RequiredArgsConstructor
 public class UserController
 {
@@ -48,7 +48,7 @@ public class UserController
      * @return list of {@link UserInformation}s
      */
     @Operation(summary = "Lists users.")
-    @GetMapping(ClientWebUrl.USERS_LIST)
+    @GetMapping(RestApiPath.USERS_LIST)
     public ListResponse<UserInformation> getUsers(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "filter", required = false) String filter,
@@ -71,7 +71,7 @@ public class UserController
      * @return {@link UserInformation}
      */
     @Operation(summary = "Returns information about user.")
-    @GetMapping(ClientWebUrl.USERS_DETAIL)
+    @GetMapping(RestApiPath.USERS_DETAIL)
     public UserInformation getUser(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String userId)
@@ -85,7 +85,7 @@ public class UserController
      * @return {@link SettingsModel}
      */
     @Operation(summary = "Returns user's settings.")
-    @GetMapping(ClientWebUrl.SETTINGS)
+    @GetMapping(RestApiPath.SETTINGS)
     public SettingsModel getUserSettings(@RequestAttribute(TOKEN) SecurityToken securityToken)
     {
         UserSettings settings = authorizationService.getUserSettings(securityToken);
@@ -101,7 +101,7 @@ public class UserController
      * @param newSettings new settings of user
      */
     @Operation(summary = "Updates user's settings.")
-    @PutMapping(ClientWebUrl.SETTINGS)
+    @PutMapping(RestApiPath.SETTINGS)
     public SettingsModel updateUserSettings(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestBody UserSettings newSettings)
@@ -130,7 +130,7 @@ public class UserController
      * @return list of {@link Group}s
      */
     @Operation(summary = "Lists groups.")
-    @GetMapping(ClientWebUrl.GROUPS_LIST)
+    @GetMapping(RestApiPath.GROUPS_LIST)
     public ListResponse<Group> getGroups(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestParam(value = "filter", required = false) String filter)
@@ -149,7 +149,7 @@ public class UserController
      * @return {@link Group}
      */
     @Operation(summary = "Returns information about group.")
-    @GetMapping(ClientWebUrl.GROUPS_DETAIL)
+    @GetMapping(RestApiPath.GROUPS_DETAIL)
     public Group getGroup(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String groupId)

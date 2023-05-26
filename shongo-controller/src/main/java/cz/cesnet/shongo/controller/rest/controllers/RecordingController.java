@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.Cache;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.models.recording.RecordingModel;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +31,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.RECORDINGS)
+@RequestMapping(RestApiPath.RECORDINGS)
 @RequiredArgsConstructor
 public class RecordingController
 {
@@ -71,7 +71,7 @@ public class RecordingController
     }
 
     @Operation(summary = "Deletes recording from reservation request.")
-    @DeleteMapping(ClientWebUrl.RECORDINGS_ID_SUFFIX)
+    @DeleteMapping(RestApiPath.RECORDINGS_ID_SUFFIX)
     void deleteRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,

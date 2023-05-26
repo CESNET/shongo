@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.error.LastOwnerRoleNotDeletableException;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +36,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.ROLES)
+@RequestMapping(RestApiPath.ROLES)
 @RequiredArgsConstructor
 public class UserRoleController
 {
@@ -82,7 +82,7 @@ public class UserRoleController
     }
 
     @Operation(summary = "Deletes role for reservation request.")
-    @DeleteMapping(ClientWebUrl.ENTITY_SUFFIX)
+    @DeleteMapping(RestApiPath.ENTITY_SUFFIX)
     void deleteRequestRoles(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,

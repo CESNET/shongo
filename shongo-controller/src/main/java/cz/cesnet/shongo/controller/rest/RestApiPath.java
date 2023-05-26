@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.rest;
 
 /**
- * Web URL paths for REST endpoints.
+ * URL paths for REST endpoints.
  *
  * @author Filip Karnis
  */
-public class ClientWebUrl
+public class RestApiPath
 {
 
     public static final String API_PREFIX = "/api/v1";

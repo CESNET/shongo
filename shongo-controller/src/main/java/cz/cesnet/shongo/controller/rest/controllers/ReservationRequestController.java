@@ -17,7 +17,7 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestCreateModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
@@ -59,7 +59,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.RESERVATION_REQUESTS)
+@RequestMapping(RestApiPath.RESERVATION_REQUESTS)
 @RequiredArgsConstructor
 public class ReservationRequestController
 {
@@ -244,7 +244,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Returns reservation request.")
-    @GetMapping(ClientWebUrl.ID_SUFFIX)
+    @GetMapping(RestApiPath.ID_SUFFIX)
     ReservationRequestDetailModel getRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
@@ -315,7 +315,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Modifies reservation request.")
-    @PatchMapping(ClientWebUrl.ID_SUFFIX)
+    @PatchMapping(RestApiPath.ID_SUFFIX)
     void modifyRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -356,7 +356,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Deletes reservation request.")
-    @DeleteMapping(ClientWebUrl.ID_SUFFIX)
+    @DeleteMapping(RestApiPath.ID_SUFFIX)
     void deleteRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
@@ -374,7 +374,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Accepts reservation request.")
-    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_ACCEPT)
+    @PostMapping(RestApiPath.RESERVATION_REQUESTS_ACCEPT)
     void acceptRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)
@@ -383,7 +383,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Rejects reservation request.")
-    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_REJECT)
+    @PostMapping(RestApiPath.RESERVATION_REQUESTS_REJECT)
     void rejectRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -393,7 +393,7 @@ public class ReservationRequestController
     }
 
     @Operation(summary = "Reverts reservation request modifications.")
-    @PostMapping(ClientWebUrl.RESERVATION_REQUESTS_REVERT)
+    @PostMapping(RestApiPath.RESERVATION_REQUESTS_REVERT)
     void revertRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)

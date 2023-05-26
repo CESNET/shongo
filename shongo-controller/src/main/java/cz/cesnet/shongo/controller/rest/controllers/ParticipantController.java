@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantConfigurationModel;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
@@ -45,7 +45,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.PARTICIPANTS)
+@RequestMapping(RestApiPath.PARTICIPANTS)
 @RequiredArgsConstructor
 public class ParticipantController
 {
@@ -126,7 +126,7 @@ public class ParticipantController
     }
 
     @Operation(summary = "Adds new participant to reservation request.")
-    @PutMapping(ClientWebUrl.PARTICIPANTS_ID_SUFFIX)
+    @PutMapping(RestApiPath.PARTICIPANTS_ID_SUFFIX)
     void updateParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -150,7 +150,7 @@ public class ParticipantController
     }
 
     @Operation(summary = "Removes participant from reservation request.")
-    @DeleteMapping(ClientWebUrl.PARTICIPANTS_ID_SUFFIX)
+    @DeleteMapping(RestApiPath.PARTICIPANTS_ID_SUFFIX)
     void removeParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,

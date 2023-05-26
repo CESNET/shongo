@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.rest.controllers;
 
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
 import cz.cesnet.shongo.controller.rest.ErrorHandler;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.models.report.ReportModel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -22,7 +22,7 @@ import javax.mail.MessagingException;
 @Slf4j
 @SecurityRequirements
 @RestController
-@RequestMapping(ClientWebUrl.REPORT)
+@RequestMapping(RestApiPath.REPORT)
 @RequiredArgsConstructor
 public class ReportController
 {

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import cz.cesnet.shongo.controller.rest.models.room.RoomModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +29,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  * @author Filip Karnis
  */
 @RestController
-@RequestMapping(ClientWebUrl.ROOMS)
+@RequestMapping(RestApiPath.ROOMS)
 @RequiredArgsConstructor
 public class RoomController
 {
@@ -76,7 +76,7 @@ public class RoomController
     }
 
     @Operation(summary = "Gets room's (executable's) authorized data.")
-    @GetMapping(ClientWebUrl.ID_SUFFIX)
+    @GetMapping(RestApiPath.ID_SUFFIX)
     public RoomAuthorizedData getRoom(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id)

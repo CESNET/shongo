@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
-import cz.cesnet.shongo.controller.rest.ClientWebUrl;
+import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.RoomCache;
 import cz.cesnet.shongo.controller.rest.models.runtimemanagement.RuntimeParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +41,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
  */
 @Slf4j
 @RestController
-@RequestMapping(ClientWebUrl.RUNTIME_MANAGEMENT)
+@RequestMapping(RestApiPath.RUNTIME_MANAGEMENT)
 @RequiredArgsConstructor
 public class RuntimeController
 {
@@ -51,7 +51,7 @@ public class RuntimeController
     private final ExecutableService executableService;
 
     @Operation(summary = "Lists reservation request runtime participants.")
-    @GetMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS)
+    @GetMapping(RestApiPath.RUNTIME_MANAGEMENT_PARTICIPANTS)
     ListResponse<RuntimeParticipantModel> listRuntimeParticipants(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -76,7 +76,7 @@ public class RuntimeController
     }
 
     @Operation(summary = "Takes snapshot of reservation request runtime participant.")
-    @PostMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS_SNAPSHOT)
+    @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_PARTICIPANTS_SNAPSHOT)
     ResponseEntity<byte[]> snapshotRuntimeParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -101,7 +101,7 @@ public class RuntimeController
     }
 
     @Operation(summary = "Modifies reservation request runtime participant.")
-    @PatchMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS_MODIFY)
+    @PatchMapping(RestApiPath.RUNTIME_MANAGEMENT_PARTICIPANTS_MODIFY)
     void modifyRuntimeParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -149,7 +149,7 @@ public class RuntimeController
     }
 
     @Operation(summary = "Disconnects reservation request runtime participant.")
-    @PostMapping(ClientWebUrl.RUNTIME_MANAGEMENT_PARTICIPANTS_DISCONNECT)
+    @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_PARTICIPANTS_DISCONNECT)
     void disconnectRuntimeParticipant(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -160,7 +160,7 @@ public class RuntimeController
     }
 
     @Operation(summary = "Starts recording of reservation request runtime.")
-    @PostMapping(ClientWebUrl.RUNTIME_MANAGEMENT_RECORDING_START)
+    @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_RECORDING_START)
     void startRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
@@ -194,7 +194,7 @@ public class RuntimeController
     }
 
     @Operation(summary = "Stops recording of reservation request runtime.")
-    @PostMapping(ClientWebUrl.RUNTIME_MANAGEMENT_RECORDING_STOP)
+    @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_RECORDING_STOP)
     void stopRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
