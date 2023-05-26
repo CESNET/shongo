@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller.rest;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import java.util.Collection;
@@ -15,17 +17,13 @@ import java.util.Collection;
  * @author Filip Karnis
  */
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class ErrorHandler
 {
 
     private final Controller controller;
     private final ControllerConfiguration configuration;
-
-    public ErrorHandler()
-    {
-        this.controller = Controller.getInstance();
-        this.configuration = controller.getConfiguration();
-    }
 
     /**
      * Send email to administrators.

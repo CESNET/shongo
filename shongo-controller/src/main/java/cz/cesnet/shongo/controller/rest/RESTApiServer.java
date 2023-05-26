@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.rest;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.domains.BasicAuthFilter;
 import cz.cesnet.shongo.controller.domains.SSLClientCertFilter;
@@ -16,15 +15,16 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.DispatcherType;
 import java.io.IOException;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,21 +42,23 @@ public class RESTApiServer
     {
         Server restServer = new Server();
         ConfiguredSSLContext.getInstance().loadConfiguration(configuration);
-        String resourceBase = RESTApiServer.getResourceBase();
 
-        WebAppContext webAppContext = new WebAppContext();
-        webAppContext.addServlet(new ServletHolder(SERVLET_NAME, DispatcherServlet.class), SERVLET_PATH);
-        webAppContext.setResourceBase(resourceBase);
-        webAppContext.setParentLoaderPriority(true);
-        webAppContext.addFilter(
-                new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
-                "/*", EnumSet.allOf(DispatcherType.class)
-        );
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+        context.scan("cz.cesnet.shongo.controller");
 
-        ServerConnector httpsConnector = createHTTPConnector(configuration, webAppContext, restServer);
+        ServletContextHandler servletContextHandler = new ServletContextHandler();
+        servletContextHandler.addEventListener(new ContextLoaderListener(context));
+
+        ServletHolder servletHolder = new ServletHolder(SERVLET_NAME, new DispatcherServlet(context));
+        servletContextHandler.addServlet(servletHolder, SERVLET_PATH);
+
+        FilterHolder springSecurityFilter = new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain"));
+        servletContextHandler.addFilter(springSecurityFilter, "/*", EnumSet.allOf(DispatcherType.class));
+
+        ServerConnector httpsConnector = createHTTPConnector(configuration, servletContextHandler, restServer);
 
         restServer.setConnectors(new Connector[]{httpsConnector});
-        restServer.setHandler(webAppContext);
+        restServer.setHandler(servletContextHandler);
 
         try {
             restServer.start();
@@ -68,18 +70,9 @@ public class RESTApiServer
         return restServer;
     }
 
-    private static String getResourceBase()
-    {
-        URL resourceBaseUrl = Controller.class.getClassLoader().getResource("WEB-INF");
-        if (resourceBaseUrl == null) {
-            throw new RuntimeException("WEB-INF is not in classpath.");
-        }
-        return resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
-    }
-
     private static ServerConnector createHTTPConnector(
             ControllerConfiguration configuration,
-            WebAppContext webAppContext,
+            ServletContextHandler contextHandler,
             Server server)
             throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException
     {
@@ -118,11 +111,11 @@ public class RESTApiServer
                     sslContextFactory.setNeedClientAuth(true);
                     // Enable SSL client filter by certificates
                     EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-                    webAppContext.addFilter(SSLClientCertFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
+                    contextHandler.addFilter(SSLClientCertFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
                 }
                 else {
                     EnumSet<DispatcherType> filterTypes = EnumSet.of(DispatcherType.REQUEST);
-                    webAppContext.addFilter(BasicAuthFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
+                    contextHandler.addFilter(BasicAuthFilter.class, INTER_DOMAIN_API_PATH, filterTypes);
                 }
             }
             serverConnector = new ServerConnector(server,

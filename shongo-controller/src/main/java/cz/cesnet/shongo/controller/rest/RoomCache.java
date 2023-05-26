@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import lombok.RequiredArgsConstructor;
 import org.joda.time.Duration;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,6 +25,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Service
 @RequiredArgsConstructor
 public class RoomCache
 {

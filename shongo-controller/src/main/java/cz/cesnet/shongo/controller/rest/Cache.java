@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ import java.util.stream.Stream;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class Cache
 {

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.rest.config.security;
 
-import cz.cesnet.shongo.controller.Controller;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,8 +22,11 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter
 {
+
+    private final ControllerConfiguration configuration;
 
     @Override
     public void configure(WebSecurity web)
@@ -60,6 +64,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 
     private List<String> allowedOrigins()
     {
-        return Controller.getInstance().getConfiguration().getRESTApiAllowedOrigins();
+        return configuration.getRESTApiAllowedOrigins();
     }
 }
