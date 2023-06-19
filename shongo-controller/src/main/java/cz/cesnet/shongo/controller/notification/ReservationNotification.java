@@ -1,17 +1,23 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.TagType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataException;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataService;
+import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -22,6 +28,7 @@ import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * {@link ConfigurableNotification} for a {@link Reservation}.
@@ -63,11 +70,49 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);
+        addRecipientsFromNotificationTags(reservationRequest, entityManager);
 
         // Add child targets
         for (Reservation childReservation : reservation.getChildReservations()) {
             addChildTargets(childReservation, entityManager);
         }
+    }
+
+    private void addRecipientsFromNotificationTags(AbstractReservationRequest reservationRequest,
+            EntityManager entityManager)
+    {
+        AuxDataFilter filter = AuxDataFilter.builder()
+                .tagType(TagType.NOTIFY_EMAIL)
+                .enabled(true)
+                .build();
+
+        List<NotifyEmailAuxData> notifyEmailAuxData;
+        try {
+            notifyEmailAuxData = AuxDataService.getTagData(reservationRequest, filter, entityManager);
+        } catch (JsonProcessingException e) {
+            logger.error("Error while parsing auxData", e);
+            return;
+        } catch (AuxDataException e) {
+            logger.warn("Error while getting notify email aux data for reservation request {}.", reservationRequest.getId(), e);
+            return;
+        }
+
+        List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
+                .stream()
+                .map(this::notifyEmailDataToPersonInformation)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        logger.debug("Adding tag recipients: {}", tagPersonInformationList);
+        tagPersonInformationList.forEach(personInformation -> addRecipient(personInformation, true));
+    }
+
+    private Collection<TagPersonInformation> notifyEmailDataToPersonInformation(NotifyEmailAuxData notifyEmailAuxData)
+    {
+        return notifyEmailAuxData
+                .getData()
+                .stream()
+                .map(email -> new TagPersonInformation(notifyEmailAuxData.getTag().getName(), email))
+                .collect(Collectors.toList());
     }
 
     public String getId()
@@ -387,6 +432,43 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         public String getType()
         {
             return "DELETED";
+        }
+    }
+
+    private static class TagPersonInformation implements PersonInformation
+    {
+
+        private final String name;
+        private final String email;
+
+        public TagPersonInformation(String name, String email)
+        {
+            this.name = name;
+            this.email = email;
+        }
+
+        @Override
+        public String getFullName()
+        {
+            return name;
+        }
+
+        @Override
+        public String getRootOrganization()
+        {
+            return null;
+        }
+
+        @Override
+        public String getPrimaryEmail()
+        {
+            return email;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Tag[" + name + "] (" + email + ")";
         }
     }
 }
