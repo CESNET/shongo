@@ -28,7 +28,7 @@ public class TagTest extends AbstractControllerTest {
         final String tagName1 = "testTag1";
         final String tagName2 = "testTag2";
         final TagType tagType2 = TagType.RESERVATION_DATA;
-        final String tagData2 = "[\"karnis@cesnet.cz\", \"filip.karnis@cesnet.cz\"]";
+        final String tagData2 = "[\"karnis@cesnet.cz\",\"filip.karnis@cesnet.cz\"]";
 
         ResourceService resourceService = getResourceService();
 
@@ -54,7 +54,7 @@ public class TagTest extends AbstractControllerTest {
         Assert.assertEquals(tagId1, getResult1.getId());
         Assert.assertEquals(tagName1, getResult1.getName());
         Assert.assertEquals(TagType.DEFAULT, getResult1.getType());
-        Assert.assertNull(getResult1.getData());
+        Assert.assertEquals("", getResult1.getData());
 
         Assert.assertEquals(tagId2, getResult2.getId());
         Assert.assertEquals(tagName2, getResult2.getName());

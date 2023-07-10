@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.booking.request.auxdata.tagdata;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxData;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
@@ -12,8 +11,6 @@ public abstract class TagData<T>
 {
 
     protected static Logger logger = LoggerFactory.getLogger(TagData.class);
-
-    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     protected final Tag tag;
     protected final AuxData aux;

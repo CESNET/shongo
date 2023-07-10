@@ -1,14 +1,11 @@
 package cz.cesnet.shongo.controller.booking.request.auxdata.tagdata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxData;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NotifyEmailAuxData extends TagData<List<String>>
 {
@@ -21,26 +18,14 @@ public class NotifyEmailAuxData extends TagData<List<String>>
     @Override
     public List<String> getData()
     {
-        List<String> tagDataEmails;
-        List<String> auxDataEmails;
+        List<String> emails = new ArrayList<>();
 
-        try {
-            tagDataEmails = objectMapper.readValue(tag.getData(), new TypeReference<>() {
-            });
-        } catch (JsonProcessingException | NullPointerException e) {
-            logger.warn("Error while parsing tag data: {}", e.getMessage());
-            tagDataEmails = new ArrayList<>();
+        for (JsonNode child : tag.getData()) {
+            emails.add(child.asText());
         }
-        try {
-            auxDataEmails = objectMapper.readValue(aux.getData().toString(), new TypeReference<>() {
-            });
-        } catch (JsonProcessingException | NullPointerException e) {
-            logger.warn("Error while parsing aux data: {}", e.getMessage());
-            auxDataEmails = new ArrayList<>();
+        for (JsonNode child : aux.getData()) {
+            emails.add(child.asText());
         }
-
-        return Stream
-                .concat(tagDataEmails.stream(), auxDataEmails.stream())
-                .collect(Collectors.toList());
+        return emails;
     }
 }
