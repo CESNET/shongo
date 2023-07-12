@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.booking.request.auxdata;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.TagData;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -24,8 +21,6 @@ public class AuxDataService
 {
 
     private static final Logger logger = LoggerFactory.getLogger(AuxDataService.class);
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static <T extends TagData<?>> List<T> getTagData(
             AbstractReservationRequest reservationRequest,
@@ -50,9 +45,12 @@ public class AuxDataService
             throw new AuxDataException("AuxData is null");
         }
 
-        List<AuxData> auxData = objectMapper.readValue(reservationRequest.getAuxData(), new TypeReference<>() {});
+        List<AuxData> auxData = reservationRequest.getAuxDataList();
 
         Resource resource = getResource(reservationRequest);
+        if (resource == null) {
+            throw new AuxDataException("Resource is null");
+        }
         List<Tag> resourceTags = new ResourceManager(entityManager).getResourceTags(resource);
 
         List<TagData<?>> tagData = new ArrayList<>();
@@ -66,7 +64,7 @@ public class AuxDataService
         return tagData;
     }
 
-    private static Resource getResource(AbstractReservationRequest reservationRequest)
+    private static Resource getResource(AbstractReservationRequest reservationRequest) throws AuxDataException
     {
         Specification specification = reservationRequest.getSpecification();
         if (specification instanceof ResourceSpecification) {
@@ -75,8 +73,7 @@ public class AuxDataService
         else if (specification instanceof RoomSpecification) {
             return ((RoomSpecification) specification).getDeviceResource();
         }
-        else {
-            throw new TodoImplementException(specification.getClass());
-        }
+        throw new AuxDataException(String.format("Specification: %s does not have a resource (so neither tags)",
+                specification.getClass()));
     }
 }

@@ -7,6 +7,9 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Request for reservation of resources.
  *
@@ -78,7 +81,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     /**
      * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
      */
-    private String auxData;
+    private List<AuxiliaryData> auxData = new ArrayList<>();
 
     /**
      * Constructor.
@@ -299,7 +302,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     /**
      * @return {@link #auxData}
      */
-    public String getAuxData()
+    public List<AuxiliaryData> getAuxData()
     {
         return auxData;
     }
@@ -307,7 +310,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     /**
      * @param auxData sets the {@link #auxData}
      */
-    public void setAuxData(String auxData)
+    public void setAuxData(List<AuxiliaryData> auxData)
     {
         this.auxData = auxData;
     }
@@ -362,6 +365,6 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         reusedReservationRequestMandatory = dataMap.getBool(REUSED_RESERVATION_REQUEST_MANDATORY);
         reusement = dataMap.getEnum(REUSEMENT, ReservationRequestReusement.class);
         isSchedulerDeleted = dataMap.getBool(IS_SCHEDULER_DELETED);
-        auxData = dataMap.getString(AUX_DATA);
+        auxData = dataMap.getList(AUX_DATA, AuxiliaryData.class);
     }
 }

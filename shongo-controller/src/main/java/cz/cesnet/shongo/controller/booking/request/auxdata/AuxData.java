@@ -13,13 +13,6 @@ public class AuxData
     {
     }
 
-    public AuxData(String tagName, boolean enabled, JsonNode data)
-    {
-        this.tagName = tagName;
-        this.enabled = enabled;
-        this.data = data;
-    }
-
     public String getTagName()
     {
         return tagName;
@@ -58,5 +51,23 @@ public class AuxData
                 ", enabled=" + enabled +
                 ", data='" + data + '\'' +
                 '}';
+    }
+
+    public cz.cesnet.shongo.controller.api.AuxiliaryData toApi()
+    {
+        cz.cesnet.shongo.controller.api.AuxiliaryData api = new cz.cesnet.shongo.controller.api.AuxiliaryData();
+        api.setTagName(getTagName());
+        api.setEnabled(isEnabled());
+        api.setData(getData());
+        return api;
+    }
+
+    public static AuxData fromApi(cz.cesnet.shongo.controller.api.AuxiliaryData api)
+    {
+        AuxData auxData = new AuxData();
+        auxData.setTagName(api.getTagName());
+        auxData.setEnabled(api.isEnabled());
+        auxData.setData(api.getDataAsJsonNode());
+        return auxData;
     }
 }

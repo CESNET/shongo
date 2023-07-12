@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.booking.request;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
@@ -11,18 +8,14 @@ import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.AuxiliaryData;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.booking.datetime.AbsoluteDateTimeSlot;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxData;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Tests for reallocation of reservations.
@@ -32,20 +25,12 @@ import java.util.Locale;
 public class ReservationRequestModificationTest extends AbstractControllerTest
 {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Test
-    public void testModifyAttributes() throws JsonProcessingException {
+    public void testModifyAttributes() {
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
         String resourceId = createResource(resource);
-
-        ArrayNode data = objectMapper.createArrayNode();
-        data.add("karnis@cesnet.cz");
-        data.add("filip.karnis@cesnet.cz");
-        AuxData aux = new AuxData("test", true, data);
-        String auxData = objectMapper.writeValueAsString(aux);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("request");
@@ -73,6 +58,11 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         reservationRequestGet.setDescription("requestModified");
         reservationRequestGet.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
         reservationRequestGet.setReusement(ReservationRequestReusement.OWNED);
+        List<AuxiliaryData> auxData = List.of(
+                new AuxiliaryData("tag1", true, "[\"karnis@cenet.cz\", \"filip.karnis@cesnet.cz\"]"),
+                new AuxiliaryData("tag2", false, "[\"shouldnotbe@used\"]"),
+                new AuxiliaryData("tag3", true, null)
+        );
         reservationRequestGet.setAuxData(auxData);
         reservationRequestGet.setSlot("2012-01-01T13:00", "PT1H");
 
