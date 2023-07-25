@@ -9,8 +9,6 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -19,8 +17,6 @@ import java.util.stream.Collectors;
 
 public class AuxDataService
 {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuxDataService.class);
 
     public static <T extends TagData<?>> List<T> getTagData(
             AbstractReservationRequest reservationRequest,

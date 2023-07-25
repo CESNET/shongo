@@ -45,8 +45,8 @@ public abstract class TagData<T>
                 return false;
             }
         }
-        if (filter.isEnabled() != null) {
-            if (!filter.isEnabled().equals(aux.isEnabled())) {
+        if (filter.getEnabled() != null) {
+            if (!filter.getEnabled().equals(aux.isEnabled())) {
                 return false;
             }
         }
