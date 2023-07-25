@@ -6,9 +6,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.DataMap;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.util.Objects;
-
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class AuxiliaryData extends AbstractComplexType
 {
 
@@ -16,11 +21,9 @@ public class AuxiliaryData extends AbstractComplexType
 
     private String tagName;
     private boolean enabled;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private String data = objectMapper.nullNode().toString();
-
-    public AuxiliaryData()
-    {
-    }
 
     public AuxiliaryData(String tagName, boolean enabled, String data)
     {
@@ -29,32 +32,14 @@ public class AuxiliaryData extends AbstractComplexType
         setData(data);
     }
 
-    public String getTagName()
-    {
-        return tagName;
-    }
-
-    public void setTagName(String tagName)
-    {
-        this.tagName = tagName;
-    }
-
-    public boolean isEnabled()
-    {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled)
-    {
-        this.enabled = enabled;
-    }
-
     public String getData()
     {
         return data;
     }
 
     @JsonIgnore
+    @ToString.Include(name = "data")
+    @EqualsAndHashCode.Include
     public JsonNode getDataAsJsonNode()
     {
         if (data == null) {
@@ -110,31 +95,5 @@ public class AuxiliaryData extends AbstractComplexType
         tagName = dataMap.getString("tagName");
         enabled = dataMap.getBoolean("enabled");
         data = dataMap.getString("data");
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AuxiliaryData auxData = (AuxiliaryData) o;
-        return enabled == auxData.enabled && Objects.equals(tagName, auxData.tagName) &&
-                Objects.equals(getDataAsJsonNode(), auxData.getDataAsJsonNode());
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(tagName, enabled, data);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "AuxiliaryData{" +
-                "tagName='" + tagName + '\'' +
-                ", enabled=" + enabled +
-                ", data='" + data + '\'' +
-                '}';
     }
 }
