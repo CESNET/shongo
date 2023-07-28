@@ -3,6 +3,6 @@
  */
 BEGIN TRANSACTION;
 
-ALTER TABLE abstract_reservation_request ADD COLUMN aux_data jsonb;
+ALTER TABLE abstract_reservation_request ADD COLUMN aux_data jsonb DEFAULT '[]'::jsonb NOT NULL;
 
 COMMIT TRANSACTION;
