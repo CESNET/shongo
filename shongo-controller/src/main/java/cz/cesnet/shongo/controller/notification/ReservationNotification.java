@@ -13,8 +13,8 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataService;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -55,6 +55,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         super(reservationRequest);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         String updatedBy = getReservationRequestUpdatedBy();
         if (updatedBy != null && UserInformation.isLocal(updatedBy)) {
@@ -68,7 +69,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);
-        addRecipientsFromNotificationTags(reservationRequest, entityManager);
+        addRecipientsFromNotificationTags(reservationRequest, reservationRequestManager);
 
         // Add child targets
         for (Reservation childReservation : reservation.getChildReservations()) {
@@ -77,14 +78,14 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     }
 
     private void addRecipientsFromNotificationTags(AbstractReservationRequest reservationRequest,
-            EntityManager entityManager)
+            ReservationRequestManager reservationRequestManager)
     {
         AuxDataFilter filter = AuxDataFilter.builder()
                 .tagType(TagType.NOTIFY_EMAIL)
                 .enabled(true)
                 .build();
 
-        List<NotifyEmailAuxData> notifyEmailAuxData = AuxDataService.getTagData(reservationRequest, filter, entityManager);
+        List<NotifyEmailAuxData> notifyEmailAuxData = reservationRequestManager.getTagData(reservationRequest, filter);
 
         List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
                 .stream()
