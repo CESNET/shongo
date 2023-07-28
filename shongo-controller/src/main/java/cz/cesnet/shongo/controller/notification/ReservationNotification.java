@@ -100,7 +100,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         return notifyEmailAuxData
                 .getData()
                 .stream()
-                .map(email -> new TagPersonInformation(notifyEmailAuxData.getTag().getName(), email))
+                .map(email -> new TagPersonInformation(notifyEmailAuxData.getAuxData().getTagName(), email))
                 .collect(Collectors.toList());
     }
 

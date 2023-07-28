@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.booking.request.auxdata.tagdata;
+package cz.cesnet.shongo.controller.booking.request.auxdata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.controller.api.TagType;

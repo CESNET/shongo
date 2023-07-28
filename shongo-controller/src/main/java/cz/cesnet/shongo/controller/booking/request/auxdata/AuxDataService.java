@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.booking.request.auxdata;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.TagData;
-import cz.cesnet.shongo.controller.booking.resource.Tag;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -34,18 +33,7 @@ public class AuxDataService
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         return reservationRequestManager.getAllAuxData(reservationRequest)
                 .stream()
-                .map(auxDataMerged -> {
-                    Tag tag = new Tag();
-                    tag.setName(auxDataMerged.getTagName());
-                    tag.setType(auxDataMerged.getType());
-                    tag.setData(auxDataMerged.getData());
-
-                    AuxData auxData = new AuxData();
-                    auxData.setTagName(auxDataMerged.getTagName());
-                    auxData.setEnabled(auxDataMerged.getEnabled());
-                    auxData.setData(auxDataMerged.getAuxData());
-
-                    return TagData.create(tag, auxData);
-                }).collect(Collectors.toList());
+                .map(TagData::create)
+                .collect(Collectors.toList());
     }
 }

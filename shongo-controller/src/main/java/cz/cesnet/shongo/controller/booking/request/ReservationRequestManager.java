@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
-import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.AuxDataMerged;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataMerged;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
