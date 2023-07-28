@@ -22,6 +22,8 @@ public abstract class TagData<T>
     public static TagData<?> create(AuxDataMerged auxData)
     {
         switch (auxData.getType()) {
+            case DEFAULT:
+                return new DefaultAuxData(auxData);
             case NOTIFY_EMAIL:
                 return new NotifyEmailAuxData(auxData);
             case RESERVATION_DATA:
