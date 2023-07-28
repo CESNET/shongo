@@ -1,17 +1,11 @@
 package cz.cesnet.shongo.controller.booking.request.auxdata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.TagData;
-import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
-import cz.cesnet.shongo.controller.booking.resource.ResourceSpecification;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
-import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
-import cz.cesnet.shongo.controller.booking.specification.Specification;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +15,7 @@ public class AuxDataService
     public static <T extends TagData<?>> List<T> getTagData(
             AbstractReservationRequest reservationRequest,
             AuxDataFilter filter, EntityManager entityManager
-    ) throws AuxDataException, JsonProcessingException
+    )
     {
         List<TagData<?>> tagData = getAllTagData(reservationRequest, entityManager);
 
@@ -35,41 +29,23 @@ public class AuxDataService
     private static List<TagData<?>> getAllTagData(
             AbstractReservationRequest reservationRequest,
             EntityManager entityManager
-    ) throws AuxDataException, JsonProcessingException
+    )
     {
-        if (reservationRequest.getAuxData() == null) {
-            throw new AuxDataException("AuxData is null");
-        }
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        return reservationRequestManager.getAllAuxData(reservationRequest)
+                .stream()
+                .map(auxDataMerged -> {
+                    Tag tag = new Tag();
+                    tag.setName(auxDataMerged.getTagName());
+                    tag.setType(auxDataMerged.getType());
+                    tag.setData(auxDataMerged.getData());
 
-        List<AuxData> auxData = reservationRequest.getAuxDataList();
+                    AuxData auxData = new AuxData();
+                    auxData.setTagName(auxDataMerged.getTagName());
+                    auxData.setEnabled(auxDataMerged.getEnabled());
+                    auxData.setData(auxDataMerged.getAuxData());
 
-        Resource resource = getResource(reservationRequest);
-        if (resource == null) {
-            throw new AuxDataException("Resource is null");
-        }
-        List<Tag> resourceTags = new ResourceManager(entityManager).getResourceTags(resource);
-
-        List<TagData<?>> tagData = new ArrayList<>();
-        for (Tag tag : resourceTags) {
-            for (AuxData auxData1 : auxData) {
-                if (auxData1.getTagName().equals(tag.getName())) {
-                    tagData.add(TagData.create(tag, auxData1));
-                }
-            }
-        }
-        return tagData;
-    }
-
-    private static Resource getResource(AbstractReservationRequest reservationRequest) throws AuxDataException
-    {
-        Specification specification = reservationRequest.getSpecification();
-        if (specification instanceof ResourceSpecification) {
-            return ((ResourceSpecification) specification).getResource();
-        }
-        else if (specification instanceof RoomSpecification) {
-            return ((RoomSpecification) specification).getDeviceResource();
-        }
-        throw new AuxDataException(String.format("Specification: %s does not have a resource (so neither tags)",
-                specification.getClass()));
+                    return TagData.create(tag, auxData);
+                }).collect(Collectors.toList());
     }
 }

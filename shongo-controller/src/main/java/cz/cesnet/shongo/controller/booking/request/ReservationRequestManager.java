@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.TagType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
@@ -10,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
+import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.AuxDataMerged;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
@@ -20,6 +23,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -634,5 +638,29 @@ public class ReservationRequestManager extends AbstractManager
         }
         reservationRequest.clearReports();
         return reports;
+    }
+
+    public List<AuxDataMerged> getAllAuxData(AbstractReservationRequest reservationRequest)
+    {
+        return entityManager.createQuery(
+                        "SELECT arr.tagName, rt.tag.type, arr.enabled, arr.data, rt.tag.data" +
+                                " FROM AbstractReservationRequestAuxData arr" +
+                                " JOIN ResourceSpecification res_spec ON res_spec.id = arr.specification.id" +
+                                " JOIN ResourceTag rt ON rt.resource.id = res_spec.resource.id" +
+                                " WHERE rt.tag.name = arr.tagName AND arr.id = :id",
+                        Object[].class)
+                .setParameter("id", reservationRequest.getId())
+                .getResultList()
+                .stream()
+                .map(record -> {
+                    AuxDataMerged auxDataMerged = new AuxDataMerged();
+                    auxDataMerged.setTagName((String) record[0]);
+                    auxDataMerged.setType((TagType) record[1]);
+                    auxDataMerged.setEnabled((Boolean) record[2]);
+                    auxDataMerged.setAuxData((JsonNode) record[3]);
+                    auxDataMerged.setData((JsonNode) record[4]);
+                    return auxDataMerged;
+                })
+                .collect(Collectors.toList());
     }
 }

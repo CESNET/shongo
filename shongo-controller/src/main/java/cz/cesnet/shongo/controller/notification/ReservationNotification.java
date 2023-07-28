@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
@@ -14,7 +13,6 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataException;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataService;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
@@ -86,16 +84,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
                 .enabled(true)
                 .build();
 
-        List<NotifyEmailAuxData> notifyEmailAuxData;
-        try {
-            notifyEmailAuxData = AuxDataService.getTagData(reservationRequest, filter, entityManager);
-        } catch (JsonProcessingException e) {
-            logger.error("Error while parsing auxData", e);
-            return;
-        } catch (AuxDataException e) {
-            logger.warn("Error while getting notify email aux data for reservation request {}.", reservationRequest.getId(), e);
-            return;
-        }
+        List<NotifyEmailAuxData> notifyEmailAuxData = AuxDataService.getTagData(reservationRequest, filter, entityManager);
 
         List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
                 .stream()

@@ -13,6 +13,7 @@ DROP VIEW IF EXISTS reservation_request_earliest_usage;
 DROP VIEW IF EXISTS reservation_summary;
 DROP VIEW IF EXISTS executable_summary_view;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
+DROP VIEW IF EXISTS arr_aux_data;
 
 /**
  * Create missing foreign keys' indexes.
@@ -541,3 +542,11 @@ ORDER BY executable.id, alias.id;
 
 CREATE TABLE executable_summary AS SELECT * FROM executable_summary_view;
 CREATE TABLE specification_summary AS SELECT * FROM specification_summary_view;
+
+CREATE VIEW arr_aux_data AS
+SELECT
+    arr.*,
+    jsonb_array_elements(aux_data)->>'tagName' AS tag_name,
+    (jsonb_array_elements(aux_data)->>'enabled')::boolean AS enabled,
+    jsonb_array_elements(aux_data)->'data' AS data
+FROM abstract_reservation_request arr;
