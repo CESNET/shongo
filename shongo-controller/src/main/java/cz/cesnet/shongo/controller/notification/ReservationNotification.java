@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
@@ -14,9 +13,8 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataException;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataService;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -52,7 +50,9 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
 
     private ReservationNotification(Reservation reservation,
-            AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+            AbstractReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager,
+            ReservationRequestManager reservationRequestManager)
     {
         super(reservationRequest);
 
@@ -70,7 +70,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);
-        addRecipientsFromNotificationTags(reservationRequest, entityManager);
+        addRecipientsFromNotificationTags(reservationRequest, reservationRequestManager);
 
         // Add child targets
         for (Reservation childReservation : reservation.getChildReservations()) {
@@ -79,23 +79,14 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     }
 
     private void addRecipientsFromNotificationTags(AbstractReservationRequest reservationRequest,
-            EntityManager entityManager)
+            ReservationRequestManager reservationRequestManager)
     {
         AuxDataFilter filter = AuxDataFilter.builder()
                 .tagType(TagType.NOTIFY_EMAIL)
                 .enabled(true)
                 .build();
 
-        List<NotifyEmailAuxData> notifyEmailAuxData;
-        try {
-            notifyEmailAuxData = AuxDataService.getTagData(reservationRequest, filter, entityManager);
-        } catch (JsonProcessingException e) {
-            logger.error("Error while parsing auxData", e);
-            return;
-        } catch (AuxDataException e) {
-            logger.warn("Error while getting notify email aux data for reservation request {}.", reservationRequest.getId(), e);
-            return;
-        }
+        List<NotifyEmailAuxData> notifyEmailAuxData = reservationRequestManager.getTagData(reservationRequest, filter);
 
         List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
                 .stream()
@@ -111,7 +102,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         return notifyEmailAuxData
                 .getData()
                 .stream()
-                .map(email -> new TagPersonInformation(notifyEmailAuxData.getTag().getName(), email))
+                .map(email -> new TagPersonInformation(notifyEmailAuxData.getAuxData().getTagName(), email))
                 .collect(Collectors.toList());
     }
 
@@ -384,9 +375,10 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     {
         private Long previousReservationId;
 
-        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager)
+        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager,
+                   ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
 
             this.previousReservationId = (previousReservation != null ? previousReservation.getId() : null);
         }
@@ -418,14 +410,15 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     public static class Deleted extends ReservationNotification
     {
         public Deleted(Reservation reservation, AbstractReservationRequest reservationRequest,
-                AuthorizationManager authorizationManager)
+                AuthorizationManager authorizationManager, ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, reservationRequest, authorizationManager);
+            super(reservation, reservationRequest, authorizationManager, reservationRequestManager);
         }
 
-        public Deleted(Reservation reservation, AuthorizationManager authorizationManager)
+        public Deleted(Reservation reservation, AuthorizationManager authorizationManager,
+                       ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
         }
 
         @Override

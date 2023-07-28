@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.TagType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
@@ -10,6 +12,9 @@ import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataMerged;
+import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.TagData;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
@@ -19,7 +24,9 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -634,5 +641,76 @@ public class ReservationRequestManager extends AbstractManager
         }
         reservationRequest.clearReports();
         return reports;
+    }
+
+    /**
+     * Creates {@link TagData} for given {@link AbstractReservationRequest} and its corresponding
+     * {@link cz.cesnet.shongo.controller.booking.resource.Tag}s.
+     *
+     * @param reservationRequest reservation request for which the {@link TagData} shall be created
+     * @param filter             filter for data desired
+     * @return specific implementation of {@link TagData} based on {@link TagType}
+     * @param <T> TagData implementation for corresponding {@link TagType}
+     */
+    public <T extends TagData<?>> List<T> getTagData(AbstractReservationRequest reservationRequest, AuxDataFilter filter)
+    {
+        return getAuxData(reservationRequest, filter)
+                .stream()
+                .map(TagData::create)
+                .map(data -> (T) data)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Merge {@link cz.cesnet.shongo.controller.booking.request.auxdata.AuxData} from {@link AbstractReservationRequest}
+     * and data from its corresponding {@link cz.cesnet.shongo.controller.booking.resource.Tag}s.
+     *
+     * @param reservationRequest reservation request for which the data shall be merged
+     * @param filter             filter for data desired
+     * @return merged data
+     */
+    private List<AuxDataMerged> getAuxData(AbstractReservationRequest reservationRequest, AuxDataFilter filter)
+    {
+        String queryString = "SELECT arr.tagName, rt.tag.type, arr.enabled, arr.data, rt.tag.data" +
+                " FROM AbstractReservationRequestAuxData arr" +
+                " JOIN ResourceSpecification res_spec ON res_spec.id = arr.specification.id" +
+                " JOIN ResourceTag rt ON rt.resource.id = res_spec.resource.id" +
+                " WHERE rt.tag.name = arr.tagName" +
+                " AND arr.id = :id";
+        if (filter.getTagName() != null) {
+            queryString += " AND rt.tag.name = :tagName";
+        }
+        if (filter.getTagType() != null) {
+            queryString += " AND rt.tag.type = :type";
+        }
+        if (filter.getEnabled() != null) {
+            queryString += " AND arr.enabled = :enabled";
+        }
+
+        TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class)
+                .setParameter("id", reservationRequest.getId());
+        if (filter.getTagName() != null) {
+            query.setParameter("tagName", filter.getTagName());
+        }
+        if (filter.getTagType() != null) {
+            query.setParameter("type", filter.getTagType());
+        }
+        if (filter.getEnabled() != null) {
+            query.setParameter("enabled", filter.getEnabled());
+        }
+
+        return query
+                .getResultList()
+                .stream()
+                .map(record -> {
+                    AuxDataMerged auxDataMerged = new AuxDataMerged();
+                    auxDataMerged.setTagName((String) record[0]);
+                    auxDataMerged.setType((TagType) record[1]);
+                    auxDataMerged.setEnabled((Boolean) record[2]);
+                    auxDataMerged.setAuxData((JsonNode) record[3]);
+                    auxDataMerged.setData((JsonNode) record[4]);
+                    return auxDataMerged;
+                })
+                .collect(Collectors.toList());
     }
 }
