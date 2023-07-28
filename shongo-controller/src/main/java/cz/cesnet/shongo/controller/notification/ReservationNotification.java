@@ -50,12 +50,13 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
 
     private ReservationNotification(Reservation reservation,
-            AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+            AbstractReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager,
+            ReservationRequestManager reservationRequestManager)
     {
         super(reservationRequest);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         String updatedBy = getReservationRequestUpdatedBy();
         if (updatedBy != null && UserInformation.isLocal(updatedBy)) {
@@ -374,9 +375,10 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     {
         private Long previousReservationId;
 
-        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager)
+        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager,
+                   ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
 
             this.previousReservationId = (previousReservation != null ? previousReservation.getId() : null);
         }
@@ -408,14 +410,15 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     public static class Deleted extends ReservationNotification
     {
         public Deleted(Reservation reservation, AbstractReservationRequest reservationRequest,
-                AuthorizationManager authorizationManager)
+                AuthorizationManager authorizationManager, ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, reservationRequest, authorizationManager);
+            super(reservation, reservationRequest, authorizationManager, reservationRequestManager);
         }
 
-        public Deleted(Reservation reservation, AuthorizationManager authorizationManager)
+        public Deleted(Reservation reservation, AuthorizationManager authorizationManager,
+                       ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
         }
 
         @Override
