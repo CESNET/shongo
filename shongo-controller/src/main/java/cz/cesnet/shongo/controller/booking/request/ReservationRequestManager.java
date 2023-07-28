@@ -703,13 +703,12 @@ public class ReservationRequestManager extends AbstractManager
                 .getResultList()
                 .stream()
                 .map(record -> {
-                    AuxDataMerged auxDataMerged = new AuxDataMerged();
-                    auxDataMerged.setTagName((String) record[0]);
-                    auxDataMerged.setType((TagType) record[1]);
-                    auxDataMerged.setEnabled((Boolean) record[2]);
-                    auxDataMerged.setAuxData((JsonNode) record[3]);
-                    auxDataMerged.setData((JsonNode) record[4]);
-                    return auxDataMerged;
+                    final String tagName = (String) record[0];
+                    final TagType type = (TagType) record[1];
+                    final Boolean enabled = (Boolean) record[2];
+                    final JsonNode auxData = (JsonNode) record[3];
+                    final JsonNode data = (JsonNode) record[4];
+                    return new AuxDataMerged(tagName, type, enabled, data, auxData);
                 })
                 .collect(Collectors.toList());
     }

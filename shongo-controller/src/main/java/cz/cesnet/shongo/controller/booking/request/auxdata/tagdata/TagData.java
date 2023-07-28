@@ -4,24 +4,29 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataMerged;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Getter
 @ToString
-@RequiredArgsConstructor
 public abstract class TagData<T>
 {
 
     protected final AuxDataMerged auxData;
+    protected final T data;
 
-    public abstract T getData();
+    protected TagData(AuxDataMerged auxData)
+    {
+        this.auxData = auxData;
+        this.data = constructData();
+    }
+
+    protected abstract T constructData();
 
     public static TagData<?> create(AuxDataMerged auxData)
     {
         switch (auxData.getType()) {
+            case DEFAULT:
+                return new DefaultAuxData(auxData);
             case NOTIFY_EMAIL:
                 return new NotifyEmailAuxData(auxData);
             case RESERVATION_DATA:
