@@ -270,6 +270,7 @@ public class ResourceSummary extends IdentifiedComplexType
 
     public enum Type {
         ROOM_PROVIDER,
+        RECORDING_SERVICE,
         RESOURCE,
     }
 
