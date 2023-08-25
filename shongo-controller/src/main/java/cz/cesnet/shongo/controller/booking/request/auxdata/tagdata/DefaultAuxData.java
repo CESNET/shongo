@@ -11,7 +11,7 @@ public class DefaultAuxData extends TagData<Void>
     }
 
     @Override
-    public Void getData()
+    protected Void constructData()
     {
         return null;
     }

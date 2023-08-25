@@ -12,7 +12,7 @@ public class ReservationAuxData extends TagData<String>
     }
 
     @Override
-    public String getData()
+    protected String constructData()
     {
         throw new TodoImplementException("Not implemented");
     }
