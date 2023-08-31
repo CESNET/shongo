@@ -164,9 +164,9 @@ public class RuntimeController
     void startRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
-            @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
+        String executableId = cache.getExecutableId(securityToken, id);
         Object result = null;
         try {
             result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
@@ -198,9 +198,9 @@ public class RuntimeController
     void stopRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
-            @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
+        String executableId = cache.getExecutableId(securityToken, id);
         Object result = null;
         try {
             result = executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
