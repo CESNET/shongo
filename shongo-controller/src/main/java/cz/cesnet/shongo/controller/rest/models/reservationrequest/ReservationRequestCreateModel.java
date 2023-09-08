@@ -144,7 +144,7 @@ public class ReservationRequestCreateModel
 
     protected String guestPin;
 
-    protected boolean roomRecorded;
+    protected boolean record;
 
     protected String roomRecordingResourceId;
 
@@ -584,7 +584,7 @@ public class ReservationRequestCreateModel
                 roomMeetingDescription = roomAvailability.getMeetingDescription();
                 for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
                     if (service instanceof RecordingServiceSpecification) {
-                        roomRecorded = service.isEnabled();
+                        record = service.isEnabled();
                         roomRecordingResourceId = service.getResourceId();
                     }
                 }
@@ -808,9 +808,8 @@ public class ReservationRequestCreateModel
                 roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
                 roomAvailability.setMeetingName(roomMeetingName);
                 roomAvailability.setMeetingDescription(roomMeetingDescription);
-                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomAvailability.addServiceSpecification(RecordingServiceSpecification.forResource(
-                            Strings.isNullOrEmpty(roomRecordingResourceId) ? null : roomRecordingResourceId, true));
+                if (record && !TechnologyModel.ADOBE_CONNECT.equals(technology)) {
+                    roomAvailability.addServiceSpecification(new RecordingServiceSpecification(true));
                 }
                 specification = roomSpecification;
                 break;

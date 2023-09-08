@@ -350,7 +350,7 @@ public class ReservationRequestController
             modifiedRequest.setParticipantCount(request.getParticipantCount());
         }
         modifiedRequest.setAllowGuests(request.isAllowGuests());
-        modifiedRequest.setRoomRecorded(request.isRoomRecorded());
+        modifiedRequest.setRecord(request.isRecord());
 
         reservationService.modifyReservationRequest(securityToken, modifiedRequest.toApi());
     }
