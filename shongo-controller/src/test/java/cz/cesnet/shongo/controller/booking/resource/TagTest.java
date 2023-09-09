@@ -27,7 +27,7 @@ public class TagTest extends AbstractControllerTest {
     {
         final String tagName1 = "testTag1";
         final String tagName2 = "testTag2";
-        final TagType tagType2 = TagType.RESERVATION_DATA;
+        final TagType tagType2 = TagType.NOTIFY_EMAIL;
         final String tagData2 = "[\"karnis@cesnet.cz\",\"filip.karnis@cesnet.cz\"]";
 
         ResourceService resourceService = getResourceService();
