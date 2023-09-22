@@ -188,9 +188,8 @@ public class ReservationRequestController
             if (resource != null) {
                 resourceSummary = cache.getResourceSummary(securityToken, resource);
             }
-            VirtualRoomModel virtualRoom = new VirtualRoomModel(item);
             return new ReservationRequestModel(
-                    item, virtualRoom, permissionsByReservationRequestId, user, resourceSummary
+                    item, item, permissionsByReservationRequestId, user, resourceSummary
             );
         }).collect(Collectors.toList()));
         listResponse.setStart(response.getStart());
@@ -272,7 +271,7 @@ public class ReservationRequestController
         if (resourceId != null) {
             resourceSummary = cacheProvider.getResourceSummary(resourceId);
         }
-        VirtualRoomModel virtualRoomData = new VirtualRoomModel(summary);
+        ReservationRequestSummary virtualRoomSummary = summary;
 
         List<ReservationRequestSummary> historySummaries = reservationService.getReservationRequestHistory(
                 securityToken, id
@@ -291,7 +290,7 @@ public class ReservationRequestController
                             }
                             return new ReservationRequestModel(
                                     item,
-                                    new VirtualRoomModel(item),
+                                    item,
                                     permissionsByReservationHistory,
                                     user,
                                     resourceSum
@@ -302,14 +301,13 @@ public class ReservationRequestController
         // If the request is a ROOM_CAPACITY, then get virtual room data from the room
         String virtualRoomId = summary.getReusedReservationRequestId();
         if (virtualRoomId != null) {
-            ReservationRequestSummary summaryVirtualRoom = cache.getReservationRequestSummary(
+            virtualRoomSummary = cache.getReservationRequestSummary(
                     securityToken, virtualRoomId
             );
-            virtualRoomData = new VirtualRoomModel(summaryVirtualRoom);
         }
 
         return new ReservationRequestDetailModel(
-                summary, virtualRoomData, permissionsByReservationRequestId, ownerInformation, authorizedData, history,
+                summary, virtualRoomSummary, permissionsByReservationRequestId, ownerInformation, authorizedData, history,
                 resourceSummary
         );
     }

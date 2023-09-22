@@ -46,7 +46,7 @@ public class ReservationRequestModel
 
     public ReservationRequestModel(
             ReservationRequestSummary summary,
-            VirtualRoomModel virtualRoomData,
+            ReservationRequestSummary virtualRoomSummary,
             Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
             UserInformation ownerInformation,
             ResourceSummary resourceSummary)
@@ -60,9 +60,9 @@ public class ReservationRequestModel
         this.ownerEmail = ownerInformation.getEmail();
         this.slot = TimeInterval.fromApi(summary.getEarliestSlot());
         this.type = SpecificationType.fromReservationRequestSummary(summary, true);
-        this.virtualRoomData = virtualRoomData;
+        this.virtualRoomData = new VirtualRoomModel(virtualRoomSummary);
         this.physicalResourceData = PhysicalResourceData.fromApi(resourceSummary);
-        this.roomCapacityData = new RoomCapacityModel(summary);
+        this.roomCapacityData = new RoomCapacityModel(virtualRoomSummary);
         this.lastReservationId = summary.getLastReservationId();
         this.futureSlotCount = summary.getFutureSlotCount();
 

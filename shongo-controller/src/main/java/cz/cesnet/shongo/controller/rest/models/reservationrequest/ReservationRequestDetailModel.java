@@ -34,14 +34,14 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
     public ReservationRequestDetailModel(
             ReservationRequestSummary summary,
-            VirtualRoomModel virtualRoom,
+            ReservationRequestSummary virtualRoomSummary,
             Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
             UserInformation ownerInformation,
             RoomAuthorizedData authorizedData,
             List<ReservationRequestModel> history,
             ResourceSummary resourceSummary)
     {
-        super(summary, virtualRoom, permissionsByReservationRequestId, ownerInformation, resourceSummary);
+        super(summary, virtualRoomSummary, permissionsByReservationRequestId, ownerInformation, resourceSummary);
 
         this.allocationState = summary.getAllocationState();
         this.executableState = summary.getExecutableState();
