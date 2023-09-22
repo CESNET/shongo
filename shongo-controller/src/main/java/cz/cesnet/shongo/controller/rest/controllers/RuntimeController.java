@@ -3,13 +3,16 @@ package cz.cesnet.shongo.controller.rest.controllers;
 import cz.cesnet.shongo.api.MediaData;
 import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.controller.api.ExecutionReport;
+import cz.cesnet.shongo.controller.api.RecordingService;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
 import cz.cesnet.shongo.controller.rest.RoomCache;
+import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.runtimemanagement.RuntimeParticipantModel;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -163,10 +166,11 @@ public class RuntimeController
     @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_RECORDING_START)
     void startRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable String id,
-            @RequestParam(value = "executableServiceId") String executableServiceId)
+            @PathVariable String id)
     {
         String executableId = cache.getExecutableId(securityToken, id);
+        String executableServiceId = getExecutableServiceId(securityToken, executableId);
+
         Object result = null;
         try {
             result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
@@ -197,10 +201,11 @@ public class RuntimeController
     @PostMapping(RestApiPath.RUNTIME_MANAGEMENT_RECORDING_STOP)
     void stopRequestRecording(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
-            @PathVariable String id,
-            @RequestParam(value = "executableServiceId") String executableServiceId)
+            @PathVariable String id)
     {
         String executableId = cache.getExecutableId(securityToken, id);
+        String executableServiceId = getExecutableServiceId(securityToken, executableId);
+
         Object result = null;
         try {
             result = executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
@@ -218,5 +223,19 @@ public class RuntimeController
             }
         }
         cache.clearExecutable(executableId);
+    }
+
+    private String getExecutableServiceId(SecurityToken securityToken, String executableId)
+    {
+        ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken, executableId, RecordingService.class);
+        List<cz.cesnet.shongo.controller.api.ExecutableService> services = executableService.listExecutableServices(request).getItems();
+        log.debug("Found recording services: {}", services);
+        if (services.size() > 1) {
+            throw new UnsupportedApiException("Room " + executableId + " has multiple recording services.");
+        }
+        if (!services.isEmpty()) {
+            return services.get(0).getId();
+        }
+        return null;
     }
 }
