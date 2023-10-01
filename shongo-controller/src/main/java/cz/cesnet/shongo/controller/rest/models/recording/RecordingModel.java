@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.api.ResourceRecording;
 import lombok.Data;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 
 import static cz.cesnet.shongo.controller.rest.models.TimeInterval.ISO_8601_PATTERN;
 
@@ -24,7 +23,7 @@ public class RecordingModel
     private String resourceId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ISO_8601_PATTERN)
     private DateTime beginDate;
-    private Period duration;
+    private Long duration;
     private Boolean isPublic;
     private String downloadUrl;
     private String viewUrl;
@@ -43,7 +42,7 @@ public class RecordingModel
             this.duration = null;
         }
         else {
-            this.duration = duration.toPeriod();
+            this.duration = duration.getMillis();
         }
         this.isPublic = recording.isPublic();
         this.downloadUrl = recording.getDownloadUrl();
