@@ -26,12 +26,13 @@ public class ResourceUtilizationModel
     {
         List<UtilizationModel> resources = new ArrayList<>();
         resourceCapacityUtilizations.forEach((resourceCapacity, resourceCapacityUtilization) -> {
-            ResourceCapacity.Room roomCapacity = (ResourceCapacity.Room) resourceCapacity;
-
             UtilizationModel utilizationModel = new UtilizationModel();
-            utilizationModel.setId(roomCapacity.getResourceId());
-            utilizationModel.setName(roomCapacity.getResourceName());
-            utilizationModel.setTotalCapacity(roomCapacity.getLicenseCount());
+            utilizationModel.setId(resourceCapacity.getResourceId());
+            utilizationModel.setName(resourceCapacity.getResourceName());
+            if (resourceCapacity instanceof ResourceCapacity.LicenseCount) {
+                ResourceCapacity.LicenseCount licenseCount = (ResourceCapacity.LicenseCount) resourceCapacity;
+                utilizationModel.setTotalCapacity(licenseCount.getLicenseCount());
+            }
             utilizationModel.setUsedCapacity((resourceCapacityUtilization != null)
                     ? resourceCapacityUtilization.getPeakBucket().getLicenseCount() : 0);
             resources.add(utilizationModel);
