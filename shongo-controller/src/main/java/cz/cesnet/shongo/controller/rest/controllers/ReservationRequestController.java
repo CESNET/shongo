@@ -7,9 +7,11 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.RecordingService;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -255,10 +257,17 @@ public class ReservationRequestController
 
         String roomId = cache.getExecutableId(securityToken, id);
         RoomAuthorizedData authorizedData = null;
+        boolean isRecordingActive = false;
         if (roomId != null) {
             AbstractRoomExecutable roomExecutable =
                     (AbstractRoomExecutable) executableService.getExecutable(securityToken, roomId);
             authorizedData = new RoomAuthorizedData(roomExecutable);
+
+            ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken, roomId, RecordingService.class);
+            List<cz.cesnet.shongo.controller.api.ExecutableService> executableServices = executableService.listExecutableServices(request).getItems();
+            if (!executableServices.isEmpty()) {
+                isRecordingActive = executableServices.get(0).isActive();
+            }
         }
 
         List<ReservationRequestSummary> requests = new ArrayList<>();
@@ -308,10 +317,12 @@ public class ReservationRequestController
             );
         }
 
-        return new ReservationRequestDetailModel(
+        ReservationRequestDetailModel detailModel = new ReservationRequestDetailModel(
                 summary, virtualRoomSummary, permissionsByReservationRequestId, ownerInformation, authorizedData, history,
                 resourceSummary
         );
+        detailModel.getRoomCapacityData().setIsRecordingActive(isRecordingActive);
+        return detailModel;
     }
 
     @Operation(summary = "Modifies reservation request.")
