@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.models.IdModel;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestCreateModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
@@ -200,7 +201,7 @@ public class ReservationRequestController
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Creates reservation request.")
     @PostMapping
-    void createRequest(
+    IdModel createRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @RequestBody ReservationRequestCreateModel request)
     {
@@ -240,6 +241,7 @@ public class ReservationRequestController
             UserRoleModel userRoleModel = request.addUserRole(userInformation, ObjectRole.OWNER);
             authorizationService.createAclEntry(securityToken, userRoleModel.toApi());
         }
+        return new IdModel(reservationId);
     }
 
     @Operation(summary = "Returns reservation request.")
@@ -314,7 +316,7 @@ public class ReservationRequestController
 
     @Operation(summary = "Modifies reservation request.")
     @PatchMapping(RestApiPath.ID_SUFFIX)
-    void modifyRequest(
+    IdModel modifyRequest(
             @RequestAttribute(TOKEN) SecurityToken securityToken,
             @PathVariable String id,
             @RequestBody ReservationRequestCreateModel request)
@@ -350,7 +352,8 @@ public class ReservationRequestController
         modifiedRequest.setAllowGuests(request.isAllowGuests());
         modifiedRequest.setRecord(request.isRecord());
 
-        reservationService.modifyReservationRequest(securityToken, modifiedRequest.toApi());
+        String newId = reservationService.modifyReservationRequest(securityToken, modifiedRequest.toApi());
+        return new IdModel(newId);
     }
 
     @Operation(summary = "Deletes reservation request.")
