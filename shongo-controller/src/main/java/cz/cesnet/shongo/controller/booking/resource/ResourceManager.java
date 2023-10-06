@@ -27,6 +27,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Manager for {@link Resource}.
@@ -684,6 +685,26 @@ public class ResourceManager extends AbstractManager
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
 
         return typedQuery.getResultList();
+    }
+
+    /**
+     * Returns list of {@link Tag} for given {@link Resource}
+     * @param resource
+     * @return
+     */
+    public List<Tag> getResourceTags(Resource resource)
+    {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
+        Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
+        javax.persistence.criteria.Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource"), resource.getId());
+        query.select(resourceTagRoot).where(param1);
+
+        TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
+        List<ResourceTag> resourceTags = typedQuery.getResultList();
+
+        return resourceTags.stream().map(ResourceTag::getTag).collect(Collectors.toList());
     }
 
     /**
