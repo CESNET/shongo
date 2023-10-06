@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.rest.controllers;
 
+import cz.cesnet.shongo.controller.api.RecordingService;
 import cz.cesnet.shongo.controller.api.ResourceRecording;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -77,6 +79,13 @@ public class RecordingController
             @PathVariable String id,
             @PathVariable String recordingId)
     {
-        resourceControlService.deleteRecording(securityToken, id, recordingId);
+        String executableId = cache.getExecutableId(securityToken, id);
+        ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken, executableId, RecordingService.class);
+        List<cz.cesnet.shongo.controller.api.ExecutableService> executableServices = executableService.listExecutableServices(request).getItems();
+        if (executableServices.isEmpty()) {
+            throw new IllegalArgumentException("No recording service found for executable " + executableId);
+        }
+        String resId = ((RecordingService) executableServices.get(0)).getResourceId();
+        resourceControlService.deleteRecording(securityToken, resId, recordingId);
     }
 }
