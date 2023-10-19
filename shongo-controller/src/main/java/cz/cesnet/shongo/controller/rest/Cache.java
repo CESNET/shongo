@@ -106,7 +106,7 @@ public class Cache
      * {@link ReservationRequestSummary} by identifier.
      */
     private final ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
-            new ExpirationMap<>(Duration.standardMinutes(5));
+            new ExpirationMap<>(Duration.standardSeconds(15));
 
     /**
      * {@link Reservation} by identifier.
