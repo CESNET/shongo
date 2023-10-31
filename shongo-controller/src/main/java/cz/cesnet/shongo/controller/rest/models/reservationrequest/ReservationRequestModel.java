@@ -62,7 +62,7 @@ public class ReservationRequestModel
         this.type = SpecificationType.fromReservationRequestSummary(summary, true);
         this.virtualRoomData = new VirtualRoomModel(virtualRoomSummary);
         this.physicalResourceData = PhysicalResourceData.fromApi(resourceSummary);
-        this.roomCapacityData = new RoomCapacityModel(virtualRoomSummary);
+        this.roomCapacityData = new RoomCapacityModel(summary);
         this.lastReservationId = summary.getLastReservationId();
         this.futureSlotCount = summary.getFutureSlotCount();
 
