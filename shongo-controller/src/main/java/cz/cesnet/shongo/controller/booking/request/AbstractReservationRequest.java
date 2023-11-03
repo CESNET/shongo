@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
@@ -9,9 +12,11 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.api.AuxiliaryData;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxData;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -28,7 +33,9 @@ import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -40,6 +47,10 @@ import java.util.Map;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractReservationRequest extends PersistentObject implements ReportableSimple
 {
+
+    @Transient
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
@@ -404,11 +415,36 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @return {@link #auxData}
+     */
+    @Transient
+    public List<AuxData> getAuxDataList() throws JsonProcessingException
+    {
+        if (auxData == null) {
+            return null;
+        }
+        return objectMapper.readValue(getAuxData(), new TypeReference<>(){});
+    }
+
+    /**
      * @param auxData sets the {@link #auxData}
      */
     public void setAuxData(String auxData)
     {
         this.auxData = auxData;
+    }
+
+    /**
+     * @param auxDataApi sets the {@link #auxData}
+     */
+    public void setAuxData(List<AuxiliaryData> auxDataApi)
+    {
+        List<AuxData> auxData = auxDataApi.stream().map(AuxData::fromApi).collect(Collectors.toList());
+        try {
+            setAuxData(objectMapper.writeValueAsString(auxData));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -577,7 +613,12 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                     ObjectIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
         }
         api.setReusement(getReusement());
-        api.setAuxData(getAuxData());
+        try {
+            api.setAuxData(getAuxDataList().stream().map(AuxData::toApi).collect(Collectors.toList()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (NullPointerException ignored) {
+        }
 
         // Reservation request is deleted
         if (state.equals(State.DELETED)) {
