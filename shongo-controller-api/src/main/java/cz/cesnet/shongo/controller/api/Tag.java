@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 
@@ -11,9 +15,11 @@ import java.util.Objects;
  */
 public class Tag extends IdentifiedComplexType
 {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     String name;
     TagType type = TagType.DEFAULT;
-    String data;
+    JsonNode data;
 
     public String getName() {
         return name;
@@ -33,12 +39,12 @@ public class Tag extends IdentifiedComplexType
         this.type = type;
     }
 
-    public String getData()
+    public JsonNode getData()
     {
         return data;
     }
 
-    public void setData(String data)
+    public void setData(JsonNode data)
     {
         this.data = data;
     }
@@ -51,9 +57,19 @@ public class Tag extends IdentifiedComplexType
         tag.setName(parts[1]);
         tag.setType(TagType.valueOf(parts[2]));
         if (parts.length > 3) {
-            tag.setData(parts[3]);
+            try {
+                tag.setData(objectMapper.readTree(parts[3]));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Error parsing tag data", e);
+            }
         }
         return tag;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getClassName() {
+        return super.getClassName();
     }
 
     private static final String NAME = "name";
@@ -76,7 +92,10 @@ public class Tag extends IdentifiedComplexType
         super.fromData(dataMap);
         name = dataMap.getString(NAME);
         type = dataMap.getEnumRequired(TYPE, TagType.class);
-        data = dataMap.getString(DATA);
+        JsonNode jsonNode = dataMap.getJsonNode(DATA);
+        if (jsonNode != null) {
+            data = jsonNode;
+        }
     }
 
     @Override

@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.TagType;
@@ -13,16 +11,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.Transient;
 
 /**
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 @Entity
 public class Tag extends SimplePersistentObject {
-
-    @Transient
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private String name;
 
@@ -81,16 +75,7 @@ public class Tag extends SimplePersistentObject {
         tagApi.setId(ObjectIdentifier.formatId(this));
         tagApi.setName(name);
         tagApi.setType(type);
-        if (data == null) {
-            tagApi.setData("");
-        }
-        else {
-            try {
-                tagApi.setData(objectMapper.writeValueAsString(data));
-            } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Failed to parse data", e);
-            }
-        }
+        tagApi.setData(data);
     }
 
     /**
@@ -108,12 +93,6 @@ public class Tag extends SimplePersistentObject {
     {
         this.setName(tagApi.getName());
         this.setType(tagApi.getType());
-        if (tagApi.getData() != null) {
-            try {
-                setData(objectMapper.readTree(tagApi.getData()));
-            } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Data is not a valid JSON", e);
-            }
-        }
+        this.setData(tagApi.getData());
     }
 }

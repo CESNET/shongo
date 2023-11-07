@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
@@ -23,12 +26,13 @@ import java.util.List;
 public class TagTest extends AbstractControllerTest {
 
     @Test
-    public void testCreateTag()
-    {
+    public void testCreateTag() throws JsonProcessingException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+
         final String tagName1 = "testTag1";
         final String tagName2 = "testTag2";
         final TagType tagType2 = TagType.NOTIFY_EMAIL;
-        final String tagData2 = "[\"karnis@cesnet.cz\",\"filip.karnis@cesnet.cz\"]";
+        final JsonNode tagData2 = objectMapper.readTree("[\"karnis@cesnet.cz\",\"filip.karnis@cesnet.cz\"]");
 
         ResourceService resourceService = getResourceService();
 
@@ -54,7 +58,7 @@ public class TagTest extends AbstractControllerTest {
         Assert.assertEquals(tagId1, getResult1.getId());
         Assert.assertEquals(tagName1, getResult1.getName());
         Assert.assertEquals(TagType.DEFAULT, getResult1.getType());
-        Assert.assertEquals("", getResult1.getData());
+        Assert.assertNull(getResult1.getData());
 
         Assert.assertEquals(tagId2, getResult2.getId());
         Assert.assertEquals(tagName2, getResult2.getName());

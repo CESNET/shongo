@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.AbstractComplexType;
@@ -9,7 +8,6 @@ import cz.cesnet.shongo.api.DataMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -21,49 +19,19 @@ public class AuxiliaryData extends AbstractComplexType
 
     private String tagName;
     private boolean enabled;
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private String data = objectMapper.nullNode().toString();
+    private JsonNode data;
 
-    public AuxiliaryData(String tagName, boolean enabled, String data)
+    public AuxiliaryData(String tagName, boolean enabled, JsonNode data)
     {
         setTagName(tagName);
         setEnabled(enabled);
         setData(data);
     }
 
-    @JsonIgnore
-    @ToString.Include(name = "data")
-    @EqualsAndHashCode.Include
-    public JsonNode getDataAsJsonNode()
-    {
-        if (data == null) {
-            return null;
-        }
-
-        try {
-            return objectMapper.readTree(data);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void setData(String data)
-    {
-        if (data == null) {
-            this.data = objectMapper.nullNode().toString();
-            return;
-        }
-
+    public void setData(JsonNode data) {
         this.data = data;
-    }
-
-    public void setData(JsonNode data)
-    {
-        try {
-            this.data = objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        if (data == null) {
+            this.data = objectMapper.nullNode();
         }
     }
 
@@ -89,6 +57,6 @@ public class AuxiliaryData extends AbstractComplexType
         super.fromData(dataMap);
         tagName = dataMap.getString("tagName");
         enabled = dataMap.getBoolean("enabled");
-        data = dataMap.getString("data");
+        data = dataMap.getJsonNode("data");
     }
 }

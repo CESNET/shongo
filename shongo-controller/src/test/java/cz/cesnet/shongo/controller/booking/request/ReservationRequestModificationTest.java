@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
@@ -25,8 +27,10 @@ import java.util.List;
 public class ReservationRequestModificationTest extends AbstractControllerTest
 {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Test
-    public void testModifyAttributes() {
+    public void testModifyAttributes() throws JsonProcessingException {
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
@@ -59,8 +63,8 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         reservationRequestGet.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
         reservationRequestGet.setReusement(ReservationRequestReusement.OWNED);
         List<AuxiliaryData> auxData = List.of(
-                new AuxiliaryData("tag1", true, "[\"karnis@cenet.cz\", \"filip.karnis@cesnet.cz\"]"),
-                new AuxiliaryData("tag2", false, "[\"shouldnotbe@used\"]"),
+                new AuxiliaryData("tag1", true, objectMapper.readTree("[\"karnis@cenet.cz\", \"filip.karnis@cesnet.cz\"]")),
+                new AuxiliaryData("tag2", false, objectMapper.readTree("[\"shouldnotbe@used\"]")),
                 new AuxiliaryData("tag3", true, null)
         );
         reservationRequestGet.setAuxData(auxData);

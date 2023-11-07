@@ -25,7 +25,7 @@ public class AuxData
         AuxData auxData = new AuxData();
         auxData.setTagName(api.getTagName());
         auxData.setEnabled(api.isEnabled());
-        auxData.setData(api.getDataAsJsonNode());
+        auxData.setData(api.getData());
         return auxData;
     }
 }

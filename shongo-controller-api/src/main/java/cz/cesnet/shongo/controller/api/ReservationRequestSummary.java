@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -130,7 +132,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
      */
-    private String auxData;
+    private JsonNode auxData;
 
     /**
      * @return {@link #resourceTags}
@@ -511,7 +513,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * @return {@link #auxData}
      */
-    public String getAuxData()
+    public JsonNode getAuxData()
     {
         return auxData;
     }
@@ -519,9 +521,17 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * @param auxData sets the {@link #auxData}
      */
-    public void setAuxData(String auxData)
+    public void setAuxData(JsonNode auxData)
     {
         this.auxData = auxData;
+    }
+
+    /**
+     * @param auxData sets the {@link #auxData}
+     */
+    public void setAuxData(String auxData)
+    {
+        this.auxData = Converter.convertToJsonNode(auxData);
     }
 
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
@@ -604,7 +614,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
         allowCache = dataMap.getBool(ALLOW_CACHE);
         resourceTags = dataMap.getList(RESOURCE_TAGS, Tag.class);
-        auxData = dataMap.getString(AUX_DATA);
+        auxData = dataMap.getJsonNode(AUX_DATA);
     }
 
     /**
