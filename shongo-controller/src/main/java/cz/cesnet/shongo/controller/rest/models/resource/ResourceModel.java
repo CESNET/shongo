@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.rest.models.resource;
 
 import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.Tag;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import lombok.Data;
 
@@ -20,7 +21,7 @@ public class ResourceModel
     private String name;
     private String description;
     private TechnologyModel technology;
-    private Set<String> tags;
+    private Set<Tag> tags;
     private boolean hasCapacity;
 
     public ResourceModel(ResourceSummary summary, boolean hasCapacity)

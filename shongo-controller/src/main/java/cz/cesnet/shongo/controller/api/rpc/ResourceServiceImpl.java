@@ -452,12 +452,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     String type = record[11].toString();
                     resourceSummary.setType(ResourceSummary.Type.valueOf(type.trim()));
                     if (record[12] != null) {
-                        String recordTags = record[12].toString();
-                        if (!recordTags.isEmpty()) {
-                            for (String tag : recordTags.split(",")) {
-                                resourceSummary.addTag(tag.trim());
-                            }
-                        }
+                        String resourceTags = (String) record[12];
+                        Arrays.stream(resourceTags.split("\\|"))
+                                .map(String::trim)
+                                .map(Tag::fromConcat)
+                                .forEach(resourceSummary::addTag);
                     }
                     response.addItem(resourceSummary);
                 }

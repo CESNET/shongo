@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.rest.models.reservationrequest;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -43,6 +44,7 @@ public class ReservationRequestModel
     private RoomCapacityModel roomCapacityData;
     private String lastReservationId;
     private Integer futureSlotCount;
+    private JsonNode auxData;
 
     public ReservationRequestModel(
             ReservationRequestSummary summary,
@@ -65,6 +67,7 @@ public class ReservationRequestModel
         this.roomCapacityData = new RoomCapacityModel(summary);
         this.lastReservationId = summary.getLastReservationId();
         this.futureSlotCount = summary.getFutureSlotCount();
+        this.auxData = summary.getAuxData();
 
         Set<ObjectPermission> objectPermissions = permissionsByReservationRequestId.get(id);
         this.isWritable = objectPermissions.contains(ObjectPermission.WRITE);

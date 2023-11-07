@@ -4,8 +4,13 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Type of specification for a reservation request.
@@ -86,16 +91,13 @@ public enum SpecificationType
                 if (onlyGeneralType) {
                     return PHYSICAL_RESOURCE;
                 }
-                String resourceTags = reservationRequestSummary.getResourceTags();
+                Set<String> resourceTags = reservationRequestSummary.getResourceTags().stream().map(Tag::getName).collect(Collectors.toSet());
                 String parkTagName = configuration.getParkingPlaceTagName();
                 String vehicleTagName = configuration.getVehicleTagName();
-                if (resourceTags != null) {
-                    if (parkTagName != null && resourceTags.contains(parkTagName)) {
-                        return PARKING_PLACE;
-                    }
-                    else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
-                        return VEHICLE;
-                    }
+                if (parkTagName != null && resourceTags.contains(parkTagName)) {
+                    return PARKING_PLACE;
+                } else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
+                    return VEHICLE;
                 }
                 return MEETING_ROOM;
             default:

@@ -37,7 +37,7 @@ public class ResourceSummary extends IdentifiedComplexType
     /**
      * Tags of the resource.
      */
-    private Set<String> tags = new HashSet<>();
+    private Set<Tag> tags = new HashSet<>();
 
     /**
      * Parent resource shongo-id.
@@ -157,14 +157,14 @@ public class ResourceSummary extends IdentifiedComplexType
     /**
      * @return {@link #tags}
      */
-    public Set<String> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
     /**
      * @param tag to be added to the {@link #tags}
      */
-    public void addTag(String tag) {
+    public void addTag(Tag tag) {
         tags.add(tag);
     }
 
@@ -327,6 +327,6 @@ public class ResourceSummary extends IdentifiedComplexType
         confirmByOowner = dataMap.getBool(CONFIRM_BY_OWNER);
         remoteCalendarName = dataMap.getString(REMOTE_CALENDAR_NAME);
         type = dataMap.getEnum(TYPE, Type.class);
-        tags = dataMap.getSet(TAGS, String.class);
+        tags = dataMap.getSet(TAGS, Tag.class);
     }
 }
