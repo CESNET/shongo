@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataMerged;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.TagData;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -647,14 +647,14 @@ public class ReservationRequestManager extends AbstractManager
      * Creates {@link TagData} for given {@link AbstractReservationRequest} and its corresponding
      * {@link cz.cesnet.shongo.controller.booking.resource.Tag}s.
      *
-     * @param reservationRequest reservation request for which the {@link TagData} shall be created
-     * @param filter             filter for data desired
+     * @param reservationRequestId reservation request id for which the {@link TagData} shall be created
+     * @param filter               filter for data desired
      * @return specific implementation of {@link TagData} based on {@link TagType}
      * @param <T> TagData implementation for corresponding {@link TagType}
      */
-    public <T extends TagData<?>> List<T> getTagData(AbstractReservationRequest reservationRequest, AuxDataFilter filter)
+    public <T extends TagData<?>> List<T> getTagData(Long reservationRequestId, AuxDataFilter filter)
     {
-        return getAuxData(reservationRequest, filter)
+        return getAuxData(reservationRequestId, filter)
                 .stream()
                 .map(TagData::create)
                 .map(data -> (T) data)
@@ -665,11 +665,11 @@ public class ReservationRequestManager extends AbstractManager
      * Merge {@link cz.cesnet.shongo.controller.booking.request.auxdata.AuxData} from {@link AbstractReservationRequest}
      * and data from its corresponding {@link cz.cesnet.shongo.controller.booking.resource.Tag}s.
      *
-     * @param reservationRequest reservation request for which the data shall be merged
-     * @param filter             filter for data desired
+     * @param reservationRequestId reservation request id for which the data shall be merged
+     * @param filter               filter for data desired
      * @return merged data
      */
-    private List<AuxDataMerged> getAuxData(AbstractReservationRequest reservationRequest, AuxDataFilter filter)
+    private List<AuxDataMerged> getAuxData(Long reservationRequestId, AuxDataFilter filter)
     {
         String queryString = "SELECT arr.tagName, rt.tag.type, arr.enabled, arr.data, rt.tag.data" +
                 " FROM AbstractReservationRequestAuxData arr" +
@@ -688,7 +688,7 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class)
-                .setParameter("id", reservationRequest.getId());
+                .setParameter("id", reservationRequestId);
         if (filter.getTagName() != null) {
             query.setParameter("tagName", filter.getTagName());
         }

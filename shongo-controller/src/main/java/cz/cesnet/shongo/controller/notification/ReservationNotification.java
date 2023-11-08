@@ -14,7 +14,7 @@ import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -81,12 +81,11 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private void addRecipientsFromNotificationTags(AbstractReservationRequest reservationRequest,
             ReservationRequestManager reservationRequestManager)
     {
-        AuxDataFilter filter = AuxDataFilter.builder()
-                .tagType(TagType.NOTIFY_EMAIL)
-                .enabled(true)
-                .build();
+        AuxDataFilter filter = new AuxDataFilter();
+        filter.setTagType(TagType.NOTIFY_EMAIL);
+        filter.setEnabled(true);
 
-        List<NotifyEmailAuxData> notifyEmailAuxData = reservationRequestManager.getTagData(reservationRequest, filter);
+        List<NotifyEmailAuxData> notifyEmailAuxData = reservationRequestManager.getTagData(reservationRequest.getId(), filter);
 
         List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
                 .stream()

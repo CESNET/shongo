@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.booking.request.auxdata.tagdata;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataFilter;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.request.auxdata.AuxDataMerged;
 import lombok.Getter;
 import lombok.ToString;
@@ -10,6 +11,8 @@ import lombok.ToString;
 @ToString
 public abstract class TagData<T>
 {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     protected final AuxDataMerged auxData;
     protected final T data;
@@ -54,5 +57,19 @@ public abstract class TagData<T>
             }
         }
         return true;
+    }
+
+    public static <T> cz.cesnet.shongo.controller.api.TagData<T> toApi(TagData<T> tagData)
+    {
+        cz.cesnet.shongo.controller.api.TagData<T> tagDataApi = new cz.cesnet.shongo.controller.api.TagData<>();
+        tagDataApi.setName(tagData.getAuxData().getTagName());
+        tagDataApi.setType(tagData.getAuxData().getType());
+        tagDataApi.setData(objectMapper.valueToTree(tagData.getData()));
+        return tagDataApi;
+    }
+
+    public cz.cesnet.shongo.controller.api.TagData<T> toApi()
+    {
+        return toApi(this);
     }
 }
