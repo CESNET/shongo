@@ -14,9 +14,11 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.TagData;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
 import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
@@ -26,13 +28,13 @@ import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationReq
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestDetailModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.SpecificationType;
-import cz.cesnet.shongo.controller.rest.models.reservationrequest.VirtualRoomModel;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -411,6 +413,15 @@ public class ReservationRequestController
             @PathVariable String id)
     {
         reservationService.revertReservationRequest(securityToken, id);
+    }
+
+    @GetMapping(RestApiPath.RESERVATION_REQUESTS_AUX_DATA)
+    List<TagData<?>> getTagData(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @PathVariable String id,
+            @ParameterObject AuxDataFilter filter)
+    {
+        return reservationService.getReservationRequestTagData(securityToken, id, filter);
     }
 
     public enum ReservationType

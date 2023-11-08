@@ -35,6 +35,7 @@ public class RestApiPath
     public static final String RESERVATION_REQUESTS_ACCEPT = ID_SUFFIX + "/accept";
     public static final String RESERVATION_REQUESTS_REJECT = ID_SUFFIX + "/reject";
     public static final String RESERVATION_REQUESTS_REVERT = ID_SUFFIX + "/revert";
+    public static final String RESERVATION_REQUESTS_AUX_DATA = ID_SUFFIX + "/tag_data";
 
     // Participants
     public static final String PARTICIPANTS = API_PREFIX + "/reservation_requests/{id:.+}/participants";
