@@ -22,6 +22,9 @@ public class RestApiPath
     public static final String GROUPS_LIST = "/groups";
     public static final String GROUPS_DETAIL = "/groups/{groupId:.+}";
 
+    // Tags
+    public static final String TAGS = API_PREFIX + "/tags";
+
     // Resources
     public static final String RESOURCES = API_PREFIX + "/resources";
     public static final String CAPACITY_UTILIZATION = "/capacity_utilization";
