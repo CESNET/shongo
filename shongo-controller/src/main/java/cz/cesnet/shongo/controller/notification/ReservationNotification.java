@@ -7,11 +7,15 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.TagType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
+import cz.cesnet.shongo.controller.booking.request.auxdata.tagdata.NotifyEmailAuxData;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -22,6 +26,7 @@ import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * {@link ConfigurableNotification} for a {@link Reservation}.
@@ -45,7 +50,9 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
 
     private ReservationNotification(Reservation reservation,
-            AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+            AbstractReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager,
+            ReservationRequestManager reservationRequestManager)
     {
         super(reservationRequest);
 
@@ -63,11 +70,39 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation.getTargetReservation(), authorizationManager);
+        addRecipientsFromNotificationTags(reservationRequest, reservationRequestManager);
 
         // Add child targets
         for (Reservation childReservation : reservation.getChildReservations()) {
             addChildTargets(childReservation, entityManager);
         }
+    }
+
+    private void addRecipientsFromNotificationTags(AbstractReservationRequest reservationRequest,
+            ReservationRequestManager reservationRequestManager)
+    {
+        AuxDataFilter filter = new AuxDataFilter();
+        filter.setTagType(TagType.NOTIFY_EMAIL);
+        filter.setEnabled(true);
+
+        List<NotifyEmailAuxData> notifyEmailAuxData = reservationRequestManager.getTagData(reservationRequest.getId(), filter);
+
+        List<PersonInformation> tagPersonInformationList = notifyEmailAuxData
+                .stream()
+                .map(this::notifyEmailDataToPersonInformation)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        logger.debug("Adding tag recipients: {}", tagPersonInformationList);
+        tagPersonInformationList.forEach(personInformation -> addRecipient(personInformation, true));
+    }
+
+    private Collection<TagPersonInformation> notifyEmailDataToPersonInformation(NotifyEmailAuxData notifyEmailAuxData)
+    {
+        return notifyEmailAuxData
+                .getData()
+                .stream()
+                .map(email -> new TagPersonInformation(notifyEmailAuxData.getAuxData().getTagName(), email))
+                .collect(Collectors.toList());
     }
 
     public String getId()
@@ -339,9 +374,10 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     {
         private Long previousReservationId;
 
-        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager)
+        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager,
+                   ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
 
             this.previousReservationId = (previousReservation != null ? previousReservation.getId() : null);
         }
@@ -373,20 +409,58 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     public static class Deleted extends ReservationNotification
     {
         public Deleted(Reservation reservation, AbstractReservationRequest reservationRequest,
-                AuthorizationManager authorizationManager)
+                AuthorizationManager authorizationManager, ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, reservationRequest, authorizationManager);
+            super(reservation, reservationRequest, authorizationManager, reservationRequestManager);
         }
 
-        public Deleted(Reservation reservation, AuthorizationManager authorizationManager)
+        public Deleted(Reservation reservation, AuthorizationManager authorizationManager,
+                       ReservationRequestManager reservationRequestManager)
         {
-            super(reservation, getReservationRequest(reservation), authorizationManager);
+            super(reservation, getReservationRequest(reservation), authorizationManager, reservationRequestManager);
         }
 
         @Override
         public String getType()
         {
             return "DELETED";
+        }
+    }
+
+    private static class TagPersonInformation implements PersonInformation
+    {
+
+        private final String name;
+        private final String email;
+
+        public TagPersonInformation(String name, String email)
+        {
+            this.name = name;
+            this.email = email;
+        }
+
+        @Override
+        public String getFullName()
+        {
+            return name;
+        }
+
+        @Override
+        public String getRootOrganization()
+        {
+            return null;
+        }
+
+        @Override
+        public String getPrimaryEmail()
+        {
+            return email;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Tag[" + name + "] (" + email + ")";
         }
     }
 }

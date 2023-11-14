@@ -278,7 +278,8 @@ sub list_reservation_requests()
             {'field' => 'technology',      'title' => 'Technology'},
             {'field' => 'allocationState', 'title' => 'Allocation'},
             {'field' => 'executableState', 'title' => 'Executable'},
-            {'field' => 'description',     'title' => 'Description'}
+            {'field' => 'description',     'title' => 'Description'},
+            {'field' => 'auxData',         'title' => 'Auxiliary Data'},
         ],
         'data' => []
     };
@@ -325,7 +326,8 @@ sub list_reservation_requests()
             'technology' => $technologies,
             'allocationState' => Shongo::ClientCli::API::ReservationRequest::format_state($reservation_request->{'allocationState'}),
             'executableState' => Shongo::ClientCli::API::ReservationRequest::format_state($reservation_request->{'executableState'}),
-            'description' => $reservation_request->{'description'}
+            'description' => $reservation_request->{'description'},
+            'auxData' => $reservation_request->{'auxData'},
         });
     }
     console_print_table($table);

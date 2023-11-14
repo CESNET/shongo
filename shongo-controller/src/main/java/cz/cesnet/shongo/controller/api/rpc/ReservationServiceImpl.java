@@ -8,7 +8,9 @@ import cz.cesnet.shongo.controller.LocalDomain;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.Specification;
+import cz.cesnet.shongo.controller.api.Tag;
 import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.TagData;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -18,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.api.AuxDataFilter;
 import cz.cesnet.shongo.controller.booking.reservation.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -1833,6 +1836,33 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
     }
 
+    @Override
+    public List<TagData<?>> getReservationRequestTagData(SecurityToken securityToken, String reservationRequestId, AuxDataFilter filter) {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+
+        try {
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+
+            if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
+            }
+
+            return reservationRequestManager.getTagData(objectId.getPersistenceId(), filter)
+                    .stream()
+                    .map(tagData -> tagData.toApi())
+                    .collect(Collectors.toList());
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
     /**
      * Check whether resource with given resourceId is cached and it has public calendar.
      *
@@ -2046,7 +2076,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestSummary.setAllowCache((Boolean) record[25]);
         }
         if (record[26] != null) {
-            reservationRequestSummary.setResourceTags((String) record[26]);
+            String resourceTags = (String) record[26];
+            Arrays.stream(resourceTags.split("\\|"))
+                    .map(String::trim)
+                    .map(Tag::fromConcat)
+                    .forEach(reservationRequestSummary::addResourceTag);
+        }
+        if (record[27] != null) {
+            reservationRequestSummary.setAuxData((String) record[27]);
         }
         return reservationRequestSummary;
     }

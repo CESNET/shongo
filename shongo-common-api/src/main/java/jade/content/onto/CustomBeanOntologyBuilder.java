@@ -450,6 +450,10 @@ class CustomBeanOntologyBuilder
                 return doAddFlatSchema(clazz);
             }
         }
+        catch (StringIndexOutOfBoundsException e) {
+            logger.info("skip class " + clazz + " because of " + e);
+            return null;
+        }
         catch (BeanOntologyException boe) {
             throw boe;
 

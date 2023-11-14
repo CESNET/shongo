@@ -53,6 +53,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Hibernate types. Depends on hibernate version. -->
+        <!-- https://github.com/vladmihalcea/hypersistence-utils -->
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-52</artifactId>
+            <version>3.2.0</version>
+        </dependency>
 
         <!-- Used by Jade for serializing objects -->
         <dependency>
