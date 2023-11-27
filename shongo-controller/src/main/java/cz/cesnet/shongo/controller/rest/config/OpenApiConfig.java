@@ -9,7 +9,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -28,7 +27,6 @@ import java.io.InputStream;
  * @author Filip Karnis
  */
 @Configuration
-@EnableWebMvc
 @OpenAPIDefinition(
         info = @Info(title = "Shongo API", version = "v1"),
         security = @SecurityRequirement(name = "bearerAuth")
