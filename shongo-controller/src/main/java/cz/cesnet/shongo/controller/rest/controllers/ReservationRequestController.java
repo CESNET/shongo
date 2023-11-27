@@ -362,6 +362,9 @@ public class ReservationRequestController
         if (request.getParticipantCount() != null) {
             modifiedRequest.setParticipantCount(request.getParticipantCount());
         }
+        if (request.getAuxData() != null) {
+            modifiedRequest.setAuxData(request.getAuxData());
+        }
         modifiedRequest.setAllowGuests(request.isAllowGuests());
         modifiedRequest.setRecord(request.isRecord());
 

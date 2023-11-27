@@ -24,6 +24,7 @@ import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.AliasSpecification;
+import cz.cesnet.shongo.controller.api.AuxiliaryData;
 import cz.cesnet.shongo.controller.api.ExecutableServiceSpecification;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot;
@@ -173,6 +174,8 @@ public class ReservationRequestCreateModel
 
     @JsonIgnore
     private CacheProvider cacheProvider;
+
+    List<AuxiliaryData> auxData = new ArrayList<>();
 
     /**
      * Create new {@link ReservationRequestModel} from scratch.
@@ -619,6 +622,7 @@ public class ReservationRequestCreateModel
         type = abstractReservationRequest.getType();
         dateTime = abstractReservationRequest.getDateTime();
         description = abstractReservationRequest.getDescription();
+        auxData = abstractReservationRequest.getAuxData();
 
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
@@ -1266,6 +1270,8 @@ public class ReservationRequestCreateModel
 
         // Set reservation request to be deleted by scheduler if foreign resource is specified
         abstractReservationRequest.setIsSchedulerDeleted(!Strings.isNullOrEmpty(getMeetingRoomResourceDomain()));
+
+        abstractReservationRequest.setAuxData(auxData);
 
         return abstractReservationRequest;
     }
