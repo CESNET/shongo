@@ -1206,7 +1206,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     case ROOM_PARTICIPANT_COUNT:
                         queryOrderBy = "specification_summary.room_participant_count";
                         break;
-                    case SLOT:
+                    case SLOT_START:
+                        queryOrderBy = "reservation_request_summary.slot_start";
+                        break;
+                    case SLOT_END:
                         queryOrderBy = "reservation_request_summary.slot_end";
                         break;
                     case SLOT_NEAREST:
@@ -1331,7 +1334,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     case ROOM_PARTICIPANT_COUNT:
                         queryOrderBy = "specification_summary.room_participant_count";
                         break;
-                    case SLOT:
+                    case SLOT_START:
+                        queryOrderBy = "reservation_request_summary.slot_start";
+                        break;
+                    case SLOT_END:
                         queryOrderBy = "reservation_request_summary.slot_end";
                         break;
                     case SLOT_NEAREST:
