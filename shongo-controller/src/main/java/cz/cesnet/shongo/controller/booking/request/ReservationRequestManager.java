@@ -673,8 +673,11 @@ public class ReservationRequestManager extends AbstractManager
     {
         String queryString = "SELECT arr.tagName, rt.tag.type, arr.enabled, arr.data, rt.tag.data" +
                 " FROM AbstractReservationRequestAuxData arr" +
-                " JOIN ResourceSpecification res_spec ON res_spec.id = arr.specification.id" +
-                " JOIN ResourceTag rt ON rt.resource.id = res_spec.resource.id" +
+                " LEFT OUTER JOIN ResourceSpecification res_spec ON res_spec.id = arr.specification.id" +
+                // Needed for reused allocation (capacity)
+                " LEFT OUTER JOIN AbstractReservationRequest reusedRequest ON reusedRequest.id = arr.reusedAllocation.reservationRequest.id" +
+                " LEFT OUTER JOIN RoomSpecification room_spec ON room_spec.id = reusedRequest.specification.id OR room_spec.id = arr.specification.id" +
+                " JOIN ResourceTag rt ON rt.resource.id = res_spec.resource.id OR rt.resource.id = room_spec.deviceResource.id" +
                 " WHERE rt.tag.name = arr.tagName" +
                 " AND arr.id = :id";
         if (filter.getTagName() != null) {
