@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.rest.models.resource;
 
+import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
 import lombok.Data;
 import org.joda.time.Interval;
@@ -35,6 +36,7 @@ public class ResourceUtilizationModel
             }
             utilizationModel.setUsedCapacity((resourceCapacityUtilization != null)
                     ? resourceCapacityUtilization.getPeakBucket().getLicenseCount() : 0);
+            utilizationModel.setType(resourceCapacity.getReservationType());
             resources.add(utilizationModel);
         });
 
@@ -52,5 +54,6 @@ public class ResourceUtilizationModel
         private String name;
         private int totalCapacity;
         private int usedCapacity;
+        private ReservationSummary.Type type;
     }
 }
