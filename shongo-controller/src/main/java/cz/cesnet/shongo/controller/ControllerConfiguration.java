@@ -119,6 +119,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String VEHICLE_TAG = "tags.vehicle";
     public static final String PARKING_PLACE_TAG = "tags.parking-place";
     public static final String MEETING_ROOM_TAG = "tags.meeting-room";
+    public static final String DEVICE_TAG = "tags.device";
 
     /**
      * Period in which the executor works.
@@ -652,5 +653,13 @@ public class ControllerConfiguration extends CombinedConfiguration
     public String getParkingPlaceTagName()
     {
         return getString(PARKING_PLACE_TAG);
+    }
+
+    /**
+     * @return name of tag for devices
+     */
+    public String getDeviceTagName()
+    {
+        return getString(DEVICE_TAG);
     }
 }

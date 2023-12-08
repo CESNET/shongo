@@ -821,6 +821,7 @@ public class ReservationRequestCreateModel
             case PHYSICAL_RESOURCE:
             case VEHICLE:
             case PARKING_PLACE:
+            case DEVICE:
             case MEETING_ROOM: {
                 specification = new ResourceSpecification(resourceId);
                 break;
@@ -902,6 +903,7 @@ public class ReservationRequestCreateModel
             case PHYSICAL_RESOURCE:
             case PARKING_PLACE:
             case VEHICLE:
+            case DEVICE:
             case MEETING_ROOM:
             case ROOM_CAPACITY:
                 int minutes;

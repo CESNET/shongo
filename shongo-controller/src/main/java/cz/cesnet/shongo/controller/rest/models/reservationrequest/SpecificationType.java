@@ -50,7 +50,12 @@ public enum SpecificationType
     /**
      * For vehicles.
      */
-    VEHICLE(false, true);
+    VEHICLE(false, true),
+
+    /**
+     * For device.
+     */
+    DEVICE(false, true);
 
     /**
      * Specifies whether it is a room.
@@ -94,10 +99,13 @@ public enum SpecificationType
                 Set<String> resourceTags = reservationRequestSummary.getResourceTags().stream().map(Tag::getName).collect(Collectors.toSet());
                 String parkTagName = configuration.getParkingPlaceTagName();
                 String vehicleTagName = configuration.getVehicleTagName();
+                String deviceTagName = configuration.getDeviceTagName();
                 if (parkTagName != null && resourceTags.contains(parkTagName)) {
                     return PARKING_PLACE;
                 } else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
                     return VEHICLE;
+                } else if (deviceTagName != null && resourceTags.contains(deviceTagName)) {
+                    return DEVICE;
                 }
                 return MEETING_ROOM;
             default:
@@ -124,6 +132,8 @@ public enum SpecificationType
         }
         else if (string.equals(configuration.getParkingPlaceTagName())) {
             return PARKING_PLACE;
+        } else if (string.equals(configuration.getDeviceTagName())) {
+            return DEVICE;
         }
         throw new TodoImplementException("SpecificationType.fromString for " + string);
 
