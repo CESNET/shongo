@@ -497,6 +497,57 @@ service postgresql restart
 </listitem>
 
 <listitem>
+<para><emphasis role="bold">REST API settings</emphasis></para>
+<variablelist>
+    <varlistentry>
+        <term>OPTIONAL <code>rest-api/host</code></term>
+        <listitem><para>
+            Specifies on which host should the REST API listen.
+            If not set, the default host localhost will be used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rest-api/port</code></term>
+        <listitem><para>
+            Specifies port on which the REST API will listen.
+            If not set, the default port 9999 will be used.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rest-api/origin</code></term>
+        <listitem><para>
+            Specifies one allowed HTTP request origins.
+            Used for Cross-Origin Resource Sharing (CORS).
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rest-api/ssl-key-store</code></term>
+        <listitem><para>
+            Specifies filename of Java KeyStore (JKS) with SSL certificate to use for secured REST API (HTTP) communication.
+            If not set the SSL is not used for REST API communication.
+        </para></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>OPTIONAL <code>rest-api/ssl-key-store-password</code></term>
+        <listitem><para>
+            Specifies password for JKS.
+        </para></listitem>
+    </varlistentry>
+</variablelist>
+<para>
+    <emphasis role="bold">Example:</emphasis>
+    <screen><![CDATA[
+<rest-api>
+    <host>127.0.0.1</host>
+    <port>8080</port>
+    <origin>https://meetings.cesnet.cz</origin>
+    <origin>shongo-dev.cesnet.cz:4200</origin>
+</rest-api>
+]]></screen>
+</para>
+</listitem>
+
+<listitem>
 <para><emphasis role="bold">SSL settings</emphasis></para>
 <para>SSL settings can be used to turn off or alter hostname verification for specified hostnames.</para>
 <variablelist>
@@ -571,6 +622,13 @@ service postgresql restart
         <ssl-key-store>keystore/server.keystore</ssl-key-store>
         <ssl-key-store-password>(password)</ssl-key-store-password>
     </rpc>
+
+    <rest-api>
+        <host>meetings.cesnet.cz</host>
+        <port>8080</port>
+        <origin>https://meetings.cesnet.cz</origin>
+        <origin>shongo-dev.cesnet.cz:4200</origin>
+    </rest-api>
 
     <smtp>
         <sender>no-reply@meetings.cesnet.cz</sender>
