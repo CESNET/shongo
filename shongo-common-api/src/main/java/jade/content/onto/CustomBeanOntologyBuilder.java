@@ -70,6 +70,10 @@ class CustomBeanOntologyBuilder
             c = methodName.charAt(2);
         }
         else {
+            if (methodName.length() < 4) {
+                // it is too short
+                return false;
+            }
             c = methodName.charAt(3);
         }
         if (!Character.isUpperCase(c) && '_' != c) {
@@ -449,10 +453,6 @@ class CustomBeanOntologyBuilder
             else {
                 return doAddFlatSchema(clazz);
             }
-        }
-        catch (StringIndexOutOfBoundsException e) {
-            logger.info("skip class " + clazz + " because of " + e);
-            return null;
         }
         catch (BeanOntologyException boe) {
             throw boe;
