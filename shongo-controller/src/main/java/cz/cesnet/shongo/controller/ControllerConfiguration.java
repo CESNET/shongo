@@ -13,10 +13,16 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.postgresql.util.Base64;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Configuration for the {@link Controller}.
@@ -60,15 +66,21 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String JADE_PLATFORM_ID = "jade.platform-id";
 
     /**
+     * REST api configuration
+     */
+    public static final String REST_API = "rest-api";
+    public static final String REST_API_HOST = "rest-api.host";
+    public static final String REST_API_PORT = "rest-api.port";
+    public static final String REST_API_ORIGIN = "rest-api.origin";
+    public static final String REST_API_SSL_KEY_STORE = REST_API + ".ssl-key-store";
+    public static final String REST_API_SSL_KEY_STORE_TYPE = REST_API + ".ssl-key-store-type";
+    public static final String REST_API_SSL_KEY_STORE_PASSWORD = REST_API + ".ssl-key-store-password";
+
+    /**
      * Interdomains configuration
      */
     public static final String INTERDOMAIN = "domain.inter-domain-connection";
-    public static final String INTERDOMAIN_HOST = INTERDOMAIN + ".host";
-    public static final String INTERDOMAIN_PORT = INTERDOMAIN + ".port";
     public static final String INTERDOMAIN_PKI_CLIENT_AUTH = INTERDOMAIN + ".pki-client-auth";
-    public static final String INTERDOMAIN_SSL_KEY_STORE = INTERDOMAIN + ".ssl-key-store";
-    public static final String INTERDOMAIN_SSL_KEY_STORE_TYPE = INTERDOMAIN + ".ssl-key-store-type";
-    public static final String INTERDOMAIN_SSL_KEY_STORE_PASSWORD = INTERDOMAIN + ".ssl-key-store-password";
     public static final String INTERDOMAIN_TRUSTED_CA_CERT_FILES = INTERDOMAIN + ".ssl-trust-store.ca-certificate";
     public static final String INTERDOMAIN_COMMAND_TIMEOUT = INTERDOMAIN + ".command-timeout";
     public static final String INTERDOMAIN_CACHE_REFRESH_RATE = INTERDOMAIN + ".cache-refresh-rate";
@@ -101,7 +113,13 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String CALDAV_BASIC_AUTH_USERNAME = "caldav-connector.basic-auth.username";
     public static final String CALDAV_BASIC_AUTH_PASSWORD = "caldav-connector.basic-auth.password";
 
-
+    /**
+     * Tags configuration.
+     */
+    public static final String VEHICLE_TAG = "tags.vehicle";
+    public static final String PARKING_PLACE_TAG = "tags.parking-place";
+    public static final String MEETING_ROOM_TAG = "tags.meeting-room";
+    public static final String DEVICE_TAG = "tags.device";
 
     /**
      * Period in which the executor works.
@@ -261,7 +279,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
-
      * @return timeout to receive response when performing commands from agent
      */
     public Duration getJadeCommandTimeout()
@@ -292,6 +309,27 @@ public class ControllerConfiguration extends CombinedConfiguration
     public int getRpcPort()
     {
         return getInt(RPC_PORT);
+    }
+
+    /**
+     * @return XML-RPC url
+     */
+    public URL getRpcUrl() throws MalformedURLException
+    {
+        int rpcPort;
+
+        try {
+            rpcPort = getRpcPort();
+        }
+        catch (NoSuchElementException e) {
+            rpcPort = 8181;
+        }
+        String scheme = (getRpcSslKeyStore() != null) ? "https" : "http";
+        String rpcHost = getRpcHost(true);
+        String urlString = (rpcHost != null)
+                ? String.format("%s://%s:%d", scheme, rpcHost, rpcPort)
+                : String.format("%s://%s:%d", scheme, getRESTApiHost(), rpcPort);
+        return new URL(urlString);
     }
 
     /**
@@ -481,43 +519,61 @@ public class ControllerConfiguration extends CombinedConfiguration
 
     public boolean isInterDomainConfigured()
     {
-        if (getInterDomainPort() != null) {
-            if (requiresClientPKIAuth() && hasInterDomainPKI()) {
-                return true;
-            }
-            if (hasInterDomainBasicAuth()) {
-                return true;
-            }
+        if (requiresClientPKIAuth() && hasRESTApiPKI()) {
+            return true;
         }
-        return false;
-    }
-
-    public boolean hasInterDomainPKI()
-    {
-        if (Strings.isNullOrEmpty(getInterDomainSslKeyStore())
-                || Strings.isNullOrEmpty(getInterDomainSslKeyStoreType())
-                || Strings.isNullOrEmpty(getInterDomainSslKeyStorePassword())) {
-            return false;
-        }
-        return true;
+        return hasInterDomainBasicAuth();
     }
 
     public boolean hasInterDomainBasicAuth()
     {
-        if (Strings.isNullOrEmpty(getInterDomainBasicAuthPasswordHash())) {
-            return false;
+        return !Strings.isNullOrEmpty(getInterDomainBasicAuthPasswordHash());
+    }
+
+    public String getRESTApiHost()
+    {
+        String host = getString(ControllerConfiguration.REST_API_HOST);
+        return host != null ? host : "localhost";
+    }
+
+    public Integer getRESTApiPort()
+    {
+        Integer port = getInteger(ControllerConfiguration.REST_API_PORT, null);
+        return port != null ? port : 9999;
+    }
+
+    /**
+     * @return list of allowed origins for CORS configuration.
+     */
+    public synchronized List<String> getRESTApiAllowedOrigins()
+    {
+        return getList(REST_API_ORIGIN).stream().map(origin -> (String) origin).collect(Collectors.toList());
+    }
+
+    public String getRESTApiSslKeyStore()
+    {
+        String sslKeyStore = getString(ControllerConfiguration.REST_API_SSL_KEY_STORE);
+        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
+            return null;
         }
-        return true;
+        return sslKeyStore;
     }
 
-    public String getInterDomainHost()
+    public String getRESTApiSslKeyStoreType()
     {
-        return getString(ControllerConfiguration.INTERDOMAIN_HOST);
+        return getString(ControllerConfiguration.REST_API_SSL_KEY_STORE_TYPE);
     }
 
-    public Integer getInterDomainPort()
+    public String getRESTApiSslKeyStorePassword()
     {
-        return getInteger(ControllerConfiguration.INTERDOMAIN_PORT, null);
+        return getString(ControllerConfiguration.REST_API_SSL_KEY_STORE_PASSWORD);
+    }
+
+    public boolean hasRESTApiPKI()
+    {
+        return !Strings.isNullOrEmpty(getRESTApiSslKeyStore())
+                && !Strings.isNullOrEmpty(getRESTApiSslKeyStoreType())
+                && !Strings.isNullOrEmpty(getRESTApiSslKeyStorePassword());
     }
 
     /**
@@ -529,15 +585,6 @@ public class ControllerConfiguration extends CombinedConfiguration
         return getBoolean(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, false);
     }
 
-    public String getInterDomainSslKeyStore()
-    {
-        String sslKeyStore = getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
-        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
-            return null;
-        }
-        return sslKeyStore;
-    }
-
     public String getInterDomainBasicAuthPasswordHash()
     {
         String password = getString(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD);
@@ -545,14 +592,6 @@ public class ControllerConfiguration extends CombinedConfiguration
             return null;
         }
         return SSLCommunication.hashPassword(password.getBytes());
-    }
-
-    public String getInterDomainSslKeyStoreType() {
-        return getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE);
-    }
-
-    public String getInterDomainSslKeyStorePassword() {
-        return getString(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
     }
 
     public List<String> getForeignDomainsCaCertFiles() {
@@ -589,5 +628,38 @@ public class ControllerConfiguration extends CombinedConfiguration
         String authString = username + ":" + password;
         String authStringEnc = Base64.encodeBytes(authString.getBytes(StandardCharsets.UTF_8));
         return authStringEnc;
+    }
+
+
+    /**
+     * @return name of tag for meeting rooms
+     */
+    public String getMeetingRoomTagName()
+    {
+        return getString(MEETING_ROOM_TAG);
+    }
+
+    /**
+     * @return name of tag for cars
+     */
+    public String getVehicleTagName()
+    {
+        return getString(VEHICLE_TAG);
+    }
+
+    /**
+     * @return name of tag for parking places
+     */
+    public String getParkingPlaceTagName()
+    {
+        return getString(PARKING_PLACE_TAG);
+    }
+
+    /**
+     * @return name of tag for devices
+     */
+    public String getDeviceTagName()
+    {
+        return getString(DEVICE_TAG);
     }
 }

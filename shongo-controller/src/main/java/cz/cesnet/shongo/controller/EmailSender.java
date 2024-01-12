@@ -271,6 +271,14 @@ public class EmailSender
             setContent(content);
         }
 
+        public Email(Collection<String> recipient, String replyTo, String subject, String content)
+        {
+            addRecipients(recipient);
+            addReplyTo(replyTo);
+            setSubject(subject);
+            setContent(content);
+        }
+
         public void addRecipient(String recipient)
         {
             try {

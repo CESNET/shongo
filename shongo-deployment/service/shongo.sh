@@ -8,10 +8,8 @@ case "$1" in
     start)
         ./shongo-controller.sh start
         ./shongo-connector.sh start
-        ./shongo-client-web.sh start
         ;;
     stop)
-        ./shongo-client-web.sh stop
         ./shongo-connector.sh stop
         ./shongo-controller.sh stop
         ;;
@@ -21,7 +19,6 @@ case "$1" in
         $0 start
         ;;
     status)
-        ./shongo-client-web.sh status
         ./shongo-connector.sh status
         ./shongo-controller.sh status
         ;;

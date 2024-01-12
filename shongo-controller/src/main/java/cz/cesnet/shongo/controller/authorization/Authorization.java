@@ -702,6 +702,7 @@ public abstract class Authorization
     /**
      * @param userSessionSettings to be updated
      */
+    // TODO toto sa zavola
     public void updateUserSessionSettings(UserSessionSettings userSessionSettings)
     {
         SecurityToken securityToken = userSessionSettings.getSecurityToken();

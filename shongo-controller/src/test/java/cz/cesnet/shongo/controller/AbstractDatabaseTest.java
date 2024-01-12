@@ -24,7 +24,7 @@ public abstract class AbstractDatabaseTest
      * Connection.
      */
     protected static String connectionDriver = "org.hsqldb.jdbcDriver";
-    protected static String connectionUrl = "jdbc:hsqldb:mem:test; shutdown=true;";
+    protected static String connectionUrl = "jdbc:hsqldb:mem:test; shutdown=true; sql.syntax_pgs=true;";
 
     /**
      * Enable driver for debugging SQL.

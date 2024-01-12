@@ -14,7 +14,6 @@ fi
 # Parse arguments
 SHONGO_CONTROLLER=false
 SHONGO_CONNECTOR=false
-SHONGO_CLIENT_WEB=false
 for argument in "$@"
 do
     case "$argument" in
@@ -24,9 +23,6 @@ do
         shongo-connector)
             SHONGO_CONNECTOR=true
             ;;
-        shongo-client-web)
-            SHONGO_CLIENT_WEB=true
-            ;;
     esac
 done
 
@@ -35,7 +31,6 @@ if [[ $# -eq 0 ]] ; then
     echo Installing all shongo services...
     SHONGO_CONTROLLER=true
     SHONGO_CONNECTOR=true
-    SHONGO_CLIENT_WEB=true
 fi
 
 ################################################################################
@@ -112,42 +107,6 @@ fi
 
 ################################################################################
 #
-# Install shongo-client-web service
-#
-if [ "$SHONGO_CLIENT_WEB" = true ] ; then
-
-echo Installing shongo-client-web...
-cat > $SERVICE_DIR/shongo-client-web <<EOF
-#!/bin/bash
-
-### BEGIN INIT INFO
-# Provides:          shongo-client-web
-# Required-Start:    $local_fs $network
-# Required-Stop:     $local_fs
-# Should-Start:      shongo-controller
-# Should-Stop:       shongo-controller
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: shongo-client-web
-# Description:       shongo web interface
-### END INIT INFO
-
-NAME=shongo-client-web
-BIN="java -Dfile.encoding=UTF-8 -jar $DEPLOYMENT_DIR/../shongo-client-web/target/shongo-client-web-:VERSION:.jar --daemon"
-BIN_STARTED="ClientWeb successfully started"
-DEPLOYMENT_DIR="$DEPLOYMENT_DIR"
-LOG_DIR="$LOG_DIR"
-PID_DIR="$PID_DIR"
-
-source $DEPLOYMENT_DIR/service/shongo-service.sh
-EOF
-chmod a+x $SERVICE_DIR/shongo-client-web
-update-rc.d shongo-client-web defaults 91 10
-
-fi
-
-################################################################################
-#
 # Install shongo all services
 #
 cat > $SERVICE_DIR/shongo <<EOF
@@ -171,9 +130,6 @@ case "\$1" in
         if [ "$SHONGO_CONNECTOR" = true ] ; then
             $SERVICE_DIR/shongo-connector start
         fi
-        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
-            $SERVICE_DIR/shongo-client-web start
-        fi
         ;;
     stop)
         if [ "$SHONGO_CONTROLLER" = true ] ; then
@@ -182,9 +138,6 @@ case "\$1" in
         if [ "$SHONGO_CONNECTOR" = true ] ; then
             $SERVICE_DIR/shongo-connector stop
         fi
-        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
-            $SERVICE_DIR/shongo-client-web stop
-        fi
         ;;
     force-stop)
         if [ "$SHONGO_CONTROLLER" = true ] ; then
@@ -192,9 +145,6 @@ case "\$1" in
         fi
         if [ "$SHONGO_CONNECTOR" = true ] ; then
             $SERVICE_DIR/shongo-connector force-stop
-        fi
-        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
-            $SERVICE_DIR/shongo-client-web force-stop
         fi
         ;;
     restart)
@@ -207,9 +157,6 @@ case "\$1" in
         fi
         if [ "$SHONGO_CONNECTOR" = true ] ; then
             $SERVICE_DIR/shongo-connector status
-        fi
-        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
-            $SERVICE_DIR/shongo-client-web status
         fi
         ;;
     *)

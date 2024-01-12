@@ -17,12 +17,6 @@ if [ -d "$SERVICE_DIR" ]; then
         rm $SERVICE_DIR/shongo-connector
         update-rc.d shongo-connector remove
     fi
-    if [ -f $SERVICE_DIR/shongo-client-web ]; then
-        echo Uninstalling shongo-client-web...
-        $SERVICE_DIR/shongo-client-web stop
-        rm $SERVICE_DIR/shongo-client-web
-        update-rc.d shongo-client-web remove
-    fi
     if [ -f $SERVICE_DIR/shongo ]; then
         rm $SERVICE_DIR/shongo
     fi
