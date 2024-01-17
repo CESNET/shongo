@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
@@ -107,14 +106,14 @@ public class ResourceController
             @RequestParam(required = false) int count,
             @RequestParam(required = false) boolean refresh)
     {
+        Interval interval = new Interval(intervalFrom, intervalTo);
         Period period = unit.getPeriod();
         ResourcesUtilization resourcesUtilization = cache.getResourcesUtilization(securityToken, refresh);
-        Map<Interval, Map<ResourceCapacity, ResourceCapacityUtilization>> utilization =
-                resourcesUtilization.getUtilization(new Interval(intervalFrom, intervalTo), period);
+        var utilization = resourcesUtilization.getUtilization(interval, period);
         List<ResourceUtilizationModel> items = new ArrayList<>();
-        utilization.forEach((interval, resourceCapacityUtilization) -> {
-            items.add(ResourceUtilizationModel.fromApi(interval, resourceCapacityUtilization));
-        });
+        utilization.forEach((utilizationInterval, resourceCapacityUtilization) ->
+                items.add(ResourceUtilizationModel.fromApi(utilizationInterval, resourceCapacityUtilization))
+        );
         return ListResponse.fromRequest(start, count, items);
     }
 
@@ -128,26 +127,19 @@ public class ResourceController
             @PathVariable("id") String resourceId,
             @RequestParam(value = "interval_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalFrom,
             @RequestParam(value = "interval_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) DateTime intervalTo)
-            throws ClassNotFoundException
     {
-        @SuppressWarnings("unchecked")
-        Class<? extends ResourceCapacity> resourceCapacityClass = (Class<? extends ResourceCapacity>)
-                Class.forName(ResourceCapacity.class.getCanonicalName() + "$" + "Room");
-        ResourcesUtilization resourcesUtilization =
-                cache.getResourcesUtilization(securityToken, false);
-        ResourceCapacity resourceCapacity =
-                resourcesUtilization.getResourceCapacity(resourceId, resourceCapacityClass);
+        Class<? extends ResourceCapacity> resourceCapacityClass = ResourceCapacity.Room.class;
+        ResourcesUtilization resourcesUtilization = cache.getResourcesUtilization(securityToken, false);
+        ResourceCapacity resourceCapacity = resourcesUtilization.getResourceCapacity(resourceId, resourceCapacityClass);
         ResourceCapacityUtilization resourceCapacityUtilization =
                 resourcesUtilization.getUtilization(resourceCapacity, new Interval(intervalFrom, intervalTo));
 
         ResourceCapacity.Room roomCapacity = (ResourceCapacity.Room) resourceCapacity;
         List<ReservationModel> reservations = (resourceCapacityUtilization != null)
-                ? resourceCapacityUtilization.getReservations()
-                .stream().map(res ->
+                ? resourceCapacityUtilization.getReservations().stream().map(res ->
                         ReservationModel.fromApi(res, cache.getUserInformation(securityToken, res.getUserId()))
                 ).collect(Collectors.toList())
                 : Collections.emptyList();
-        return ResourceUtilizationDetailModel.fromApi(
-                resourceCapacityUtilization, roomCapacity, reservations);
+        return ResourceUtilizationDetailModel.fromApi(resourceCapacityUtilization, roomCapacity, reservations);
     }
 }
