@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.util.RangeSet;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -77,10 +78,15 @@ public class ResourcesUtilization
      * Constructor.
      *
      * @param securityToken sets the {@link #securityToken}
-     * @param resources     to be used for fetching {@link #resourceCapacities}
      * @param reservations  sets the {@link #reservationService}
+     * @param resources     to be used for fetching resources
+     * @param cache         to be used for fetching {@link #resourceCapacities}
      */
-    public ResourcesUtilization(SecurityToken securityToken, ResourceService resources, ReservationService reservations)
+    public ResourcesUtilization(
+            SecurityToken securityToken,
+            ReservationService reservations,
+            ResourceService resources,
+            Cache cache)
     {
         this.securityToken = securityToken;
         this.reservationService = reservations;
@@ -92,7 +98,7 @@ public class ResourcesUtilization
         resourceListRequest.addCapabilityClass(RecordingCapability.class);
         for (ResourceSummary resourceSummary : resources.listResources(resourceListRequest)) {
             String resourceId = resourceSummary.getId();
-            Resource resource = resources.getResource(securityToken, resourceId);
+            Resource resource = cache.getResource(securityToken, resourceId);
             for (Capability capability : resource.getCapabilities()) {
                 if (capability instanceof RoomProviderCapability) {
                     RoomProviderCapability roomProviderCapability = (RoomProviderCapability) capability;

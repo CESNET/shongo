@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.ObjectPermissionSet;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.GroupListRequest;
@@ -100,7 +101,12 @@ public class Cache
     /**
      * {@link ResourceSummary} by identifier.
      */
-    private final ExpirationMap<String, ResourceSummary> resourceById =
+    private final ExpirationMap<String, ResourceSummary> resourceSummaryById =
+            new ExpirationMap<>(Duration.standardHours(1));
+    /**
+     * {@link Resource} by identifier.
+     */
+    private final ExpirationMap<String, Resource> resourceById =
             new ExpirationMap<>(Duration.standardHours(1));
     /**
      * {@link ReservationRequestSummary} by identifier.
@@ -153,6 +159,7 @@ public class Cache
         for (UserState userState : userStateByToken) {
             userState.objectPermissionsByObject.clearExpired(dateTimeNow);
         }
+        resourceSummaryById.clearExpired(dateTimeNow);
         resourceById.clearExpired(dateTimeNow);
         reservationRequestById.clearExpired(dateTimeNow);
         reservationById.clearExpired(dateTimeNow);
@@ -387,6 +394,15 @@ public class Cache
         return result;
     }
 
+    public synchronized Resource getResource(SecurityToken securityToken, String resourceId) {
+        Resource resource = resourceById.get(resourceId);
+        if (resource == null) {
+            resource = resourceService.getResource(securityToken, resourceId);
+            resourceById.put(resourceId, resource);
+        }
+        return resource;
+    }
+
     /**
      * @param securityToken to be used for fetching the {@link ResourceSummary}s
      * @param resourceIds   resource-ids to be fetched
@@ -395,7 +411,7 @@ public class Cache
     {
         Set<String> missingResourceIds = null;
         for (String resourceId : resourceIds) {
-            if (!resourceById.contains(resourceId)) {
+            if (!resourceSummaryById.contains(resourceId)) {
                 if (missingResourceIds == null) {
                     missingResourceIds = new HashSet<String>();
                 }
@@ -411,7 +427,7 @@ public class Cache
             ListResponse<ResourceSummary> response = resourceService.listResources(request);
             for (ResourceSummary resource : response.getItems()) {
                 String resourceId = resource.getId();
-                resourceById.put(resourceId, resource);
+                resourceSummaryById.put(resourceId, resource);
                 missingResourceIds.remove(resourceId);
             }
             if (missingResourceIds.size() > 0) {
@@ -428,7 +444,7 @@ public class Cache
      */
     public ResourceSummary getResourceSummary(SecurityToken securityToken, String resourceId)
     {
-        ResourceSummary resourceSummary = resourceById.get(resourceId);
+        ResourceSummary resourceSummary = resourceSummaryById.get(resourceId);
         if (resourceSummary == null) {
             ResourceListRequest request = new ResourceListRequest();
             request.setSecurityToken(securityToken);
@@ -436,7 +452,7 @@ public class Cache
             ListResponse<ResourceSummary> response = resourceService.listResources(request);
             if (response.getItemCount() == 1) {
                 resourceSummary = response.getItem(0);
-                resourceById.put(resourceSummary.getId(), resourceSummary);
+                resourceSummaryById.put(resourceSummary.getId(), resourceSummary);
             }
         }
         if (resourceSummary == null) {
@@ -641,7 +657,9 @@ public class Cache
         synchronized (resourcesUtilizationByToken) {
             ResourcesUtilization resourcesUtilization = resourcesUtilizationByToken.get(securityToken);
             if (resourcesUtilization == null || forceRefresh) {
-                resourcesUtilization = new ResourcesUtilization(securityToken, resourceService, reservationService);
+                resourcesUtilization = new ResourcesUtilization(
+                        securityToken, reservationService, resourceService, this
+                );
                 resourcesUtilizationByToken.put(securityToken, resourcesUtilization);
             }
             return resourcesUtilization;
