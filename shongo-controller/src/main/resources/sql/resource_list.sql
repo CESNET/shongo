@@ -17,7 +17,8 @@ SELECT
     resource_summary.calendar_uri_key AS calendar_uri_key,
     resource_summary.confirm_by_owner AS confirm_by_owner,
     resource_summary.type AS type,
-    resource_summary.tags AS tags
+    resource_summary.tags AS tags,
+    resource_summary.has_capacity AS has_capacity
 FROM resource_summary
 WHERE ${filter}
 ORDER BY ${order}

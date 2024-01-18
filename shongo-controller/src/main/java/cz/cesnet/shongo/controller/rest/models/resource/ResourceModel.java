@@ -24,7 +24,7 @@ public class ResourceModel
     private Set<Tag> tags;
     private boolean hasCapacity;
 
-    public ResourceModel(ResourceSummary summary, boolean hasCapacity)
+    public ResourceModel(ResourceSummary summary)
     {
         this.id = summary.getId();
         this.type = summary.getType();
@@ -32,6 +32,6 @@ public class ResourceModel
         this.description = summary.getDescription();
         this.technology = TechnologyModel.find(summary.getTechnologies());
         this.tags = summary.getTags();
-        this.hasCapacity = hasCapacity;
+        this.hasCapacity = summary.hasCapacity();
     }
 }

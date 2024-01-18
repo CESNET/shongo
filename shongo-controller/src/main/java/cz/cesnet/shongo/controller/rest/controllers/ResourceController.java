@@ -80,11 +80,7 @@ public class ResourceController
 
         return accessibleResources.getItems()
                 .stream()
-                .map(resourceSummary -> {
-                    // Find out whether the resource has capacity
-                    Resource resource = resourceService.getResource(securityToken, resourceSummary.getId());
-                    return new ResourceModel(resourceSummary, !resource.getCapabilities().isEmpty());
-                })
+                .map(ResourceModel::new)
                 // Filter only resources with either technology or tag
                 .filter(resource -> !(resource.getTechnology() == null && resource.getTags().isEmpty()))
                 .collect(Collectors.toList());

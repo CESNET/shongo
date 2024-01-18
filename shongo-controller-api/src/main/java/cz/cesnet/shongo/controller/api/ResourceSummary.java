@@ -82,6 +82,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private boolean confirmByOowner;
 
     /**
+     * Specifies whether resource has capacity.
+     */
+    private boolean hasCapacity;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -252,6 +257,16 @@ public class ResourceSummary extends IdentifiedComplexType
         this.confirmByOowner = confirmByOowner;
     }
 
+    public boolean hasCapacity()
+    {
+        return hasCapacity;
+    }
+
+    public void setHasCapacity(boolean hasCapacity)
+    {
+        this.hasCapacity = hasCapacity;
+    }
+
     public String getRemoteCalendarName() {
         return remoteCalendarName;
     }
@@ -285,6 +300,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String CALENDAR_URI_KEY = "calendarUriKey";
     private static final String DOMAIN_NAME = "domainName";
     private static final String CONFIRM_BY_OWNER = "confirmByOwner";
+    private static final String HAS_CAPACITY = "hasCapacity";
     public static final String REMOTE_CALENDAR_NAME = "remoteCalendarName";
     public static final String TYPE = "type";
     public static final String TAGS = "tags";
@@ -304,6 +320,7 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
         dataMap.set(DOMAIN_NAME, domainName);
         dataMap.set(CONFIRM_BY_OWNER, confirmByOowner);
+        dataMap.set(HAS_CAPACITY, hasCapacity);
         dataMap.set(REMOTE_CALENDAR_NAME, remoteCalendarName);
         dataMap.set(TYPE, type);
         dataMap.set(TAGS, tags);
@@ -325,6 +342,7 @@ public class ResourceSummary extends IdentifiedComplexType
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
         domainName = dataMap.getString(DOMAIN_NAME);
         confirmByOowner = dataMap.getBool(CONFIRM_BY_OWNER);
+        hasCapacity = dataMap.getBool(HAS_CAPACITY);
         remoteCalendarName = dataMap.getString(REMOTE_CALENDAR_NAME);
         type = dataMap.getEnum(TYPE, Type.class);
         tags = dataMap.getSet(TAGS, Tag.class);

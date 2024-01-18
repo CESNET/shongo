@@ -458,6 +458,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                                 .map(Tag::fromConcat)
                                 .forEach(resourceSummary::addTag);
                     }
+                    resourceSummary.setHasCapacity((Boolean) record[13]);
                     response.addItem(resourceSummary);
                 }
             }
