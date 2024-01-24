@@ -26,10 +26,7 @@ SELECT
     specification_summary.room_participant_count AS room_participant_count,
     executable_summary.room_has_recording_service AS room_has_recording_service,
     executable_summary.room_has_recordings AS room_has_recordings,
-    CASE
-        WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
-        ELSE reused_specification_summary.alias_room_name
-    END AS alias_room_name,
+    executable_summary.room_name AS alias_room_name,
     specification_summary.resource_id resource_id,
     reservation_request_summary.usage_executable_state AS usage_executable_state,
     reservation_request_summary.future_child_count,
