@@ -6,9 +6,9 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.error.LastOwnerRoleNotDeletableException;
 import cz.cesnet.shongo.controller.rest.models.roles.UserRoleModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +42,7 @@ public class UserRoleController
 {
 
     private final AuthorizationService authorizationService;
-    private final Cache cache;
+    private final RestCache cache;
 
     @Operation(summary = "Lists reservation request roles.")
     @GetMapping

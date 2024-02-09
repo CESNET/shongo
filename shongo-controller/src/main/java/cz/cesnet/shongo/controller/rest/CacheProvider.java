@@ -9,16 +9,16 @@ import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
- * {@link Cache} provided for specified {@link #securityToken}.
+ * {@link RestCache} provided for specified {@link #securityToken}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class CacheProvider
 {
     /**
-     * {@link Cache} to be used for retrieving {@link UserInformation}.
+     * {@link RestCache} to be used for retrieving {@link UserInformation}.
      */
-    private final Cache cache;
+    private final RestCache cache;
 
     /**
      * {@link SecurityToken} to be used for retrieving {@link UserInformation} by the {@link #cache}.
@@ -31,7 +31,7 @@ public class CacheProvider
      * @param cache         sets the {@link #cache}
      * @param securityToken sets the {@link #securityToken}
      */
-    public CacheProvider(Cache cache, SecurityToken securityToken)
+    public CacheProvider(RestCache cache, SecurityToken securityToken)
     {
         this.cache = cache;
         this.securityToken = securityToken;

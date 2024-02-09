@@ -9,8 +9,8 @@ import cz.cesnet.shongo.controller.api.request.GroupListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.models.users.SettingsModel;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class UserController
 {
 
     private final AuthorizationService authorizationService;
-    private final Cache cache;
+    private final RestCache cache;
 
     /**
      * Handle request for list of {@link UserInformation}s which contains given {@code filter} text in any field.

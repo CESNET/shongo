@@ -6,8 +6,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.models.room.RoomAuthorizedData;
 import cz.cesnet.shongo.controller.rest.models.room.RoomModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +34,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class RoomController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final ExecutableService executableService;
 
     @Operation(summary = "Lists rooms (executables).")

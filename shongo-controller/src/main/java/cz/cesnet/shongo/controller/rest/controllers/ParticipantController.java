@@ -11,9 +11,9 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantConfigurationModel;
 import cz.cesnet.shongo.controller.rest.models.participant.ParticipantModel;
@@ -50,7 +50,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class ParticipantController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final ExecutableService executableService;
 
     @Operation(summary = "Lists reservation request participants.")

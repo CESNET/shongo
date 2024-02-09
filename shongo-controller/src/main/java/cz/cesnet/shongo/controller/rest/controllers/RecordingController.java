@@ -8,8 +8,8 @@ import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.models.recording.RecordingModel;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +38,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class RecordingController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final ExecutableService executableService;
     private final ResourceControlService resourceControlService;
 

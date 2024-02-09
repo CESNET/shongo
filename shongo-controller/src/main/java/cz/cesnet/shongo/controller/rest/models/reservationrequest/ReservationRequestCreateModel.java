@@ -47,8 +47,8 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.TimeInterval;
@@ -223,7 +223,7 @@ public class ReservationRequestCreateModel
     public static List<ReservationRequestSummary> getPermanentRooms(
             ReservationService reservationService,
             SecurityToken securityToken,
-            Cache cache)
+            RestCache cache)
     {
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);

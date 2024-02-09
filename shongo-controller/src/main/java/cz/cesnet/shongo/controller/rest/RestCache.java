@@ -53,7 +53,7 @@ import java.util.stream.Stream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class Cache
+public class RestCache
 {
 
     /**
@@ -462,7 +462,7 @@ public class Cache
     }
 
     /**
-     * Load {@link ReservationRequestSummary}s for given {@code reservationRequestIds} to the {@link Cache}.
+     * Load {@link ReservationRequestSummary}s for given {@code reservationRequestIds} to the {@link RestCache}.
      *
      * @param securityToken
      * @param reservationRequestIds
@@ -492,8 +492,8 @@ public class Cache
     }
 
     /**
-     * Retrieve {@link ReservationRequestSummary} from {@link Cache} or from {@link #reservationService}
-     * if it doesn't exist in the {@link Cache}.
+     * Retrieve {@link ReservationRequestSummary} from {@link RestCache} or from {@link #reservationService}
+     * if it doesn't exist in the {@link RestCache}.
      *
      * @param securityToken
      * @param reservationRequestId

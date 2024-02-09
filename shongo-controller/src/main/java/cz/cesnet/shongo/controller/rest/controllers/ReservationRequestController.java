@@ -19,9 +19,9 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.AuxDataFilter;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.models.IdModel;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.reservationrequest.ReservationRequestCreateModel;
@@ -69,7 +69,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class ReservationRequestController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final ReservationService reservationService;
     private final AuthorizationService authorizationService;
     private final ExecutableService executableService;

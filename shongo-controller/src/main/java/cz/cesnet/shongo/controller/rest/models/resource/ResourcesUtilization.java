@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import cz.cesnet.shongo.controller.rest.Cache;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.util.RangeSet;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -86,7 +86,7 @@ public class ResourcesUtilization
             SecurityToken securityToken,
             ReservationService reservations,
             ResourceService resources,
-            Cache cache)
+            RestCache cache)
     {
         this.securityToken = securityToken;
         this.reservationService = reservations;

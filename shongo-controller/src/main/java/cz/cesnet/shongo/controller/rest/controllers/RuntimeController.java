@@ -8,9 +8,9 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.CacheProvider;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.RoomCache;
 import cz.cesnet.shongo.controller.rest.error.UnsupportedApiException;
 import cz.cesnet.shongo.controller.rest.models.runtimemanagement.RuntimeParticipantModel;
@@ -49,7 +49,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class RuntimeController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final RoomCache roomCache;
     private final ExecutableService executableService;
 

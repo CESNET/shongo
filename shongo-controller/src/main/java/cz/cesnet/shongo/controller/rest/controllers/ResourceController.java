@@ -7,8 +7,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import cz.cesnet.shongo.controller.rest.Cache;
 import cz.cesnet.shongo.controller.rest.RestApiPath;
+import cz.cesnet.shongo.controller.rest.RestCache;
 import cz.cesnet.shongo.controller.rest.models.TechnologyModel;
 import cz.cesnet.shongo.controller.rest.models.resource.ReservationModel;
 import cz.cesnet.shongo.controller.rest.models.resource.ResourceCapacity;
@@ -51,7 +51,7 @@ import static cz.cesnet.shongo.controller.rest.config.security.AuthFilter.TOKEN;
 public class ResourceController
 {
 
-    private final Cache cache;
+    private final RestCache cache;
     private final ResourceService resourceService;
 
     /**

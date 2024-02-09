@@ -32,7 +32,7 @@ public class RoomCache
 
     private final ResourceControlService resourceControlService;
 
-    private final Cache cache;
+    private final RestCache cache;
 
     /**
      * {@link RoomExecutable} by roomExecutableId.
