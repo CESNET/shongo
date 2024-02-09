@@ -112,7 +112,7 @@ public class Cache
      * {@link ReservationRequestSummary} by identifier.
      */
     private final ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
-            new ExpirationMap<>(Duration.standardSeconds(15));
+            new ExpirationMap<>(Duration.standardMinutes(5));
 
     /**
      * {@link Reservation} by identifier.
@@ -541,7 +541,11 @@ public class Cache
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
         if (response.getItemCount() > 0) {
             ReservationRequestSummary reservationRequest = response.getItem(0);
-            if (reservationRequest.isAllowCache()) {
+            DateTime start = reservationRequest.getEarliestSlot().getStart();
+            DateTime end = reservationRequest.getEarliestSlot().getEnd();
+            final boolean startsSoon = start.isAfterNow() && start.isBefore(DateTime.now().plusMinutes(5));
+            final boolean happensNow = start.isBeforeNow() && end.isAfterNow();
+            if (reservationRequest.isAllowCache() && !(startsSoon || happensNow)) {
                 reservationRequestById.put(reservationRequest.getId(), reservationRequest);
             }
             return reservationRequest;
