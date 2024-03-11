@@ -118,7 +118,14 @@ public class ReservationRequestController
                     .stream()
                     .map(room -> listRequests(securityToken, start, count, sort, sortDescending, allocationState,
                             room.getId(), technology, finalIntervalFrom, finalIntervalTo, userId, participantUserId,
-                            search, capacityReservationTypes, null).getItems())
+                            search, capacityReservationTypes, null)
+                            .getItems()
+                            .stream()
+                            .peek(capacities -> capacities.getVirtualRoomData()
+                                    .setTechnology(room.getVirtualRoomData().getTechnology())
+                            )
+                            .collect(Collectors.toList())
+                    )
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
 
