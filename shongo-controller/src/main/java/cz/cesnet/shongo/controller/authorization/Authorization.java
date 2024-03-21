@@ -73,6 +73,11 @@ public abstract class Authorization
     protected EntityManagerFactory entityManagerFactory;
 
     /**
+     * List of devices authorized to make reservations on a particular resource.
+     */
+    protected List<ReservationDeviceConfig> reservationDevices;
+
+    /**
      * @see cz.cesnet.shongo.controller.acl.AclProvider
      */
     private AclProvider aclProvider;
@@ -107,11 +112,6 @@ public abstract class Authorization
      * {@link AuthorizationExpression} for decision whether an user can create reservation.
      */
     private AuthorizationExpression reservationExpression;
-
-    /**
-     * List of devices authorized to make reservations on a particular resource.
-     */
-    private List<ReservationDeviceConfig> reservationDevices;
 
     /**
      * Constructor.
