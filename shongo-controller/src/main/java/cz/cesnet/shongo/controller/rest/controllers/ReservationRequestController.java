@@ -154,8 +154,12 @@ public class ReservationRequestController
         request.setSpecificationResourceIds(resourceId);
 
         if (permanentRoomId != null) {
-            request.setReusedReservationRequestId(permanentRoomId);
-            reservationTypes.add(ReservationType.ROOM_CAPACITY);
+            if (reservationTypes.contains(ReservationType.PHYSICAL_RESOURCE)) {
+                request.setParentReservationRequestId(permanentRoomId);
+            } else {
+                request.setReusedReservationRequestId(permanentRoomId);
+                reservationTypes.add(ReservationType.ROOM_CAPACITY);
+            }
         }
 
         if (reservationTypes.contains(ReservationType.VIRTUAL_ROOM)) {
