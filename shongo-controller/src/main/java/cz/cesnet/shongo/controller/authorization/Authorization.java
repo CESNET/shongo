@@ -109,6 +109,11 @@ public abstract class Authorization
     private AuthorizationExpression reservationExpression;
 
     /**
+     * List of devices authorized to make reservations on a particular resource.
+     */
+    private List<ReservationDeviceConfig> reservationDevices;
+
+    /**
      * Constructor.
      *
      * @param configuration to load authorization configuration from
@@ -155,6 +160,8 @@ public abstract class Authorization
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_OPERATOR), this);
         this.reservationExpression = new AuthorizationExpression(
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_RESERVATION), this);
+
+        this.reservationDevices = configuration.getReservationDevices();
     }
 
     /**
@@ -335,6 +342,16 @@ public abstract class Authorization
         if (userId.equals(ROOT_USER_ID)) {
             return ROOT_USER_DATA;
         }
+
+        // Reservation device user
+        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
+            UserData userData = reservationDevice.getUserData();
+
+            if (userId.equals(userData.getUserId())) {
+                return userData;
+            }
+        }
+
         UserData userData;
         if (cache.hasUserDataByUserId(userId)) {
             userData = cache.getUserDataByUserId(userId);
@@ -402,18 +419,22 @@ public abstract class Authorization
     {
         logger.debug("Retrieving list of user information...");
         List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-        // Remove root id from request, which is static if contains.
-        if (filterUserIds != null && filterUserIds.contains(ROOT_USER_ID)) {
-            filterUserIds = new HashSet<>(filterUserIds);
-            filterUserIds.remove(ROOT_USER_ID);
-            // Add root user information to result
-            userInformationList.add(ROOT_USER_DATA.getUserInformation());
+
+        // Remove root ID from request and add user data if filter contains root ID.
+        checkForStaticUser(filterUserIds, userInformationList, ROOT_USER_DATA);
+
+        // Remove reservation device ids from request and add their user data if filter contains their ID.
+        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
+            UserData deviceUser = reservationDevice.getUserData();
+            checkForStaticUser(filterUserIds, userInformationList, deviceUser);
         }
+
         for (UserData userData : onListUserData(filterUserIds, search)) {
             userInformationList.add(userData.getUserInformation());
         }
         return userInformationList;
     }
+
 
     /**
      * @param userId
@@ -1084,6 +1105,25 @@ public abstract class Authorization
             entityManager.close();
         }
         return aclObjectState;
+    }
+
+    /**
+     * Checks if filter contains user ID and if yes then adds the user data to the list and removes the ID from the filter.
+     *
+     * @param filterUserIds User ID filter.
+     * @param userInformationList List of user information.
+     * @param userData User data to add if filter contains their ID.
+     */
+    private void checkForStaticUser(Set<String> filterUserIds, List<UserInformation> userInformationList, UserData userData) {
+        String userId = userData.getUserId();
+
+        if (filterUserIds != null && filterUserIds.contains(userId)) {
+            filterUserIds = new HashSet<>(filterUserIds);
+            filterUserIds.remove(userId);
+
+            // Add user information to result
+            userInformationList.add(userData.getUserInformation());
+        }
     }
 
     /**

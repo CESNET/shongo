@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import cz.cesnet.shongo.api.UserInformation;
 import lombok.Getter;
 import javax.validation.constraints.NotNull;
 
@@ -12,10 +13,12 @@ import javax.validation.constraints.NotNull;
 public final class ReservationDeviceConfig {
     private final String accessToken;
     private final String resourceId;
+    private final UserData userData;
 
     public ReservationDeviceConfig(@NotNull String accessToken, @NotNull String resourceId) {
         this.accessToken = accessToken;
         this.resourceId = resourceId;
+        this.userData = createUserData();
     }
 
     @Override
@@ -24,5 +27,20 @@ public final class ReservationDeviceConfig {
                 "accessToken='" + accessToken + '\'' +
                 ", resourceId='" + resourceId + '\'' +
                 '}';
+    }
+
+    private UserData createUserData() {
+        UserData userData = new UserData();
+        UserInformation userInformation = userData.getUserInformation();
+        UserAuthorizationData userAuthData = new UserAuthorizationData(0);
+
+        String userId = "reservation-device-" + resourceId;
+        String name = "Reservation Device For " + resourceId;
+
+        userInformation.setUserId(userId);
+        userInformation.setFullName(name);
+        userData.setUserAuthorizationData(userAuthData);
+
+        return userData;
     }
 }
