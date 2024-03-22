@@ -11,6 +11,8 @@ import javax.validation.constraints.NotNull;
  */
 @Getter
 public final class ReservationDeviceConfig {
+    public static final String DEVICE_ID_PREFIX = "shongo:reservation:device:";
+
     private static int deviceCount = 1;
 
     private final String accessToken;
@@ -35,9 +37,9 @@ public final class ReservationDeviceConfig {
     private UserData createUserData() {
         UserData userData = new UserData();
         UserInformation userInformation = userData.getUserInformation();
-        UserAuthorizationData userAuthData = new UserAuthorizationData(0);
+        UserAuthorizationData userAuthData = new UserAuthorizationData(UserAuthorizationData.LOA_NONE);
 
-        String userId = "shongo:reservation:device:" + deviceCount;
+        String userId = DEVICE_ID_PREFIX + deviceCount;
         String name = "Reservation Device For " + resourceId;
 
         userInformation.setUserId(userId);

@@ -22,6 +22,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import java.util.*;
 
+import static cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig.DEVICE_ID_PREFIX;
+
 /**
  * Provides methods for performing authentication, authorization and fetching user data from web service.
  *
@@ -290,6 +292,14 @@ public abstract class Authorization
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
     {
+        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
+            UserData deviceUser = reservationDevice.getUserData();
+
+            if (userId.equals(deviceUser.getUserId())) {
+                return deviceUser.getUserInformation();
+            }
+        }
+
         if (UserInformation.isLocal(userId)) {
             UserData userData = getUserData(userId);
             return userData.getUserInformation();
@@ -1066,8 +1076,10 @@ public abstract class Authorization
         if (userId != null) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
         }
-        for (String groupId : listUserGroupIds(userId)) {
-            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
+        if (!userId.startsWith(DEVICE_ID_PREFIX)) {
+            for (String groupId : listUserGroupIds(userId)) {
+                aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
+            }
         }
         aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, EVERYONE_GROUP_ID));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
