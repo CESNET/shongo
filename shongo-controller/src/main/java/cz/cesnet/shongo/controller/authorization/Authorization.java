@@ -24,8 +24,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import java.util.*;
 
-import static cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig.DEVICE_ID_PREFIX;
-
 /**
  * Provides methods for performing authentication, authorization and fetching user data from web service.
  *
@@ -72,11 +70,6 @@ public abstract class Authorization
     }
 
     /**
-     * List of devices authorized to make reservations on a particular resource.
-     */
-    public ImmutableList<ReservationDeviceConfig> reservationDevices;
-
-    /**
      * @see EntityManagerFactory
      */
     protected EntityManagerFactory entityManagerFactory;
@@ -116,6 +109,11 @@ public abstract class Authorization
      * {@link AuthorizationExpression} for decision whether an user can create reservation.
      */
     private AuthorizationExpression reservationExpression;
+
+    /**
+     * List of devices authorized to make reservations on a particular resource.
+     */
+    private final ImmutableList<ReservationDeviceConfig> reservationDevices;
 
     /**
      * Constructor.
@@ -204,6 +202,14 @@ public abstract class Authorization
     public void clearCache()
     {
         cache.clear();
+    }
+
+    public final Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
+        return reservationDevices.stream().filter(device -> device.getDeviceId().equals(id)).findFirst();
+    }
+
+    public final Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
+        return reservationDevices.stream().filter(device -> device.getAccessToken().equals(accessToken)).findFirst();
     }
 
     /**
@@ -295,12 +301,10 @@ public abstract class Authorization
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
     {
-        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
-            UserData deviceUser = reservationDevice.getUserData();
+        Optional<ReservationDeviceConfig> reservationDevice = getReservationDeviceById(userId);
 
-            if (userId.equals(deviceUser.getUserId())) {
-                return deviceUser.getUserInformation();
-            }
+        if (reservationDevice.isPresent()) {
+            return reservationDevice.get().getUserData().getUserInformation();
         }
 
         if (UserInformation.isLocal(userId)) {
@@ -357,12 +361,10 @@ public abstract class Authorization
         }
 
         // Reservation device user
-        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
-            UserData userData = reservationDevice.getUserData();
+        Optional<ReservationDeviceConfig> reservationDevice = getReservationDeviceById(userId);
 
-            if (userId.equals(userData.getUserId())) {
-                return userData;
-            }
+        if (reservationDevice.isPresent()) {
+            return reservationDevice.get().getUserData();
         }
 
         UserData userData;
@@ -1079,7 +1081,7 @@ public abstract class Authorization
         if (userId != null) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
         }
-        if (!userId.startsWith(DEVICE_ID_PREFIX)) {
+        if (getReservationDeviceById(userId).isEmpty()) {
             for (String groupId : listUserGroupIds(userId)) {
                 aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
             }

@@ -1036,8 +1036,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_request_summary", true);
             
-            Optional<ReservationDeviceConfig> deviceUser = authorization.reservationDevices.stream()
-                    .filter(d -> d.getAccessToken().equals(securityToken.getAccessToken())).findFirst();
+            Optional<ReservationDeviceConfig> deviceUser = authorization.getReservationDeviceByToken(securityToken.getAccessToken());
 
             if (deviceUser.isEmpty()) {
                 // List only reservation requests which is current user permitted to read
