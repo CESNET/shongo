@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -673,7 +674,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return list of reservation devices.
      */
-    public List<ReservationDeviceConfig> getReservationDevices() {
+    public ImmutableList<ReservationDeviceConfig> getReservationDevices() {
         List<ReservationDeviceConfig> deviceConfigs = new ArrayList<>();
 
         for (HierarchicalConfiguration conf : configurationsAt(SECURITY_AUTHORIZATION_RESERVATION_DEVICE)) {
@@ -683,6 +684,6 @@ public class ControllerConfiguration extends CombinedConfiguration
             deviceConfigs.add(deviceConfig);
         }
 
-        return deviceConfigs;
+        return ImmutableList.copyOf(deviceConfigs);
     }
 }

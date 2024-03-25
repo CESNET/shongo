@@ -37,7 +37,7 @@ public final class ReservationDeviceConfig {
     private UserData createUserData() {
         UserData userData = new UserData();
         UserInformation userInformation = userData.getUserInformation();
-        UserAuthorizationData userAuthData = new UserAuthorizationData(UserAuthorizationData.LOA_NONE);
+        UserAuthorizationData userAuthData = new UserAuthorizationData(UserAuthorizationData.LOA_EXTENDED);
 
         String userId = DEVICE_ID_PREFIX + deviceCount;
         String name = "Reservation Device For " + resourceId;

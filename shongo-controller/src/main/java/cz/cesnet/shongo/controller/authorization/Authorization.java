@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import com.google.common.collect.ImmutableList;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
@@ -70,14 +71,14 @@ public abstract class Authorization
     }
 
     /**
+     * List of devices authorized to make reservations on a particular resource.
+     */
+    public ImmutableList<ReservationDeviceConfig> reservationDevices;
+
+    /**
      * @see EntityManagerFactory
      */
     protected EntityManagerFactory entityManagerFactory;
-
-    /**
-     * List of devices authorized to make reservations on a particular resource.
-     */
-    protected List<ReservationDeviceConfig> reservationDevices;
 
     /**
      * @see cz.cesnet.shongo.controller.acl.AclProvider

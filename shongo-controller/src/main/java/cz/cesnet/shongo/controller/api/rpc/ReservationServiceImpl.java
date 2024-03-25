@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.TagData;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
@@ -1034,10 +1035,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_request_summary", true);
+            
+            Optional<ReservationDeviceConfig> deviceUser = authorization.reservationDevices.stream()
+                    .filter(d -> d.getAccessToken().equals(securityToken.getAccessToken())).findFirst();
 
-            // List only reservation requests which is current user permitted to read
-            queryFilter.addFilterId("allocation_id", authorization, securityToken,
-                    Allocation.class, ObjectPermission.READ);
+            if (deviceUser.isEmpty()) {
+                // List only reservation requests which is current user permitted to read
+                queryFilter.addFilterId("allocation_id", authorization, securityToken,
+                        Allocation.class, ObjectPermission.READ);
+            } else {
+                // List only reservation requests of resource which reservation device has access to
+                String resourceId = deviceUser.get().getResourceId();
+                int resourceIdNum = Integer.parseInt(resourceId.substring(resourceId.lastIndexOf(":") + 1));
+                queryFilter.addFilter("specification_summary.resource_id = :deviceResourceId");
+                queryFilter.addFilterParameter("deviceResourceId", resourceIdNum);
+            }
 
             // List only reservation requests which are requested (but latest versions of them)
             if (request.getReservationRequestIds().size() > 0) {
