@@ -680,7 +680,8 @@ public class ControllerConfiguration extends CombinedConfiguration
         for (HierarchicalConfiguration conf : configurationsAt(SECURITY_AUTHORIZATION_RESERVATION_DEVICE)) {
             String accessToken = conf.getString("access-token");
             String resourceId = conf.getString("resource-id");
-            ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig(accessToken, resourceId);
+            String deviceId = conf.getString("device-id");
+            ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig(deviceId, accessToken, resourceId);
             deviceConfigs.add(deviceConfig);
         }
 
