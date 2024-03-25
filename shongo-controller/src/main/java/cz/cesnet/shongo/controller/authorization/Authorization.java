@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
@@ -178,6 +179,7 @@ public abstract class Authorization
         this.administratorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.operatorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.reservationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
+        this.createReservationDeviceAclEntries(reservationDevices);
     }
 
     /**
@@ -1263,5 +1265,37 @@ public abstract class Authorization
                     + "has been created.");
         }
         return authorization;
+    }
+
+    private void createReservationDeviceAclEntries(List<ReservationDeviceConfig> reservationDevices) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        AuthorizationManager authManager = new AuthorizationManager(entityManager, this);
+
+        reservationDevices.forEach(device -> {
+            authManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            try {
+                String userId = device.getUserData().getUserId();
+                String resourceId = device.getResourceId();
+                ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(resourceId);
+                logger.info("Creating ACL entry for reservation device {} for resource {}", device.getUserData().getUserId(), objectIdentifier);
+
+                SecurityToken securityToken = new SecurityToken(device.getAccessToken());
+                securityToken.setUserInformation(device.getUserData().getUserInformation());
+
+                PersistentObject object = entityManager.find(objectIdentifier.getObjectClass(),
+                        objectIdentifier.getPersistenceId());
+                authManager.createAclEntry(AclIdentityType.USER, userId, object, ObjectRole.RESERVATION);
+
+                entityManager.getTransaction().commit();
+                authManager.commitTransaction(securityToken);
+            } catch (Error err) {
+                entityManager.getTransaction().rollback();
+                authManager.rollbackTransaction();
+            }
+        });
+
+        entityManager.close();
     }
 }
