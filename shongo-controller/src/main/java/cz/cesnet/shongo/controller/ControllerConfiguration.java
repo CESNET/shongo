@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.controller;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import cz.cesnet.shongo.ssl.SSLCommunication;
 import cz.cesnet.shongo.util.PatternParser;
 import org.apache.commons.configuration.CombinedConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
@@ -222,6 +225,11 @@ public class ControllerConfiguration extends CombinedConfiguration
      * Specifies expression which decides whether user can create a reservation request.
      */
     public static final String SECURITY_AUTHORIZATION_RESERVATION = "security.authorization.reservation";
+
+    /**
+     * Configures devices which get access to the system and reservation privilege for a particular resource.
+     */
+    public static final String SECURITY_AUTHORIZATION_RESERVATION_DEVICE = "security.authorization.reservation-devices.device";
 
     /**
      * Url where user can change his settings.
@@ -661,5 +669,22 @@ public class ControllerConfiguration extends CombinedConfiguration
     public String getDeviceTagName()
     {
         return getString(DEVICE_TAG);
+    }
+
+    /**
+     * @return list of reservation devices.
+     */
+    public ImmutableList<ReservationDeviceConfig> getReservationDevices() {
+        List<ReservationDeviceConfig> deviceConfigs = new ArrayList<>();
+
+        for (HierarchicalConfiguration conf : configurationsAt(SECURITY_AUTHORIZATION_RESERVATION_DEVICE)) {
+            String accessToken = conf.getString("access-token");
+            String resourceId = conf.getString("resource-id");
+            String deviceId = conf.getString("device-id");
+            ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig(deviceId, accessToken, resourceId);
+            deviceConfigs.add(deviceConfig);
+        }
+
+        return ImmutableList.copyOf(deviceConfigs);
     }
 }

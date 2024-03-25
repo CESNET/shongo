@@ -207,6 +207,12 @@ public class ServerAuthorization extends Authorization
             return ROOT_USER_DATA;
         }
 
+        Optional<ReservationDeviceConfig> reservationDevice = authorization.getReservationDeviceByToken(accessToken);
+
+        if (reservationDevice.isPresent()) {
+            return reservationDevice.get().getUserData();
+        }
+
         Exception errorException = null;
         String errorReason = null;
         try {
