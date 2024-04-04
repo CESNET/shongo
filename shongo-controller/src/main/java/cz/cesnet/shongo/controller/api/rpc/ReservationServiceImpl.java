@@ -1045,7 +1045,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             } else {
                 // List only reservation requests of resource which reservation device has access to
                 String resourceId = deviceUser.get().getResourceId();
-                int resourceIdNum = Integer.parseInt(resourceId.substring(resourceId.lastIndexOf(":") + 1));
+                long resourceIdNum = ObjectIdentifier.parse(resourceId).getPersistenceId();
                 queryFilter.addFilter("specification_summary.resource_id = :deviceResourceId");
                 queryFilter.addFilterParameter("deviceResourceId", resourceIdNum);
             }
