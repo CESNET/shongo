@@ -163,7 +163,7 @@ public abstract class Authorization
         this.reservationExpression = new AuthorizationExpression(
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_RESERVATION), this);
 
-        this.reservationDevices = configuration.getReservationDevices();
+        this.reservationDevices = ImmutableList.copyOf(configuration.getReservationDevices());
     }
 
     /**
@@ -449,7 +449,6 @@ public abstract class Authorization
         }
         return userInformationList;
     }
-
 
     /**
      * @param userId

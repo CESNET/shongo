@@ -674,7 +674,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return list of reservation devices.
      */
-    public ImmutableList<ReservationDeviceConfig> getReservationDevices() {
+    public List<ReservationDeviceConfig> getReservationDevices() {
         List<ReservationDeviceConfig> deviceConfigs = new ArrayList<>();
 
         for (HierarchicalConfiguration conf : configurationsAt(SECURITY_AUTHORIZATION_RESERVATION_DEVICE)) {
@@ -685,6 +685,6 @@ public class ControllerConfiguration extends CombinedConfiguration
             deviceConfigs.add(deviceConfig);
         }
 
-        return ImmutableList.copyOf(deviceConfigs);
+        return deviceConfigs;
     }
 }
