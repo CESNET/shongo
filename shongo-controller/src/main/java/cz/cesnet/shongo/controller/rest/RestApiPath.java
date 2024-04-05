@@ -59,4 +59,7 @@ public class RestApiPath
     public static final String RUNTIME_MANAGEMENT_PARTICIPANTS_SNAPSHOT = "/participants/{participantId:.+}/snapshot";
     public static final String RUNTIME_MANAGEMENT_RECORDING_START = "/recording/start";
     public static final String RUNTIME_MANAGEMENT_RECORDING_STOP = "/recording/stop";
+
+    // Reservation device
+    public static final String RESERVATION_DEVICE = API_PREFIX + "/reservation_device";
 }

@@ -11,9 +11,9 @@ import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.authorization.UserIdSet;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -857,6 +857,21 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             }
             entityManager.close();
         }
+    }
+
+    @Override
+    public ReservationDevice getReservationDevice(SecurityToken securityToken) {
+        Optional<ReservationDeviceConfig> deviceConfigOpt = authorization.getReservationDeviceByToken(securityToken.getAccessToken());
+
+        if (deviceConfigOpt.isPresent()) {
+            ReservationDeviceConfig deviceConfig = deviceConfigOpt.get();
+            ReservationDevice device = new ReservationDevice();
+            device.setId(deviceConfig.getDeviceId());
+            device.setAccessToken(deviceConfig.getAccessToken());
+            device.setResourceId(deviceConfig.getResourceId());
+            return device;
+        }
+        return null;
     }
 
     /**

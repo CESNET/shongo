@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
