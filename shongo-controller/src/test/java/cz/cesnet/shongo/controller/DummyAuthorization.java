@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AdministrationMode;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.authorization.UserAuthorizationData;
 import cz.cesnet.shongo.controller.authorization.UserData;
 import org.slf4j.Logger;
@@ -12,6 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
+
+import static cz.cesnet.shongo.controller.AbstractControllerTest.RESERVATION_DEVICE_CONFIG1;
+import static cz.cesnet.shongo.controller.AbstractControllerTest.RESERVATION_DEVICE_CONFIG2;
 
 /**
  * Testing {@link Authorization},
@@ -40,6 +44,12 @@ public class DummyAuthorization extends Authorization
      * Testing user #3 information.
      */
     protected static final UserData USER3_DATA;
+
+
+    private static final Map<String, ReservationDeviceConfig> reservationDeviceByAccessToken;
+
+    private static final Map<String, ReservationDeviceConfig> reservationDeviceById;
+
 
     /**
      * Known users.
@@ -98,6 +108,14 @@ public class DummyAuthorization extends Authorization
             userData.setUserAuthorizationData(new UserAuthorizationData(UserAuthorizationData.LOA_EXTENDED));
             userDataById.put(userData.getUserId(), userData);
         }
+
+        reservationDeviceByAccessToken = new HashMap<>();
+        reservationDeviceByAccessToken.put(RESERVATION_DEVICE_CONFIG1.getAccessToken(), RESERVATION_DEVICE_CONFIG1);
+        reservationDeviceByAccessToken.put(RESERVATION_DEVICE_CONFIG2.getAccessToken(), RESERVATION_DEVICE_CONFIG2);
+
+        reservationDeviceById = new HashMap<>();
+        reservationDeviceById.put(RESERVATION_DEVICE_CONFIG1.getDeviceId(), RESERVATION_DEVICE_CONFIG1);
+        reservationDeviceById.put(RESERVATION_DEVICE_CONFIG2.getDeviceId(), RESERVATION_DEVICE_CONFIG2);
     }
 
     /**
@@ -318,6 +336,26 @@ public class DummyAuthorization extends Authorization
             throw new ControllerReportSet.UserNotInGroupException(groupId, userId);
         }
         userIds.remove(userId);
+    }
+
+    @Override
+    public Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
+        ReservationDeviceConfig device = reservationDeviceById.get(id);
+
+        if (device == null) {
+            return Optional.empty();
+        }
+        return Optional.of(device);
+    }
+
+    @Override
+    public Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
+        ReservationDeviceConfig device = reservationDeviceByAccessToken.get(accessToken);
+
+        if (device == null) {
+            return Optional.empty();
+        }
+        return Optional.of(device);
     }
 
     /**

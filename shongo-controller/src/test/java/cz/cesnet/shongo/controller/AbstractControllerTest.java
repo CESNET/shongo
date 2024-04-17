@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
@@ -66,6 +67,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected static final SecurityToken SECURITY_TOKEN_USER3 =
             new SecurityToken("53a0bbcbb6086add8c232ff5eddf662035a02908");
+
+    /**
+     * {@link ReservationDeviceConfig} for reservation device #1.
+     */
+    protected static final ReservationDeviceConfig RESERVATION_DEVICE_CONFIG1 = new ReservationDeviceConfig("reservation:device:1", "d48692d7-9fba-4040-8faf-6268963b748a", "shongo:test:res:1");
+
+    /**
+     * {@link ReservationDeviceConfig} for reservation device #2.
+     */
+    protected static final ReservationDeviceConfig RESERVATION_DEVICE_CONFIG2 = new ReservationDeviceConfig("reservation:device:2", "2fc6d5b1-2731-423e-9850-da93fa0d79be", "shongo:test:res:2");
 
     /**
      * @see #SECURITY_TOKEN_USER1

@@ -202,11 +202,11 @@ public abstract class Authorization
         cache.clear();
     }
 
-    public final Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
+    public Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
         return reservationDevices.stream().filter(device -> device.getDeviceId().equals(id)).findFirst();
     }
 
-    public final Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
+    public Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
         return reservationDevices.stream().filter(device -> device.getAccessToken().equals(accessToken)).findFirst();
     }
 
