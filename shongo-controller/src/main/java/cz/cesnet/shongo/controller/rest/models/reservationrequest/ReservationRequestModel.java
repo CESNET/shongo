@@ -49,8 +49,6 @@ public class ReservationRequestModel
     public ReservationRequestModel(
             ReservationRequestSummary summary,
             ReservationRequestSummary virtualRoomSummary,
-            Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
-            UserInformation ownerInformation,
             ResourceSummary resourceSummary)
     {
         this.id = summary.getId();
@@ -58,8 +56,6 @@ public class ReservationRequestModel
         this.createdAt = summary.getDateTime();
         this.parentRequestId = summary.getParentReservationRequestId();
         this.state = ReservationRequestState.fromApi(summary);
-        this.ownerName = ownerInformation.getFullName();
-        this.ownerEmail = ownerInformation.getEmail();
         this.slot = TimeInterval.fromApi(summary.getEarliestSlot());
         this.type = SpecificationType.fromReservationRequestSummary(summary, true);
         this.virtualRoomData = new VirtualRoomModel(virtualRoomSummary);
@@ -68,10 +64,6 @@ public class ReservationRequestModel
         this.lastReservationId = summary.getLastReservationId();
         this.futureSlotCount = summary.getFutureSlotCount();
         this.auxData = summary.getAuxData();
-
-        Set<ObjectPermission> objectPermissions = permissionsByReservationRequestId.get(id);
-        this.isWritable = objectPermissions.contains(ObjectPermission.WRITE);
-        this.isProvidable = objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST);
 
         switch (state != null ? state : ReservationRequestState.ALLOCATED) {
             case ALLOCATED_STARTED:
@@ -82,5 +74,22 @@ public class ReservationRequestModel
                 this.isDeprecated = slot != null && slot.getEnd().isBeforeNow();
                 break;
         }
+    }
+
+    public ReservationRequestModel(
+            ReservationRequestSummary summary,
+            ReservationRequestSummary virtualRoomSummary,
+            Map<String, Set<ObjectPermission>> permissionsByReservationRequestId,
+            UserInformation ownerInformation,
+            ResourceSummary resourceSummary)
+    {
+        this(summary, virtualRoomSummary, resourceSummary);
+
+        this.ownerName = ownerInformation.getFullName();
+        this.ownerEmail = ownerInformation.getEmail();
+
+        Set<ObjectPermission> objectPermissions = permissionsByReservationRequestId.get(id);
+        this.isWritable = objectPermissions.contains(ObjectPermission.WRITE);
+        this.isProvidable = objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST);
     }
 }

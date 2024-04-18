@@ -32,6 +32,7 @@ public class RestApiPath
 
     // Reservation requests
     public static final String RESERVATION_REQUESTS = API_PREFIX + "/reservation_requests";
+    public static final String RESERVATION_REQUESTS_AWAITING_CONFIRMATION = "/awaiting_confirmation";
     public static final String RESERVATION_REQUESTS_ACCEPT = ID_SUFFIX + "/accept";
     public static final String RESERVATION_REQUESTS_REJECT = ID_SUFFIX + "/reject";
     public static final String RESERVATION_REQUESTS_REVERT = ID_SUFFIX + "/revert";

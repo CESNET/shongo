@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -399,6 +400,58 @@ public class ReservationRequestController
             @RequestBody List<String> ids)
     {
         ids.forEach(id -> reservationService.deleteReservationRequest(securityToken, id));
+    }
+
+    @Operation(summary = "Lists reservation requests waiting for confirmation of resources owned by a user.")
+    @GetMapping(RestApiPath.RESERVATION_REQUESTS_AWAITING_CONFIRMATION)
+    public ListResponse<ReservationRequestModel> listOwnedReservationRequests(
+            @RequestAttribute(TOKEN) SecurityToken securityToken,
+            @RequestParam(value = "interval_from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalFrom,
+            @RequestParam(value = "interval_to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            DateTime intervalTo,
+            @RequestParam(value = "resource", required = false) Set<String> resourceId,
+            @RequestParam(value = "start", required = false) Integer start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "SLOT_START") ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort_desc", required = false, defaultValue = "true") boolean sortDescending
+    ) {
+        if (resourceId == null) {
+            resourceId = new HashSet<>();
+        }
+
+        ReservationRequestListRequest requestListRequest = new ReservationRequestListRequest(securityToken);
+        requestListRequest.setStart(start);
+        requestListRequest.setCount(count);
+        requestListRequest.setSort(sort);
+        requestListRequest.setSortDescending(sortDescending);
+        requestListRequest.setAllocationState(AllocationState.CONFIRM_AWAITING);
+        if (intervalFrom == null) {
+            intervalFrom = Temporal.DATETIME_INFINITY_START;
+        }
+        if (intervalTo == null) {
+            intervalTo = Temporal.DATETIME_INFINITY_END;
+        }
+        Interval interval = new Interval(intervalFrom, intervalTo);
+        requestListRequest.setInterval(interval);
+        requestListRequest.setSpecificationResourceIds(resourceId);
+
+        ListResponse<ReservationRequestSummary> response = reservationService.listOwnedResourcesReservationRequests(requestListRequest);
+
+        ListResponse<ReservationRequestModel> listResponse = new ListResponse<>();
+        listResponse.addAll(response.getItems().stream().map(item -> {
+            String resource = item.getResourceId();
+            ResourceSummary resourceSummary = null;
+            if (resource != null) {
+                resourceSummary = cache.getResourceSummary(securityToken, resource);
+            }
+            return new ReservationRequestModel(
+                    item, item, resourceSummary
+            );
+        }).collect(Collectors.toList()));
+        listResponse.setStart(response.getStart());
+        listResponse.setCount(response.getCount());
+        return listResponse;
     }
 
     @Operation(summary = "Accepts reservation request.")
