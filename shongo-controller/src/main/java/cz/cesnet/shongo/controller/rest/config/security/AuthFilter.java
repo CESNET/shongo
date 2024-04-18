@@ -47,16 +47,17 @@ public class AuthFilter extends GenericFilterBean
 
         String sanitizedToken = tokenParts[1].strip();
         SecurityToken securityToken = new SecurityToken(sanitizedToken);
-        securityToken.setUserInformation(authorization.getUserInformation(securityToken));
 
         try {
+            securityToken.setUserInformation(authorization.getUserInformation(securityToken));
             authorization.validate(securityToken);
-            httpRequest.setAttribute(TOKEN, securityToken);
         }
         catch (ControllerReportSet.SecurityInvalidTokenException e) {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Request unauthorized.");
             return;
         }
+
+        httpRequest.setAttribute(TOKEN, securityToken);
         chain.doFilter(httpRequest, httpResponse);
     }
 }

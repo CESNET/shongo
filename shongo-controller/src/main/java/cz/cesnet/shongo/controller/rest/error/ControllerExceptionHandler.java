@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSet.ReservationRequestDeletedException;
 import cz.cesnet.shongo.controller.ControllerReportSet.ReservationRequestNotDeletableException;
+import cz.cesnet.shongo.controller.ControllerReportSet.SecurityInvalidTokenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +20,12 @@ import javax.mail.MessagingException;
 @RestControllerAdvice
 public class ControllerExceptionHandler
 {
+
+    @ExceptionHandler(SecurityInvalidTokenException.class)
+    public ResponseEntity<ErrorModel> handleSecurityInvalidToken(SecurityInvalidTokenException e)
+    {
+        return ErrorModel.createResponseFromException(e, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(TodoImplementException.class)
     public ResponseEntity<ErrorModel> handleTodo(TodoImplementException e)
