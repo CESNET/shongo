@@ -371,6 +371,9 @@ public class ReservationRequestController
         if (request.getAdminPin() != null) {
             modifiedRequest.setAdminPin(request.getAdminPin());
         }
+        if (request.getGuestPin() != null) {
+            modifiedRequest.setGuestPin(request.getGuestPin());
+        }
         if (request.getParticipantCount() != null) {
             modifiedRequest.setParticipantCount(request.getParticipantCount());
         }
