@@ -331,9 +331,11 @@ public class ReservationRequestController
             );
         }
 
+        AbstractReservationRequest abstractReservationRequest = reservationService.getReservationRequest(securityToken, id);
+
         ReservationRequestDetailModel detailModel = new ReservationRequestDetailModel(
-                summary, virtualRoomSummary, permissionsByReservationRequestId, ownerInformation, authorizedData, history,
-                resourceSummary
+                summary, virtualRoomSummary, permissionsByReservationRequestId, ownerInformation,
+                abstractReservationRequest, authorizedData, history, resourceSummary
         );
         detailModel.getRoomCapacityData().setIsRecordingActive(isRecordingActive);
         return detailModel;
