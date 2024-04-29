@@ -110,12 +110,10 @@ public class DummyAuthorization extends Authorization
         }
 
         reservationDeviceByAccessToken = new HashMap<>();
-        reservationDeviceByAccessToken.put(RESERVATION_DEVICE_CONFIG1.getAccessToken(), RESERVATION_DEVICE_CONFIG1);
-        reservationDeviceByAccessToken.put(RESERVATION_DEVICE_CONFIG2.getAccessToken(), RESERVATION_DEVICE_CONFIG2);
-
         reservationDeviceById = new HashMap<>();
-        reservationDeviceById.put(RESERVATION_DEVICE_CONFIG1.getDeviceId(), RESERVATION_DEVICE_CONFIG1);
-        reservationDeviceById.put(RESERVATION_DEVICE_CONFIG2.getDeviceId(), RESERVATION_DEVICE_CONFIG2);
+
+        addReservationDevice(RESERVATION_DEVICE_CONFIG1);
+        addReservationDevice(RESERVATION_DEVICE_CONFIG2);
     }
 
     /**
@@ -370,5 +368,17 @@ public class DummyAuthorization extends Authorization
         DummyAuthorization authorization = new DummyAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(authorization);
         return authorization;
+    }
+
+    public static void addReservationDevice(ReservationDeviceConfig reservationDeviceConfig) {
+        String deviceId = reservationDeviceConfig.getDeviceId();
+        String accessToken = reservationDeviceConfig.getAccessToken();
+        UserData userData = reservationDeviceConfig.getUserData();
+
+        reservationDeviceById.put(deviceId, reservationDeviceConfig);
+        reservationDeviceByAccessToken.put(accessToken, reservationDeviceConfig);
+
+        userDataById.put(deviceId, userData);
+        userDataByAccessToken.put(accessToken, userData);
     }
 }
