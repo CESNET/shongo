@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.ReservationDevice;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.rest.models.reservationdevice.ReservationDeviceModel;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -17,11 +18,15 @@ public class ReservationDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void shouldReturnDeviceInfo() {
-        SecurityToken deviceToken = new SecurityToken(RESERVATION_DEVICE_CONFIG1.getAccessToken());
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
+
+        SecurityToken deviceToken = new SecurityToken(deviceConfig.getAccessToken());
         ReservationDevice device = new ReservationDevice();
-        device.setId(RESERVATION_DEVICE_CONFIG1.getDeviceId());
-        device.setAccessToken(RESERVATION_DEVICE_CONFIG1.getAccessToken());
-        device.setResourceId(RESERVATION_DEVICE_CONFIG1.getResourceId());
+        device.setId(deviceConfig.getDeviceId());
+        device.setAccessToken(deviceConfig.getAccessToken());
+        device.setResourceId(deviceConfig.getResourceId());
         ReservationDeviceModel model = new ReservationDeviceModel(device);
 
         Mockito.when(authorizationService.getReservationDevice(deviceToken)).thenReturn(device);

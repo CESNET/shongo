@@ -14,9 +14,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
-import static cz.cesnet.shongo.controller.AbstractControllerTest.RESERVATION_DEVICE_CONFIG1;
-import static cz.cesnet.shongo.controller.AbstractControllerTest.RESERVATION_DEVICE_CONFIG2;
-
 /**
  * Testing {@link Authorization},
  *
@@ -45,12 +42,6 @@ public class DummyAuthorization extends Authorization
      */
     protected static final UserData USER3_DATA;
 
-
-    private static final Map<String, ReservationDeviceConfig> reservationDeviceByAccessToken;
-
-    private static final Map<String, ReservationDeviceConfig> reservationDeviceById;
-
-
     /**
      * Known users.
      */
@@ -70,6 +61,11 @@ public class DummyAuthorization extends Authorization
      * User-ids in {@link Group}s.
      */
     private final Map<String, Set<String>> userIdsInGroup = new HashMap<String, Set<String>>();
+
+    /**
+     * List of reservation devices, that would come from the configuration.
+     */
+    private final Collection<ReservationDeviceConfig> reservationDevices = new ArrayList<>();
 
     /**
      * Static initialization.
@@ -108,12 +104,6 @@ public class DummyAuthorization extends Authorization
             userData.setUserAuthorizationData(new UserAuthorizationData(UserAuthorizationData.LOA_EXTENDED));
             userDataById.put(userData.getUserId(), userData);
         }
-
-        reservationDeviceByAccessToken = new HashMap<>();
-        reservationDeviceById = new HashMap<>();
-
-        addReservationDevice(RESERVATION_DEVICE_CONFIG1);
-        addReservationDevice(RESERVATION_DEVICE_CONFIG2);
     }
 
     /**
@@ -337,23 +327,8 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    public Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
-        ReservationDeviceConfig device = reservationDeviceById.get(id);
-
-        if (device == null) {
-            return Optional.empty();
-        }
-        return Optional.of(device);
-    }
-
-    @Override
-    public Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
-        ReservationDeviceConfig device = reservationDeviceByAccessToken.get(accessToken);
-
-        if (device == null) {
-            return Optional.empty();
-        }
-        return Optional.of(device);
+    public Collection<ReservationDeviceConfig> listReservationDevices() {
+        return reservationDevices;
     }
 
     /**
@@ -370,15 +345,14 @@ public class DummyAuthorization extends Authorization
         return authorization;
     }
 
-    public static void addReservationDevice(ReservationDeviceConfig reservationDeviceConfig) {
+    public void addReservationDevice(ReservationDeviceConfig reservationDeviceConfig) {
         String deviceId = reservationDeviceConfig.getDeviceId();
         String accessToken = reservationDeviceConfig.getAccessToken();
         UserData userData = reservationDeviceConfig.getUserData();
 
-        reservationDeviceById.put(deviceId, reservationDeviceConfig);
-        reservationDeviceByAccessToken.put(accessToken, reservationDeviceConfig);
-
         userDataById.put(deviceId, userData);
         userDataByAccessToken.put(accessToken, userData);
+
+        reservationDevices.add(reservationDeviceConfig);
     }
 }

@@ -1,12 +1,10 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.DummyAuthorization;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -25,8 +23,8 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
         String reservationRequestId = createTestReservationRequest(resourceId);
 
         // Create reservation device that manages test resource.
-        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "asd15asd19e1fe5wf9e51f", resourceId);
-        DummyAuthorization.addReservationDevice(deviceConfig);
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
         SecurityToken deviceToken = new SecurityToken(deviceConfig.getAccessToken());
         deviceToken.setUserInformation(deviceToken.getUserInformation());
 
@@ -48,7 +46,10 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
         createTestReservationRequest(resourceId);
 
         // Create security token for device that doesn't manage the test resource.
-        SecurityToken deviceToken = new SecurityToken(RESERVATION_DEVICE_CONFIG1.getAccessToken());
+        String anotherResourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", anotherResourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
+        SecurityToken deviceToken = new SecurityToken(deviceConfig.getAccessToken());
         deviceToken.setUserInformation(deviceToken.getUserInformation());
 
         // List resources with device's security token.
@@ -57,13 +58,6 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
 
         // Assert that there is only the test reservation request in response.
         assertEquals(response.getCount(), 0);
-    }
-
-    private String createTestResource() {
-        Resource resource = new Resource();
-        resource.setName("resource");
-        resource.setAllocatable(true);
-        return createResource(resource);
     }
 
     private String createTestReservationRequest(String resourceId) throws Exception {

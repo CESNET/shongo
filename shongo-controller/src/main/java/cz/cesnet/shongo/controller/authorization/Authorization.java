@@ -175,7 +175,7 @@ public abstract class Authorization
         this.administratorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.operatorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.reservationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
-        this.createReservationDeviceAclEntries(reservationDevices);
+        this.createReservationDeviceAclEntries();
     }
 
     /**
@@ -203,11 +203,11 @@ public abstract class Authorization
     }
 
     public Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
-        return reservationDevices.stream().filter(device -> device.getDeviceId().equals(id)).findFirst();
+        return listReservationDevices().stream().filter(device -> device.getDeviceId().equals(id)).findFirst();
     }
 
     public Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
-        return reservationDevices.stream().filter(device -> device.getAccessToken().equals(accessToken)).findFirst();
+        return listReservationDevices().stream().filter(device -> device.getAccessToken().equals(accessToken)).findFirst();
     }
 
     /**
@@ -437,7 +437,7 @@ public abstract class Authorization
         checkForStaticUser(filterUserIds, userInformationList, ROOT_USER_DATA);
 
         // Remove reservation device ids from request and add their user data if filter contains their ID.
-        for (ReservationDeviceConfig reservationDevice : reservationDevices) {
+        for (ReservationDeviceConfig reservationDevice : listReservationDevices()) {
             UserData deviceUser = reservationDevice.getUserData();
             checkForStaticUser(filterUserIds, userInformationList, deviceUser);
         }
@@ -1065,6 +1065,10 @@ public abstract class Authorization
         return userAuthorizationData;
     }
 
+    public Collection<ReservationDeviceConfig> listReservationDevices() {
+        return reservationDevices;
+    }
+
     /**
      * Fetch {@link AclUserState} for given {@code userId}.
      *
@@ -1266,11 +1270,11 @@ public abstract class Authorization
         return authorization;
     }
 
-    private void createReservationDeviceAclEntries(List<ReservationDeviceConfig> reservationDevices) {
+    private void createReservationDeviceAclEntries() {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authManager = new AuthorizationManager(entityManager, this);
 
-        reservationDevices.forEach(device -> {
+        listReservationDevices().forEach(device -> {
             authManager.beginTransaction();
             entityManager.getTransaction().begin();
 

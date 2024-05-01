@@ -315,22 +315,31 @@ public class AuthorizationTest extends AbstractControllerTest
 
     @Test
     public void shouldGetUserDataOfReservationDevice() {
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
         DummyAuthorization authorization = getAuthorization();
-        assertEquals(authorization.getUserData(RESERVATION_DEVICE_CONFIG1.getDeviceId()), RESERVATION_DEVICE_CONFIG1.getUserData());
+        assertEquals(authorization.getUserData(deviceConfig.getDeviceId()), deviceConfig.getUserData());
     }
 
     @Test
     public void shouldGetUserInformationOfReservationDeviceById() {
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
         DummyAuthorization authorization = getAuthorization();
-        assertEquals(authorization.getUserInformation(RESERVATION_DEVICE_CONFIG1.getDeviceId()), RESERVATION_DEVICE_CONFIG1.getUserData().getUserInformation());
+        assertEquals(authorization.getUserInformation(deviceConfig.getDeviceId()), deviceConfig.getUserData().getUserInformation());
     }
 
     @Test
     public void shouldGetUserInformationOfReservationDeviceByToken() {
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
         DummyAuthorization authorization = getAuthorization();
-        UserInformation userInformation = RESERVATION_DEVICE_CONFIG1.getUserData().getUserInformation();
+        UserInformation userInformation = deviceConfig.getUserData().getUserInformation();
 
-        SecurityToken securityToken = new SecurityToken(RESERVATION_DEVICE_CONFIG1.getAccessToken());
+        SecurityToken securityToken = new SecurityToken(deviceConfig.getAccessToken());
         securityToken.setUserInformation(userInformation);
 
         assertEquals(authorization.getUserInformation(securityToken), userInformation);

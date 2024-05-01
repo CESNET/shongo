@@ -69,16 +69,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             new SecurityToken("53a0bbcbb6086add8c232ff5eddf662035a02908");
 
     /**
-     * {@link ReservationDeviceConfig} for reservation device #1.
-     */
-    protected static final ReservationDeviceConfig RESERVATION_DEVICE_CONFIG1 = new ReservationDeviceConfig("reservation:device:1", "d48692d7-9fba-4040-8faf-6268963b748a", "shongo:cz.cesnet:res:9999");
-
-    /**
-     * {@link ReservationDeviceConfig} for reservation device #2.
-     */
-    protected static final ReservationDeviceConfig RESERVATION_DEVICE_CONFIG2 = new ReservationDeviceConfig("reservation:device:2", "2fc6d5b1-2731-423e-9850-da93fa0d79be", "shongo:cz.cesnet:res:9999");
-
-    /**
      * @see #SECURITY_TOKEN_USER1
      */
     protected static final SecurityToken SECURITY_TOKEN = SECURITY_TOKEN_USER1;
@@ -832,5 +822,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         } finally {
             entityManager.close();
         }
+    }
+
+    protected String createTestResource() {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        return createResource(resource);
     }
 }
