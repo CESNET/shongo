@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ReservationServiceImplTest extends AbstractControllerTest {
     @Test
@@ -20,7 +21,7 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
         ReservationService reservationService = getReservationService();
 
         String resourceId = createTestResource();
-        String reservationRequestId = createTestReservationRequest(resourceId);
+        String reservationRequestId = allocateTestReservationRequest(resourceId);
 
         // Create reservation device that manages test resource.
         ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
@@ -43,7 +44,7 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
         ReservationService reservationService = getReservationService();
 
         String resourceId = createTestResource();
-        createTestReservationRequest(resourceId);
+        allocateTestReservationRequest(resourceId);
 
         // Create security token for device that doesn't manage the test resource.
         String anotherResourceId = createTestResource();
@@ -60,12 +61,35 @@ public class ReservationServiceImplTest extends AbstractControllerTest {
         assertEquals(response.getCount(), 0);
     }
 
-    private String createTestReservationRequest(String resourceId) throws Exception {
+    @Test
+    public void shouldCreateReservationRequestForManagedResource() {
+        ReservationService reservationService = getReservationService();
+
+        String resourceId = createTestResource();
+
+        // Create reservation device that manages test resource.
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        getAuthorization().addReservationDevice(deviceConfig);
+        SecurityToken deviceToken = new SecurityToken(deviceConfig.getAccessToken());
+        deviceToken.setUserInformation(deviceToken.getUserInformation());
+
+        ReservationRequest reservationRequest = createTestReservationRequest(resourceId);
+
+        String reservationRequestId = reservationService.createReservationRequest(deviceToken, reservationRequest);
+
+        assertNotNull(reservationRequestId);
+    }
+
+    private String allocateTestReservationRequest(String resourceId) throws Exception {
+        return allocate(createTestReservationRequest(resourceId));
+    }
+
+    private ReservationRequest createTestReservationRequest(String resourceId) {
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
         reservationRequest.setReusement(ReservationRequestReusement.OWNED);
         reservationRequest.setPurpose(ReservationRequestPurpose.USER);
-        return allocate(reservationRequest);
+        return reservationRequest;
     }
 }
