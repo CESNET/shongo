@@ -36,13 +36,13 @@ public class ReservationDeviceController {
     ) {
         ReservationDevice device = authorizationService.getReservationDevice(securityToken);
 
-        if (device != null) {
-            ReservationDeviceModel model = new ReservationDeviceModel(device);
-            log.info("Get reservation device: {}", model);
-            return ResponseEntity.ok().body(model);
+        if (device == null) {
+            log.info("Device not found");
+            return ResponseEntity.notFound().build();
         }
-        log.info("Device not found");
 
-        return ResponseEntity.notFound().build();
+        ReservationDeviceModel model = new ReservationDeviceModel(device);
+        log.info("Get reservation device: {}", model);
+        return ResponseEntity.ok().body(model);
     }
 }

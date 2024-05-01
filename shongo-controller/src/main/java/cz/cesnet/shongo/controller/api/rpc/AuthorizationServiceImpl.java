@@ -863,15 +863,16 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public ReservationDevice getReservationDevice(SecurityToken securityToken) {
         Optional<ReservationDeviceConfig> deviceConfigOpt = authorization.getReservationDeviceByToken(securityToken.getAccessToken());
 
-        if (deviceConfigOpt.isPresent()) {
-            ReservationDeviceConfig deviceConfig = deviceConfigOpt.get();
-            ReservationDevice device = new ReservationDevice();
-            device.setId(deviceConfig.getDeviceId());
-            device.setAccessToken(deviceConfig.getAccessToken());
-            device.setResourceId(deviceConfig.getResourceId());
-            return device;
+        if (deviceConfigOpt.isEmpty()) {
+            return null;
         }
-        return null;
+
+        ReservationDeviceConfig deviceConfig = deviceConfigOpt.get();
+        ReservationDevice device = new ReservationDevice();
+        device.setId(deviceConfig.getDeviceId());
+        device.setAccessToken(deviceConfig.getAccessToken());
+        device.setResourceId(deviceConfig.getResourceId());
+        return device;
     }
 
     /**
