@@ -17,9 +17,4 @@ public class ReservationDeviceModel {
         this.id = reservationDevice.getId();
         this.resourceId = reservationDevice.getResourceId();
     }
-
-    @Override
-    public String toString() {
-        return "ReservationDevice: (id=" + id + ", resourceId=" + resourceId + ")";
-    }
 }
