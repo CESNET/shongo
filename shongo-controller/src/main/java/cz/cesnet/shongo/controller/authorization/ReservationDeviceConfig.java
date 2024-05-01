@@ -39,6 +39,8 @@ public final class ReservationDeviceConfig {
         String name = "Reservation Device For " + resourceId;
 
         userInformation.setUserId(deviceId);
+        userInformation.setFirstName("Reservation");
+        userInformation.setLastName("Device");
         userInformation.setFullName(name);
         userData.setUserAuthorizationData(userAuthData);
 
