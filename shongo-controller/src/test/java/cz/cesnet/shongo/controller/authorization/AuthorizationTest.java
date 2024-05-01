@@ -10,19 +10,19 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.booking.datetime.*;
-import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTimeSlot;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.AclEntry}s.
@@ -315,34 +315,54 @@ public class AuthorizationTest extends AbstractControllerTest
 
     @Test
     public void shouldGetUserDataOfReservationDevice() {
+        DummyAuthorization authorization = getAuthorization();
+
         String resourceId = createTestResource();
         ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
-        getAuthorization().addReservationDevice(deviceConfig);
-        DummyAuthorization authorization = getAuthorization();
+        authorization.addReservationDevice(deviceConfig);
+
         assertEquals(authorization.getUserData(deviceConfig.getDeviceId()), deviceConfig.getUserData());
     }
 
     @Test
     public void shouldGetUserInformationOfReservationDeviceById() {
+        DummyAuthorization authorization = getAuthorization();
+
         String resourceId = createTestResource();
         ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
-        getAuthorization().addReservationDevice(deviceConfig);
-        DummyAuthorization authorization = getAuthorization();
+        authorization.addReservationDevice(deviceConfig);
+
         assertEquals(authorization.getUserInformation(deviceConfig.getDeviceId()), deviceConfig.getUserData().getUserInformation());
     }
 
     @Test
     public void shouldGetUserInformationOfReservationDeviceByToken() {
+        DummyAuthorization authorization = getAuthorization();
+
         String resourceId = createTestResource();
         ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
-        getAuthorization().addReservationDevice(deviceConfig);
-        DummyAuthorization authorization = getAuthorization();
+        authorization.addReservationDevice(deviceConfig);
         UserInformation userInformation = deviceConfig.getUserData().getUserInformation();
 
         SecurityToken securityToken = new SecurityToken(deviceConfig.getAccessToken());
         securityToken.setUserInformation(userInformation);
 
         assertEquals(authorization.getUserInformation(securityToken), userInformation);
+    }
+
+    @Test
+    public void shouldListReservationDeviceUserInformation() {
+        DummyAuthorization authorization = getAuthorization();
+
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        authorization.addReservationDevice(deviceConfig);
+
+        Set<String> reservationDevices = new HashSet<>();
+        reservationDevices.add(deviceConfig.getDeviceId());
+
+        Collection<UserInformation> userInformationResult = authorization.listUserInformation(reservationDevices, null);
+        assertTrue(userInformationResult.contains(deviceConfig.getUserData().getUserInformation()));
     }
 
     /**
