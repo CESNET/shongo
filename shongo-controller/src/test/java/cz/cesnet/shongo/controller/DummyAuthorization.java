@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AdministrationMode;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.ReservationDeviceConfig;
 import cz.cesnet.shongo.controller.authorization.UserAuthorizationData;
 import cz.cesnet.shongo.controller.authorization.UserData;
 import org.slf4j.Logger;
@@ -60,6 +61,11 @@ public class DummyAuthorization extends Authorization
      * User-ids in {@link Group}s.
      */
     private final Map<String, Set<String>> userIdsInGroup = new HashMap<String, Set<String>>();
+
+    /**
+     * List of reservation devices, that would come from the configuration.
+     */
+    private final Collection<ReservationDeviceConfig> reservationDevices = new ArrayList<>();
 
     /**
      * Static initialization.
@@ -320,6 +326,11 @@ public class DummyAuthorization extends Authorization
         userIds.remove(userId);
     }
 
+    @Override
+    public Collection<ReservationDeviceConfig> listReservationDevices() {
+        return reservationDevices;
+    }
+
     /**
      * @param configuration        to be used for initialization
      * @param entityManagerFactory
@@ -332,5 +343,16 @@ public class DummyAuthorization extends Authorization
         DummyAuthorization authorization = new DummyAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(authorization);
         return authorization;
+    }
+
+    public void addReservationDevice(ReservationDeviceConfig reservationDeviceConfig) {
+        String deviceId = reservationDeviceConfig.getDeviceId();
+        String accessToken = reservationDeviceConfig.getAccessToken();
+        UserData userData = reservationDeviceConfig.getUserData();
+
+        userDataById.put(deviceId, userData);
+        userDataByAccessToken.put(accessToken, userData);
+
+        reservationDevices.add(reservationDeviceConfig);
     }
 }

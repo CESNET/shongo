@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import com.google.common.collect.ImmutableList;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
@@ -8,18 +9,17 @@ import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
-import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 import java.util.*;
 
 /**
@@ -109,6 +109,11 @@ public abstract class Authorization
     private AuthorizationExpression reservationExpression;
 
     /**
+     * List of devices authorized to make reservations on a particular resource.
+     */
+    private final ImmutableList<ReservationDeviceConfig> reservationDevices;
+
+    /**
      * Constructor.
      *
      * @param configuration to load authorization configuration from
@@ -155,6 +160,8 @@ public abstract class Authorization
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_OPERATOR), this);
         this.reservationExpression = new AuthorizationExpression(
                 configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_RESERVATION), this);
+
+        this.reservationDevices = ImmutableList.copyOf(configuration.getReservationDevices());
     }
 
     /**
@@ -168,6 +175,7 @@ public abstract class Authorization
         this.administratorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.operatorExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
         this.reservationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
+        this.createReservationDeviceAclEntries();
     }
 
     /**
@@ -192,6 +200,14 @@ public abstract class Authorization
     public void clearCache()
     {
         cache.clear();
+    }
+
+    public Optional<ReservationDeviceConfig> getReservationDeviceById(String id) {
+        return listReservationDevices().stream().filter(device -> device.getDeviceId().equals(id)).findFirst();
+    }
+
+    public Optional<ReservationDeviceConfig> getReservationDeviceByToken(String accessToken) {
+        return listReservationDevices().stream().filter(device -> device.getAccessToken().equals(accessToken)).findFirst();
     }
 
     /**
@@ -283,6 +299,12 @@ public abstract class Authorization
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
     {
+        Optional<ReservationDeviceConfig> reservationDevice = getReservationDeviceById(userId);
+
+        if (reservationDevice.isPresent()) {
+            return reservationDevice.get().getUserData().getUserInformation();
+        }
+
         if (UserInformation.isLocal(userId)) {
             UserData userData = getUserData(userId);
             return userData.getUserInformation();
@@ -335,6 +357,14 @@ public abstract class Authorization
         if (userId.equals(ROOT_USER_ID)) {
             return ROOT_USER_DATA;
         }
+
+        // Reservation device user
+        Optional<ReservationDeviceConfig> reservationDevice = getReservationDeviceById(userId);
+
+        if (reservationDevice.isPresent()) {
+            return reservationDevice.get().getUserData();
+        }
+
         UserData userData;
         if (cache.hasUserDataByUserId(userId)) {
             userData = cache.getUserDataByUserId(userId);
@@ -402,13 +432,16 @@ public abstract class Authorization
     {
         logger.debug("Retrieving list of user information...");
         List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-        // Remove root id from request, which is static if contains.
-        if (filterUserIds != null && filterUserIds.contains(ROOT_USER_ID)) {
-            filterUserIds = new HashSet<>(filterUserIds);
-            filterUserIds.remove(ROOT_USER_ID);
-            // Add root user information to result
-            userInformationList.add(ROOT_USER_DATA.getUserInformation());
+
+        // Remove root ID from request and add user data if filter contains root ID.
+        checkForStaticUser(filterUserIds, userInformationList, ROOT_USER_DATA);
+
+        // Remove reservation device ids from request and add their user data if filter contains their ID.
+        for (ReservationDeviceConfig reservationDevice : listReservationDevices()) {
+            UserData deviceUser = reservationDevice.getUserData();
+            checkForStaticUser(filterUserIds, userInformationList, deviceUser);
         }
+
         for (UserData userData : onListUserData(filterUserIds, search)) {
             userInformationList.add(userData.getUserInformation());
         }
@@ -1032,6 +1065,10 @@ public abstract class Authorization
         return userAuthorizationData;
     }
 
+    public Collection<ReservationDeviceConfig> listReservationDevices() {
+        return reservationDevices;
+    }
+
     /**
      * Fetch {@link AclUserState} for given {@code userId}.
      *
@@ -1045,8 +1082,10 @@ public abstract class Authorization
         if (userId != null) {
             aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
         }
-        for (String groupId : listUserGroupIds(userId)) {
-            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
+        if (getReservationDeviceById(userId).isEmpty()) {
+            for (String groupId : listUserGroupIds(userId)) {
+                aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
+            }
         }
         aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, EVERYONE_GROUP_ID));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -1084,6 +1123,25 @@ public abstract class Authorization
             entityManager.close();
         }
         return aclObjectState;
+    }
+
+    /**
+     * Checks if filter contains user ID and if yes then adds the user data to the list and removes the ID from the filter.
+     *
+     * @param filterUserIds User ID filter.
+     * @param userInformationList List of user information.
+     * @param userData User data to add if filter contains their ID.
+     */
+    private void checkForStaticUser(Set<String> filterUserIds, List<UserInformation> userInformationList, UserData userData) {
+        String userId = userData.getUserId();
+
+        if (filterUserIds != null && filterUserIds.contains(userId)) {
+            filterUserIds = new HashSet<>(filterUserIds);
+            filterUserIds.remove(userId);
+
+            // Add user information to result
+            userInformationList.add(userData.getUserInformation());
+        }
     }
 
     /**
@@ -1210,5 +1268,37 @@ public abstract class Authorization
                     + "has been created.");
         }
         return authorization;
+    }
+
+    private void createReservationDeviceAclEntries() {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        AuthorizationManager authManager = new AuthorizationManager(entityManager, this);
+
+        listReservationDevices().forEach(device -> {
+            authManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            try {
+                String userId = device.getUserData().getUserId();
+                String resourceId = device.getResourceId();
+                ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(resourceId);
+                logger.info("Creating ACL entry for reservation device {} for resource {}", device.getUserData().getUserId(), objectIdentifier);
+
+                SecurityToken securityToken = new SecurityToken(device.getAccessToken());
+                securityToken.setUserInformation(device.getUserData().getUserInformation());
+
+                PersistentObject object = entityManager.find(objectIdentifier.getObjectClass(),
+                        objectIdentifier.getPersistenceId());
+                authManager.createAclEntry(AclIdentityType.USER, userId, object, ObjectRole.RESERVATION);
+
+                entityManager.getTransaction().commit();
+                authManager.commitTransaction(securityToken);
+            } catch (Error err) {
+                entityManager.getTransaction().rollback();
+                authManager.rollbackTransaction();
+            }
+        });
+
+        entityManager.close();
     }
 }
