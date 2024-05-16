@@ -4,6 +4,10 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.Tag;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Type of specification for a reservation request.
@@ -102,15 +106,17 @@ public enum SpecificationType
             case USED_ROOM:
                 return PERMANENT_ROOM_CAPACITY;
             case RESOURCE:
-                String resourceTags = reservationRequestSummary.getResourceTags();
+                List<String> resourceTags = reservationRequestSummary.getResourceTags()
+                        .stream()
+                        .map(Tag::getName)
+                        .collect(Collectors.toList());
                 String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
                 String vehicleTagName = ClientWebConfiguration.getInstance().getVehicleTagName();
-                if (resourceTags != null) {
-                    if (parkTagName != null && resourceTags.contains(parkTagName)) {
-                        return PARKING_PLACE;
-                    } else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
-                        return VEHICLE;
-                    }
+                if (parkTagName != null && resourceTags.contains(parkTagName)) {
+                    return PARKING_PLACE;
+                }
+                else if (vehicleTagName != null && resourceTags.contains(vehicleTagName)) {
+                    return VEHICLE;
                 }
                 return MEETING_ROOM;
             default:

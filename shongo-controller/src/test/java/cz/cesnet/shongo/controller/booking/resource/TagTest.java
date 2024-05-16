@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
@@ -21,6 +24,48 @@ import java.util.List;
  * @author: Ondřej Pavelka <pavelka@cesnet.cz>
  */
 public class TagTest extends AbstractControllerTest {
+
+    @Test
+    public void testCreateTag() throws JsonProcessingException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+
+        final String tagName1 = "testTag1";
+        final String tagName2 = "testTag2";
+        final TagType tagType2 = TagType.NOTIFY_EMAIL;
+        final JsonNode tagData2 = objectMapper.readTree("[\"karnis@cesnet.cz\",\"filip.karnis@cesnet.cz\"]");
+
+        ResourceService resourceService = getResourceService();
+
+        // tag1 init
+        cz.cesnet.shongo.controller.api.Tag tag1 = new cz.cesnet.shongo.controller.api.Tag();
+        tag1.setName(tagName1);
+
+        // tag2 init
+        cz.cesnet.shongo.controller.api.Tag tag2 = new cz.cesnet.shongo.controller.api.Tag();
+        tag2.setName(tagName2);
+        tag2.setType(tagType2);
+        tag2.setData(tagData2);
+
+        String tagId1 = resourceService.createTag(SECURITY_TOKEN_ROOT, tag1);
+        String tagId2 = resourceService.createTag(SECURITY_TOKEN_ROOT, tag2);
+
+        cz.cesnet.shongo.controller.api.Tag getResult1 = resourceService.getTag(SECURITY_TOKEN_ROOT, tagId1);
+        cz.cesnet.shongo.controller.api.Tag getResult2 = resourceService.getTag(SECURITY_TOKEN_ROOT, tagId2);
+
+        Assert.assertNotNull(getResult1);
+        Assert.assertNotNull(getResult2);
+
+        Assert.assertEquals(tagId1, getResult1.getId());
+        Assert.assertEquals(tagName1, getResult1.getName());
+        Assert.assertEquals(TagType.DEFAULT, getResult1.getType());
+        Assert.assertNull(getResult1.getData());
+
+        Assert.assertEquals(tagId2, getResult2.getId());
+        Assert.assertEquals(tagName2, getResult2.getName());
+        Assert.assertEquals(tagType2, getResult2.getType());
+        Assert.assertEquals(tagData2, getResult2.getData());
+    }
+
     @Test
     public void testCreateTagsAcl() throws Exception
     {

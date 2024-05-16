@@ -2,7 +2,7 @@
 #
 # Check Shongo applications. Can be used in nagios NRPE plugin.
 #
-#   check_shongo.sh <connector|controller|client_web>
+#   check_shongo.sh <connector|controller>
 #
 
 BIN=$(dirname $0)
@@ -65,12 +65,6 @@ function check_connector
     fi
 }
 
-function check_client_web
-{
-    echo TODO: check client web
-    exit 3
-}
-
 OPTIND=0
 while getopts "c:" option; do
 case $option in
@@ -84,9 +78,6 @@ shift $(($OPTIND - 1))
 case $1 in
     shongo-connector)
         check_connector $2
-        ;;
-    shongo-client-web)
-        check_client_web
         ;;
     *)
         check_controller

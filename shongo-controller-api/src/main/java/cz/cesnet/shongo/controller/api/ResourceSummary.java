@@ -20,6 +20,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private String userId;
 
     /**
+     * Type of the resource.
+     */
+    private Type type;
+
+    /**
      * Name of the resource.
      */
     private String name;
@@ -28,6 +33,11 @@ public class ResourceSummary extends IdentifiedComplexType
      * Technologies of the resource.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
+
+    /**
+     * Tags of the resource.
+     */
+    private Set<Tag> tags = new HashSet<>();
 
     /**
      * Parent resource shongo-id.
@@ -72,6 +82,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private boolean confirmByOowner;
 
     /**
+     * Specifies whether resource has capacity.
+     */
+    private boolean hasCapacity;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -104,6 +119,20 @@ public class ResourceSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #type}
+     */
+    public Type getType() {
+        return type;
+    }
+
+    /**
+     * @param type sets the {@link #type}
+     */
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    /**
      * @return {@link #technologies}
      */
     public Set<Technology> getTechnologies()
@@ -128,6 +157,20 @@ public class ResourceSummary extends IdentifiedComplexType
     public void addTechnology(Technology technology)
     {
         this.technologies.add(technology);
+    }
+
+    /**
+     * @return {@link #tags}
+     */
+    public Set<Tag> getTags() {
+        return tags;
+    }
+
+    /**
+     * @param tag to be added to the {@link #tags}
+     */
+    public void addTag(Tag tag) {
+        tags.add(tag);
     }
 
     /**
@@ -214,6 +257,16 @@ public class ResourceSummary extends IdentifiedComplexType
         this.confirmByOowner = confirmByOowner;
     }
 
+    public boolean hasCapacity()
+    {
+        return hasCapacity;
+    }
+
+    public void setHasCapacity(boolean hasCapacity)
+    {
+        this.hasCapacity = hasCapacity;
+    }
+
     public String getRemoteCalendarName() {
         return remoteCalendarName;
     }
@@ -230,6 +283,12 @@ public class ResourceSummary extends IdentifiedComplexType
         this.allocationOrder = allocationOrder;
     }
 
+    public enum Type {
+        ROOM_PROVIDER,
+        RECORDING_SERVICE,
+        RESOURCE,
+    }
+
     private static final String USER_ID = "userId";
     private static final String NAME = "name";
     private static final String TECHNOLOGIES = "technologies";
@@ -241,7 +300,10 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String CALENDAR_URI_KEY = "calendarUriKey";
     private static final String DOMAIN_NAME = "domainName";
     private static final String CONFIRM_BY_OWNER = "confirmByOwner";
+    private static final String HAS_CAPACITY = "hasCapacity";
     public static final String REMOTE_CALENDAR_NAME = "remoteCalendarName";
+    public static final String TYPE = "type";
+    public static final String TAGS = "tags";
 
     @Override
     public DataMap toData()
@@ -258,7 +320,10 @@ public class ResourceSummary extends IdentifiedComplexType
         dataMap.set(CALENDAR_URI_KEY, calendarUriKey);
         dataMap.set(DOMAIN_NAME, domainName);
         dataMap.set(CONFIRM_BY_OWNER, confirmByOowner);
+        dataMap.set(HAS_CAPACITY, hasCapacity);
         dataMap.set(REMOTE_CALENDAR_NAME, remoteCalendarName);
+        dataMap.set(TYPE, type);
+        dataMap.set(TAGS, tags);
         return dataMap;
     }
 
@@ -277,6 +342,9 @@ public class ResourceSummary extends IdentifiedComplexType
         calendarUriKey = dataMap.getString(CALENDAR_URI_KEY);
         domainName = dataMap.getString(DOMAIN_NAME);
         confirmByOowner = dataMap.getBool(CONFIRM_BY_OWNER);
+        hasCapacity = dataMap.getBool(HAS_CAPACITY);
         remoteCalendarName = dataMap.getString(REMOTE_CALENDAR_NAME);
+        type = dataMap.getEnum(TYPE, Type.class);
+        tags = dataMap.getSet(TAGS, Tag.class);
     }
 }

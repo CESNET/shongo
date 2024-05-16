@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
@@ -8,17 +10,14 @@ import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.AuxiliaryData;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.booking.datetime.AbsoluteDateTimeSlot;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Tests for reallocation of reservations.
@@ -27,6 +26,76 @@ import java.util.Locale;
  */
 public class ReservationRequestModificationTest extends AbstractControllerTest
 {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    public void testModifyAttributes() throws JsonProcessingException {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = createResource(resource);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("request");
+        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+
+        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        ReservationRequest reservationRequestGet = getReservationRequest(id1, ReservationRequest.class);
+
+        Assert.assertEquals(ReservationRequestType.NEW, reservationRequestGet.getType());
+        Assert.assertEquals(reservationRequest.getPurpose(), reservationRequestGet.getPurpose());
+        Assert.assertEquals(reservationRequest.getDescription(), reservationRequestGet.getDescription());
+        Assert.assertEquals(reservationRequest.getInterDomain(), reservationRequestGet.getInterDomain());
+        Assert.assertEquals(reservationRequest.getReusedReservationRequestId(), reservationRequestGet.getReusedReservationRequestId());
+        Assert.assertEquals(ReservationRequestReusement.NONE, reservationRequestGet.getReusement());
+        Assert.assertEquals(reservationRequest.getAuxData(), reservationRequestGet.getAuxData());
+        Assert.assertEquals(reservationRequest.getParentReservationRequestId(), reservationRequestGet.getParentReservationRequestId());
+        Assert.assertEquals(reservationRequest.getSlot(), reservationRequestGet.getSlot());
+        Assert.assertEquals(reservationRequest.getReservationIds(), reservationRequestGet.getReservationIds());
+
+        // Modify reservation request by retrieved instance of reservation request
+        reservationRequestGet.setPurpose(ReservationRequestPurpose.EDUCATION);
+        reservationRequestGet.setPriority(5);
+        reservationRequestGet.setDescription("requestModified");
+        reservationRequestGet.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
+        reservationRequestGet.setReusement(ReservationRequestReusement.OWNED);
+        List<AuxiliaryData> auxData = List.of(
+                new AuxiliaryData("tag1", true, objectMapper.readTree("[\"karnis@cenet.cz\", \"filip.karnis@cesnet.cz\"]")),
+                new AuxiliaryData("tag2", false, objectMapper.readTree("[\"shouldnotbe@used\"]")),
+                new AuxiliaryData("tag3", true, null)
+        );
+        reservationRequestGet.setAuxData(auxData);
+        reservationRequestGet.setSlot("2012-01-01T13:00", "PT1H");
+
+        String id2 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestGet);
+        ReservationRequest reservationRequestGet2 = getReservationRequest(id2, ReservationRequest.class);
+
+        Assert.assertEquals(ReservationRequestType.MODIFIED, reservationRequestGet2.getType());
+        Assert.assertEquals(reservationRequestGet.getPurpose(), reservationRequestGet2.getPurpose());
+        Assert.assertEquals(reservationRequestGet.getPriority(), reservationRequestGet2.getPriority());
+        Assert.assertEquals(reservationRequestGet.getDescription(), reservationRequestGet2.getDescription());
+        Assert.assertEquals(reservationRequestGet.getInterDomain(), reservationRequestGet2.getInterDomain());
+        Assert.assertEquals(reservationRequestGet.getReusedReservationRequestId(), reservationRequestGet2.getReusedReservationRequestId());
+        Assert.assertEquals(reservationRequestGet.getReusement(), reservationRequestGet2.getReusement());
+        Assert.assertEquals(reservationRequestGet.getAuxData(), reservationRequestGet2.getAuxData());
+        Assert.assertEquals(reservationRequestGet.getParentReservationRequestId(), reservationRequestGet2.getParentReservationRequestId());
+        Assert.assertEquals(reservationRequestGet.getSlot(), reservationRequestGet2.getSlot());
+        Assert.assertEquals(reservationRequestGet.getAllocationState(), reservationRequestGet2.getAllocationState());
+        Assert.assertEquals(reservationRequestGet.getReservationIds(), reservationRequestGet2.getReservationIds());
+
+        // Modify again
+        reservationRequestGet2.setReusedReservationRequestId(id2);
+
+        String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestGet2);
+        ReservationRequest reservationRequestGet3 = getReservationRequest(id3, ReservationRequest.class);
+
+        // Check that reused reservation request points to id3 since id2 was modified to id3
+        Assert.assertEquals(id3, reservationRequestGet3.getReusedReservationRequestId());
+    }
+
     @Test
     public void testExtension() throws Exception
     {

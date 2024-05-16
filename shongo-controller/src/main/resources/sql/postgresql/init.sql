@@ -13,6 +13,7 @@ DROP VIEW IF EXISTS reservation_request_earliest_usage;
 DROP VIEW IF EXISTS reservation_summary;
 DROP VIEW IF EXISTS executable_summary_view;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
+DROP VIEW IF EXISTS arr_aux_data;
 
 /**
  * Create missing foreign keys' indexes.
@@ -112,12 +113,14 @@ SELECT
       WHEN resource.id IN (SELECT resource_id FROM capability INNER JOIN recording_capability on recording_capability.id = capability.id) THEN 'RECORDING_SERVICE'
       ELSE 'RESOURCE'
     END AS type,
-    string_agg(tag.name, ',') AS tag_names
+    string_agg(tag.id || ',' || tag.name || ',' || tag.type || ',' || COALESCE(tag.data #>> '{}', ''), '|') AS tags,
+    bool_or(capability.resource_id IS NOT NULL) AS has_capacity
 FROM resource
 LEFT JOIN device_resource ON device_resource.id = resource.id
 LEFT JOIN device_resource_technologies ON device_resource_technologies.device_resource_id = device_resource.id
 LEFT JOIN resource_tag ON resource.id = resource_tag.resource_id
 LEFT JOIN tag ON resource_tag.tag_id = tag.id
+LEFT JOIN capability ON capability.resource_id = resource.id
 GROUP BY resource.id;
 
 /**
@@ -340,6 +343,7 @@ FROM (
             reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
             abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
             abstract_reservation_request.allocation_id AS allocation_id,
+            abstract_reservation_request.aux_data #>> '{}' AS aux_data,
             reservation_request_set_earliest_child.child_id AS child_id,
             reservation_request_set_earliest_child.future_child_count AS future_child_count,
             COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
@@ -540,3 +544,11 @@ ORDER BY executable.id, alias.id;
 
 CREATE TABLE executable_summary AS SELECT * FROM executable_summary_view;
 CREATE TABLE specification_summary AS SELECT * FROM specification_summary_view;
+
+CREATE VIEW arr_aux_data AS
+SELECT
+    arr.*,
+    jsonb_array_elements(aux_data)->>'tagName' AS tag_name,
+    (jsonb_array_elements(aux_data)->>'enabled')::boolean AS enabled,
+    jsonb_array_elements(aux_data)->'data' AS data
+FROM abstract_reservation_request arr;

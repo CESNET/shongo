@@ -590,7 +590,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
         // Create notification
         contextState.addNotification(new ReservationNotification.New(
-                allocatedReservation, previousReservation, authorizationManager));
+                allocatedReservation, previousReservation, authorizationManager, reservationRequestManager));
 
         // Update reservation request
         if (context.getRequestWantedState() != null) {
