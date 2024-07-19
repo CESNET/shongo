@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
@@ -17,6 +18,8 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.HttpSessionRequiredException;
@@ -40,11 +43,16 @@ public class UserController
 {
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+
     @Resource
     private AuthorizationService authorizationService;
 
     @Resource
     private Cache cache;
+
+    @Resource
+    private ClientWebConfiguration clientWebConfiguration;
 
     @InitBinder
     public void initBinder(WebDataBinder binder)
@@ -64,6 +72,19 @@ public class UserController
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", new UserSettingsModel(userSettings));
         return "userSettings";
+    }
+
+    @RequestMapping(value = ClientWebUrl.LOGOUT, method = RequestMethod.GET)
+    public String handleLogout(
+            Authentication authentication,
+            HttpServletRequest request,
+            HttpServletResponse response)
+    {
+        logoutHandler.logout(request, response, authentication);
+        String redirectUrlFormat = "redirect:%s";
+        String redirectUrl = String.format(redirectUrlFormat, clientWebConfiguration.getAuthenticationRedirectUri());
+        logger.info("Redirecting to {}", redirectUrl);
+        return redirectUrl;
     }
 
     /**
