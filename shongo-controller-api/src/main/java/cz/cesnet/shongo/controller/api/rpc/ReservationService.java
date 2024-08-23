@@ -147,6 +147,16 @@ public interface ReservationService extends Service
             String reservationRequestId);
 
     /**
+     * Get original reservation request.
+     *
+     * @param token                token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation request to fina original for
+     * @return the original {@link ReservationRequestSummary}
+     */
+    @API
+    public ReservationRequestSummary getReservationRequestOriginal(SecurityToken token, String reservationRequestId);
+
+    /**
      * @param token        token of the user requesting the operation
      * @param reservationRequestId shongo-id of the reservation request to delete
      * @return collection of already allocated {@link Reservation}s for reservation request with given {@code reservationRequestId}

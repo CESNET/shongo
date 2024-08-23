@@ -38,6 +38,7 @@ public class NativeQuery
     public static final String DOMAIN_RESOURCE_LIST = "domain_resource_list.sql";
     public static final String RESERVATION_REQUEST_LIST = "reservation_request_list.sql";
     public static final String RESERVATION_REQUEST_HISTORY = "reservation_request_history.sql";
+    public static final String RESERVATION_REQUEST_ORIGINAL = "reservation_request_original.sql";
     public static final String RESERVATION_LIST = "reservation_list.sql";
     public static final String EXECUTABLE_LIST = "executable_list.sql";
     public static final String ACL_ENTRY_LIST = "acl_entry_list.sql";

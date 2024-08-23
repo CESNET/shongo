@@ -1457,6 +1457,41 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public ReservationRequestSummary getReservationRequestOriginal(SecurityToken securityToken,
+                                                                   String reservationRequestId)
+    {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        try {
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+
+            String originalQuery = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_ORIGINAL);
+
+            Object[] original = (Object[]) entityManager.createNativeQuery(originalQuery)
+                    .setParameter("allocationId", reservationRequest.getAllocation().getId())
+                    .getSingleResult();
+
+            ReservationRequestSummary resReqOriginal = getReservationRequestOriginal(original);
+
+            // Handle reservation request set
+            String parentResReqId = resReqOriginal.getParentReservationRequestId();
+            if (parentResReqId != null) {
+                resReqOriginal = getReservationRequestOriginal(securityToken, parentResReqId);
+            }
+
+            return resReqOriginal;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
     public List<Reservation> getReservationRequestReservations(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
@@ -2042,6 +2077,25 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         if (record[26] != null) {
             reservationRequestSummary.setResourceTags((String) record[26]);
+        }
+        return reservationRequestSummary;
+    }
+
+    /**
+     * For record's params see {@link NativeQuery#RESERVATION_REQUEST_ORIGINAL}.
+     *
+     * @param record
+     * @return {@link ReservationRequestSummary} from given {@code record} of reservation request
+     */
+    private ReservationRequestSummary getReservationRequestOriginal(Object[] record)
+    {
+        ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
+        reservationRequestSummary.setId(ObjectIdentifier.formatId(
+                ObjectType.RESERVATION_REQUEST, record[0].toString()));
+        reservationRequestSummary.setUserId(record[1].toString());
+        if (record[4] != null) {
+            reservationRequestSummary.setParentReservationRequestId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION_REQUEST, record[4].toString()));
         }
         return reservationRequestSummary;
     }

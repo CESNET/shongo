@@ -298,6 +298,15 @@ public class MeetingRoomController {
             item.put("id", reservationId);
             item.put("description", reservation.getReservationRequestDescription());
 
+            ReservationRequestSummary resReqOriginal = cache
+                    .getReservationRequestOriginal(securityToken, reservation.getReservationRequestId());
+
+            if (resReqOriginal != null && UserInformation.isLocal(resReqOriginal.getUserId())) {
+                UserInformation user = cache.getUserInformation(securityToken, resReqOriginal.getUserId());
+                item.put("originalOwnerName", user.getFullName());
+                item.put("originalOwnerEmail", user.getPrimaryEmail());
+            }
+
             if (UserInformation.isLocal(reservation.getUserId())) {
                 UserInformation user = cache.getUserInformation(securityToken, reservation.getUserId());
                 item.put("ownerName", user.getFullName());

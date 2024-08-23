@@ -2,7 +2,6 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.ExpirationSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.auth.UserPermission;
@@ -111,6 +110,8 @@ public class Cache
     private final ExpirationMap<SecurityToken, ResourcesUtilization> resourcesUtilizationByToken =
             new ExpirationMap<SecurityToken, ResourcesUtilization>();
 
+    private final ExpirationMap<String, ReservationRequestSummary> resReqOriginalById = new ExpirationMap<>();
+
     /**
      * Cached information for single user.
      */
@@ -147,6 +148,7 @@ public class Cache
         executableById.setExpiration(Duration.standardSeconds(10));
         resourcesUtilizationByToken.setExpiration(Duration.standardMinutes(10));
         resourceIdsWithPublicCalendarByUriKey.setExpiration(Duration.standardMinutes(10));
+        resReqOriginalById.setExpiration(Duration.standardMinutes(10));
     }
 
     /**
@@ -169,6 +171,7 @@ public class Cache
         executableById.clearExpired(dateTimeNow);
         resourcesUtilizationByToken.clearExpired(dateTimeNow);
         resourceIdsWithPublicCalendarByUriKey.clearExpired(dateTimeNow);
+        resReqOriginalById.clearExpired(dateTimeNow);
     }
 
     /**
@@ -715,6 +718,22 @@ public class Cache
             return null;
         }
         return resourceIdsWithPublicCalendarByUriKey.get(uriKey);
+    }
+
+    /**
+     * @param securityToken
+     * @param reservationRequestId
+     * @return the original {@link ReservationRequestSummary} of reservation request with given {@code reservationRequestId}
+     */
+    public ReservationRequestSummary getReservationRequestOriginal(
+            SecurityToken securityToken,
+            String reservationRequestId) {
+        if (resReqOriginalById.get(reservationRequestId) == null) {
+            ReservationRequestSummary resReqOriginal = reservationService
+                    .getReservationRequestOriginal(securityToken, reservationRequestId);
+            resReqOriginalById.put(reservationRequestId, resReqOriginal);
+        }
+        return resReqOriginalById.get(reservationRequestId);
     }
 
     /**
