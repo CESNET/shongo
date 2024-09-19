@@ -10,7 +10,7 @@
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
 <tag:url var="createMeetingRoomReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
-    <tag:param name="tag" value="meeting-rooms" escape="false" />
+    <tag:param name="tag" value="meeting-room" escape="false" />
 </tag:url>
 <tag:url var="createParkingPlaceReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
     <tag:param name="tag" value="park-place" escape="false" />
@@ -157,10 +157,10 @@
             </tab>
 
             <%-- Your meeting rooms reservation request tab TODO: only for CEITEC --%>
-            <%--<spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>--%>
-            <%--<tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">--%>
-            <%--<%@ include file="dashboardMeetingRoomReservations.jsp" %>--%>
-            <%--</tab>--%>
+            <spring:message code="views.index.meetingRooms" var="meetingRoomTitle"/>
+            <tab id="meetingRoomsReservations" heading="${meetingRoomTitle}" ng-controller="TabController">
+            <%@ include file="dashboardMeetingRoomReservations.jsp" %>
+            </tab>
 
             <%-- Your meeting rooms reservation request tab (calendar view) --%>
             <spring:message code="views.index.meetingRoomsCalendar" var="meetingRoomTitle"/>

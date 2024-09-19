@@ -259,7 +259,7 @@ public class ClientWeb
             String serverHost = serverConnector.getHost();
             String serverUrl = String.format("http://%s:%d%s", (!Strings.isNullOrEmpty(serverHost) ? serverHost : "localhost"),
                     serverConnector.getLocalPort(), webAppContext.getContextPath());
-            URLConnection serverConnection = new URL(serverUrl + "layout").openConnection();
+            URLConnection serverConnection = new URL(serverUrl + "/layout").openConnection();
             serverConnection.getInputStream();
             logger.info("Layout successfully initialized.");
 
