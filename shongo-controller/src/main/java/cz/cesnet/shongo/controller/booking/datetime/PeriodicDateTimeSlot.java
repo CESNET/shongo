@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.*;
 
 import jakarta.persistence.*;
@@ -31,7 +33,7 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
      */
     @Override
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentPeriod.class)
+    @Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
     @Access(AccessType.FIELD)
     public Period getDuration()
     {

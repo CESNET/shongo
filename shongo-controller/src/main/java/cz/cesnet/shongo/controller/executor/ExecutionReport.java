@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.AbstractReport;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 
 import jakarta.persistence.*;
@@ -88,7 +90,7 @@ public abstract class ExecutionReport extends AbstractReport
      * @return {@link #dateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getDateTime()
     {
         return dateTime;

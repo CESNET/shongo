@@ -2,7 +2,6 @@ package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.TimestampType;
 import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 
@@ -10,6 +9,7 @@ import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 /**
@@ -25,14 +25,6 @@ public class PersistentDateTime extends UserTypeLegacyBridge implements Serializ
     public static final String NAME = "DateTime";
 
     public static final PersistentDateTime INSTANCE = new PersistentDateTime();
-
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP};
-
-    @Override
-    public int[] sqlTypes()
-    {
-        return SQL_TYPES;
-    }
 
     @Override
     public Class returnedClass()
@@ -61,10 +53,10 @@ public class PersistentDateTime extends UserTypeLegacyBridge implements Serializ
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        Object timestamp = TimestampType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
+        Timestamp timestamp = resultSet.getTimestamp(position);
         if (timestamp == null) {
             return null;
         }
@@ -77,11 +69,12 @@ public class PersistentDateTime extends UserTypeLegacyBridge implements Serializ
             throws HibernateException, SQLException
     {
         if (value == null) {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
+            preparedStatement.setNull(index, Types.TIMESTAMP);
         }
         else {
             DateTime dateTime = (DateTime) value;
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, dateTime.toDate(), index, session);
+            preparedStatement.setTimestamp(index, new Timestamp(dateTime.getMillis()));
+//            preparedStatement.setTimestamp(index, dateTime.toDate());
         }
     }
 

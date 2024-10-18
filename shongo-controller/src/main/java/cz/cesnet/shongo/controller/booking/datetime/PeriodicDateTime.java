@@ -8,6 +8,8 @@ import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import cz.cesnet.shongo.hibernate.PersistentReadablePartial;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.*;
 
 import jakarta.persistence.*;
@@ -129,7 +131,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #start}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getStart()
     {
         return start;
@@ -147,7 +149,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #timeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
+    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
     @Access(AccessType.FIELD)
     public DateTimeZone getTimeZone()
     {
@@ -169,7 +171,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #period}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentPeriod.class)
+    @Type(value = PersistentPeriod.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
     public Period getPeriod()
     {
         return period;
@@ -187,7 +189,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #end}
      */
     @Column(name = "ending", length = PersistentReadablePartial.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
+    @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
     public ReadablePartial getEnd()
     {
         return end;
@@ -660,7 +662,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeFrom}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
+        @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeFrom()
         {
@@ -674,7 +676,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeTo}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
+        @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeTo()
         {

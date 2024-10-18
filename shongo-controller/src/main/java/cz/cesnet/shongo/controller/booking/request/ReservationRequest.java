@@ -18,6 +18,8 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -99,7 +101,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotStart}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -117,7 +119,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotEnd}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getSlotEnd()
     {
         return slotEnd;

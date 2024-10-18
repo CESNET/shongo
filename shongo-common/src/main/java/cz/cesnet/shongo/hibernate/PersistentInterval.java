@@ -1,59 +1,47 @@
 package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.Type;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.metamodel.spi.ValueAccess;
 import org.hibernate.usertype.CompositeUserType;
-import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 
 /**
  * Persist {@link org.joda.time.Interval} via hibernate.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentInterval extends UserTypeLegacyBridge implements CompositeUserType, Serializable
+public class PersistentInterval implements CompositeUserType<Interval>, Serializable
 {
     /**
      * Name for {@link org.hibernate.annotations.TypeDef}.
      */
     public static final String NAME = "Interval";
 
-    private static final String[] PROPERTY_NAMES = new String[]{"start", "end"};
-
-    private static final Type[] TYPES = new Type[]{StandardBasicTypes.TIMESTAMP, StandardBasicTypes.TIMESTAMP};
-
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.TIMESTAMP};
-
     @Override
-    public Object assemble(Serializable cached, SharedSessionContractImplementor session, Object owner) throws HibernateException
+    public Interval assemble(Serializable cached, Object owner) throws HibernateException
     {
-        return cached;
+        return (Interval) cached;
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException
+    public Interval deepCopy(Interval value) throws HibernateException
     {
         return value;
     }
 
     @Override
-    public Serializable disassemble(Object value, SharedSessionContractImplementor session) throws HibernateException
+    public Serializable disassemble(Interval value) throws HibernateException
     {
-        return (Serializable) value;
+        return value;
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException
+    public boolean equals(Interval x, Interval y) throws HibernateException
     {
         if (x == y) {
             return true;
@@ -65,26 +53,29 @@ public class PersistentInterval extends UserTypeLegacyBridge implements Composit
     }
 
     @Override
-    public String[] getPropertyNames()
+    public Object getPropertyValue(Interval interval, int property) throws HibernateException
     {
-        return PROPERTY_NAMES;
-    }
-
-    @Override
-    public Type[] getPropertyTypes()
-    {
-        return TYPES;
-    }
-
-    @Override
-    public Object getPropertyValue(Object component, int property) throws HibernateException
-    {
-        Interval interval = (Interval) component;
         return (property == 0) ? interval.getStart().toDate() : interval.getEnd().toDate();
     }
 
     @Override
-    public int hashCode(Object x) throws HibernateException
+    public Interval instantiate(ValueAccess valueAccess, SessionFactoryImplementor sessionFactoryImplementor) {
+        DateTime start = valueAccess.getValue(0, DateTime.class);
+        DateTime end = valueAccess.getValue(1, DateTime.class);
+
+        if (start == null || end == null) {
+            return null;
+        }
+        return new Interval(start, end);
+    }
+
+    @Override
+    public Class<?> embeddable() {
+        return IntervalEmbeddable.class;
+    }
+
+    @Override
+    public int hashCode(Interval x) throws HibernateException
     {
         return x.hashCode();
     }
@@ -95,69 +86,26 @@ public class PersistentInterval extends UserTypeLegacyBridge implements Composit
         return false;
     }
 
-    @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException
-    {
-        return original;
-    }
-
-    @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
-            throws HibernateException, SQLException
-    {
-        if (resultSet == null) {
-            return null;
-        }
-        PersistentDateTime pst = new PersistentDateTime();
-        DateTime start = (DateTime) pst.nullSafeGet(resultSet, new String[]{names[0]}, session, owner);
-        DateTime end = (DateTime) pst.nullSafeGet(resultSet, new String[]{names[1]}, session, owner);
-        if (start == null || end == null) {
-            return null;
-        }
-        return new Interval(start, end);
-    }
-
-    @Override
-    public void nullSafeSet(PreparedStatement statement, Object value, int index, SharedSessionContractImplementor session)
-            throws HibernateException, SQLException
-    {
-        if (value == null) {
-            statement.setNull(index, StandardBasicTypes.TIMESTAMP.sqlType());
-            statement.setNull(index + 1, StandardBasicTypes.TIMESTAMP.sqlType());
-            return;
-        }
-        Interval interval = (Interval) value;
-        statement.setTimestamp(index, asTimeStamp(interval.getStart()));
-        statement.setTimestamp(index + 1, asTimeStamp(interval.getEnd()));
-    }
-
     private Timestamp asTimeStamp(DateTime time)
     {
         return new Timestamp(time.getMillis());
     }
 
     @Override
-    public Object replace(Object original, Object target, SharedSessionContractImplementor session, Object owner)
+    public Interval replace(Interval original, Interval target, Object owner)
             throws HibernateException
     {
         return original;
     }
 
     @Override
-    public int[] sqlTypes()
-    {
-        return SQL_TYPES;
-    }
-
-    @Override
-    public Class returnedClass()
+    public Class<Interval> returnedClass()
     {
         return Interval.class;
     }
 
-    @Override
-    public void setPropertyValue(Object component, int property, Object value) throws HibernateException
-    {
-        throw new UnsupportedOperationException("Immutable Interval");
+    public static class IntervalEmbeddable {
+        private DateTime start;
+        private DateTime end;
     }
 }

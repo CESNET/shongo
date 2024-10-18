@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.GeneratorException;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 
 import java.util.*;
 
@@ -333,7 +334,7 @@ public abstract class Type
                 persistenceAnnotations.clear();
                 persistenceAnnotations.add("@jakarta.persistence.Column(length = cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".LENGTH)");
             }
-            persistenceAnnotations.add("@org.hibernate.annotations.Type(cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".class)");
+            persistenceAnnotations.add("@Type(cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".class, parameters = {@Parameter(name = \"" + UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY + "\", value = \"" + persistentType + "\")})");
             return persistenceAnnotations;
         }
     }

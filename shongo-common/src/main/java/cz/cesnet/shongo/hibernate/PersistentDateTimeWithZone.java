@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 /**
@@ -31,14 +32,6 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
     public static final int TIME_ZONE_LENGTH = PersistentDateTimeZone.LENGTH;
 
     public static final PersistentDateTimeWithZone INSTANCE = new PersistentDateTimeWithZone();
-
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.VARCHAR};
-
-    @Override
-    public int[] sqlTypes()
-    {
-        return SQL_TYPES;
-    }
 
     @Override
     public Class returnedClass()
@@ -67,15 +60,15 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        Object timestamp = StandardBasicTypes.TIMESTAMP.nullSafeGet(resultSet, names[0], session);
-        Object timezone = StandardBasicTypes.STRING.nullSafeGet(resultSet, names[1], session);
+        Timestamp timestamp = resultSet.getTimestamp(position);
+        String timezone = resultSet.getString(position + 1);
         if (timestamp == null || timezone == null) {
             return null;
         }
-        DateTime dateTime = new DateTime(timestamp, DateTimeZone.forID(timezone.toString()));
+        DateTime dateTime = new DateTime(timestamp, DateTimeZone.forID(timezone));
         return dateTime;
     }
 
@@ -84,13 +77,14 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
             throws HibernateException, SQLException
     {
         if (value == null) {
-            StandardBasicTypes.TIMESTAMP.nullSafeSet(preparedStatement, null, index, session);
-            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, null, index + 1, session);
+            preparedStatement.setNull(index, Types.TIMESTAMP);
+            preparedStatement.setNull(index + 1, Types.VARCHAR);
         } else {
             DateTime dateTime = (DateTime) value;
             String timeZoneId = dateTime.getZone().getID();
-            StandardBasicTypes.TIMESTAMP.nullSafeSet(preparedStatement, dateTime.toDate(), index, session);
-            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, timeZoneId, index + 1, session);
+            preparedStatement.setTimestamp(index, new Timestamp(dateTime.getMillis()));
+//            preparedStatement.setTimestamp(index, dateTime.toDate());
+            preparedStatement.setString(index + 1, timeZoneId);
         }
     }
 

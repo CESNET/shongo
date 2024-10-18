@@ -4,6 +4,9 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
 import cz.cesnet.shongo.hibernate.PersistentLocale;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTimeZone;
 
 import jakarta.persistence.*;
@@ -99,7 +102,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #locale}
      */
     @Column(length = PersistentLocale.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentLocale.class)
+    @Type(value = PersistentLocale.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentLocale")})
     @Access(AccessType.FIELD)
     public Locale getLocale()
     {
@@ -118,7 +121,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #homeTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
+    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
     @Access(AccessType.FIELD)
     public DateTimeZone getHomeTimeZone()
     {
@@ -137,7 +140,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #currentTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
+    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
     @Access(AccessType.FIELD)
     public DateTimeZone getCurrentTimeZone()
     {

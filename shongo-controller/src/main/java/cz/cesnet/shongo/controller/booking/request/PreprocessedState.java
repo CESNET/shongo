@@ -2,6 +2,9 @@ package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -73,7 +76,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #start}
      */
     @Column(name = "interval_start")
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getStart()
     {
         return start;
@@ -91,7 +94,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #end}
      */
     @Column(name = "interval_end")
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getEnd()
     {
         return end;

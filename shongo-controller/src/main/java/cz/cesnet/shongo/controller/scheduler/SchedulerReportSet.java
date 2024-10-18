@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.hibernate.PersistentInterval;
+import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import cz.cesnet.shongo.report.*;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CompositeType;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 
 /**
  * Auto-generated implementation of {@link AbstractReportSet}.
@@ -373,8 +377,12 @@ public class SchedulerReportSet extends AbstractReportSet
             setInterval(interval);
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -488,8 +496,12 @@ public class SchedulerReportSet extends AbstractReportSet
             setInterval(interval);
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -604,7 +616,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentDateTime.class)
+        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
         public org.joda.time.DateTime getMaxDateTime()
         {
             return maxDateTime;
@@ -1411,8 +1423,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.executable = executable;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -1562,8 +1578,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.usageReservationRequest = usageReservationRequest;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="usage_interval_start"),@jakarta.persistence.Column(name="usage_interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "usage_interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "usage_interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getUsageInterval()
         {
             return usageInterval;
@@ -2160,8 +2180,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.reservationRequest = reservationRequest;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -2377,8 +2401,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.resource = resource;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -2627,8 +2655,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.usageReservationRequest = usageReservationRequest;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="usage_interval_start"),@jakarta.persistence.Column(name="usage_interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "usage_interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "usage_interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getUsageInterval()
         {
             return usageInterval;
@@ -2825,8 +2857,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.value = value;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -3054,8 +3090,12 @@ public class SchedulerReportSet extends AbstractReportSet
             setInterval(interval);
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="interval_start"),@jakarta.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "interval_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "interval_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -3168,8 +3208,12 @@ public class SchedulerReportSet extends AbstractReportSet
             setServiceSlot(serviceSlot);
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="executable_slot_start"),@jakarta.persistence.Column(name="executable_slot_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "executable_slot_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "executable_slot_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getExecutableSlot()
         {
             return executableSlot;
@@ -3180,8 +3224,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.executableSlot = executableSlot;
         }
 
-        @org.hibernate.annotations.Columns(columns={@jakarta.persistence.Column(name="service_slot_start"),@jakarta.persistence.Column(name="service_slot_end")})
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentInterval.class)
+        @Embedded
+        @AttributeOverrides({
+                @AttributeOverride(name = "start", column = @Column(name = "service_slot_start")),
+                @AttributeOverride(name = "end", column = @Column(name = "service_slot_end"))
+        })
+        @CompositeType(PersistentInterval.class)
         public org.joda.time.Interval getServiceSlot()
         {
             return serviceSlot;
@@ -4465,8 +4513,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setMaxDuration(maxDuration);
         }
 
-        @Column(length = cz.cesnet.shongo.hibernate.PersistentPeriod.LENGTH)
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentPeriod.class)
+        @Column(length = PersistentPeriod.LENGTH)
+        @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
         public org.joda.time.Period getDuration()
         {
             return duration;
@@ -4477,8 +4525,8 @@ public class SchedulerReportSet extends AbstractReportSet
             this.duration = duration;
         }
 
-        @Column(length = cz.cesnet.shongo.hibernate.PersistentPeriod.LENGTH)
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentPeriod.class)
+        @Column(length = PersistentPeriod.LENGTH)
+        @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
         public org.joda.time.Period getMaxDuration()
         {
             return maxDuration;

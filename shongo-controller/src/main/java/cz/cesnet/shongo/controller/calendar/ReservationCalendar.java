@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import jakarta.persistence.*;
@@ -131,13 +133,13 @@ public abstract class ReservationCalendar extends PersistentObject {
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+        @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
         public DateTime getSlotStart() {
             return slotStart;
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+        @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
         public DateTime getSlotEnd () {
             return slotEnd;
         }

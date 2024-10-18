@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -66,7 +68,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotStart}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -85,7 +87,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotEnd}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
@@ -150,7 +152,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #nextAttempt}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     public DateTime getNextAttempt()
     {
         return nextAttempt;

@@ -5,6 +5,8 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -62,7 +64,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #absoluteDateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     @Access(AccessType.FIELD)
     public DateTime getAbsoluteDateTime()
     {
@@ -81,7 +83,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #relativeDateTime}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentPeriod.class)
+    @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
     @Access(AccessType.FIELD)
     public Period getRelativeDateTime()
     {

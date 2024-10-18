@@ -3,7 +3,6 @@ package cz.cesnet.shongo.hibernate;
         import cz.cesnet.shongo.TodoImplementException;
         import org.hibernate.HibernateException;
         import org.hibernate.engine.spi.SharedSessionContractImplementor;
-        import org.hibernate.type.DateType;
         import org.hibernate.usertype.UserTypeLegacyBridge;
         import org.joda.time.LocalDate;
         import org.joda.time.Partial;
@@ -12,6 +11,7 @@ package cz.cesnet.shongo.hibernate;
         import java.sql.PreparedStatement;
         import java.sql.ResultSet;
         import java.sql.SQLException;
+        import java.sql.Timestamp;
         import java.sql.Types;
 
 /**
@@ -27,14 +27,6 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
     public static final String NAME = "LocalDate";
 
     public static final PersistentLocalDate INSTANCE = new PersistentLocalDate();
-
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP};
-
-    @Override
-    public int[] sqlTypes()
-    {
-        return SQL_TYPES;
-    }
 
     @Override
     public Class returnedClass()
@@ -63,10 +55,10 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        Object timestamp = DateType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
+        Timestamp timestamp = resultSet.getTimestamp(position);
         if (timestamp == null) {
             return null;
         }
@@ -79,7 +71,7 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
             throws HibernateException, SQLException
     {
         if (value == null) {
-            DateType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
+            preparedStatement.setNull(index, Types.TIMESTAMP);
         }
         else {
             LocalDate localDate;
@@ -92,7 +84,8 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
                 throw new TodoImplementException("Unsupported LocalDate instance.");
             }
 
-            DateType.INSTANCE.nullSafeSet(preparedStatement, localDate.toDate(), index, session);
+            preparedStatement.setTimestamp(index, new Timestamp(localDate.toDateTimeAtCurrentTime().getMillis()));
+//            preparedStatement.setTimestamp(index, localDate.toDate());
         }
     }
 

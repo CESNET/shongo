@@ -2,7 +2,6 @@ package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserTypeLegacyBridge;
 
 import java.io.Serializable;
@@ -18,21 +17,14 @@ import java.sql.Types;
  */
 public abstract class PersistentStringType extends UserTypeLegacyBridge implements Serializable
 {
-    private static final int[] SQL_TYPES = new int[]{Types.VARCHAR};
-
-    @Override
-    public int[] sqlTypes()
-    {
-        return SQL_TYPES;
-    }
 
     protected abstract Object fromNonNullString(String string) throws HibernateException;
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        String string = (String) StringType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
+        String string = resultSet.getString(position);
         if (string == null) {
             return null;
         }
@@ -46,10 +38,10 @@ public abstract class PersistentStringType extends UserTypeLegacyBridge implemen
             throws HibernateException, SQLException
     {
         if (value == null) {
-            StringType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
+            preparedStatement.setNull(index, Types.VARCHAR);
         }
         else {
-            StringType.INSTANCE.nullSafeSet(preparedStatement, toNonNullString(value), index, session);
+            preparedStatement.setString(index, toNonNullString(value));
         }
     }
 

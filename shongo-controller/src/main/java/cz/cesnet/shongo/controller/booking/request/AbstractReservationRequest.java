@@ -20,6 +20,8 @@ import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.annotations.Type;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -128,7 +130,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #createdAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     @Access(AccessType.FIELD)
     public DateTime getCreatedAt()
     {
@@ -161,7 +163,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #updatedAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
+    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
     @Access(AccessType.FIELD)
     public DateTime getUpdatedAt()
     {
