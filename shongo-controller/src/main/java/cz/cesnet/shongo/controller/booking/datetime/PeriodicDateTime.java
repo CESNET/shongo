@@ -129,7 +129,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #start}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     public DateTime getStart()
     {
         return start;
@@ -147,7 +147,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #timeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getTimeZone()
     {
@@ -169,7 +169,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #period}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentPeriod.NAME)
+    @org.hibernate.annotations.Type(value = PersistentPeriod.class)
     public Period getPeriod()
     {
         return period;
@@ -187,7 +187,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #end}
      */
     @Column(name = "ending", length = PersistentReadablePartial.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
+    @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
     public ReadablePartial getEnd()
     {
         return end;
@@ -660,7 +660,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeFrom}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
+        @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeFrom()
         {
@@ -674,7 +674,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeTo}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
+        @org.hibernate.annotations.Type(value = PersistentReadablePartial.class)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeTo()
         {

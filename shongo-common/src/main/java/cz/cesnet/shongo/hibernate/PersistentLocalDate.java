@@ -4,7 +4,7 @@ package cz.cesnet.shongo.hibernate;
         import org.hibernate.HibernateException;
         import org.hibernate.engine.spi.SharedSessionContractImplementor;
         import org.hibernate.type.DateType;
-        import org.hibernate.usertype.UserType;
+        import org.hibernate.usertype.UserTypeLegacyBridge;
         import org.joda.time.LocalDate;
         import org.joda.time.Partial;
 
@@ -19,7 +19,7 @@ package cz.cesnet.shongo.hibernate;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class PersistentLocalDate implements UserType, Serializable
+public class PersistentLocalDate extends UserTypeLegacyBridge implements Serializable
 {
     /**
      * Name for {@link org.hibernate.annotations.TypeDef}.

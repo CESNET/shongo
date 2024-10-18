@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.TodoImplementException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.HSQLDialect;
-import org.hibernate.dialect.PostgreSQL81Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +122,7 @@ public class NativeQuery
         if (dialect instanceof HSQLDialect) {
             directory = "hsqldb";
         }
-        else if (dialect instanceof PostgreSQL81Dialect) {
+        else if (dialect instanceof PostgreSQLDialect) {
             directory = "postgresql";
         }
         else {

@@ -5,6 +5,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 import org.hibernate.usertype.CompositeUserType;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -13,13 +14,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 
 /**
  * Persist {@link org.joda.time.Interval} via hibernate.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentInterval implements CompositeUserType, Serializable
+public class PersistentInterval extends UserTypeLegacyBridge implements CompositeUserType, Serializable
 {
     /**
      * Name for {@link org.hibernate.annotations.TypeDef}.
@@ -29,6 +31,8 @@ public class PersistentInterval implements CompositeUserType, Serializable
     private static final String[] PROPERTY_NAMES = new String[]{"start", "end"};
 
     private static final Type[] TYPES = new Type[]{StandardBasicTypes.TIMESTAMP, StandardBasicTypes.TIMESTAMP};
+
+    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.TIMESTAMP};
 
     @Override
     public Object assemble(Serializable cached, SharedSessionContractImplementor session, Object owner) throws HibernateException
@@ -91,6 +95,11 @@ public class PersistentInterval implements CompositeUserType, Serializable
         return false;
     }
 
+    @Override
+    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    {
+        return original;
+    }
 
     @Override
     public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor session, Object owner)
@@ -132,6 +141,12 @@ public class PersistentInterval implements CompositeUserType, Serializable
             throws HibernateException
     {
         return original;
+    }
+
+    @Override
+    public int[] sqlTypes()
+    {
+        return SQL_TYPES;
     }
 
     @Override

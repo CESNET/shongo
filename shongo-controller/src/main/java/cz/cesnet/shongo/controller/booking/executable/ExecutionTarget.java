@@ -66,7 +66,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotStart}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -85,7 +85,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotEnd}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
@@ -150,7 +150,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #nextAttempt}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     public DateTime getNextAttempt()
     {
         return nextAttempt;

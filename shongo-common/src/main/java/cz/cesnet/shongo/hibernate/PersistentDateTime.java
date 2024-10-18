@@ -3,7 +3,7 @@ package cz.cesnet.shongo.hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.TimestampType;
-import org.hibernate.usertype.UserType;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 import org.joda.time.DateTime;
 
 import java.io.Serializable;
@@ -17,7 +17,7 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTime implements UserType, Serializable
+public class PersistentDateTime extends UserTypeLegacyBridge implements Serializable
 {
     /**
      * Name for {@link org.hibernate.annotations.TypeDef}.

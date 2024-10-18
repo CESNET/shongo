@@ -99,7 +99,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotStart}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -117,7 +117,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotEnd}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     public DateTime getSlotEnd()
     {
         return slotEnd;

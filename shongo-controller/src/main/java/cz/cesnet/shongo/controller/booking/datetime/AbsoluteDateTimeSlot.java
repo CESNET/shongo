@@ -75,7 +75,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotStart}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -94,7 +94,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotEnd}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {

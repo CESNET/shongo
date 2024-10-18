@@ -128,7 +128,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #createdAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getCreatedAt()
     {
@@ -161,7 +161,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #updatedAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getUpdatedAt()
     {

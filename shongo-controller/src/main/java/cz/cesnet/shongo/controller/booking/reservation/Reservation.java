@@ -156,7 +156,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotStart}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -181,7 +181,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotEnd}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {

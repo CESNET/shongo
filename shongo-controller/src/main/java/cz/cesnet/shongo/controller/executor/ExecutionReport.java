@@ -88,7 +88,7 @@ public abstract class ExecutionReport extends AbstractReport
      * @return {@link #dateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     public DateTime getDateTime()
     {
         return dateTime;

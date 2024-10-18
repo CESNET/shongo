@@ -131,13 +131,13 @@ public abstract class ReservationCalendar extends PersistentObject {
         }
 
         @Column
-        @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+        @org.hibernate.annotations.Type(value = PersistentDateTime.class)
         public DateTime getSlotStart() {
             return slotStart;
         }
 
         @Column
-        @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+        @org.hibernate.annotations.Type(value = PersistentDateTime.class)
         public DateTime getSlotEnd () {
             return slotEnd;
         }

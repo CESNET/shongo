@@ -99,7 +99,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #locale}
      */
     @Column(length = PersistentLocale.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentLocale.NAME)
+    @org.hibernate.annotations.Type(value = PersistentLocale.class)
     @Access(AccessType.FIELD)
     public Locale getLocale()
     {
@@ -118,7 +118,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #homeTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getHomeTimeZone()
     {
@@ -137,7 +137,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #currentTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getCurrentTimeZone()
     {

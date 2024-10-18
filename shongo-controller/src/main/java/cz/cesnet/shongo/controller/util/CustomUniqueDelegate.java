@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.util;
 
 import org.hibernate.boot.Metadata;
+import org.hibernate.boot.model.relational.SqlStringGenerationContext;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.unique.DefaultUniqueDelegate;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
@@ -19,7 +20,7 @@ public class CustomUniqueDelegate extends DefaultUniqueDelegate {
     }
 
     @Override
-    public String getAlterTableToAddUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata) {
+    public String getAlterTableToAddUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata, SqlStringGenerationContext context) {
         final JdbcEnvironment jdbcEnvironment = metadata.getDatabase().getJdbcEnvironment();
 
         final String tableName = jdbcEnvironment.getQualifiedObjectNameFormatter().format(
@@ -34,7 +35,7 @@ public class CustomUniqueDelegate extends DefaultUniqueDelegate {
     }
 
     @Override
-    public String getAlterTableToDropUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata) {
+    public String getAlterTableToDropUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata, SqlStringGenerationContext context) {
         final JdbcEnvironment jdbcEnvironment = metadata.getDatabase().getJdbcEnvironment();
 
         final String tableName = jdbcEnvironment.getQualifiedObjectNameFormatter().format(

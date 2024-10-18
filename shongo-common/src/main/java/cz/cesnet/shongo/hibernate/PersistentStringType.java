@@ -3,7 +3,7 @@ package cz.cesnet.shongo.hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
-import org.hibernate.usertype.UserType;
+import org.hibernate.usertype.UserTypeLegacyBridge;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -16,7 +16,7 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class PersistentStringType implements UserType, Serializable
+public abstract class PersistentStringType extends UserTypeLegacyBridge implements Serializable
 {
     private static final int[] SQL_TYPES = new int[]{Types.VARCHAR};
 

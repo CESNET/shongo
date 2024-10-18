@@ -62,7 +62,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #absoluteDateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
+    @org.hibernate.annotations.Type(value = PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getAbsoluteDateTime()
     {
@@ -81,7 +81,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #relativeDateTime}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(type = PersistentPeriod.NAME)
+    @org.hibernate.annotations.Type(value = PersistentPeriod.class)
     @Access(AccessType.FIELD)
     public Period getRelativeDateTime()
     {

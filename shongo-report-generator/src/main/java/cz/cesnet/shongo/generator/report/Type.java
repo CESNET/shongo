@@ -333,7 +333,7 @@ public abstract class Type
                 persistenceAnnotations.clear();
                 persistenceAnnotations.add("@jakarta.persistence.Column(length = cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".LENGTH)");
             }
-            persistenceAnnotations.add("@org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".NAME)");
+            persistenceAnnotations.add("@org.hibernate.annotations.Type(cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".class)");
             return persistenceAnnotations;
         }
     }
