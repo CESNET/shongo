@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
+import org.hibernate.annotations.Proxy;
 import org.joda.time.DateTime;
 
 import jakarta.persistence.*;
@@ -27,6 +28,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Proxy(lazy = false)
 public abstract class Executable extends ExecutionTarget
 {
     /**
@@ -141,12 +143,12 @@ public abstract class Executable extends ExecutionTarget
     /**
      * @return {@link #migrateFromExecutable}
      */
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "migrate_from_executable_id")
     @Access(AccessType.FIELD)
     public Executable getMigrateFromExecutable()
     {
-        return migrateFromExecutable;
+        return getLazyImplementation(migrateFromExecutable);
     }
 
     /**
@@ -155,7 +157,7 @@ public abstract class Executable extends ExecutionTarget
     public void setMigrateFromExecutable(Executable migrateFromExecutable)
     {
         // Manage bidirectional association
-        if (migrateFromExecutable != this.migrateFromExecutable) {
+        if (migrateFromExecutable != getMigrateFromExecutable()) {
             if (this.migrateFromExecutable != null) {
                 Executable oldMigrateFromExecutable = this.migrateFromExecutable;
                 this.migrateFromExecutable = null;
@@ -171,12 +173,12 @@ public abstract class Executable extends ExecutionTarget
     /**
      * @return {@link #migrateToExecutable}
      */
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "migrate_to_executable_id")
     @Access(AccessType.FIELD)
     public Executable getMigrateToExecutable()
     {
-        return migrateToExecutable;
+        return getLazyImplementation(migrateToExecutable);
     }
 
     /**

@@ -82,6 +82,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #userId}
      */
     @Column(nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
+    @Access(AccessType.FIELD)
     public String getUserId()
     {
         return userId;
