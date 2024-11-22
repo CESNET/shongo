@@ -3,7 +3,7 @@ package cz.cesnet.shongo.hibernate;
         import cz.cesnet.shongo.TodoImplementException;
         import org.hibernate.HibernateException;
         import org.hibernate.engine.spi.SharedSessionContractImplementor;
-        import org.hibernate.usertype.UserTypeLegacyBridge;
+        import org.hibernate.usertype.UserType;
         import org.joda.time.LocalDate;
         import org.joda.time.Partial;
 
@@ -19,23 +19,25 @@ package cz.cesnet.shongo.hibernate;
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class PersistentLocalDate extends UserTypeLegacyBridge implements Serializable
+public class PersistentLocalDate implements UserType<LocalDate>, Serializable
 {
-    /**
-     * Name for {@link org.hibernate.annotations.TypeDef}.
-     */
-    public static final String NAME = "LocalDate";
 
-    public static final PersistentLocalDate INSTANCE = new PersistentLocalDate();
+    private static final int SQL_TYPE = Types.TIMESTAMP;
 
     @Override
-    public Class returnedClass()
+    public int getSqlType()
+    {
+        return SQL_TYPE;
+    }
+
+    @Override
+    public Class<LocalDate> returnedClass()
     {
         return LocalDate.class;
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException
+    public boolean equals(LocalDate x, LocalDate y) throws HibernateException
     {
         if (x == y) {
             return true;
@@ -43,31 +45,28 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
         if (x == null || y == null) {
             return false;
         }
-        LocalDate dtx = (LocalDate) x;
-        LocalDate dty = (LocalDate) y;
-        return dtx.equals(dty);
+        return x.equals(y);
     }
 
     @Override
-    public int hashCode(Object object) throws HibernateException
+    public int hashCode(LocalDate object) throws HibernateException
     {
         return object.hashCode();
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
+    public LocalDate nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         Timestamp timestamp = resultSet.getTimestamp(position);
         if (timestamp == null) {
             return null;
         }
-        LocalDate localDate = new LocalDate(timestamp);
-        return localDate;
+        return new LocalDate(timestamp);
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor session)
+    public void nullSafeSet(PreparedStatement preparedStatement, LocalDate value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {
@@ -75,22 +74,22 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
         }
         else {
             LocalDate localDate;
-            if (value instanceof Partial) {
-                Partial partial = (Partial) value;
-                localDate = new LocalDate(partial);
-            } else if (value instanceof LocalDate) {
-                localDate = (LocalDate) value;
-            } else {
-                throw new TodoImplementException("Unsupported LocalDate instance.");
-            }
+//            if (value instanceof Partial) {
+//                Partial partial = (Partial) value;
+//                localDate = new LocalDate(partial);
+//            } else if (value instanceof LocalDate) {
+//                localDate = (LocalDate) value;
+//            } else {
+//                throw new TodoImplementException("Unsupported LocalDate instance.");
+//            }
 
-            preparedStatement.setTimestamp(index, new Timestamp(localDate.toDateTimeAtCurrentTime().getMillis()));
-//            preparedStatement.setTimestamp(index, localDate.toDate());
+            preparedStatement.setTimestamp(index, new Timestamp(value.toDateTimeAtCurrentTime().getMillis()));
+//            preparedStatement.setTimestamp(index, value.toDate());
         }
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException
+    public LocalDate deepCopy(LocalDate value) throws HibernateException
     {
         return value;
     }
@@ -102,22 +101,20 @@ public class PersistentLocalDate extends UserTypeLegacyBridge implements Seriali
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException
+    public Serializable disassemble(LocalDate value) throws HibernateException
     {
-        return (Serializable) value;
+        return value;
     }
 
     @Override
-    public Object assemble(Serializable cached, Object value) throws HibernateException
+    public LocalDate assemble(Serializable cached, Object value) throws HibernateException
     {
-        return cached;
+        return (LocalDate) cached;
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    public LocalDate replace(LocalDate original, LocalDate target, Object owner) throws HibernateException
     {
         return original;
     }
-
-
 }

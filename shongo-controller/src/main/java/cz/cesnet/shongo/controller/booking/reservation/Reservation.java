@@ -159,7 +159,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotStart}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -184,7 +184,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {

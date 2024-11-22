@@ -78,7 +78,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotStart}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -97,7 +97,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {

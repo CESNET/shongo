@@ -2,7 +2,7 @@ package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.UserTypeLegacyBridge;
+import org.hibernate.usertype.UserType;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -15,13 +15,21 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class PersistentStringType extends UserTypeLegacyBridge implements Serializable
+public abstract class PersistentStringType<T> implements UserType<T>, Serializable
 {
 
-    protected abstract Object fromNonNullString(String string) throws HibernateException;
+    protected abstract T fromNonNullString(String string) throws HibernateException;
+
+    private static final int SQL_TYPE = Types.VARCHAR;
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
+    public int getSqlType()
+    {
+        return SQL_TYPE;
+    }
+
+    @Override
+    public T nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         String string = resultSet.getString(position);
@@ -31,10 +39,10 @@ public abstract class PersistentStringType extends UserTypeLegacyBridge implemen
         return fromNonNullString(string);
     }
 
-    protected abstract String toNonNullString(Object value) throws HibernateException;
+    protected abstract String toNonNullString(T value) throws HibernateException;
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor session)
+    public void nullSafeSet(PreparedStatement preparedStatement, T value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {
@@ -46,7 +54,7 @@ public abstract class PersistentStringType extends UserTypeLegacyBridge implemen
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException
+    public boolean equals(T x, T y) throws HibernateException
     {
         if (x == y) {
             return true;
@@ -58,13 +66,13 @@ public abstract class PersistentStringType extends UserTypeLegacyBridge implemen
     }
 
     @Override
-    public int hashCode(Object object) throws HibernateException
+    public int hashCode(T object) throws HibernateException
     {
         return object.hashCode();
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException
+    public T deepCopy(T value) throws HibernateException
     {
         return value;
     }
@@ -76,19 +84,19 @@ public abstract class PersistentStringType extends UserTypeLegacyBridge implemen
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException
+    public Serializable disassemble(T value) throws HibernateException
     {
         return (Serializable) value;
     }
 
     @Override
-    public Object assemble(Serializable cached, Object value) throws HibernateException
+    public T assemble(Serializable cached, Object value) throws HibernateException
     {
-        return cached;
+        return (T) cached;
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    public T replace(T original, T target, Object owner) throws HibernateException
     {
         return original;
     }

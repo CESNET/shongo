@@ -90,7 +90,7 @@ public abstract class ExecutionReport extends AbstractReport
      * @return {@link #dateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @org.hibernate.annotations.Type(PersistentDateTime.class)
     public DateTime getDateTime()
     {
         return dateTime;

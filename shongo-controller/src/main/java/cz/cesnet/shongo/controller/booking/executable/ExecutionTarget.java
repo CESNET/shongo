@@ -68,7 +68,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotStart}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -87,7 +87,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
@@ -152,7 +152,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #nextAttempt}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     public DateTime getNextAttempt()
     {
         return nextAttempt;

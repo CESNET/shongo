@@ -102,7 +102,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #locale}
      */
     @Column(length = PersistentLocale.LENGTH)
-    @Type(value = PersistentLocale.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentLocale")})
+    @Type(PersistentLocale.class)
     @Access(AccessType.FIELD)
     public Locale getLocale()
     {
@@ -121,7 +121,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #homeTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
+    @Type(PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getHomeTimeZone()
     {
@@ -140,7 +140,7 @@ public class UserSettings extends SimplePersistentObject
      * @return {@link #currentTimeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
+    @Type(PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getCurrentTimeZone()
     {

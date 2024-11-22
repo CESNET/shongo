@@ -64,7 +64,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #absoluteDateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @org.hibernate.annotations.Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getAbsoluteDateTime()
     {
@@ -83,7 +83,7 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #relativeDateTime}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
+    @org.hibernate.annotations.Type(PersistentPeriod.class)
     @Access(AccessType.FIELD)
     public Period getRelativeDateTime()
     {

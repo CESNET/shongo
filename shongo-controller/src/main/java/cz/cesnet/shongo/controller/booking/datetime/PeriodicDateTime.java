@@ -131,7 +131,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #start}
      */
     @Column
-    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     public DateTime getStart()
     {
         return start;
@@ -149,7 +149,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #timeZone}
      */
     @Column(length = PersistentDateTimeZone.LENGTH)
-    @Type(value = PersistentDateTimeZone.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTimeZone")})
+    @Type(PersistentDateTimeZone.class)
     @Access(AccessType.FIELD)
     public DateTimeZone getTimeZone()
     {
@@ -171,7 +171,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #period}
      */
     @Column(length = PersistentPeriod.LENGTH)
-    @Type(value = PersistentPeriod.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
+    @Type(PersistentPeriod.class)
     public Period getPeriod()
     {
         return period;
@@ -189,7 +189,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
      * @return {@link #end}
      */
     @Column(name = "ending", length = PersistentReadablePartial.LENGTH)
-    @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
+    @Type(PersistentReadablePartial.class)
     public ReadablePartial getEnd()
     {
         return end;
@@ -662,7 +662,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeFrom}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
+        @Type(PersistentReadablePartial.class)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeFrom()
         {
@@ -676,7 +676,7 @@ public class PeriodicDateTime extends SimplePersistentObject  implements Cloneab
          * @return {@link #dateTimeTo}
          */
         @Column(length = PersistentReadablePartial.LENGTH)
-        @Type(value = PersistentReadablePartial.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentReadablePartial")})
+        @Type(PersistentReadablePartial.class)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeTo()
         {

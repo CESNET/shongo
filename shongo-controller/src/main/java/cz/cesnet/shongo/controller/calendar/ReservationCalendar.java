@@ -133,13 +133,13 @@ public abstract class ReservationCalendar extends PersistentObject {
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+        @org.hibernate.annotations.Type(PersistentDateTime.class)
         public DateTime getSlotStart() {
             return slotStart;
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+        @org.hibernate.annotations.Type(PersistentDateTime.class)
         public DateTime getSlotEnd () {
             return slotEnd;
         }

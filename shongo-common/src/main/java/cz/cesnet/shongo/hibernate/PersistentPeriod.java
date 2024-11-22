@@ -9,34 +9,28 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentPeriod extends PersistentStringType
+public class PersistentPeriod extends PersistentStringType<Period>
 {
-    /**
-     * Name for {@link org.hibernate.annotations.TypeDef}.
-     */
-    public static final String NAME = "Period";
 
     /**
      * Maximum database field length.
      */
     public static final int LENGTH = Converter.PERIOD_MAXIMUM_LENGTH;
 
-    public static final PersistentPeriod INSTANCE = new PersistentPeriod();
-
     @Override
-    public Class returnedClass()
+    public Class<Period> returnedClass()
     {
         return Period.class;
     }
 
     @Override
-    protected Object fromNonNullString(String s) throws HibernateException
+    protected Period fromNonNullString(String s) throws HibernateException
     {
         return new Period(s);
     }
 
     @Override
-    protected String toNonNullString(Object value) throws HibernateException
+    protected String toNonNullString(Period value) throws HibernateException
     {
         return value.toString();
     }

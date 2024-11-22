@@ -2,8 +2,7 @@ package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.usertype.UserTypeLegacyBridge;
+import org.hibernate.usertype.UserType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -19,28 +18,30 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements Serializable
+public class PersistentDateTimeWithZone implements UserType<DateTime>, Serializable
 {
-    /**
-     * Name for {@link org.hibernate.annotations.TypeDef}.
-     */
-    public static final String NAME = "DateTimeWithZone";
 
     /**
      * Maximum database field length.
      */
     public static final int TIME_ZONE_LENGTH = PersistentDateTimeZone.LENGTH;
 
-    public static final PersistentDateTimeWithZone INSTANCE = new PersistentDateTimeWithZone();
+    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.VARCHAR};
 
     @Override
-    public Class returnedClass()
+    public int getSqlType()
+    {
+        return SQL_TYPES[0];
+    }
+
+    @Override
+    public Class<DateTime> returnedClass()
     {
         return DateTime.class;
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException
+    public boolean equals(DateTime x, DateTime y) throws HibernateException
     {
         if (x == y) {
             return true;
@@ -48,19 +49,17 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
         if (x == null || y == null) {
             return false;
         }
-        DateTime dtx = (DateTime) x;
-        DateTime dty = (DateTime) y;
-        return dtx.equals(dty);
+        return x.equals(y);
     }
 
     @Override
-    public int hashCode(Object object) throws HibernateException
+    public int hashCode(DateTime object) throws HibernateException
     {
         return object.hashCode();
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
+    public DateTime nullSafeGet(ResultSet resultSet, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException
     {
         Timestamp timestamp = resultSet.getTimestamp(position);
@@ -68,19 +67,18 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
         if (timestamp == null || timezone == null) {
             return null;
         }
-        DateTime dateTime = new DateTime(timestamp, DateTimeZone.forID(timezone));
-        return dateTime;
+        return new DateTime(timestamp, DateTimeZone.forID(timezone));
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor session)
+    public void nullSafeSet(PreparedStatement preparedStatement, DateTime value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException
     {
         if (value == null) {
             preparedStatement.setNull(index, Types.TIMESTAMP);
             preparedStatement.setNull(index + 1, Types.VARCHAR);
         } else {
-            DateTime dateTime = (DateTime) value;
+            DateTime dateTime = value;
             String timeZoneId = dateTime.getZone().getID();
             preparedStatement.setTimestamp(index, new Timestamp(dateTime.getMillis()));
 //            preparedStatement.setTimestamp(index, dateTime.toDate());
@@ -89,7 +87,7 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException
+    public DateTime deepCopy(DateTime value) throws HibernateException
     {
         return value;
     }
@@ -101,19 +99,19 @@ public class PersistentDateTimeWithZone extends UserTypeLegacyBridge implements 
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException
+    public Serializable disassemble(DateTime value) throws HibernateException
     {
-        return (Serializable) value;
+        return value;
     }
 
     @Override
-    public Object assemble(Serializable cached, Object value) throws HibernateException
+    public DateTime assemble(Serializable cached, Object value) throws HibernateException
     {
-        return cached;
+        return (DateTime) cached;
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    public DateTime replace(DateTime original, DateTime target, Object owner) throws HibernateException
     {
         return original;
     }

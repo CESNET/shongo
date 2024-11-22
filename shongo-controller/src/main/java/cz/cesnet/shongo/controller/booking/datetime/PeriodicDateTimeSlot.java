@@ -33,7 +33,7 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
      */
     @Override
     @Column(length = PersistentPeriod.LENGTH)
-    @Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
+    @Type(PersistentPeriod.class)
     @Access(AccessType.FIELD)
     public Period getDuration()
     {

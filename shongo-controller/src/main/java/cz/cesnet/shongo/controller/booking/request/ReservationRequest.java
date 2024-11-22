@@ -100,8 +100,8 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     /**
      * @return {@link #slotStart}
      */
-    @Column(nullable = false)
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Column(nullable = false, precision = 9)
+    @Type(PersistentDateTime.class)
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -119,7 +119,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotEnd}
      */
     @Column(nullable = false)
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     public DateTime getSlotEnd()
     {
         return slotEnd;

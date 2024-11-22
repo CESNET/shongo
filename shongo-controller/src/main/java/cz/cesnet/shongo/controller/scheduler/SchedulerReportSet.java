@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentInterval;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import cz.cesnet.shongo.report.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CompositeType;
-import org.hibernate.usertype.UserTypeLegacyBridge;
 
 /**
  * Auto-generated implementation of {@link AbstractReportSet}.
@@ -616,7 +616,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Column
-        @org.hibernate.annotations.Type(value = cz.cesnet.shongo.hibernate.PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+        @org.hibernate.annotations.Type(PersistentDateTime.class)
         public org.joda.time.DateTime getMaxDateTime()
         {
             return maxDateTime;
@@ -4514,7 +4514,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Column(length = PersistentPeriod.LENGTH)
-        @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
+        @org.hibernate.annotations.Type(PersistentPeriod.class)
         public org.joda.time.Period getDuration()
         {
             return duration;
@@ -4526,7 +4526,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Column(length = PersistentPeriod.LENGTH)
-        @org.hibernate.annotations.Type(value = PersistentPeriod.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentPeriod")})
+        @org.hibernate.annotations.Type(PersistentPeriod.class)
         public org.joda.time.Period getMaxDuration()
         {
             return maxDuration;

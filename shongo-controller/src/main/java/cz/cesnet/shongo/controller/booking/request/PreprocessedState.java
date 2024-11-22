@@ -76,7 +76,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #start}
      */
     @Column(name = "interval_start")
-    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     public DateTime getStart()
     {
         return start;
@@ -94,7 +94,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #end}
      */
     @Column(name = "interval_end")
-    @Type(value = PersistentDateTime.class, parameters = {@Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     public DateTime getEnd()
     {
         return end;

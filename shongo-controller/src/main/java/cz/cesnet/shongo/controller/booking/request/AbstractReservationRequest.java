@@ -130,7 +130,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #createdAt}
      */
     @Column(nullable = false)
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getCreatedAt()
     {
@@ -163,7 +163,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #updatedAt}
      */
     @Column(nullable = false)
-    @Type(value = PersistentDateTime.class, parameters = {@org.hibernate.annotations.Parameter(name = UserTypeLegacyBridge.TYPE_NAME_PARAM_KEY, value = "PersistentDateTime")})
+    @Type(PersistentDateTime.class)
     @Access(AccessType.FIELD)
     public DateTime getUpdatedAt()
     {
