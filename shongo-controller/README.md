@@ -27,13 +27,13 @@ To connect to the controller, use the client application:
 
 The Shongo Controller requires the following to build and run:
 
-1. Java
-2. Maven
-3. PostgreSQL Database
+1. Java (11)
+2. Maven (3.8.7)
+3. PostgreSQL Database (11)
 
 ### Installing Maven
 
-Download Maven version 2.2.1 from [Maven Download Page](https://maven.apache.org/download.cgi)
+Download Maven from [Maven Download Page](https://maven.apache.org/download.cgi)
 and follow the installation instructions provided there.
 
 ### Installing Java on Ubuntu/Debian
@@ -41,11 +41,7 @@ and follow the installation instructions provided there.
 To install Java on Ubuntu/Debian system, execute the following commands:
 
 ```bash
-    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
-    echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
-    apt-get update
-    apt-get install oracle-java6-installer
+    sudo apt-get install openjdk-11-jdk
 ```
 
 For more details, refer to [this guide](http://www.webupd8.org/2012/06/how-to-install-oracle-java-7-in-debian.html).
@@ -57,6 +53,12 @@ To install PostgreSQL on Ubuntu/Debian, execute the following command:
 
 ```bash
   apt-get install postgresql
+```
+
+Alternatively, you can run PostgreSQL as a container:
+
+```bash
+  docker run --name shongo-postgres -e POSTGRES_PASSWORD=shongo -p 5432:5432 -d postgres:11-alpine
 ```
 
 ---
