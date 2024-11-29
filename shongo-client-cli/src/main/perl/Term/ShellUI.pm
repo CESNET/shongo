@@ -1,3 +1,5 @@
+# Based on https://github.com/bronson/Term-ShellUI/blob/master/lib/Term/ShellUI.pm
+
 # Term::ShellUI.pm
 # Scott Bronson
 # 3 Nov 2003
@@ -224,7 +226,7 @@ Similar to proc, but passes more arguments.  Where proc simply passes
 the arguments for the command, method also passes the Term::ShellUI object
 and the command's parms object (see L</call_cmd>
 for more on parms).  Most commands can be implemented entirely using
-a simple proc procedure, but sometimes they require addtional information
+a simple proc procedure, but sometimes they require additional information
 supplied to the method.  Like proc, method may also be a string.
 
 =item args
@@ -441,7 +443,7 @@ sub complete_files
         # reformat filenames to be exactly as user typed
         @files = map { length($dir) ? ($dir eq '/' ? "/$_" : "$dir/$_") : $_ } @files;
     } else {
-        $self->completemsg("Cannot read dir: $!\n");
+        $self->completemsg("Couldn't read dir: $!\n");
     }
 
     return \@files;
@@ -628,7 +630,7 @@ This tells how many items to save to the history file.
 The default is 500.
 
 Note that this parameter does not affect in-memory history.  Term::ShellUI
-makes no attemt to cull history so you're at the mercy
+makes no attempt to cull history so you're at the mercy
 of the default of whatever ReadLine library you are using.
 See L<Term::ReadLine::Gnu/StifleHistory> for one way to change this.
 
@@ -675,7 +677,7 @@ prompt, but > is the prompt when continuing).
 
     $term->prompt(['$', '>']);
 
-Of course, you specify backslash_continues_command=>1 to to L</new> to cause
+Of course, you specify backslash_continues_command=>1 to L</new> to cause
 commands to continue.
 
 And, of course, you can use an array of procs too.
@@ -719,7 +721,6 @@ sub new
         keep_quotes => 0,
         debug_complete => 0,
         display_summary_in_help => 1,
-        disable_term => 0,
         @_
     );
 
@@ -736,7 +737,7 @@ sub new
         );
 
     # expand tildes in the history file
-    if($args{history_file} && $args{history_file} =~ /^~([^\/]*)/) {
+    if($args{history_file}) {
         $args{history_file} =~ s/^~([^\/]*)/$1?(getpwnam($1))[7]:
             $ENV{HOME}||$ENV{LOGDIR}||(getpwuid($>))[7]/e;
     }
@@ -746,19 +747,16 @@ sub new
         $self->{$_} = $args{$_};
     }
 
-    if ( !$args{disable_term} ) {
-        $self->{term} = Term::ReadLine->new($args{'app'});
-        $self->{term}->MinLine(0);  # manually call AddHistory
+    $self->{term} ||= new Term::ReadLine($args{'app'});
+    $self->{term}->MinLine(0);  # manually call AddHistory
 
-        my $attrs = $self->{term}->Attribs;
-        # there appear to be catastrophic bugs with history_word_delimiters
-        # it goes into an infinite loop when =,[] are in token_chars
-        # $attrs->{history_word_delimiters} = " \t\n".$self->{token_chars};
-        $attrs->{completion_function} = sub { completion_function($self, @_); };
+    my $attrs = $self->{term}->Attribs;
+# there appear to be catastrophic bugs with history_word_delimiters
+# it goes into an infinite loop when =,[] are in token_chars
+    # $attrs->{history_word_delimiters} = " \t\n".$self->{token_chars};
+    $attrs->{completion_function} = sub { completion_function($self, @_); };
 
-        $self->{OUT} = $self->{term}->OUT || \*STDOUT;
-    }
-
+    $self->{OUT} = $self->{term}->OUT || \*STDOUT;
     $self->{prevcmd} = "";  # cmd to run again if user hits return
 
     @{$self->{eof_exit_hooks}} = ();
@@ -856,10 +854,10 @@ sub process_a_cmd
     }
 
     # Add to history unless it's a dupe of the previous command.
-    if(defined($self->{term}) && $save_to_history && $rawline ne $self->{prevcmd}) {
-        $self->{term}->addhistory($rawline);
+    if($save_to_history && $str ne $self->{prevcmd}) {
+        $self->{term}->addhistory($str);
     }
-    $self->{prevcmd} = $rawline;
+    $self->{prevcmd} = $str;
 
     return $retval;
 }
@@ -868,7 +866,7 @@ sub process_a_cmd
 =item run()
 
 The main loop.  Processes all commands until someone calls
-C<L</"exit_requested(exitflag)"|exit_requested>(true)>.
+C<L<exit_requested|/exit_requested(exitflag)>(true)>.
 
 If you pass arguments, they are joined and run once.  For
 instance, $term->run(@ARGV) allows your program to be run
@@ -1078,9 +1076,9 @@ what you want (see the L</CALLBACKS> section for the completion
 routines that come with ShellUI).
 
 Your routine returns an arrayref of possible completions,
-a string conaining a short but helpful note,
+a string containing a short but helpful note,
 or undef if an error prevented any completions from being generated.
-Return an empty array if there are simply no applicable competions.
+Return an empty array if there are simply no applicable completions.
 Be careful; the distinction between no completions and an error
 can be significant.
 

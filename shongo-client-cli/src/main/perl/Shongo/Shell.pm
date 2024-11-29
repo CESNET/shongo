@@ -21,12 +21,13 @@ sub new
 {
     my $class = shift;
     my $name = shift;
-    my $disable_term = shift;
+
+    my $term = Shongo::Console::get_term();
     my $self = Term::ShellUI->new(@_,
         commands => {},
         name => $name,
         backslash_continues_command => 1,
-        disable_term => $disable_term
+        term => $term,
     );
 
     if ( defined($self->{'term'}) ) {

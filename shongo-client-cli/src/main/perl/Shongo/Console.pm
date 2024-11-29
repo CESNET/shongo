@@ -32,6 +32,29 @@ BEGIN {
 use Term::ReadKey;
 use Shongo::Common;
 
+# One single terminal for the whole application
+my $term;
+
+#
+# Return single terminal
+# Initialize terminal if it is not initialized yet
+#
+# Single terminal has to be used for version >= 1.46
+# https://metacpan.org/release/HAYASHI/Term-ReadLine-Gnu-1.46
+#
+# @return initialized terminal
+#
+sub get_term
+{
+    if ( !defined($term) ) {
+        $term = Term::ReadLine->new('read_line');
+        $term->ornaments(0);
+        $term->SetHistory();
+    }
+
+    return $term;
+}
+
 #
 # Print text
 #
@@ -217,9 +240,6 @@ sub console_print_table
 sub console_read
 {
     my ($message, $value) = @_;
-    my $term = Term::ReadLine->new('read_line');
-    $term->ornaments(0);
-    $term->SetHistory();
     my $line = $term->readline(colored(sprintf("%s: ", $message), "bold blue"), $value);
     utf8::decode($line);
     return $line;

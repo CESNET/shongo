@@ -27,8 +27,7 @@ use Shongo::Test;
 sub new
 {
     my $class = shift;
-    my $disable_term = shift;
-    my $self = Shongo::Shell->new('controller', $disable_term);
+    my $self = Shongo::Shell->new('controller');
 
     $self->prompt('shongo> ');
     $self->add_commands({
