@@ -16,6 +16,15 @@ use Shongo::ClientCli::API::DeviceResource;
 use Shongo::ClientCli::API::Alias;
 
 #
+# Tag types
+#
+our $TagType = ordered_hash(
+    'DEFAULT' => 'Default',
+    'NOTIFY_EMAIL' => 'Notify Email',
+    'RESERVATION_DATA' => 'Reservation Data',
+);
+
+#
 # Populate shell by options for management of resources.
 #
 # @param shell
@@ -477,6 +486,19 @@ sub create_tag()
             'title' => 'Tag name',
         }
     );
+    $tag->add_attribute(
+        'type', {
+            'required' => 1,
+            'title' => 'Tag type',
+            'type' => 'enum',
+            'enum' => $Shongo::ClientCli::ResourceService::TagType,
+        }
+    );
+    $tag->add_attribute(
+        'data', {
+            'title' => 'Tag data',
+        }
+    );
 
     my $id = $tag->create($attributes, $options);
     if ( defined($id) ) {
@@ -514,13 +536,17 @@ sub list_tags()
         'columns' => [
             {'field' => 'id',           'title' => 'Identifier'},
             {'field' => 'name',         'title' => 'Name'},
+            {'field' => 'type',         'title' => 'Type'},
+            {'field' => 'data',         'title' => 'Data'},
         ],
         'data' => []
     };
-    foreach my $resource (@{$response}) {
+    foreach my $tag (@{$response}) {
         push(@{$table->{'data'}}, {
-            'id' => $resource->{'id'},
-            'name' => $resource->{'name'},
+            'id' => $tag->{'id'},
+            'name' => $tag->{'name'},
+            'type' => $tag->{'type'},
+            'data' => $tag->{'data'},
         });
     }
     console_print_table($table);
