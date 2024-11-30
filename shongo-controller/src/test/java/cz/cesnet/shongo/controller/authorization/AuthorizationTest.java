@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
@@ -9,17 +10,19 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.booking.datetime.*;
-import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTimeSlot;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.AclEntry}s.
@@ -81,12 +84,12 @@ public class AuthorizationTest extends AbstractControllerTest
         String resourceId = createResource(SECURITY_TOKEN, resource);
 
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
 
         getResourceService().deleteResource(SECURITY_TOKEN, resourceId);
 
         aclEntries.remove(new AclEntry(userId, resourceId, ObjectRole.OWNER));
-        Assert.assertEquals(0, aclEntries.size());
+        assertEquals(0, aclEntries.size());
     }
 
     @Test
@@ -103,7 +106,7 @@ public class AuthorizationTest extends AbstractControllerTest
         String resourceId = createResource(SECURITY_TOKEN, resource);
 
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
@@ -114,13 +117,13 @@ public class AuthorizationTest extends AbstractControllerTest
 
         aclEntries.add(new AclEntry(userId, reservationRequestId, ObjectRole.OWNER));
         aclEntries.add(new AclEntry(userId, reservation.getId(), ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
 
         deleteAclEntry(userId, reservationRequestId, ObjectRole.OWNER);
 
         aclEntries.clear();
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
 
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-02T12:00", "PT2H");
@@ -144,13 +147,13 @@ public class AuthorizationTest extends AbstractControllerTest
         aclEntries.add(new AclEntry(userId, aliasReservation2.getId(), ObjectRole.OWNER));
         aclEntries.add(new AclEntry(userId, valueReservation1, ObjectRole.OWNER));
         aclEntries.add(new AclEntry(userId, valueReservation2, ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
 
         deleteAclEntry(userId, reservationRequestId, ObjectRole.OWNER);
 
         aclEntries.clear();
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
-        Assert.assertEquals(aclEntries, getAclEntries());
+        assertEquals(aclEntries, getAclEntries());
     }
 
     @Test
@@ -222,8 +225,8 @@ public class AuthorizationTest extends AbstractControllerTest
         String reservationRequest2Id = allocate(SECURITY_TOKEN_USER1, reservationRequest2);
         ExistingReservation reservation2 = (ExistingReservation) checkAllocated(reservationRequest2Id);
 
-        Assert.assertEquals(aliasReservation.getId(), reservation1.getReservation().getId());
-        Assert.assertEquals(aliasReservation.getId(), reservation2.getReservation().getId());
+        assertEquals(aliasReservation.getId(), reservation1.getReservation().getId());
+        assertEquals(aliasReservation.getId(), reservation2.getReservation().getId());
 
         getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1,
                 new AclEntry(user2Id, reservationRequest1Id, ObjectRole.OWNER));
@@ -308,6 +311,58 @@ public class AuthorizationTest extends AbstractControllerTest
         System.out.println("==========================================================");
 
         Assert.assertTrue("List all is not quicker than by one.", listPermissionsTime < listPermissionsByOneTime);
+    }
+
+    @Test
+    public void shouldGetUserDataOfReservationDevice() {
+        DummyAuthorization authorization = getAuthorization();
+
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        authorization.addReservationDevice(deviceConfig);
+
+        assertEquals(authorization.getUserData(deviceConfig.getDeviceId()), deviceConfig.getUserData());
+    }
+
+    @Test
+    public void shouldGetUserInformationOfReservationDeviceById() {
+        DummyAuthorization authorization = getAuthorization();
+
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        authorization.addReservationDevice(deviceConfig);
+
+        assertEquals(authorization.getUserInformation(deviceConfig.getDeviceId()), deviceConfig.getUserData().getUserInformation());
+    }
+
+    @Test
+    public void shouldGetUserInformationOfReservationDeviceByToken() {
+        DummyAuthorization authorization = getAuthorization();
+
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        authorization.addReservationDevice(deviceConfig);
+        UserInformation userInformation = deviceConfig.getUserData().getUserInformation();
+
+        SecurityToken securityToken = new SecurityToken(deviceConfig.getAccessToken());
+        securityToken.setUserInformation(userInformation);
+
+        assertEquals(authorization.getUserInformation(securityToken), userInformation);
+    }
+
+    @Test
+    public void shouldListReservationDeviceUserInformation() {
+        DummyAuthorization authorization = getAuthorization();
+
+        String resourceId = createTestResource();
+        ReservationDeviceConfig deviceConfig = new ReservationDeviceConfig("test", "test", resourceId);
+        authorization.addReservationDevice(deviceConfig);
+
+        Set<String> reservationDevices = new HashSet<>();
+        reservationDevices.add(deviceConfig.getDeviceId());
+
+        Collection<UserInformation> userInformationResult = authorization.listUserInformation(reservationDevices, null);
+        assertTrue(userInformationResult.contains(deviceConfig.getUserData().getUserInformation()));
     }
 
     /**

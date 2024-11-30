@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.DateTime;
@@ -24,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 import java.util.*;
 
 /**
@@ -340,7 +337,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             logger.debug("Starting controller for " + getClass().getName() + "...");
             controller.start();
             controller.startRpc();
-            controller.startInterDomainRESTApi();
+            controller.startRESTApi();
 
             // Start client
             controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
@@ -821,5 +818,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         } finally {
             entityManager.close();
         }
+    }
+
+    protected String createTestResource() {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        return createResource(resource);
     }
 }
