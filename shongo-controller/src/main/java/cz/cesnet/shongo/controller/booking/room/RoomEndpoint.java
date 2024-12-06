@@ -535,8 +535,9 @@ public abstract class RoomEndpoint extends Endpoint
 
         // Determine whether room has recording service and recordings
         // (use executable_summary for used_room_endpoints to be taken into account)
+        // Sometimes there is no data yet in executable_summary, so we must use the view
         Object[] result = (Object[]) entityManager.createNativeQuery(
-                "SELECT room_has_recording_service, room_has_recordings FROM executable_summary WHERE id = :id")
+                "SELECT room_has_recording_service, room_has_recordings FROM executable_summary_view WHERE id = :id")
                 .setParameter("id", getId())
                 .getSingleResult();
         abstractRoomExecutableApi.setHasRecordingService(Boolean.TRUE.equals(result[0]));

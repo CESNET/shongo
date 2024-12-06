@@ -72,6 +72,7 @@ public class Compartment extends Executable
     {
         List<RoomEndpoint> roomEndpoints = new ArrayList<RoomEndpoint>();
         for (Executable childExecutable : getChildExecutables()) {
+            childExecutable = getLazyImplementation(childExecutable);
             if (!(childExecutable instanceof RoomEndpoint)) {
                 continue;
             }
