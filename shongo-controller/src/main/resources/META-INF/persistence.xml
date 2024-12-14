@@ -25,6 +25,8 @@
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.physical_naming_strategy" value="cz.cesnet.shongo.controller.util.CustomPhysicalNamingStrategy" />
             <property name="hibernate.implicit_naming_strategy" value="cz.cesnet.shongo.controller.util.CustomImplicitNamingStrategy" />
+            <!-- TODO: consider upgrading to new standard naming strategy https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#implicit-identifier-sequence-and-table-name -->
+            <property name="hibernate.id.db_structure_naming_strategy" value="legacy" />
             <!-- C3P0 configuration, see: -->
             <!--   * org.hibernate.cfg.AvailableSettings -->
             <!--   * http://www.mchange.com/projects/c3p0/#configuration_properties -->
