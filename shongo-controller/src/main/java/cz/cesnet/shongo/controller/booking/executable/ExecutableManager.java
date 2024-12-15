@@ -509,21 +509,25 @@ public class ExecutableManager extends AbstractManager
      */
     public boolean isUserParticipantInExecutable(String userId, Executable executable)
     {
-        List<PersonParticipant> results = entityManager.createQuery(
-                "SELECT participant FROM PersonParticipant participant"
-                        + " WHERE participant.person.userId = :userId"
-                        + " AND ("
-                        + "   participant IN("
-                        + "     SELECT participant FROM RoomEndpoint roomEndpoint"
-                        + "     LEFT JOIN roomEndpoint.participants participant"
-                        + "     WHERE roomEndpoint = :executable OR roomEndpoint.reusedRoomEndpoint = :executable"
-                        + "   ) OR participant IN("
-                        + "     SELECT participant FROM UsedRoomEndpoint roomEndpoint"
-                        + "     LEFT JOIN roomEndpoint.reusedRoomEndpoint reusedRoomEndpoint"
-                        + "     LEFT JOIN reusedRoomEndpoint.participants participant"
-                        + "     WHERE roomEndpoint = :executable"
-                        + "   )"
-                        + ")", PersonParticipant.class)
+        String query = "SELECT participant FROM PersonParticipant participant"
+                + " WHERE participant.person.userId = :userId"
+                + " AND ("
+                + "   participant IN("
+                + "     SELECT participant FROM RoomEndpoint roomEndpoint"
+                + "     LEFT JOIN roomEndpoint.participants participant"
+                + "     WHERE roomEndpoint = :executable OR roomEndpoint.reusedRoomEndpoint = :executable"
+                + "   )";
+        if (executable instanceof UsedRoomEndpoint) {
+            query += " OR participant IN("
+                    + "     SELECT participant FROM UsedRoomEndpoint roomEndpoint"
+                    + "     LEFT JOIN roomEndpoint.reusedRoomEndpoint reusedRoomEndpoint"
+                    + "     LEFT JOIN reusedRoomEndpoint.participants participant"
+                    + "     WHERE roomEndpoint = :executable"
+                    + "   )";
+        }
+        query += ")";
+
+        List<PersonParticipant> results = entityManager.createQuery(query, PersonParticipant.class)
                 .setParameter("userId", userId)
                 .setParameter("executable", executable)
                 .getResultList();
