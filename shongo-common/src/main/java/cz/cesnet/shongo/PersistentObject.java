@@ -1,6 +1,6 @@
 package cz.cesnet.shongo;
 
-import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.Hibernate;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
@@ -147,11 +147,6 @@ public abstract class PersistentObject
     @SuppressWarnings("unchecked")
     public static <T> T getLazyImplementation(T object)
     {
-        if (object instanceof HibernateProxy) {
-            return (T) ((HibernateProxy) object).getHibernateLazyInitializer().getImplementation();
-        }
-        else {
-            return object;
-        }
+        return (T) Hibernate.unproxy(object);
     }
 }
