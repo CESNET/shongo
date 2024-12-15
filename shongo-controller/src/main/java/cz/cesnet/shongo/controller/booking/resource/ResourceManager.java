@@ -499,7 +499,7 @@ public class ResourceManager extends AbstractManager
 
             CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
             Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
-            Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), getDomainByName(domainName).getId());
+            Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), getDomainByName(domainName));
             Predicate param2 = criteriaBuilder.equal(tagRoot.get("foreignResourceId"), resourceId);
             query.select(tagRoot).where(param1, param2);
 
@@ -532,7 +532,7 @@ public class ResourceManager extends AbstractManager
 
         CriteriaQuery<ForeignResources> query = criteriaBuilder.createQuery(ForeignResources.class);
         Root<ForeignResources> tagRoot = query.from(ForeignResources.class);
-        Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain.getId());
+        Predicate param1 = criteriaBuilder.equal(tagRoot.get("domain"), domain);
         query.select(tagRoot).where(param1);
 
         TypedQuery<ForeignResources> typedQuery = entityManager.createQuery(query);
@@ -607,8 +607,8 @@ public class ResourceManager extends AbstractManager
 
             CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
             Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
-            Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource"), resourceId);
-            Predicate param2 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
+            Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("resource").get("id"), resourceId);
+            Predicate param2 = criteriaBuilder.equal(resourceTagRoot.get("tag").get("id"), tagId);
             query.select(resourceTagRoot);
             query.where(param1,param2);
 
@@ -678,7 +678,7 @@ public class ResourceManager extends AbstractManager
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
         Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
-        Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResources"), foreignResources.getId());
+        Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("foreignResources"), foreignResources);
         query.select(resourceTagRoot).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
@@ -697,7 +697,7 @@ public class ResourceManager extends AbstractManager
 
         CriteriaQuery<ResourceTag> query = criteriaBuilder.createQuery(ResourceTag.class);
         Root<ResourceTag> resourceTagRoot = query.from(ResourceTag.class);
-        Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("tag"), tagId);
+        Predicate param1 = criteriaBuilder.equal(resourceTagRoot.get("tag").get("id"), tagId);
         query.select(resourceTagRoot).where(param1);
 
         TypedQuery<ResourceTag> typedQuery = entityManager.createQuery(query);
@@ -754,8 +754,8 @@ public class ResourceManager extends AbstractManager
 
             CriteriaQuery<DomainResource> query = criteriaBuilder.createQuery(DomainResource.class);
             Root<DomainResource> domainResourceRoot = query.from(DomainResource.class);
-            Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("domain"), domainId);
-            Predicate param2 = criteriaBuilder.equal(domainResourceRoot.get("resource"), resourceId);
+            Predicate param1 = criteriaBuilder.equal(domainResourceRoot.get("domain").get("id"), domainId);
+            Predicate param2 = criteriaBuilder.equal(domainResourceRoot.get("resource").get("id"), resourceId);
             query.select(domainResourceRoot);
             query.where(param1,param2);
 
