@@ -2,7 +2,7 @@ package cz.cesnet.shongo.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -128,17 +128,14 @@ public class ThreadHelper
      */
     public static List<Thread> listThreadGroup(String name)
     {
-        List<Thread> threads = new LinkedList<Thread>();
         ThreadGroup threadGroup = getThreadGroupByName(name, null);
         if (threadGroup != null) {
             int count = threadGroup.activeCount();
-            Thread threadArray[] = new Thread[count];
-            int threadCount = Thread.enumerate(threadArray);
-            for (int index = 0; index < threadCount; index++) {
-                threads.add(threadArray[index]);
-            }
+            Thread[] threadArray = new Thread[count];
+            threadGroup.enumerate(threadArray);
+            return Arrays.asList(threadArray);
         }
-        return threads;
+        return List.of();
     }
 
     /**
@@ -148,9 +145,13 @@ public class ThreadHelper
      */
     public static void killThreadGroup(String name)
     {
-        ThreadGroup threadGroup = getThreadGroupByName(name, null);
-        if (threadGroup != null) {
-            threadGroup.stop();
-        }
+        listThreadGroup(name).forEach(thread -> {
+            if (thread == null) {
+                return;
+            }
+
+            // TODO: Deprecated, replace with interrupt or jade.core.Runtime.instance().shutDown()
+            thread.stop();
+        });
     }
 }
