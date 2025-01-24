@@ -22,6 +22,7 @@
         <!--<spring.version>3.2.3.RELEASE</spring.version>-->
         <!--<spring.version>4.3.23.RELEASE</spring.version>-->
         <spring.version>5.2.2.RELEASE</spring.version>
+        <jackson.version>2.10.1</jackson.version>
     </properties>
 
     <dependencies>
@@ -74,11 +75,46 @@
             <version>1.8.4</version>
         </dependency>
 
-        <!-- Jackson JSON Mapper for Spring MVC remapper -->
+
+        <!-- Spring authentication -->
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-resource-server</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <!-- Spring OpenApi and swagger -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
+        <!-- Jackson JSON Mapper for Spring MVC datetime -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- Google core libraries -->
@@ -200,6 +236,26 @@
             <groupId>org.mnode.ical4j</groupId>
             <artifactId>ical4j-zoneinfo-outlook</artifactId>
             <version>1.0.3</version>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.14.12</version>
         </dependency>
     </dependencies>
 

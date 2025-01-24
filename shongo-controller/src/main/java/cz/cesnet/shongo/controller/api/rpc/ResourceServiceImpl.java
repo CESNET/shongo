@@ -449,6 +449,16 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                         resourceSummary.setCalendarUriKey(record[9].toString());
                     }
                     resourceSummary.setConfirmByOowner((Boolean) record[10]);
+                    String type = record[11].toString();
+                    resourceSummary.setType(ResourceSummary.Type.valueOf(type.trim()));
+                    if (record[12] != null) {
+                        String resourceTags = (String) record[12];
+                        Arrays.stream(resourceTags.split("\\|"))
+                                .map(String::trim)
+                                .map(Tag::fromConcat)
+                                .forEach(resourceSummary::addTag);
+                    }
+                    resourceSummary.setHasCapacity((Boolean) record[13]);
                     response.addItem(resourceSummary);
                 }
             }

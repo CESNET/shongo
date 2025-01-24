@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.*;
@@ -125,6 +126,11 @@ public class DataMap
     public void set(String property, ReadablePartial readablePartial)
     {
         setNotNull(property, Converter.convertReadablePartialToString(readablePartial));
+    }
+
+    public void set(String property, JsonNode jsonNode)
+    {
+        setNotNull(property, Converter.convertJsonNodeToString(jsonNode));
     }
 
     public void set(String property, Collection collection)
@@ -336,6 +342,11 @@ public class DataMap
     public ReadablePartial getReadablePartial(String property)
     {
         return Converter.convertToReadablePartial(data.get(property));
+    }
+
+    public JsonNode getJsonNode(String property)
+    {
+        return Converter.convertToJsonNode(getString(property));
     }
 
     public <T> List<T> getList(String property, Class<T> componentClass)
