@@ -11,9 +11,11 @@
         @TypeDef(name = PersistentLocalDate.NAME, typeClass = PersistentLocalDate.class),
         @TypeDef(name = PersistentPeriod.NAME, typeClass = PersistentPeriod.class),
         @TypeDef(name = PersistentInterval.NAME, typeClass = PersistentInterval.class),
-        @TypeDef(name = PersistentReadablePartial.NAME, typeClass = PersistentReadablePartial.class)
+        @TypeDef(name = PersistentReadablePartial.NAME, typeClass = PersistentReadablePartial.class),
+        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class),
 }) package cz.cesnet.shongo.hibernate;
 
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
