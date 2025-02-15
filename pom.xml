@@ -9,6 +9,9 @@
         <shongo.version>0.10.0</shongo.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <hibernate.version>6.1.7.Final</hibernate.version>
+        <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
     </properties>
 
     <groupId>cz.cesnet.shongo</groupId>
@@ -49,6 +52,27 @@
             <url>file://${project.basedir}/../lib</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-c3p0</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta.persistence.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- We use SLF4J API for all logging in Shongo -->

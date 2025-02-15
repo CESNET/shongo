@@ -33,7 +33,6 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.activation</groupId>
@@ -112,12 +111,10 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.1.0.Final</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-c3p0</artifactId>
-            <version>6.1.0.Final</version>
         </dependency>
 
         <!-- Database Drivers (HyperSQL is used as embedded database) -->
