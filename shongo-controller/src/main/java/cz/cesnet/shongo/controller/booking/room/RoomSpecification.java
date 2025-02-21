@@ -184,7 +184,7 @@ public class RoomSpecification extends Specification
     /**
      * @return {@link #deviceResource}
      */
-    @OneToOne
+    @ManyToOne
     public DeviceResource getDeviceResource()
     {
         return deviceResource;

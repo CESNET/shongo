@@ -44,9 +44,10 @@ public class CustomUniqueDelegate extends DefaultUniqueDelegate {
         );
 
         final StringBuilder buf = new StringBuilder(dialect.getAlterTableString(tableName));
-        buf.append( getDropUnique() );
+        buf.append( ' ' );
+        buf.append( dialect.getDropUniqueKeyString() );
         if ( dialect.supportsIfExistsBeforeConstraintName() ) {
-            buf.append( "if exists " );
+            buf.append( " if exists " );
         }
         buf.append( dialect.quote( getCorrectUniqueKeyName(uniqueKey) ) );
         if ( dialect.supportsIfExistsAfterConstraintName() ) {

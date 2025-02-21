@@ -215,7 +215,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setResource(resource);
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "resource_id")
         public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
@@ -1254,7 +1254,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setExecutable(executable);
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "executable_id")
         public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
@@ -1877,7 +1877,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setEndpointTo(endpointTo);
         }
 
-        @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+        @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "endpoint_from_id")
         public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointFrom()
@@ -1890,7 +1890,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.endpointFrom = endpointFrom;
         }
 
-        @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+        @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "endpoint_to_id")
         public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointTo()
@@ -2388,7 +2388,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setInterval(interval);
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "resource_id")
         public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
@@ -2583,7 +2583,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setReservation(reservation);
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "reservation_id")
         public cz.cesnet.shongo.controller.booking.reservation.Reservation getReservation()
@@ -2629,7 +2629,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setUsageInterval(usageInterval);
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
@@ -3487,9 +3487,9 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating alias for the following specification: 
-     *   Technology: {@link #technologies} 
-     *   Alias Type: {@link #aliasTypes} 
+     * Allocating alias for the following specification:
+     *   Technology: {@link #technologies}
+     *   Alias Type: {@link #aliasTypes}
      *        Value: {@link #value}
      */
     @Entity
@@ -3647,9 +3647,9 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating room for the following specification: 
+     * Allocating room for the following specification:
      *     Technology: {@link #technologySet}
-     *   Participants: {@link #participantCount} 
+     *   Participants: {@link #participantCount}
      *       Resource: {@link #resource}
      */
     @Entity
@@ -3703,7 +3703,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.participantCount = participantCount;
         }
 
-        @OneToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.LAZY)
         @Access(AccessType.FIELD)
         @JoinColumn(name = "resource_id")
         public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
@@ -3750,7 +3750,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating recording service for the following specification: 
+     * Allocating recording service for the following specification:
      *     Enabled: {@link #enabled}
      */
     @Entity

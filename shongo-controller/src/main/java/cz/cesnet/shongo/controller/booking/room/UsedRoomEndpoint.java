@@ -56,7 +56,7 @@ public class UsedRoomEndpoint extends RoomEndpoint
     /**
      * @return {@link #reusedRoomEndpoint}
      */
-    @OneToOne
+    @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public RoomEndpoint getReusedRoomEndpoint()
     {

@@ -10,7 +10,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <hibernate.version>6.1.7.Final</hibernate.version>
+        <hibernate.version>6.2.28.Final</hibernate.version>
         <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
     </properties>
 

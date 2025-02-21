@@ -28,7 +28,7 @@ public class ExistingReservation extends Reservation
     /**
      * @return {@link #reusedReservation}
      */
-    @OneToOne
+    @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public Reservation getReusedReservation()
     {

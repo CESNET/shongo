@@ -99,7 +99,7 @@ public class AliasProviderCapability extends Capability
     /**
      * @return {@link #valueProvider}
      */
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public ValueProvider getValueProvider()
     {

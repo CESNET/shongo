@@ -67,7 +67,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     /**
      * @return {@link #roomProviderCapability}
      */
-    @OneToOne
+    @ManyToOne(optional = false)
     public RoomProviderCapability getRoomProviderCapability()
     {
         return roomProviderCapability;

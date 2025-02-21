@@ -129,7 +129,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     /**
      * @return {@link #allocation}
      */
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public Allocation getAllocation()
     {

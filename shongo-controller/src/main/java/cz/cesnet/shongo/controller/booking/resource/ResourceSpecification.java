@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.domains.InterDomainAgent;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import jakarta.persistence.ManyToOne;
 import org.joda.time.Interval;
 
 import jakarta.persistence.Entity;
@@ -69,7 +70,7 @@ public class ResourceSpecification extends Specification implements ReservationT
     /**
      * @return {@link #resource}
      */
-    @OneToOne
+    @ManyToOne(optional = false)
     public Resource getResource()
     {
         return resource;
