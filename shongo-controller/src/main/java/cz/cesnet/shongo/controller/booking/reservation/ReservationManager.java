@@ -372,7 +372,7 @@ public class ReservationManager extends AbstractManager
                 "SELECT allocation FROM Allocation allocation"
                         + " WHERE ((allocation.state = :stateDeleted)"
                         + " OR (allocation.state = :stateWithoutReservations AND size(allocation.reservations) != 0))"
-                        + " AND (allocation.reservationRequest = null OR size(allocation.reservations) != 0)",
+                        + " AND (allocation.reservationRequest IS NULL OR size(allocation.reservations) != 0)",
                 Allocation.class)
                 .setParameter("stateDeleted", Allocation.State.DELETED)
                 .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS);

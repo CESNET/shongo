@@ -181,7 +181,7 @@ public class ExecutableManager extends AbstractManager
         return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:notStartedStates)"
-                        + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
+                        + "        OR (executable.nextAttempt IS NOT NULL AND executable.state = :startingFailedState))"
                         + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
@@ -223,7 +223,7 @@ public class ExecutableManager extends AbstractManager
         return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:startedStates)"
-                        + "        OR (executable.nextAttempt != NULL AND executable.state = :stoppingFailedState))"
+                        + "        OR (executable.nextAttempt IS NOT NULL AND executable.state = :stoppingFailedState))"
                         + " AND (executable.slotEnd <= :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
@@ -249,7 +249,7 @@ public class ExecutableManager extends AbstractManager
                         + "   INNER JOIN executable.childExecutables childExecutable "
                         + " ) AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
                         + " AND (executable.state IN(:states)"
-                        + "      OR (executable.nextAttempt != NULL AND executable.state = :failedState))"
+                        + "      OR (executable.nextAttempt IS NOT NULL AND executable.state = :failedState))"
                         + " AND (executable.slotEnd < :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
@@ -271,7 +271,7 @@ public class ExecutableManager extends AbstractManager
         return entityManager.createQuery(
                 "SELECT service FROM ExecutableService service"
                         + " WHERE (service.state IN(:notActiveStates)"
-                        + "        OR (service.nextAttempt != NULL AND service.state = :activationFailedState))"
+                        + "        OR (service.nextAttempt IS NOT NULL AND service.state = :activationFailedState))"
                         + " AND (service.slotStart <= :dateTime AND service.slotEnd >= :dateTime)"
                         + " AND ((service.nextAttempt IS NULL AND service.attemptCount = 0) OR service.nextAttempt <= :dateTime)"
                         + " AND (service.attemptCount < :maxAttemptCount)",
@@ -293,7 +293,7 @@ public class ExecutableManager extends AbstractManager
         return entityManager.createQuery(
                 "SELECT service FROM ExecutableService service"
                         + " WHERE (service.state IN(:activeStates)"
-                        + "        OR (service.nextAttempt != NULL AND service.state = :deactivationFailedState))"
+                        + "        OR (service.nextAttempt IS NOT NULL AND service.state = :deactivationFailedState))"
                         + " AND (service.slotStart > :dateTime OR service.slotEnd <= :dateTime)"
                         + " AND ((service.nextAttempt IS NULL AND service.attemptCount = 0) OR service.nextAttempt <= :dateTime)"
                         + " AND (service.attemptCount < :maxAttemptCount)",
