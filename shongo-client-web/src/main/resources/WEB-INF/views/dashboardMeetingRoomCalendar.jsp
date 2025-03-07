@@ -42,7 +42,7 @@
     var http = location.protocol;
     var slashes = http.concat("//");
     var host = slashes.concat(window.location.hostname);
-    var hostUrl = host.concat(":" + location.port);
+    var hostUrl = location.port && location.port.trim() !== "" ? host.concat(":" + location.port) : host;
     var calendarUrlBase = hostUrl + "${meetingRoomIcsUrl}";
     var exportCalendarMessage = "<strong><spring:message code='views.index.meetingRooms.calendarExport.message'/></strong><br />";
 
