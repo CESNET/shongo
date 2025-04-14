@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.booking.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
@@ -9,9 +12,13 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.api.AuxiliaryData;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.request.auxdata.AuxData;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.Tag;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
@@ -20,12 +27,15 @@ import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -37,6 +47,10 @@ import java.util.Map;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractReservationRequest extends PersistentObject implements ReportableSimple
 {
+
+    @Transient
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
@@ -114,6 +128,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
      */
     private ReservationRequestReusement reusement;
+
+    /**
+     * Auxiliary data. This data are specified by the {@link Tag}s of {@link Resource} which is requested for reservation.
+     */
+    private String auxData;
 
     @Id
     @SequenceGenerator(name = "reservation_request_id", sequenceName = "reservation_request_id_seq", allocationSize = 1)
@@ -386,6 +405,49 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @return {@link #auxData}
+     */
+    @Type(type = "jsonb")
+    @Column(name = "aux_data", columnDefinition = "text")
+    public String getAuxData()
+    {
+        return auxData;
+    }
+
+    /**
+     * @return {@link #auxData}
+     */
+    @Transient
+    public List<AuxData> getAuxDataList() throws JsonProcessingException
+    {
+        if (auxData == null) {
+            return null;
+        }
+        return objectMapper.readValue(getAuxData(), new TypeReference<>(){});
+    }
+
+    /**
+     * @param auxData sets the {@link #auxData}
+     */
+    public void setAuxData(String auxData)
+    {
+        this.auxData = auxData;
+    }
+
+    /**
+     * @param auxDataApi sets the {@link #auxData}
+     */
+    public void setAuxData(List<AuxiliaryData> auxDataApi)
+    {
+        List<AuxData> auxData = auxDataApi.stream().map(AuxData::fromApi).collect(Collectors.toList());
+        try {
+            setAuxData(objectMapper.writeValueAsString(auxData));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Validate {@link AbstractReservationRequest}.
      *
      * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
@@ -448,6 +510,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         setReusedAllocation(reservationRequest.getReusedAllocation());
         setReusedAllocationMandatory(reservationRequest.isReusedAllocationMandatory());
         setReusement(reservationRequest.getReusement());
+        setAuxData(reservationRequest.getAuxData());
 
         Specification oldSpecification = getSpecification();
         Specification newSpecification = reservationRequest.getSpecification();
@@ -550,6 +613,12 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                     ObjectIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
         }
         api.setReusement(getReusement());
+        try {
+            api.setAuxData(getAuxDataList().stream().map(AuxData::toApi).collect(Collectors.toList()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (NullPointerException ignored) {
+        }
 
         // Reservation request is deleted
         if (state.equals(State.DELETED)) {
@@ -604,6 +673,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         }
         setReusedAllocationMandatory(api.isReusedReservationRequestMandatory());
         setReusement(api.getReusement());
+        setAuxData(api.getAuxData());
     }
 
     /**
