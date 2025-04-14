@@ -27,7 +27,8 @@ public class InterDomainTest extends AbstractControllerTest
     private static final Integer INTERDOMAIN_LOCAL_PORT = 8443;
     private static final String INTERDOMAIN_LOCAL_PASSWORD = "shongo_test";
     private static final String INTERDOMAIN_LOCAL_PASSWORD_HASH = SSLCommunication.hashPassword(INTERDOMAIN_LOCAL_PASSWORD.getBytes());
-    private static final String TEST_CERT_PATH = "./shongo-controller/src/test/resources/keystore/server.crt";
+    private static final String TEST_KEY_STORE_PATH = "keystore/server.p12";
+    private static final String TEST_CERT_PATH = "keystore/server.crt";
 
     private Domain loopbackDomain;
     private Long loopbackDomainId;
@@ -35,11 +36,11 @@ public class InterDomainTest extends AbstractControllerTest
     @Override
     public void before() throws Exception
     {
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_HOST, INTERDOMAIN_LOCAL_HOST);
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_PORT, INTERDOMAIN_LOCAL_PORT.toString());
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE, "./shongo-controller/src/test/resources/keystore/server.p12");
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD, "shongo");
-        System.setProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE, "PKCS12");
+        System.setProperty(ControllerConfiguration.REST_API_HOST, INTERDOMAIN_LOCAL_HOST);
+        System.setProperty(ControllerConfiguration.REST_API_PORT, INTERDOMAIN_LOCAL_PORT.toString());
+        System.setProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE, getProjectResourcePath(TEST_KEY_STORE_PATH));
+        System.setProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE_PASSWORD, "shongo");
+        System.setProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE_TYPE, "PKCS12");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH, "false");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT, "PT10S");
         System.setProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD, INTERDOMAIN_LOCAL_PASSWORD);
@@ -51,7 +52,7 @@ public class InterDomainTest extends AbstractControllerTest
         loopbackDomain.setName(LocalDomain.getLocalDomainName());
         loopbackDomain.setOrganization("CESNET z.s.p.o.");
         loopbackDomain.setAllocatable(true);
-        loopbackDomain.setCertificatePath(TEST_CERT_PATH);
+        loopbackDomain.setCertificatePath(getProjectResourcePath(TEST_CERT_PATH));
         DeviceAddress deviceAddress = new DeviceAddress(INTERDOMAIN_LOCAL_HOST, INTERDOMAIN_LOCAL_PORT);
         loopbackDomain.setDomainAddress(deviceAddress);
         loopbackDomain.setPasswordHash(INTERDOMAIN_LOCAL_PASSWORD_HASH);
@@ -63,11 +64,11 @@ public class InterDomainTest extends AbstractControllerTest
     @After
     public void tearDown() throws Exception
     {
-        System.clearProperty(ControllerConfiguration.INTERDOMAIN_HOST);
-        System.clearProperty(ControllerConfiguration.INTERDOMAIN_PORT);
-        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE);
-        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_PASSWORD);
-        System.clearProperty(ControllerConfiguration.INTERDOMAIN_SSL_KEY_STORE_TYPE);
+        System.clearProperty(ControllerConfiguration.REST_API_HOST);
+        System.clearProperty(ControllerConfiguration.REST_API_PORT);
+        System.clearProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE);
+        System.clearProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE_PASSWORD);
+        System.clearProperty(ControllerConfiguration.REST_API_SSL_KEY_STORE_TYPE);
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_PKI_CLIENT_AUTH);
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_COMMAND_TIMEOUT);
         System.clearProperty(ControllerConfiguration.INTERDOMAIN_BASIC_AUTH_PASSWORD);
@@ -448,5 +449,10 @@ public class InterDomainTest extends AbstractControllerTest
     protected DomainService getDomainService()
     {
         return InterDomainAgent.getInstance().getDomainService();
+    }
+
+    private String getProjectResourcePath(String relativePath)
+    {
+        return Objects.requireNonNull(getClass().getClassLoader().getResource(relativePath)).getPath();
     }
 }

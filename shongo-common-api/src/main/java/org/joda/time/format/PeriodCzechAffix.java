@@ -135,4 +135,16 @@ public class PeriodCzechAffix implements PeriodFormatterBuilder.PeriodFieldAffix
         }
         return ~position;
     }
+
+    @Override
+    public String[] getAffixes()
+    {
+        return new String[] { iSingularText, iFewText, iPluralText };
+    }
+
+    @Override
+    public void finish(Set<PeriodFormatterBuilder.PeriodFieldAffix> set)
+    {
+        set.add(this);
+    }
 }

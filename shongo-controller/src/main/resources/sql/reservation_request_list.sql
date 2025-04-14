@@ -26,10 +26,7 @@ SELECT
     specification_summary.room_participant_count AS room_participant_count,
     executable_summary.room_has_recording_service AS room_has_recording_service,
     executable_summary.room_has_recordings AS room_has_recordings,
-    CASE
-        WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
-        ELSE reused_specification_summary.alias_room_name
-    END AS alias_room_name,
+    executable_summary.room_name AS alias_room_name,
     specification_summary.resource_id resource_id,
     reservation_request_summary.usage_executable_state AS usage_executable_state,
     reservation_request_summary.future_child_count,
@@ -37,7 +34,8 @@ SELECT
     foreign_resources.foreign_resource_id,
     domain.name as domain_name,
     reservation_request_summary.allowCache as allowCache,
-    resource_summary.tag_names as tag_names
+    resource_summary.tags as tags,
+    reservation_request_summary.aux_data as aux_data
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id

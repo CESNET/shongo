@@ -82,4 +82,14 @@ public class UserAuthorizationData
     {
         return loa;
     }
+
+    public static int getLoaFromDate(DateTime dateTime) {
+        if (dateTime.isAfter(DateTime.now().minusYears(1))) {
+            return LOA_EXTENDED;
+        }
+        if (dateTime.isAfter(DateTime.now().minusYears(2))) {
+            return LOA_BASIC;
+        }
+        return LOA_NONE;
+    }
 }

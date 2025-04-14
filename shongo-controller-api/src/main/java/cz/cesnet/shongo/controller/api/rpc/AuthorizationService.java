@@ -2,15 +2,14 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.api.ReservationDevice;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Interface defining service for accessing Shongo ACL.
@@ -194,4 +193,7 @@ public interface AuthorizationService extends Service
      */
     @API
     public List<ReferencedUser> listReferencedUsers(SecurityToken securityToken);
+
+    @API
+    public ReservationDevice getReservationDevice(SecurityToken securityToken);
 }

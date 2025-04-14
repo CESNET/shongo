@@ -13,6 +13,7 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::ClientCli::API::ReservationRequest;
 use Shongo::ClientCli::API::ReservationRequestSet;
+use Shongo::ClientCli::API::AuxiliaryData;
 
 # Enumeration of reservation request purpose
 our $Purpose = ordered_hash(
@@ -88,6 +89,15 @@ sub new()
             'ARBITRARY' => 'Arbitrary',
             'OWNED' => 'Owned'
         )
+    });
+    $self->add_attribute('auxData', {
+        'type' => 'collection',
+        'item' => {
+            'title' => 'Auxiliary Data',
+            'class' => 'Shongo::ClientCli::API::AuxiliaryData',
+            'short' => 1,
+        },
+        'optional' => 1,
     });
 
     return $self;

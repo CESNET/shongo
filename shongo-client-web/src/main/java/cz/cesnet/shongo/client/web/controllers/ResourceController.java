@@ -283,7 +283,7 @@ public class ResourceController
         Interval interval = Temporal.roundIntervalToDays(new Interval(intervalFrom, intervalTo));
         requestListRequest.setInterval(interval);
         if (resourceId != null) {
-            requestListRequest.setSpecificationResourceId(resourceId);
+            requestListRequest.setSpecificationResourceIds(new HashSet<>(Collections.singleton(resourceId)));
         } else {
             throw new TodoImplementException("list request for confirmation generaly");
         }

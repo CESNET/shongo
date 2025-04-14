@@ -47,17 +47,17 @@ public class DomainAuthentication {
         this.domainService = domainService;
         this.notifier = notifier;
         try {
-            KeyStore keyStore = KeyStore.getInstance(configuration.getInterDomainSslKeyStoreType());
-            FileInputStream keyStoreFile = new FileInputStream(configuration.getInterDomainSslKeyStore());
-            keyStore.load(keyStoreFile, configuration.getInterDomainSslKeyStorePassword().toCharArray());
+            KeyStore keyStore = KeyStore.getInstance(configuration.getRESTApiSslKeyStoreType());
+            FileInputStream keyStoreFile = new FileInputStream(configuration.getRESTApiSslKeyStore());
+            keyStore.load(keyStoreFile, configuration.getRESTApiSslKeyStorePassword().toCharArray());
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, configuration.getInterDomainSslKeyStorePassword().toCharArray());
+            keyManagerFactory.init(keyStore, configuration.getRESTApiSslKeyStorePassword().toCharArray());
             this.keyManagerFactory = keyManagerFactory;
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException("Failed to load keystore " + configuration.getInterDomainSslKeyStore(), e);
+            throw new RuntimeException("Failed to load keystore " + configuration.getRESTApiSslKeyStore(), e);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to read keystore " + configuration.getInterDomainSslKeyStore(), e);
+            throw new RuntimeException("Failed to read keystore " + configuration.getRESTApiSslKeyStore(), e);
         }
     }
 

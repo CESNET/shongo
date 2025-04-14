@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
@@ -35,6 +38,8 @@ public class Converter
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTimeParser();
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Convert given {@code value} to {@link String}.
      *
@@ -63,6 +68,9 @@ public class Converter
         }
         else if (value instanceof Interval ) {
             return convertIntervalToString((Interval) value);
+        }
+        else if (value instanceof JsonNode) {
+            return convertJsonNodeToString((JsonNode) value);
         }
         else {
             throw new TodoImplementException(value.getClass());
@@ -774,6 +782,31 @@ public class Converter
         @SuppressWarnings("unchecked")
         List<T> list = (List<T>) convertToCollection(value, List.class, componentClass);
         return list;
+    }
+
+    public static String convertJsonNodeToString(JsonNode jsonNode)
+    {
+        if (jsonNode == null) {
+            return "";
+        } else {
+            try {
+                return objectMapper.writeValueAsString(jsonNode);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static JsonNode convertToJsonNode(String value)
+    {
+        if (value.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

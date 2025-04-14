@@ -62,6 +62,15 @@
         <command-timeout>PT33S</command-timeout>
     </jade>
 
+    <rest>
+        <host>127.0.0.1</host>
+        <port>8001</port>
+        <origin>http://localhost</origin>
+        <origin>https://localhost</origin>
+        <ssl-key-store></ssl-key-store>
+        <ssl-key-store-password></ssl-key-store-password>
+    </rest>
+
     <!-- Security settings -->
     <security>
         <!-- AA server -->

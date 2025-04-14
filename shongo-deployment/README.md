@@ -6,7 +6,7 @@ This directory can contain runtime files for Shongo components.
 
 To install Shongo use the following command:
 
-    service/shongo-install.sh shongo-controller shongo-connector shongo-client-web
+    service/shongo-install.sh shongo-controller shongo-connector
 
 To uninstall Shongo use the following command:
 
@@ -17,7 +17,6 @@ To uninstall Shongo use the following command:
 Create the following configuration files to configure Shongo components:
 
 * <code>shongo-client-cli.cfg.xml</code> to configure Command-Line Client
-* <code>shongo-client-web.cfg.xml</code> to configure Web Interface
 * <code>shongo-client-connector.cfg.xml</code> to configure connectors
 * <code>shongo-client-connector.auth.xml</code> to configure authentication of connectors
 * <code>shongo-client-controller.auth.xml</code> to configure Controller
@@ -30,4 +29,4 @@ Use the following command to run Command-Line Client:
 
 Use the following command to check status of Shongo component (useful for Nagios NRPE plugin):
 
-    bin/shongo-check.sh [shongo-connector|shongo-controller|shongo-client-web]
+    bin/shongo-check.sh [shongo-connector|shongo-controller]
