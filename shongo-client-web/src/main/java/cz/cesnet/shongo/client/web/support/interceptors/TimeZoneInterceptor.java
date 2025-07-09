@@ -7,7 +7,7 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.InternalResourceView;
 import org.springframework.web.util.WebUtils;
@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TimeZoneInterceptor implements HandlerInterceptor
+public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 {
     private static Logger logger = LoggerFactory.getLogger(TimeZoneInterceptor.class);
 
