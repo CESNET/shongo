@@ -19,7 +19,8 @@
     <properties>
         <spring.version>5.2.2.RELEASE</spring.version>
         <spring.security.version>5.2.1.RELEASE</spring.security.version>
-        <jetty.version>9.4.40.v20210413</jetty.version><!--9.4.0.v20161208-->
+        <jetty.version>11.0.15</jetty.version>
+        <!--<jetty.version>9.4.40.v20210413</jetty.version>-->
         <!--<jetty.version>8.1.15.v20140411</jetty.version>-->
         <!--<jetty.version>9.2.5.v20141112</jetty.version>-->
     </properties>
@@ -131,9 +132,14 @@
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>apache-jstl</artifactId>
-            <version>${jetty.version}</version>
+            <groupId>jakarta.servlet.jsp.jstl</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

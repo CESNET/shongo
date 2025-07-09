@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web.auth;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * {@link RequestMatcher} for AJAX requests.

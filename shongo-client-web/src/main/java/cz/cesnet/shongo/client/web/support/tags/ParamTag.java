@@ -3,8 +3,8 @@ package cz.cesnet.shongo.client.web.support.tags;
 import org.springframework.web.servlet.tags.Param;
 import org.springframework.web.servlet.tags.ParamAware;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.BodyTagSupport;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.tagext.BodyTagSupport;
 
 /**
  * Extends {@link org.springframework.web.servlet.tags.ParamTag}.

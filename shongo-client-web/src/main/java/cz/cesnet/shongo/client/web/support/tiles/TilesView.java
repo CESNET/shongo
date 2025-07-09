@@ -2,8 +2,8 @@ package cz.cesnet.shongo.client.web.support.tiles;
 
 import org.springframework.web.context.support.ContextExposingHttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;

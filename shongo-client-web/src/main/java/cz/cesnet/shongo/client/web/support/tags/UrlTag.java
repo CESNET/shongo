@@ -5,7 +5,7 @@ import org.springframework.web.servlet.tags.Param;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import javax.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Collections;

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * {@link ReservationRequestModel} for modification.

@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.joda.time.DateTimeZone;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;

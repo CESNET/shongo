@@ -5,7 +5,7 @@ import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import org.springframework.web.util.WebUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
