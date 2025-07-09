@@ -24,7 +24,6 @@ import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
-import jakarta.annotation.Resource;
 import org.joda.time.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -42,16 +41,16 @@ import java.util.*;
 @Controller
 public class ResourceController
 {
-    @Resource
+    @javax.annotation.Resource
     protected ResourceService resourceService;
 
-    @Resource
+    @javax.annotation.Resource
     protected ReservationService reservationService;
 
-    @Resource
+    @javax.annotation.Resource
     protected AuthorizationService authorizationService;
 
-    @Resource
+    @javax.annotation.Resource
     protected Cache cache;
 
     /**

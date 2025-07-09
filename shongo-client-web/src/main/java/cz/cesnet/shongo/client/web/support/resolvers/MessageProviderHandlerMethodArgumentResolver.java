@@ -9,7 +9,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**

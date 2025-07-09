@@ -28,7 +28,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 /**
