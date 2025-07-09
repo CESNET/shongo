@@ -17,8 +17,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <spring.version>5.2.2.RELEASE</spring.version>
-        <spring.security.version>5.2.1.RELEASE</spring.security.version>
+        <spring.version>6.0.10</spring.version>
+        <spring.security.version>6.0.8</spring.security.version>
         <jetty.version>11.0.15</jetty.version>
         <!--<jetty.version>9.4.40.v20210413</jetty.version>-->
         <!--<jetty.version>8.1.15.v20140411</jetty.version>-->
