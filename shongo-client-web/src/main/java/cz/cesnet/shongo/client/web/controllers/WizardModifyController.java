@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * Controller for common wizard actions.

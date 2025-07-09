@@ -6,7 +6,7 @@ import cz.cesnet.shongo.client.web.models.ParticipantModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 /**

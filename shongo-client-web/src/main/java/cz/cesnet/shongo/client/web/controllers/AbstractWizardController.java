@@ -7,7 +7,7 @@ import cz.cesnet.shongo.client.web.WizardPage;
 import org.springframework.context.MessageSource;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
