@@ -8,7 +8,7 @@ import cz.cesnet.shongo.client.web.support.NavigationPage;
 import org.apache.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NavigationInterceptor extends HandlerInterceptorAdapter
-{
+public class NavigationInterceptor implements HandlerInterceptor {
     /**
      * Request attribute in which the {@link Breadcrumb} is stored.
      */
