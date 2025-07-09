@@ -3,9 +3,9 @@ package cz.cesnet.shongo.client.web.support;
 import cz.cesnet.shongo.client.web.ErrorHandler;
 import org.springframework.web.servlet.ModelAndView;
 
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Implementation of {@link org.springframework.web.servlet.HandlerExceptionResolver}.

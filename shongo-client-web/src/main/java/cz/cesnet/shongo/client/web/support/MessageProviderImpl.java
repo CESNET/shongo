@@ -4,7 +4,7 @@ import cz.cesnet.shongo.client.web.models.UserSession;
 import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
 /**

@@ -6,8 +6,8 @@ import cz.cesnet.shongo.client.web.models.ParticipantModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpSession;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 
 /**
  * Controller for creating with participants.

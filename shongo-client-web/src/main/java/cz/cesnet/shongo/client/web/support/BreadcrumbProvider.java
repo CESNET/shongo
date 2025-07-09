@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.support;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * {@link Breadcrumb} provider.

@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 
 /**
  * Controller for other views and resources.
