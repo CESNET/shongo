@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
-import org.eclipse.jetty.annotations.AnnotationConfiguration;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -13,13 +12,8 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.Configuration;
-import org.eclipse.jetty.webapp.FragmentConfiguration;
-import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
-import org.eclipse.jetty.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebInfConfiguration;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,14 +136,12 @@ public class ClientWeb
         // Including taglibs to get scanned for TLDs
         webAppContext.setExtraClasspath("../shongo-client-web/target/lib/taglibs/*");
 
-        webAppContext.setConfigurations(new Configuration[] {
-                new WebInfConfiguration(),
-                new WebXmlConfiguration(),
-                new MetaInfConfiguration(),
-                new FragmentConfiguration(),
-                new AnnotationConfiguration(),
-                new JettyWebXmlConfiguration()
-        });
+        Configuration.ClassList classList = Configuration.ClassList
+                .setServerDefault(server);
+        classList.addBefore(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                // Annotation config must follow immediately after JettyWebXmlConfiguration
+                "org.eclipse.jetty.annotations.AnnotationConfiguration");
 
         webAppContext.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                 ".*\\.jar$");
