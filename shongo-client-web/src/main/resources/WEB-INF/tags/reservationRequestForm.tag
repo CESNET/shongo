@@ -649,6 +649,9 @@
                 <c:when test="${reservationRequest.specificationType == 'VEHICLE'}">
                     var tag = "${configuration.getVehicleTagName()}";
                 </c:when>
+                <c:when test="${reservationRequest.specificationType == 'DEVICE'}">
+                    var tag = "${configuration.getDeviceTagName()}";
+                </c:when>
             </c:choose>
             $(function(){
                 var updateResources = function() {

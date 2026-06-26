@@ -104,6 +104,7 @@ public class WizardController
             case VEHICLE:
             case PARKING_PLACE:
             case MEETING_ROOM:
+            case DEVICE:
                 return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
                         ClientWebUrl.WIZARD_MEETING_ROOM_MODIFY, reservationRequestId));
             default:

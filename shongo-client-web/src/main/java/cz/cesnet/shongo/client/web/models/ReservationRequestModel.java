@@ -1158,6 +1158,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 specification = roomSpecification;
                 break;
             }
+            case DEVICE:
             case VEHICLE:
             case PARKING_PLACE:
             case MEETING_ROOM: {
@@ -1238,6 +1239,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             case MEETING_ROOM:
             case PARKING_PLACE:
             case VEHICLE:
+            case DEVICE:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
@@ -1271,6 +1273,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         switch (specificationType) {
             case PARKING_PLACE:
             case VEHICLE:
+            case DEVICE:
             case MEETING_ROOM:
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:

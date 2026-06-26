@@ -18,6 +18,9 @@
 <tag:url var="createVehicleReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
     <tag:param name="tag" value="vehicle" escape="false" />
 </tag:url>
+<tag:url var="createDeviceReservationUrl" value="<%= ClientWebUrl.WIZARD_PHYSICAL_RESOURCE_BOOK %>">
+    <tag:param name="tag" value="device" escape="false" />
+</tag:url>
 
 <tag:url var="reservationRequestMultipleDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>" />
 
@@ -125,6 +128,12 @@
                             |
                             <a href="${createVehicleReservationUrl}" tabindex="2">
                                 <spring:message code="views.index.action.vehicle"/>
+                            </a>
+                        </c:if>
+                        <c:if test="${deviceResources != null && !deviceResources.isEmpty()}">
+                            |
+                            <a href="${createDeviceReservationUrl}" tabindex="2">
+                                <spring:message code="views.index.action.device"/>
                             </a>
                         </c:if>
                     </li>

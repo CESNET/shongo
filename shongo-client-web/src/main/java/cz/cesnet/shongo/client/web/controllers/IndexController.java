@@ -71,13 +71,16 @@ public class IndexController
             String meetingRoomTag = ClientWebConfiguration.getInstance().getMeetingRoomTagName();
             String parkTagName = ClientWebConfiguration.getInstance().getParkingPlaceTagName();
             String vehicleTagName = ClientWebConfiguration.getInstance().getVehicleTagName();
+            String deviceTagName = ClientWebConfiguration.getInstance().getDeviceTagName();
             List<Map<String, Object>> meetingRooms = listResourcesByTag(meetingRoomTag, authenticationToken);
             List<Map<String, Object>> ppItems = listResourcesByTag(parkTagName, authenticationToken);
             List<Map<String, Object>> vehicleItems = listResourcesByTag(vehicleTagName, authenticationToken);
+            List<Map<String, Object>> deviceItems = listResourcesByTag(deviceTagName, authenticationToken);
 
             modelAndView.addObject("meetingRoomResources", meetingRooms);
             modelAndView.addObject("parkingPlaceResources", ppItems);
             modelAndView.addObject("vehicleResources", vehicleItems);
+            modelAndView.addObject("deviceResources", deviceItems);
             List<Map<String, Object>> physicalResources = new LinkedList<Map<String, Object>>();
             if (meetingRooms != null) {
                 physicalResources.addAll(meetingRooms);
@@ -87,6 +90,9 @@ public class IndexController
             }
             if (vehicleItems != null) {
                 physicalResources.addAll(vehicleItems);
+            }
+            if (deviceItems != null) {
+                physicalResources.addAll(deviceItems);
             }
             modelAndView.addObject("physicalResources", physicalResources);
         }

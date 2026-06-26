@@ -291,6 +291,13 @@ public class ClientWebConfiguration extends CombinedConfiguration {
     }
 
     /**
+     * @return name of tag for device
+     */
+    public String getDeviceTagName() {
+        return getString("tags.device");
+    }
+
+    /**
      * @return name of tag for meeting rooms
      */
     public Boolean showOnlyMeetingRooms() {

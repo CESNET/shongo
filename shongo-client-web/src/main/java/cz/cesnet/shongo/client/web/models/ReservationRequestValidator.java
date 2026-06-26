@@ -186,6 +186,7 @@ public class ReservationRequestValidator implements Validator
                     validateParticipants(reservationRequestModel, errors, true);
                     break;
                 case VEHICLE:
+                case DEVICE:
                 case PARKING_PLACE:
                 case MEETING_ROOM:
                     validatePeriodicity(reservationRequestModel, errors);
